@@ -1376,6 +1376,11 @@ export interface components {
                     height: (number | null) | null;
                 } | null) | null;
                 defaultVariant: ({
+                    /**
+                     * Format: uuid
+                     * @description UUID de la variante par défaut.
+                     */
+                    id: string;
                     /** @description Prix HT, décimal en chaîne (ex. « 12.90 »). */
                     priceHt: string;
                     compareAtPriceHt: (string | null) | null;
@@ -1576,6 +1581,11 @@ export interface components {
                 height: (number | null) | null;
             } | null) | null;
             defaultVariant: ({
+                /**
+                 * Format: uuid
+                 * @description UUID de la variante par défaut.
+                 */
+                id: string;
                 /** @description Prix HT, décimal en chaîne (ex. « 12.90 »). */
                 priceHt: string;
                 compareAtPriceHt: (string | null) | null;

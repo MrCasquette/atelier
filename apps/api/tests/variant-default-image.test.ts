@@ -81,7 +81,12 @@ async function insertMediaForVariant(productId: string, variantId: string) {
 
 interface Card {
   slug: string;
-  defaultVariant: { priceHt: string; compareAtPriceHt: string | null; quantity: number } | null;
+  defaultVariant: {
+    id: string;
+    priceHt: string;
+    compareAtPriceHt: string | null;
+    quantity: number;
+  } | null;
 }
 
 const cardFor = async (slug: string): Promise<Card> => {

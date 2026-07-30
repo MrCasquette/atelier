@@ -8549,11 +8549,17 @@
                     {
                       "type": "object",
                       "required": [
+                        "id",
                         "priceHt",
                         "compareAtPriceHt",
                         "quantity"
                       ],
                       "properties": {
+                        "id": {
+                          "format": "uuid",
+                          "description": "UUID de la variante par défaut.",
+                          "type": "string"
+                        },
                         "priceHt": {
                           "description": "Prix HT, décimal en chaîne (ex. « 12.90 »).",
                           "type": "string"
@@ -9330,11 +9336,17 @@
                 {
                   "type": "object",
                   "required": [
+                    "id",
                     "priceHt",
                     "compareAtPriceHt",
                     "quantity"
                   ],
                   "properties": {
+                    "id": {
+                      "format": "uuid",
+                      "description": "UUID de la variante par défaut.",
+                      "type": "string"
+                    },
                     "priceHt": {
                       "description": "Prix HT, décimal en chaîne (ex. « 12.90 »).",
                       "type": "string"

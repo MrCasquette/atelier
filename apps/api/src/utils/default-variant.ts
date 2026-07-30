@@ -6,6 +6,7 @@ import { and, asc, db, desc, eq, inArray, variant } from '@echoppe/core';
 // Source unique partagée par l'enrichissement des cartes et les filtres/tri prix des listings :
 // sans ce fallback, un produit dépourvu d'isDefault affiche prix/stock null (faux OOS).
 export interface DefaultVariantRow {
+  id: string;
   product: string;
   priceHt: string;
   compareAtPriceHt: string | null;
@@ -22,6 +23,7 @@ export function selectDefaultVariants(productIds?: string[]): Promise<DefaultVar
   return (
     db
       .selectDistinctOn([variant.product], {
+        id: variant.id,
         product: variant.product,
         priceHt: variant.priceHt,
         compareAtPriceHt: variant.compareAtPriceHt,

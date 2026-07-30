@@ -20,7 +20,7 @@ import { getTagsByProduct } from './tags';
 // évolution du payload de carte se fait ici, pas ×3 dans chaque route.
 //
 // - featuredImage : média mis en avant (image principale), ou null.
-// - defaultVariant : prix HT / prix barré / stock de la variante par défaut, ou null.
+// - defaultVariant : id + prix HT / prix barré / stock de la variante par défaut, ou null.
 // - images : galerie ordonnée (image featured en tête, puis sortOrder) → survol, miniatures.
 // - swatches : axe couleur (option type=color) → pastilles ; chaque swatch porte une couleur CSS
 //   oklch prête au rendu + l'image de la variante correspondante (si définie) pour le survol.
@@ -106,7 +106,12 @@ export async function enrichProductCards<T extends { id: string }>(products: T[]
   const defaultVariantByProduct = new Map(
     defaultVariants.map((dv) => [
       dv.product,
-      { priceHt: dv.priceHt, compareAtPriceHt: dv.compareAtPriceHt, quantity: dv.quantity },
+      {
+        id: dv.id,
+        priceHt: dv.priceHt,
+        compareAtPriceHt: dv.compareAtPriceHt,
+        quantity: dv.quantity,
+      },
     ]),
   );
 

@@ -30,6 +30,7 @@ export const imageRefSchema = t.Object({
 });
 
 export const defaultVariantSchema = t.Object({
+  id: t.String({ format: 'uuid', description: 'UUID de la variante par défaut.' }),
   priceHt: t.String({ description: 'Prix HT, décimal en chaîne (ex. « 12.90 »).' }),
   compareAtPriceHt: t.Nullable(
     t.String({ description: 'Prix barré HT (avant remise), décimal en chaîne.' }),
