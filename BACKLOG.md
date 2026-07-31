@@ -38,6 +38,13 @@ Légende : `[ ]` ouvert · 🔴 fort impact · 🟠 moyen · 🟡 faible / durci
 - [ ] 🟠 **Hasher les tokens de session** (en clair aujourd'hui, incohérent avec clés API / reset).
 - [ ] 🟠 **Rate limiting sur webhooks** Stripe/PayPal.
 - [ ] 🟡 **`onError` global** (message générique en prod) + sanitize extension upload + hardening divers.
+      ⚠️ **Déclarer aussi les 5xx au contrat** : aucune route n'en déclare, donc le SDK type `error`
+      à partir des seules réponses métier. Conséquence côté consommateur : sur une route qui ne
+      déclare que `200` (ex. `POST /customer/auth/logout`), `error` vaut `never`, le garde
+      `if (error)` devient inatteignable et TypeScript réduit **tout** le résultat déstructuré à
+      `never` — `response` compris. Les autres routes compilent seulement parce qu'elles déclarent
+      un `401` ; leur garde n'attrape pas davantage les 500. Contourné dans DPC par un test
+      `response.ok`, mais le remède est ici. *(Rencontré 2026-07-31.)*
 - [ ] 🟡 **Reset mot de passe oublié côté ADMIN** — `sendResetPasswordEmail` prête ; câbler le flux jeton
       pour les users admin (`auth.ts`). Même angle mort que le client, résolu côté client en 2026-07.
 
