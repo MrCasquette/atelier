@@ -5,7 +5,7 @@ Statut : accepté · 2026-07-20 · amende [ADR-0002](./ADR-0002-distribution.md)
 ## Contexte
 
 Le monorepo (ADR-0002) publie plusieurs artefacts : les **images** api+admin (produit déployable) et
-trois **packages npm** (`@echoppe/client`, `@echoppe/content`, `create-echoppe`). L'action changesets
+trois **packages npm** (`@echoppe/client`, `@mrcasquette/content`, `create-echoppe`). L'action changesets
 crée **un git tag + une GitHub Release à chaque publication de package**. Résultat observé au 2026-07-20 :
 
 - 20 tags git entrelacés (`v0.1.0…v0.5.0`, `@echoppe/client@*`, `create-echoppe@*`, + des `-next.*` morts) ;
@@ -33,7 +33,7 @@ registre de vérité — **npm**.
 - **git tags = `v*` uniquement** — le runtime **api+admin** (le produit qu'on déploie), versionné comme
   une unité (`fixed: [["@echoppe/api", "@echoppe/admin"]]`). Chaque `v*` est **promu en GitHub Release**
   avec ses notes → la page Releases lit `0.1 → 0.2 → … → 1.0 → 1.1 → 1.1.1`.
-- **Packages (`@echoppe/client`, `@echoppe/content`, `create-echoppe`) = npm.** Versionnés
+- **Packages (`@echoppe/client`, `@mrcasquette/content`, `create-echoppe`) = npm.** Versionnés
   **indépendamment** par changesets, publiés sur npm avec leur `CHANGELOG.md` in-repo. **Pas de git tag,
   pas de GitHub Release** : npm **est** leur registre de versions. `changeset publish --no-git-tag` +
   action `createGithubReleases: false`.

@@ -1,7 +1,7 @@
 import type { MenuItem } from '@echoppe/core';
 import { type Static, t } from 'elysia';
 
-// Modèles du menu de navigation (built-in, hors registre @echoppe/content). Un menu = arbre
+// Modèles du menu de navigation (built-in, hors registre @mrcasquette/content). Un menu = arbre
 // ORDONNÉ et RÉCURSIF d'items ; `children` référence le même item (récursivité illimitée via
 // `t.Recursive`). Deux mondes :
 //   - STOCKAGE / écriture : le lien porte une URL ou un UUID d'entité brut.

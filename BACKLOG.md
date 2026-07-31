@@ -81,13 +81,13 @@ Légende : `[ ]` ouvert · 🔴 fort impact · 🟠 moyen · 🟡 faible / durci
 ## Plus tard — V2 (vision, non planifié ; sera reventilé dans `roadmap.md` post-V1)
 
 ### Module contenu — page-builder headless (reste) → [ADR-0012](docs-internal/adr/ADR-0012-module-contenu.md) · [content-module.md](docs-internal/reference/content-module.md)
-> Pages en **sections** déclarées config-as-code (`@echoppe/content`). Boucle end-to-end validée.
+> Pages en **sections** déclarées config-as-code (`@mrcasquette/content`). Boucle end-to-end validée.
 - [ ] **P2c** type-gen (CLI lit `defineContent` → types TS des sections/components pour le front).
 - [ ] **P3** générateur de formulaires admin depuis le registre (widgets par type) — gros morceau UX.
 - [ ] **Page admin « Clés d'API »** (lister selfOnly, créer avec scopes hiérarchiques, révéler une fois, révoquer).
 - [ ] **P4** menus imbriqués, entités hors « page », champs custom (bridge code→admin), `file`/`asset`, i18n enum.
 - [ ] Durcissement API-key (interdire aux principals `apikey` la gestion des clés) · **portabilité DB** (le
-      `jsonb` couple à Postgres) · publier `@echoppe/content` sur npm quand P2c prêt.
+      `jsonb` couple à Postgres) · publier `@mrcasquette/content` sur npm quand P2c prêt.
 
 ### Système de contenu léger (entités extensibles) → [design](docs-internal/design/systeme-contenu-leger.md)
 > **Distinct** du page-builder : un CMS **type Directus allégé** pour créer des **entités diverses**

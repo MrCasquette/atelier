@@ -21,7 +21,7 @@ export const page = pgTable('page', {
   dateUpdated: timestamp('date_updated', { withTimezone: true }).notNull().defaultNow(),
 });
 
-// Registre des DÉFINITIONS de contenu (P2b). Miroir en DB des fichiers `@echoppe/content` du
+// Registre des DÉFINITIONS de contenu (P2b). Miroir en DB des fichiers `@mrcasquette/content` du
 // dev : la CLI sérialise ses `defineComponent`/`defineSection` et remplace ce registre via
 // `PUT /content/registry`. L'API en dérive la VALIDATION d'écriture des sections (schéma compilé
 // depuis `fields`), et l'admin les FORMULAIRES d'édition. Une ligne = une définition ; `name` est
@@ -31,7 +31,7 @@ export const contentDefinition = pgTable('content_definition', {
   role: varchar('role', { length: 20 }).notNull(), // 'section' (insérable en page) | 'component'
   label: varchar('label', { length: 200 }),
   icon: varchar('icon', { length: 100 }),
-  fields: jsonb('fields').notNull(), // dictionnaire { [champ]: SerializedField } — cf. @echoppe/content
+  fields: jsonb('fields').notNull(), // dictionnaire { [champ]: SerializedField } — cf. @mrcasquette/content
   dateUpdated: timestamp('date_updated', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -55,7 +55,7 @@ export interface MenuItem {
 // Menu de navigation (built-in) : arbre ORDONNÉ et RÉCURSIF d'items stocké en un seul jsonb.
 // `handle` = clé stable fetchée par le front (main, footer…). Le lien cible une URL ou une entité
 // interne (page/produit/collection/catégorie), résolue au read storefront. Shape figé par le
-// framework (validation dédiée, cf. models/menu.ts) — hors registre @echoppe/content.
+// framework (validation dédiée, cf. models/menu.ts) — hors registre @mrcasquette/content.
 export const menu = pgTable('menu', {
   id: uuid('id').primaryKey().defaultRandom(),
   handle: varchar('handle', { length: 100 }).unique().notNull(),

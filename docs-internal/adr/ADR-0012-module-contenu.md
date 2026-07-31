@@ -2,6 +2,14 @@
 
 Statut : accepté
 
+> **Amendement 2026-07-31 — renommage du paquet.** Le DSL est republié sous
+> **`@mrcasquette/content`** (v0.2.0). Motif : déclarer des sections et des composants n'a rien de
+> spécifique à l'e-commerce — c'est une brique que **Prisme** (CMS) consommera aussi. La laisser
+> sous le scope `@echoppe/*` reviendrait à faire dépendre le CMS du framework e-commerce.
+> Règle générale retenue : un artefact spécifique à un produit garde le scope du produit, un
+> artefact agnostique prend un namespace neutre. La décision de fond de cet ADR est inchangée —
+> seul le nom du paquet bouge. `@echoppe/content@0.1.0` reste en ligne, inerte.
+
 ## Contexte
 
 Une boutique a besoin de pages éditoriales (accueil, CGV, à-propos…) composées de blocs, gérables par

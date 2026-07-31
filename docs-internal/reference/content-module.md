@@ -1,7 +1,7 @@
 # Module contenu — décision & architecture
 
 Doc de **décision** (le _pourquoi_) du page builder headless et de son outillage
-`@echoppe/content` (P2). La doc utilisateur (le _comment_) vit dans
+`@mrcasquette/content` (P2). La doc utilisateur (le _comment_) vit dans
 [dev/content](../../docs/dev/content.md).
 
 Voir aussi [Clés d'API](./api-keys.md) : l'auth machine que consomme `content:push`.
@@ -13,7 +13,7 @@ responsabilités :
 
 | Le framework | Le dev |
 |--------------|--------|
-| **Stocke** les blocs (`page` → `section[]`, `data` en jsonb) | **Déclare** ses blocs en config-as-code (`@echoppe/content`) |
+| **Stocke** les blocs (`page` → `section[]`, `data` en jsonb) | **Déclare** ses blocs en config-as-code (`@mrcasquette/content`) |
 | **Valide** la donnée éditée contre les définitions | **Rend** (les composants de son front — le rendu n'est jamais au framework) |
 | **Sert** la donnée (storefront + admin) | **Édite** via l'admin (formulaires générés — P3) |
 | — | **Type** son front par **inférence** des déclarations (P2c, `InferData`/`InferSections`) |
@@ -22,7 +22,7 @@ Le `data` d'un bloc est **schemaless au niveau DB** (jsonb) mais **schema-driven
 validation** : la forme est décrite par le registre déclaré par le dev, pas figée dans le
 code de l'API.
 
-## `@echoppe/content` : léger par design, mais pas dogmatique
+## `@mrcasquette/content` : léger par design, mais pas dogmatique
 
 Package **build/dev-time**, importé en **devDependency** du front. Il ne fait **aucun appel
 runtime en production** : il déclare, la CLI sérialise/pousse, et le front **infère** ses types

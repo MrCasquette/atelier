@@ -83,7 +83,7 @@ export const field = {
   },
 };
 
-// Alias court validé avec l'utilisateur : `import { field as f } from '@echoppe/content'`.
+// Alias court validé avec l'utilisateur : `import { field as f } from '@mrcasquette/content'`.
 export type Field = typeof field;
 
 // Réexport pratique pour construire des options d'enum en forme longue.

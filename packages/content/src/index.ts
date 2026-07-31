@@ -1,4 +1,4 @@
-// Surface publique de `@echoppe/content` — l'outillage build/dev-time de déclaration de contenu.
+// Surface publique de `@mrcasquette/content` — l'outillage build/dev-time de déclaration de contenu.
 // Importé en devDependency du repo front du dev. Ne fait AUCUN appel runtime : il déclare, la CLI
 // sérialise vers le registre de l'API (P2b) et le front INFÈRE ses types depuis la déclaration (P2c,
 // `InferData`/`InferSections`) — pas de codegen, le registre poussé ne sert qu'à l'admin.

@@ -1,6 +1,6 @@
 {
-  "name": "@echoppe/content",
-  "version": "0.1.0",
+  "name": "@mrcasquette/content",
+  "version": "0.2.0",
   "description": "Déclaration de contenu config-as-code pour Échoppe — components, sections et champs typés, synchronisés vers l'API.",
   "type": "module",
   "main": "./dist/index.js",

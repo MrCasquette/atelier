@@ -56,7 +56,7 @@ La SSOT du contrat = les schémas **TypeBox** (`apps/api/src/models/*`). Les pro
 
 - **Providers externes** : adapters par famille (paiement/livraison/communication), config-driven,
   secrets chiffrés au repos. → [ADR-0011](../adr/ADR-0011-adapters-providers.md).
-- **Contenu / page-builder** : `@echoppe/content`, blocs déclarés par le dev, validateur générique,
+- **Contenu / page-builder** : `@mrcasquette/content`, blocs déclarés par le dev, validateur générique,
   typage par inférence. → [ADR-0012](../adr/ADR-0012-module-contenu.md).
 - **RBAC** : rôles/permissions administrables, rôles système, owner bypass, cache.
   → [ADR-0013](../adr/ADR-0013-modele-rbac.md) · **Clés d'API machine** →

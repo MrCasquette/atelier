@@ -25,7 +25,7 @@ Le socle tourne en production (`0.2.x`) :
 ## 🔨 Maintenant
 
 - **Module contenu / page builder headless** — le dev déclare ses blocs (sections et
-  composants réutilisables) en *config-as-code* avec `@echoppe/content` ; Échoppe stocke,
+  composants réutilisables) en *config-as-code* avec `@mrcasquette/content` ; Échoppe stocke,
   valide et sert la donnée, le rendu reste le vôtre. *(Déclaration, validation, synchronisation
   CLI et typage du front par inférence livrés ; formulaires d'édition dans l'admin et menus à
   venir.)*

@@ -221,7 +221,7 @@ export const contentRoutes = new Elysia({ prefix: '/content', detail: { tags: ['
   // === UPDATE ===
   .use(permissionGuard('content', 'update'))
 
-  // PUT /content/registry - Synchronise le registre complet (poussé par la CLI @echoppe/content).
+  // PUT /content/registry - Synchronise le registre complet (poussé par la CLI @mrcasquette/content).
   // Remplace-tout : la source d'autorité, ce sont les fichiers du dev ; la DB en est le miroir.
   .put(
     '/registry',

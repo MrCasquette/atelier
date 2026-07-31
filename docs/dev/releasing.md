@@ -6,7 +6,7 @@
 - **Runtime** (images Docker `echoppe-api` + `-admin`, paire co-versionnée) — seule à porter un **tag
   git `v*`** (+ GitHub Release). Construit par `release.yml` (appel de `docker-build.yml`), gate
   T2–T5 inclus.
-- **Paquets npm** `@echoppe/client`, `@echoppe/content`, `create-echoppe` — publiés par `release.yml`,
+- **Paquets npm** `@echoppe/client`, `@mrcasquette/content`, `create-echoppe` — publiés par `release.yml`,
   **sans tag ni Release git** (npm = leur registre de versions).
 
 Le tag `v*` peut aussi être poussé à la main (échappatoire re-cut d'images), pas la voie normale.

@@ -6,7 +6,7 @@
 // Unités indépendantes :
 //   runtime → @echoppe/api (+ admin, paire fixed)  → images Docker + tag/Release git `v*`
 //   sdk     → @echoppe/client                       → npm (pas de tag git)
-//   content → @echoppe/content                      → npm
+//   content → @mrcasquette/content                      → npm
 //   cli     → create-echoppe                        → npm
 //
 //   bun run ship runtime minor "ajoute X"     # explicite
@@ -20,7 +20,7 @@ import { $ } from 'bun';
 const UNITS = {
   runtime: '@echoppe/api',
   sdk: '@echoppe/client',
-  content: '@echoppe/content',
+  content: '@mrcasquette/content',
   cli: 'create-echoppe',
 } as const;
 type Unit = keyof typeof UNITS;

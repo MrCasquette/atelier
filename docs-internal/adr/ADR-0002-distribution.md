@@ -6,9 +6,9 @@ Statut : accepté · 2026-07-06 → 2026-07-08 · politique de tags/versions aff
 > (`MrCasquette/atelier`). Les images runtime ne sont plus publiées sur Docker Hub public mais sur
 > **GHCR privé** (`ghcr.io/mrcasquette/echoppe-{api,admin}`) : les tirer exige un PAT `read:packages`.
 > Les deux canaux et le modèle A restent valides ; seul le registre et sa visibilité changent. Le
-> canal npm est inchangé — `@echoppe/client` et `create-echoppe` restent publics. Décidé mais pas
-> encore appliqué : `@echoppe/content` sera republié en `@mrcasquette/content` (brique agnostique,
-> donc hors scope produit).
+> canal npm est inchangé — `@echoppe/client` et `create-echoppe` restent publics. `@echoppe/content`
+> est renommé en `@mrcasquette/content` (brique agnostique, donc hors scope produit — cf.
+> [ADR-0012](./ADR-0012-module-contenu.md)).
 
 ## Contexte
 

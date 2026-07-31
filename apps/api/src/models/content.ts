@@ -3,7 +3,7 @@ import { type Static, t } from 'elysia';
 // Modèles du module content (page builder).
 //
 // La forme des blocs n'est PLUS codée en dur ici : elle vit dans le REGISTRE (config-as-code
-// déclarée par le dev via `@echoppe/content`, synchronisée en DB via `PUT /content/registry`).
+// déclarée par le dev via `@mrcasquette/content`, synchronisée en DB via `PUT /content/registry`).
 // Ce fichier garde deux rôles :
 //   1. le CONTRAT de lecture storefront (page / section générique) — inchangé ;
 //   2. le schéma du REGISTRE entrant (frontière de validation du `PUT /content/registry`), d'où
@@ -13,7 +13,7 @@ import { type Static, t } from 'elysia';
 
 const uuidStr = (description: string) => t.String({ format: 'uuid', description });
 
-// ── Registre : grammaire des champs sérialisés (miroir de @echoppe/content) ───────────────────
+// ── Registre : grammaire des champs sérialisés (miroir de @mrcasquette/content) ───────────────────
 // Méta commune à tout champ.
 const fieldMeta = {
   label: t.Optional(t.String()),
@@ -91,7 +91,7 @@ const serializedDefinitionSchema = t.Object({
   fields: t.Record(t.String(), serializedFieldSchema),
 });
 
-// Corps du `PUT /content/registry` : le registre complet sérialisé par la CLI @echoppe/content.
+// Corps du `PUT /content/registry` : le registre complet sérialisé par la CLI @mrcasquette/content.
 export const registrySchema = t.Object({
   version: t.Literal(1),
   sections: t.Record(t.String(), serializedDefinitionSchema),
