@@ -17,7 +17,7 @@
     "dev:admin": "bun run --cwd apps/admin dev",
     "dev:store": "bun run --cwd apps/store dev",
     "build": "bun run --cwd apps/api build && bun run --cwd apps/admin build && bun run --cwd packages/content build && bun run --cwd packages/client build && bun run --cwd apps/store build",
-    "type-check": "bun run --cwd packages/shared type-check && bun run --cwd packages/core type-check && bun run --cwd packages/content type-check && bun run --cwd packages/client type-check && bun run --cwd packages/create-echoppe type-check && bun run --cwd apps/api type-check && bun run --cwd apps/admin type-check && bun run --cwd apps/store type-check",
+    "type-check": "bun run --filter '*' type-check",
     "lint": "biome check packages apps/api && bun run --cwd apps/admin lint",
     "lint:fix": "biome check --write packages apps/api && bun run --cwd apps/admin lint:fix",
     "format": "biome format --write packages apps/api",
