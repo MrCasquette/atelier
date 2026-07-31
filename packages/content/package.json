@@ -34,12 +34,6 @@
   ],
   "author": "MrCasquette",
   "license": "CECILL-2.1",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/MrCasquette/atelier.git",
-    "directory": "packages/content"
-  },
-  "homepage": "https://github.com/MrCasquette/atelier#readme",
   "devDependencies": {
     "@types/node": "^22.10.2",
     "typescript": "6.0.3"
