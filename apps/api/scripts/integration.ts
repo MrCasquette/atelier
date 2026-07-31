@@ -23,7 +23,7 @@ const REPO_ROOT = fileURLToPath(new URL('../../..', import.meta.url));
 const IMAGE = process.env.INTEGRATION_IMAGE ?? 'echoppe-api:integration';
 // n-1 pour l'upgrade : par défaut le `:latest` publié = la version en prod AU MOMENT du gate
 // (avant qu'on publie la nouvelle) → teste l'upgrade depuis ce que les boutiques ont réellement.
-const PREV_IMAGE = process.env.PREV_IMAGE ?? 'axiomeapp/echoppe-api:latest';
+const PREV_IMAGE = process.env.PREV_IMAGE ?? 'ghcr.io/mrcasquette/echoppe-api:latest';
 const NET = 'echoppe-int-net';
 const DB_C = 'echoppe-int-db';
 const API_C = 'echoppe-int-api';

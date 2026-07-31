@@ -15,13 +15,13 @@ Un framework e-commerce **clé en main « à la Medusa »** :
 
 Ils ne se remplacent pas, ils sont **complémentaires**.
 
-| | **Docker Hub** | **npm** |
+| | **GHCR** (privé) | **npm** (public) |
 |---|---|---|
 | Distribue | des **images = applications qui tournent** | du **code = librairies à intégrer** |
 | Sert à | **déployer/faire tourner** le backend | **consommer du code** dans un projet |
 | Public | celui qui **héberge** Échoppe | celui qui **développe un front / scaffolde** |
 | Analogie | le serveur PostgreSQL qu'on lance | le driver `pg` qu'on installe |
-| État | ✅ en place (`axiomeapp/echoppe-*`) | ❌ à créer (SDK + CLI) |
+| État | ✅ en place (`ghcr.io/mrcasquette/echoppe-*`, privé — tirage sous PAT `read:packages`) | ✅ en place (SDK + CLI + DSL) |
 
 Docker fait *tourner* le backend ; npm *outille* le développement du front. Docker
 ne peut pas fournir un client à importer dans un projet Astro → npm est indispensable.
@@ -125,9 +125,10 @@ comme `create-next-app`). Tous les autres workspaces sont `private: true` → ig
    (bump + CHANGELOG). Requiert le toggle orga *« Allow GitHub Actions to create and
    approve pull requests »*.
 2. merge de cette PR → l'étape `publish` s'exécute et publie via **OIDC** (npm échange
-   le jeton GitHub Actions, pas de `NPM_TOKEN`), avec **provenance**. Prérequis : trusted
-   publisher configuré sur npmjs.com pour chaque paquet (repo `Axiome-Apps/echoppe` +
-   workflow `release.yml`), et npm ≥ 11.5.1 dans le runner.
+   le jeton GitHub Actions, pas de `NPM_TOKEN`). Prérequis : trusted publisher configuré sur
+   npmjs.com pour chaque paquet (repo `MrCasquette/atelier` + workflow `release.yml`), et
+   npm ≥ 11.5.1 dans le runner. **Sans provenance** depuis le passage en privé : l'attestation
+   exige un dépôt source public.
 
 Le seul publish manuel de toute la vie du projet est le **premier** (bootstrap) : npm ne
 sait pas initialiser un paquet inexistant via OIDC → première version publiée en

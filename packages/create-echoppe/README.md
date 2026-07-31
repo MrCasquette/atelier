@@ -1,6 +1,6 @@
 # create-echoppe
 
-Scaffolde une **boutique Astro** connectée à une API [Échoppe](https://github.com/Axiome-Apps/echoppe),
+Scaffolde une **boutique Astro** connectée à une API Échoppe,
 prête à démarrer, via le SDK [`@echoppe/client`](https://www.npmjs.com/package/@echoppe/client).
 
 ## Utilisation

@@ -89,13 +89,10 @@ export default defineConfig({
             { text: "Clés d'API", link: '/dev/api-keys' },
             { text: 'Module contenu', link: '/dev/content' },
             { text: 'Publier une version', link: '/dev/releasing' },
-            { text: 'Contribuer', link: '/dev/contributing' },
           ],
         },
       ],
     },
-
-    socialLinks: [{ icon: 'github', link: 'https://github.com/Axiome-Apps/echoppe' }],
 
     search: {
       provider: 'local',

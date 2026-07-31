@@ -2,6 +2,14 @@
 
 Statut : accepté · 2026-07-06 → 2026-07-08 · politique de tags/versions affinée par [ADR-0023](./ADR-0023-versioning-tags.md)
 
+> **Amendement 2026-07-31 — registre des images.** Le monorepo est passé en privé
+> (`MrCasquette/atelier`). Les images runtime ne sont plus publiées sur Docker Hub public mais sur
+> **GHCR privé** (`ghcr.io/mrcasquette/echoppe-{api,admin}`) : les tirer exige un PAT `read:packages`.
+> Les deux canaux et le modèle A restent valides ; seul le registre et sa visibilité changent. Le
+> canal npm est inchangé — `@echoppe/client` et `create-echoppe` restent publics. Décidé mais pas
+> encore appliqué : `@echoppe/content` sera republié en `@mrcasquette/content` (brique agnostique,
+> donc hors scope produit).
+
 ## Contexte
 
 Échoppe vise un framework e-commerce clé en main « à la Medusa » : backend déployable + front

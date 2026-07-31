@@ -26,6 +26,7 @@ permissions:
   contents: write # commits/tags de la PR de version + tag v* + GitHub Release
   pull-requests: write # PR « Version Packages »
   id-token: write # OIDC pour le trusted publishing npm
+  packages: write # push GHCR du job `images` — un workflow appelé ne peut pas dépasser son appelant
 
 jobs:
   release:
@@ -71,7 +72,9 @@ jobs:
           createGithubReleases: false # ADR-0023 : pas de Release git par paquet (npm = registre)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_CONFIG_PROVENANCE: "true" # attestation de provenance (public, OIDC)
+          # PAS de NPM_CONFIG_PROVENANCE : l'attestation de provenance npm exige un dépôt source
+          # PUBLIC (elle doit être vérifiable par des tiers). Depuis le passage du monorepo en
+          # privé, l'activer ferait échouer le publish. À réactiver si le dépôt redevient public.
 
       # Version runtime = `apps/api/package.json` (paire `fixed` avec admin). Un bump runtime ne publie
       # RIEN sur npm (privé) → on ne peut pas se fier à `published` : on détecte le bump par l'ABSENCE

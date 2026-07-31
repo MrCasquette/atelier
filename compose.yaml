@@ -1,7 +1,10 @@
 # Échoppe - Production Docker Compose (backend : API + Admin + PostgreSQL)
 #
 # Quick start:
-#   curl -O https://raw.githubusercontent.com/Axiome-Apps/echoppe/main/compose.yaml
+#   # Images PRIVÉES sur GHCR → authentification requise sur l'hôte, une seule fois.
+#   # Utiliser un PAT DÉDIÉ au tirage d'images (moindre privilège, révocable seul) :
+#   # un jeton portant `read:packages` et rien d'autre — surtout pas le jeton de dev.
+#   echo "$GHCR_TOKEN" | docker login ghcr.io -u mrcasquette --password-stdin
 #
 #   # Clé de chiffrement (requise pour les credentials paiement/livraison)
 #   export ENCRYPTION_KEY=$(openssl rand -base64 32)
@@ -30,7 +33,7 @@ services:
       retries: 5
 
   api:
-    image: axiomeapp/echoppe-api:${VERSION:-latest}
+    image: ghcr.io/mrcasquette/echoppe-api:${VERSION:-latest}
     container_name: echoppe-api
     restart: unless-stopped
     environment:
@@ -52,7 +55,7 @@ services:
         condition: service_healthy
 
   admin:
-    image: axiomeapp/echoppe-admin:${VERSION:-latest}
+    image: ghcr.io/mrcasquette/echoppe-admin:${VERSION:-latest}
     container_name: echoppe-admin
     restart: unless-stopped
     ports:

@@ -104,3 +104,13 @@ absente). Il refuse le démarrage avec un message clair si une variable **critiq
 Code/API en **anglais**, URLs storefront en **français** (`/produits`), UI en français. Messages de
 commit en **français**, **aucune mention d'IA/assistant** (seul le nom de l'utilisateur). Commit
 oui, **push jamais** sans demande explicite.
+
+Préfixes de branches et de commits (repris de l'ancien `CONTRIBUTING.md`, supprimé au passage
+du dépôt en privé — plus de contribution externe) :
+
+```
+feat/…      feat: ajouter le support des variantes produit
+fix/…       fix: corriger le calcul du panier
+docs/…      docs: mettre à jour le guide d'installation
+refactor/…  refactor: simplifier la gestion des médias
+```

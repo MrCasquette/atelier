@@ -1,6 +1,6 @@
 # @echoppe/content
 
-Déclaration de contenu **config-as-code** pour [Échoppe](https://github.com/Axiome-Apps/echoppe).
+Déclaration de contenu **config-as-code** pour Échoppe.
 Le développeur décrit ses **sections** de page et ses **components** réutilisables en TypeScript ;
 la CLI sérialise ces définitions vers l'API (registre) et génère les types du front.
 

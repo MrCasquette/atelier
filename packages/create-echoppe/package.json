@@ -26,14 +26,14 @@
     "astro",
     "create"
   ],
-  "author": "Axiome-Apps",
+  "author": "MrCasquette",
   "license": "CECILL-2.1",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Axiome-Apps/echoppe.git",
+    "url": "git+https://github.com/MrCasquette/atelier.git",
     "directory": "packages/create-echoppe"
   },
-  "homepage": "https://github.com/Axiome-Apps/echoppe#readme",
+  "homepage": "https://github.com/MrCasquette/atelier#readme",
   "dependencies": {
     "@clack/prompts": "^1.7.0"
   },

@@ -41,7 +41,7 @@ services:
       retries: 5
 
   api:
-    image: axiomeapp/echoppe-api:latest
+    image: ghcr.io/mrcasquette/echoppe-api:latest
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://echoppe:echoppe@db:5432/echoppe
@@ -59,7 +59,7 @@ services:
         condition: service_healthy
 
   admin:
-    image: axiomeapp/echoppe-admin:latest
+    image: ghcr.io/mrcasquette/echoppe-admin:latest
     restart: unless-stopped
     ports:
       - '3211:80'
@@ -148,8 +148,8 @@ docker compose up -d  # l'API applique les nouvelles migrations au démarrage
 
 ```bash
 # 1. Cloner le projet
-git clone https://github.com/Axiome-Apps/echoppe.git
-cd echoppe
+git clone git@github.com:MrCasquette/atelier.git
+cd atelier
 
 # 2. Installer les dépendances
 bun install

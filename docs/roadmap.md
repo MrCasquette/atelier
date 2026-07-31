@@ -5,9 +5,7 @@ API et un admin clés en main, un SDK typé, et un front que **vous** possédez.
 page donne le cap du projet — pas des dates fermes, mais une direction :
 **Maintenant / Ensuite / Plus tard**.
 
-> Une idée, un besoin, un vote ? Ouvrez une discussion ou une issue sur
-> [GitHub](https://github.com/Axiome-Apps/echoppe). La roadmap suit les besoins réels
-> des boutiques et de la communauté.
+> La roadmap suit les besoins réels des boutiques en production.
 
 ## ✅ Disponible aujourd'hui
 

@@ -26,7 +26,7 @@ services:
       retries: 5
 
   api:
-    image: axiomeapp/echoppe-api:${ECHOPPE_VERSION:-latest}
+    image: ghcr.io/mrcasquette/echoppe-api:${ECHOPPE_VERSION:-latest}
     container_name: ${COMPOSE_PROJECT_NAME:-echoppe}-api
     restart: unless-stopped
     environment:
@@ -45,7 +45,7 @@ services:
         condition: service_healthy
 
   admin:
-    image: axiomeapp/echoppe-admin:${ECHOPPE_VERSION:-latest}
+    image: ghcr.io/mrcasquette/echoppe-admin:${ECHOPPE_VERSION:-latest}
     container_name: ${COMPOSE_PROJECT_NAME:-echoppe}-admin
     restart: unless-stopped
     ports:

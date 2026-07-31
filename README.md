@@ -12,9 +12,15 @@
 ![Caddy](https://img.shields.io/badge/Caddy-123043?logo=caddy&logoColor=17B717)
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=github-actions&logoColor=white)
 
-> Framework e-commerce pour artisans français — Shopify en mieux et gratuit
+> Framework e-commerce pour artisans français.
 
-**[Documentation](https://axiome-apps.github.io/echoppe/)** · **[API Docs](http://localhost:7532/docs)** · **[Contribuer](CONTRIBUTING.md)**
+> [!IMPORTANT]
+> **Dépôt privé, usage personnel.** Le code source, les images Docker et la documentation
+> ne sont pas distribués publiquement. Seuls trois paquets npm restent publics —
+> `@echoppe/client`, `@mrcasquette/content` et `create-echoppe` — parce que les boutiques
+> les consomment depuis leur propre dépôt. Aucune contribution externe n'est ouverte.
+
+**Documentation** : `bun run docs:dev` · **API Docs** : http://localhost:7532/docs
 
 ## Démarrage rapide
 
@@ -23,6 +29,10 @@
 Scaffolde un projet complet — front **Astro** + orchestration Docker du backend :
 
 ```bash
+# Les images sont privées : s'authentifier une fois sur l'hôte.
+# PAT dédié portant `read:packages` et rien d'autre.
+echo "$GHCR_TOKEN" | docker login ghcr.io -u mrcasquette --password-stdin
+
 npm create echoppe@latest
 cd ma-boutique
 docker compose up -d      # backend : API + Admin + PostgreSQL
@@ -51,7 +61,7 @@ services:
       retries: 5
 
   api:
-    image: axiomeapp/echoppe-api:latest
+    image: ghcr.io/mrcasquette/echoppe-api:latest
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://echoppe:echoppe@db:5432/echoppe
@@ -69,7 +79,7 @@ services:
         condition: service_healthy
 
   admin:
-    image: axiomeapp/echoppe-admin:latest
+    image: ghcr.io/mrcasquette/echoppe-admin:latest
     restart: unless-stopped
     ports:
       - '3211:80'
@@ -104,8 +114,8 @@ Renseignez `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ENCRYPTION_KEY`, puis `docker compo
 
 ```bash
 # 1. Cloner et installer
-git clone https://github.com/Axiome-Apps/echoppe.git
-cd echoppe
+git clone git@github.com:MrCasquette/atelier.git
+cd atelier
 bun install
 
 # 2. Lancer PostgreSQL + Redis
@@ -138,7 +148,7 @@ bun run dev
 ## Structure
 
 ```
-echoppe/
+atelier/
 ├── apps/
 │   ├── api/          # Backend Elysia (image Docker, migre au boot)
 │   ├── admin/        # Dashboard Vue (image Docker)
@@ -146,10 +156,15 @@ echoppe/
 ├── packages/
 │   ├── core/         # DB + Schema + migrations (drizzle/)
 │   ├── shared/       # Types partagés
+│   ├── content/      # DSL config-as-code (npm)
 │   ├── client/       # SDK @echoppe/client (npm)
 │   └── create-echoppe/ # CLI de scaffolding (npm)
-└── docs/             # Documentation VitePress
+└── docs/             # Documentation VitePress (locale)
 ```
+
+> L'atelier héberge Échoppe (e-commerce) et accueillera **Prisme** (CMS léger). Les deux
+> produits partageront des briques (`assets`, `auth`, `content`, `communication`) sans
+> dépendre l'un de l'autre — chacun assemble son propre schéma et ses propres migrations.
 
 ## Built With
 
@@ -161,11 +176,13 @@ echoppe/
 - [Tailwind CSS](https://tailwindcss.com/) - Framework CSS utility-first
 - [PostgreSQL](https://www.postgresql.org/) - Base de données relationnelle
 
-## Support
+## Suivi
 
-- Bug Reports : [GitHub Issues](https://github.com/Axiome-Apps/echoppe/issues)
-- Discussions : [GitHub Discussions](https://github.com/Axiome-Apps/echoppe/discussions)
+Le travail ouvert vit dans [`BACKLOG.md`](BACKLOG.md) ; les décisions structurantes dans
+[les ADR](docs-internal/adr/README.md). Pas d'Issues ni de Discussions : dépôt privé,
+un seul mainteneur.
 
-## License
+## Licence
 
-[CeCILL v2.1](LICENSE) - Compatible GNU GPL
+[CeCILL v2.1](LICENSE) — compatible GNU GPL. Elle continue de régir les paquets npm
+publiés ; le code source du dépôt, lui, n'est pas distribué.
