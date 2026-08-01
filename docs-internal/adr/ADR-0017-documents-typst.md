@@ -1,6 +1,7 @@
 # ADR-0017 — Génération de documents (factures / reçus via Typst)
 
 Statut : accepté
+Portée : échoppe
 
 ## Contexte
 

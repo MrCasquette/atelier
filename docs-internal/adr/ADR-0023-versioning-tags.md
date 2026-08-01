@@ -1,6 +1,7 @@
 # ADR-0023 — Versioning : épine `v*` produit, packages versionnés sur npm
 
 Statut : accepté · 2026-07-20 · amende [ADR-0002](./ADR-0002-distribution.md), [ADR-0004](./ADR-0004-migrations-release.md)
+Portée : socle
 
 ## Contexte
 

@@ -1,6 +1,7 @@
 # ADR-0022 — Produits liés : curation directionnelle + fallback voisinage
 
 Statut : accepté
+Portée : échoppe
 
 ## Contexte
 

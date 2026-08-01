@@ -1,6 +1,7 @@
 # ADR-0013 — Modèle RBAC (rôles / permissions)
 
 Statut : accepté
+Portée : socle
 
 ## Contexte
 

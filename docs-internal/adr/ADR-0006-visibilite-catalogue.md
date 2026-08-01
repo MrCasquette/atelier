@@ -1,6 +1,7 @@
 # ADR-0006 — Sécurité visibilité catalogue : 404 vs 403, `adminOnly`
 
 Statut : accepté · 2026-07-15
+Portée : échoppe
 
 ## Contexte
 

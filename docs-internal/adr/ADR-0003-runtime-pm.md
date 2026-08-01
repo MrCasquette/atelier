@@ -1,6 +1,7 @@
 # ADR-0003 — Runtime & package manager : PM-agnostique, Bun API / Node front
 
 Statut : accepté · 2026-07-08
+Portée : socle
 
 ## Contexte
 

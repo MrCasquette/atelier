@@ -1,6 +1,7 @@
 # ADR-0010 — Personnalisation produit (champs déclarés, optionnelle par produit)
 
 Statut : accepté · 2026-07-18
+Portée : échoppe
 
 ## Contexte
 

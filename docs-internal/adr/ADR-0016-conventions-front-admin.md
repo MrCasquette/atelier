@@ -1,6 +1,7 @@
 # ADR-0016 — Conventions front admin (atomic design, imports directs, types Eden)
 
 Statut : accepté
+Portée : socle
 
 ## Contexte
 

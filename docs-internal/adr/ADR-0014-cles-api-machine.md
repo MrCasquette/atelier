@@ -1,6 +1,7 @@
 # ADR-0014 — Authentification machine (clés d'API)
 
 Statut : accepté
+Portée : socle
 
 ## Contexte
 

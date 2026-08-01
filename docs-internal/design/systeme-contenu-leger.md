@@ -1,7 +1,16 @@
 # Design — Système de contenu léger (B9 + B11)
 
-Détail des tâches **Système de contenu léger** du [backlog](../../BACKLOG.md). **Note de conception** —
-pas encore d'ADR : plusieurs points structurants restent ouverts. **ADR requis avant impl.**
+Détail des tâches **Système de contenu léger** du [backlog](../../BACKLOG.md).
+
+> **Superseded 2026-08-01.** Les questions ouvertes de ce document ont été tranchées dans le cadre de
+> **Prisme**, où ce système cesse d'être une fonctionnalité annexe pour devenir le produit :
+> [ADR-0026](../adr/ADR-0026-sections-entites.md) (sections vs entités),
+> [ADR-0027](../adr/ADR-0027-entites-tables-reelles.md) (vraies tables, définies en code),
+> [ADR-0028](../adr/ADR-0028-activation-entites.md) (activation, masquer/supprimer),
+> [ADR-0030](../adr/ADR-0030-texte-riche-markdown.md) (**Markdown**, la décision bloquante ci-dessous),
+> [ADR-0031](../adr/ADR-0031-i18n-champs-localises.md) (i18n).
+> Le document reste pour le **reframe** et les consommateurs cibles côté Échoppe, qui n'ont pas changé.
+> Restent non tranchés : le singleton vs liste, et la surface storefront.
 
 ## Reframe
 

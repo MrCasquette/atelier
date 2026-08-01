@@ -1,6 +1,7 @@
 # ADR-0015 — Validation à la frontière : TypeBox / Elysia (pas Zod)
 
 Statut : accepté
+Portée : socle
 
 ## Contexte
 

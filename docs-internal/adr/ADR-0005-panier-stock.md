@@ -1,6 +1,7 @@
 # ADR-0005 — Panier & stock : capture manuelle Stripe + garde atomique Postgres
 
 Statut : accepté · 2026-07-05
+Portée : échoppe
 
 ## Contexte
 

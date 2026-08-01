@@ -1,6 +1,7 @@
 # ADR-0020 — ColorMetadata : représentation double verrouillée (pas un drift)
 
 Statut : accepté · 2026-07-18
+Portée : échoppe
 
 ## Contexte
 

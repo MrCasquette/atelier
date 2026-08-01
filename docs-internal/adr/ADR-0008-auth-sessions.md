@@ -1,6 +1,7 @@
 # ADR-0008 — Auth : sessions Postgres (pas JWT), cookies HTTP-only, RBAC
 
 Statut : accepté
+Portée : socle
 
 ## Contexte
 

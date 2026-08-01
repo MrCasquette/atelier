@@ -1,6 +1,7 @@
 # ADR-0019 — Tags produit (entité gérée + slug, surface storefront)
 
 Statut : accepté · 2026-07-18
+Portée : échoppe
 
 ## Contexte
 

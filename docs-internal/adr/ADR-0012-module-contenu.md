@@ -1,6 +1,7 @@
 # ADR-0012 — Module contenu / page-builder headless (`@echoppe/content`)
 
 Statut : accepté
+Portée : socle
 
 > **Amendement 2026-07-31 — renommage du paquet.** Le DSL est republié sous
 > **`@mrcasquette/content`** (v0.2.0). Motif : déclarer des sections et des composants n'a rien de

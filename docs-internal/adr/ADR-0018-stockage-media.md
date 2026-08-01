@@ -1,6 +1,7 @@
 # ADR-0018 — Stockage média (disque local, arbre de dossiers)
 
 Statut : accepté
+Portée : socle
 
 ## Contexte
 

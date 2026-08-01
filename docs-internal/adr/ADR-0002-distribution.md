@@ -1,6 +1,7 @@
 # ADR-0002 — Distribution : Docker (runtime) + npm (SDK/CLI), modèle déploiement A
 
 Statut : accepté · 2026-07-06 → 2026-07-08 · politique de tags/versions affinée par [ADR-0023](./ADR-0023-versioning-tags.md)
+Portée : socle
 
 > **Amendement 2026-07-31 — registre des images.** Le monorepo est passé en privé
 > (`MrCasquette/atelier`). Les images runtime ne sont plus publiées sur Docker Hub public mais sur

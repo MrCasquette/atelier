@@ -1,6 +1,7 @@
 # ADR-0009 — Variante par défaut (exclusivité + fallback publié) & `featuredImage`
 
 Statut : accepté · 2026-07-18 · commit `f736468`
+Portée : échoppe
 
 ## Contexte
 

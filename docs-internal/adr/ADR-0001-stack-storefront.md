@@ -1,6 +1,7 @@
 # ADR-0001 — Stack storefront : Astro hybrid + îlots Vue (topologie B)
 
 Statut : accepté · 2026-07-05
+Portée : échoppe
 
 ## Contexte
 

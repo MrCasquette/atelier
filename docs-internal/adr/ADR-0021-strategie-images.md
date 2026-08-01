@@ -1,6 +1,7 @@
 # ADR-0021 — Stratégie images : pas de resize serveur, dimensions exposées
 
 Statut : accepté
+Portée : socle
 
 ## Contexte
 
