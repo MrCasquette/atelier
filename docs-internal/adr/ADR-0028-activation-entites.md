@@ -3,6 +3,11 @@
 Statut : accepté · 2026-08-01
 Portée : prisme
 
+> **Jalon V2.** La V1 de Prisme est **headless, dev only** : le dev écrit ses entités, il n'y a ni
+> preset ni écran d'activation. Tout ce qui suit décrit la V2, où Prisme devient un outil pour
+> utilisateur final. La décision est prise maintenant parce qu'elle contraint le modèle de migration
+> dès la V1 — on ne peut pas rendre les entités activables après coup sans revoir le drift guard.
+
 ## Contexte
 
 Prisme doit servir un utilisateur qui n'écrit pas de code, sans devenir l'outil généraliste qui sait

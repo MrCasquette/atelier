@@ -1,7 +1,7 @@
 # ADR-0030 — Texte riche : Markdown, attributs sémantiques, saut dur explicite
 
 Statut : accepté · 2026-08-01
-Portée : socle
+Portée : content
 
 ## Contexte
 

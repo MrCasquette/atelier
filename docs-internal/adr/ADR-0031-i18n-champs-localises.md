@@ -1,7 +1,7 @@
 # ADR-0031 — i18n de contenu : champs localisés, décidé mais non implémenté
 
 Statut : accepté · 2026-08-01
-Portée : socle
+Portée : content
 
 ## Contexte
 

@@ -22,15 +22,34 @@ décisions propres à l'e-commerce**. Ce n'est pas un défaut à réparer : c'es
 **Un compteur unique**, jamais renuméroté : le numéro d'un ADR est une identité, citée dans le code,
 les commits et les autres ADR.
 
-Un champ **`Portée :`** sous la ligne `Statut :`, avec trois valeurs :
+Un champ **`Portée :`** sous la ligne `Statut :`. Sa valeur dit **où vit le code concerné**, ce qui
+est plus actionnable qu'un simple « vaut pour les deux » :
 
 | Valeur | Signification |
 |---|---|
-| `socle` | vaut pour les deux produits |
+| `socle` | les raisons d'être du monorepo — distribution, runtime, migrations, versioning, conventions transverses |
+| `<package>` | une brique partagée : `auth`, `content`, `assets`, `communication`, `adapters`, `client`, `shared` |
 | `échoppe` | propre au framework e-commerce |
 | `prisme` | propre au CMS |
 
-L'index du [README](./README.md) est découpé en trois tables par portée.
+Une portée **multiple** est admise quand une décision traverse réellement plusieurs briques
+(`content, échoppe, prisme`) — à ne pas banaliser.
+
+L'index du [README](./README.md) est découpé par portée.
+
+### Pourquoi le grain du package
+
+Un premier classement en trois valeurs (`socle` / `échoppe` / `prisme`) a donné 14 ADR en `socle` —
+un fourre-tout mêlant trois natures : les décisions du monorepo, des briques de domaine partagées, et
+des conventions transverses. Le grain du package sépare les deux premières.
+
+Les noms de packages sont ceux **visés** par [ADR-0033](./ADR-0033-organisation-monorepo.md), pas
+ceux qui existent : l'extraction n'a pas commencé. C'est assumé — les ADR expriment ainsi
+l'architecture cible plutôt que l'état courant.
+
+**`prisme` compte peu d'ADR, et c'est un signal, pas un manque** : Prisme est essentiellement un
+assemblage de briques partagées (content + auth + assets + un core mince). Si cette portée se
+remplit, c'est que le CMS diverge du socle.
 
 ## Conséquences
 

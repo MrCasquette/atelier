@@ -1,7 +1,7 @@
 # ADR-0011 — Adapters de providers externes (paiement / livraison / communication)
 
 Statut : accepté
-Portée : socle
+Portée : adapters
 
 ## Contexte
 

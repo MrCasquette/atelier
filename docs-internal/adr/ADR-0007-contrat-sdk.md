@@ -1,7 +1,7 @@
 # ADR-0007 — Contrat API & SDK figé (OpenAPI SSOT, Eden interne / SDK externe)
 
 Statut : accepté · 2026-07-06
-Portée : socle
+Portée : client
 
 ## Contexte
 
