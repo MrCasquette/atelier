@@ -65,10 +65,13 @@ backlog V2 avec les thèmes utilisateurs.
 - Une table vide ne peut apparaître que si l'utilisateur a activé puis masqué. Jamais par défaut.
 - Le choix n'est pas irréversible : activer une entité six mois plus tard reste possible.
 
-## Question ouverte
+## Résolu depuis — le masquage est du RBAC
 
-**Masqué, c'est masqué où ?** Admin seul, ou admin + API publique. Un administrateur peut légitimement
-vouloir cacher une entité à ses éditeurs tout en la gardant active sur le front — auquel cas le
-mécanisme juste n'est pas un drapeau global mais de la **visibilité par rôle**, que le RBAC existant
-(`permission(role, resource, canRead)`) sait déjà porter. Rattaché à la révision de
-[ADR-0013](./ADR-0013-modele-rbac.md).
+La question « masqué, c'est masqué où ? » est tranchée par
+[ADR-0038](./ADR-0038-ressources-ouvertes-delegation.md) : **masquer, c'est retirer `canRead` à un
+rôle**, pas poser un drapeau global.
+
+Ça règle le cas qui rendait le drapeau insuffisant — cacher une entité à ses éditeurs tout en la
+gardant active sur le front public : deux rôles, deux réponses. Le mécanisme existait déjà
+(`permission(role, resource, canRead)`) ; il lui manquait de pouvoir nommer une ressource inconnue à
+la compilation, ce que l'espace `entity:` apporte.

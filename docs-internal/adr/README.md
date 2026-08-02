@@ -47,9 +47,11 @@ Portée : socle | <package> | échoppe | prisme
 
 | N° | Titre | Statut | Détail |
 |----|-------|--------|--------|
-| [0008](./ADR-0008-auth-sessions.md) | Auth : sessions Postgres (pas JWT), cookies HTTP-only, RBAC | accepté · **à relire pour Prisme** | [api-keys.md](../reference/api-keys.md) |
-| [0013](./ADR-0013-modele-rbac.md) | Modèle RBAC (rôles / permissions) | accepté · **à relire pour Prisme** | [audit-rbac-plan.md](../audits/audit-rbac-plan.md) |
+| [0008](./ADR-0008-auth-sessions.md) | Auth : sessions Postgres (pas JWT), cookies HTTP-only, RBAC | accepté · amendé par 0037/0038 | [api-keys.md](../reference/api-keys.md) |
+| [0013](./ADR-0013-modele-rbac.md) | Modèle RBAC (rôles / permissions) | accepté · amendé par 0037/0038 | [audit-rbac-plan.md](../audits/audit-rbac-plan.md) |
 | [0014](./ADR-0014-cles-api-machine.md) | Authentification machine (clés d'API) | accepté | [api-keys.md](../reference/api-keys.md) |
+| [0037](./ADR-0037-principaux-surfaces.md) | Principaux, surfaces et sessions : un registre plutôt qu'une union fermée | accepté | — |
+| [0038](./ADR-0038-ressources-ouvertes-delegation.md) | Ressources ouvertes, délégation des droits, rôles système | accepté | — |
 
 ## Index — `content` · Page-builder, entités, texte riche
 

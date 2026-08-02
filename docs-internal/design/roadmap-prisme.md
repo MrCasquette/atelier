@@ -41,10 +41,16 @@ livré. Le profil servi est **l'utilisateur standard qui a un dev**.
 | Découpler les templates email | #7 |
 | Réorganiser le monorepo, scinder le core | #11 |
 
-**Sujet non ouvert, bloquant à terme** : l'**auth**. `plugins/rbac.ts` fait de
-`AuthenticatedCustomer` un citoyen de premier rang, `RESOURCES` énumère 14 ressources commerce sur
-24, et `roleScopeEnum` contient `store`. [ADR-0008](../adr/ADR-0008-auth-sessions.md) et
-[ADR-0013](../adr/ADR-0013-modele-rbac.md) sont marqués « à relire pour Prisme ».
+**Auth** — tranché, à implémenter **avant** le mécanisme de push d'entités :
+
+| | ADR | Tâche |
+|---|---|---|
+| Registre de principaux, surfaces `admin`/`public`, une session par sujet | [0037](../adr/ADR-0037-principaux-surfaces.md) | #14 |
+| Espace `entity:`, rien par défaut, délégation, clé de rôle système | [0038](../adr/ADR-0038-ressources-ouvertes-delegation.md) | #13 |
+
+Rôles de la surface admin : **Owner** (tout, non révocable), **Admin** (tout y compris le schéma,
+sauf révoquer l'Owner), **Editor** (ce qu'on lui accorde, borné par la délégation). Pas de rôle
+`Dev` — en V1 le droit de schéma s'exerce par une clé d'API `write:schema`.
 
 ## V2 — Prisme outil pour utilisateur final
 
@@ -77,7 +83,6 @@ un utilisateur qui sait déployer — c'est-à-dire pas celui qu'elle vise.
 |---|---|
 | Permission de modifier le schéma — Owner / Admin / dev, à traiter dans le RBAC **avant** l'implémentation | [0027](../adr/ADR-0027-entites-tables-reelles.md) |
 | GUI de conception d'entités, ultérieurement — purement additif | [0027](../adr/ADR-0027-entites-tables-reelles.md) |
-| Masqué : admin seul, ou admin + API publique — probablement du RBAC | [0028](../adr/ADR-0028-activation-entites.md) |
 | Granularité de remplacement du rendu : par `kind`, par entité, ou les deux | [0029](../adr/ADR-0029-rendu-generique.md) |
 | Où vit la liste des langues ; le statut est-il localisé | [0031](../adr/ADR-0031-i18n-champs-localises.md) |
 | Prévisualisation d'un brouillon — un jeton côté front, distinct du versionnement | [0036](../adr/ADR-0036-cycle-de-vie-contenu.md) |
