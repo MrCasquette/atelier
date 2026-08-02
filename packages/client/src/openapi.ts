@@ -972,8 +972,6 @@ export interface components {
             name: string;
             /** @description Code ISO du pays (ex. « FR »). */
             code: string;
-            /** @description Livraison activée vers ce pays. */
-            isShippingEnabled: boolean;
         }[];
         CustomerAuth: {
             customer: {

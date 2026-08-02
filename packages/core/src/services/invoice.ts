@@ -4,7 +4,8 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { eq } from 'drizzle-orm';
 import { db } from '../db';
-import { company, country, customer, invoice, order, orderItem } from '../db/schema';
+import { company, country, customer, invoice, order, orderItem, storeSettings } from '../db/schema';
+import { getStoreSettings } from './store-settings';
 
 // Types pour les snapshots (archivage légal)
 export interface SellerSnapshot {
@@ -76,21 +77,20 @@ const TEMPLATE_PATH = join(dirname(import.meta.path), '../templates/invoice.typ'
  * Génère le prochain numéro de facture et l'incrémente en base
  */
 async function getNextInvoiceNumber(): Promise<string> {
-  const [comp] = await db.select().from(company).limit(1);
-  if (!comp) throw new Error('Company settings not found');
+  const settings = await getStoreSettings();
 
   const year = new Date().getFullYear();
-  const prefix = comp.invoicePrefix;
-  const nextNum = comp.invoiceNextNumber;
+  const prefix = settings.invoicePrefix;
+  const nextNum = settings.invoiceNextNumber;
 
   // Format: FA-2025-00001
   const number = `${prefix}-${year}-${String(nextNum).padStart(5, '0')}`;
 
   // Incrémenter le compteur
   await db
-    .update(company)
+    .update(storeSettings)
     .set({ invoiceNextNumber: nextNum + 1 })
-    .where(eq(company.id, comp.id));
+    .where(eq(storeSettings.id, settings.id));
 
   return number;
 }
@@ -172,7 +172,8 @@ export async function generateInvoice(
   };
 
   // Mention d'exonération si applicable
-  const taxExemptMention = comp.taxExempt ? 'TVA non applicable, art. 293 B du CGI' : null;
+  const { taxExempt } = await getStoreSettings();
+  const taxExemptMention = taxExempt ? 'TVA non applicable, art. 293 B du CGI' : null;
 
   // Construire les données pour le template
   const invoiceData: InvoiceData = {

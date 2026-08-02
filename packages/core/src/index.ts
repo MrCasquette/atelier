@@ -78,6 +78,15 @@ export {
 } from './services/email';
 // Invoice service
 export * from './services/invoice';
+// Réglages de la boutique (ADR-0034)
+export {
+  DEFAULT_STORE_SETTINGS,
+  getStoreSettings,
+  readStoreSettings,
+  type StoreSettings,
+  type StoreSettingsValues,
+  saveStoreSettings,
+} from './services/store-settings';
 // Envois propres à la boutique — gabarits inscrits au chargement du module (cf. son en-tête).
 export {
   type OrderEmailData,

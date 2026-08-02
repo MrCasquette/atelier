@@ -9,6 +9,16 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { order } from './orders';
+import { country } from './referential';
+
+// Pays vers lesquels la boutique livre (ADR-0034). Table-ensemble : la présence d'une ligne vaut
+// activation, il n'y a pas d'état « présent mais désactivé ». Le drapeau vivait sur `country`,
+// qu'il marquait commerce alors que la liste ISO est une donnée de référence neutre.
+export const shippingCountry = pgTable('shipping_country', {
+  country: uuid('country')
+    .primaryKey()
+    .references(() => country.id, { onDelete: 'cascade' }),
+});
 
 export const shipmentStatusEnum = pgEnum('shipment_status', [
   'pending',

@@ -36,7 +36,6 @@ export const countrySchema = t.Object({
   id: t.String({ format: 'uuid', description: 'Identifiant unique du pays.' }),
   name: t.String({ description: 'Nom du pays.' }),
   code: t.String({ description: 'Code ISO du pays (ex. « FR »).' }),
-  isShippingEnabled: t.Boolean({ description: 'Livraison activée vers ce pays.' }),
 });
 
 // Modèles nommés exposés dans le contrat (components.schemas).

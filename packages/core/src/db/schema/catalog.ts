@@ -15,7 +15,7 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { taxRate } from './referential';
+import { taxRate } from './tax';
 
 export const productStatusEnum = pgEnum('product_status', ['draft', 'published', 'archived']);
 // Type d'une option produit : pilote le widget admin et le rendu storefront. `string` = valeur

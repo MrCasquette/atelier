@@ -1,4 +1,4 @@
-import { company, country, db, eq } from '@echoppe/core';
+import { company, country, db, eq, readStoreSettings, saveStoreSettings } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../lib/audit';
 import { models } from '../models';
@@ -43,7 +43,12 @@ export const companyRoutes = new Elysia({ prefix: '/company', detail: { tags: ['
     '/',
     async () => {
       const [info] = await db.select().from(company).limit(1);
-      return info ?? null;
+      if (!info) return null;
+      // La fiche entreprise et les réglages de facturation vivent dans deux tables depuis
+      // ADR-0034, mais restent une seule surface tant qu'ils partagent le même écran. La
+      // séparation d'API et d'écran se fera avec la scission des paquets (ADR-0033).
+      const { documentPrefix, invoicePrefix, taxExempt } = await readStoreSettings();
+      return { ...info, documentPrefix, invoicePrefix, taxExempt };
     },
     { response: withReadErrors({ 200: t.Union([companySchema, t.Null()]) }) },
   )
@@ -69,6 +74,14 @@ export const companyRoutes = new Elysia({ prefix: '/company', detail: { tags: ['
     async ({ body, currentUser, request }) => {
       const [existing] = await db.select({ id: company.id }).from(company).limit(1);
 
+      // Réglages de facturation : autre table depuis ADR-0034, même écran (cf. GET /).
+      const { documentPrefix, invoicePrefix, taxExempt } = await saveStoreSettings({
+        documentPrefix: body.documentPrefix ?? 'REC',
+        invoicePrefix: body.invoicePrefix ?? 'FA',
+        taxExempt: body.taxExempt ?? false,
+      });
+      const settings = { documentPrefix, invoicePrefix, taxExempt };
+
       const values = {
         shopName: body.shopName,
         logo: body.logo ?? null,
@@ -86,9 +99,6 @@ export const companyRoutes = new Elysia({ prefix: '/company', detail: { tags: ['
         postalCode: body.postalCode,
         city: body.city,
         country: body.country,
-        documentPrefix: body.documentPrefix ?? 'REC',
-        invoicePrefix: body.invoicePrefix ?? 'FA',
-        taxExempt: body.taxExempt ?? false,
         publisherName: body.publisherName ?? null,
         hostingProvider: body.hostingProvider ?? null,
         hostingAddress: body.hostingAddress ?? null,
@@ -111,7 +121,7 @@ export const companyRoutes = new Elysia({ prefix: '/company', detail: { tags: ['
           ipAddress: getClientIp(request.headers),
         });
 
-        return updated;
+        return { ...updated, ...settings };
       }
 
       const [created] = await db.insert(company).values(values).returning();
@@ -125,7 +135,7 @@ export const companyRoutes = new Elysia({ prefix: '/company', detail: { tags: ['
         ipAddress: getClientIp(request.headers),
       });
 
-      return created;
+      return { ...created, ...settings };
     },
     { permission: true, body: companyBody, response: withAuthErrors({ 200: 'Company' }) },
   );

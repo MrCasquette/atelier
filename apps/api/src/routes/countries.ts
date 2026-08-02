@@ -1,4 +1,4 @@
-import { country, db, eq } from '@echoppe/core';
+import { country, db, eq, shippingCountry } from '@echoppe/core';
 import { Elysia } from 'elysia';
 import { models } from '../models';
 import { withReadErrors } from '../utils/responses';
@@ -13,10 +13,12 @@ export const countriesRoutes = new Elysia({ prefix: '/countries', detail: { tags
   .get(
     '/',
     async () => {
+      // Table-ensemble (ADR-0034) : la présence d'une ligne dans `shipping_country` vaut
+      // activation. `country` reste une donnée de référence neutre, partagée avec Prisme.
       return db
-        .select()
+        .select({ id: country.id, name: country.name, code: country.code })
         .from(country)
-        .where(eq(country.isShippingEnabled, true))
+        .innerJoin(shippingCountry, eq(shippingCountry.country, country.id))
         .orderBy(country.name);
     },
     { response: withReadErrors({ 200: 'CountryList' }) },

@@ -22,6 +22,7 @@ import {
   productOption,
   role,
   shipment,
+  shippingCountry,
   shippingProvider,
   stockMove,
   taxRate,
@@ -108,19 +109,29 @@ async function seed() {
   const countries = await db
     .insert(country)
     .values([
-      { name: 'France', code: 'FR', isShippingEnabled: true },
-      { name: 'Belgique', code: 'BE', isShippingEnabled: true },
-      { name: 'Suisse', code: 'CH', isShippingEnabled: true },
-      { name: 'Luxembourg', code: 'LU', isShippingEnabled: true },
-      { name: 'Monaco', code: 'MC', isShippingEnabled: true },
-      { name: 'Allemagne', code: 'DE', isShippingEnabled: false },
-      { name: 'Espagne', code: 'ES', isShippingEnabled: false },
-      { name: 'Italie', code: 'IT', isShippingEnabled: false },
-      { name: 'Royaume-Uni', code: 'GB', isShippingEnabled: false },
+      { name: 'France', code: 'FR' },
+      { name: 'Belgique', code: 'BE' },
+      { name: 'Suisse', code: 'CH' },
+      { name: 'Luxembourg', code: 'LU' },
+      { name: 'Monaco', code: 'MC' },
+      { name: 'Allemagne', code: 'DE' },
+      { name: 'Espagne', code: 'ES' },
+      { name: 'Italie', code: 'IT' },
+      { name: 'Royaume-Uni', code: 'GB' },
     ])
     .onConflictDoNothing()
     .returning();
   console.log(`    ✓ ${countries.length} countries`);
+
+  // Pays livrables — table-ensemble, la présence vaut activation (ADR-0034).
+  const SHIPPING_CODES = ['FR', 'BE', 'CH', 'LU', 'MC'];
+  const shippingRows = countries
+    .filter((c) => SHIPPING_CODES.includes(c.code))
+    .map((c) => ({ country: c.id }));
+  if (shippingRows.length > 0) {
+    await db.insert(shippingCountry).values(shippingRows).onConflictDoNothing();
+    console.log(`    ✓ ${shippingRows.length} shipping countries`);
+  }
 
   // === COMPANY (Shop Settings) ===
   console.log('  → Company settings...');
@@ -148,8 +159,6 @@ async function seed() {
         postalCode: '75001',
         city: 'Paris',
         country: france.id,
-        documentPrefix: 'REC',
-        invoicePrefix: 'FA',
         publisherName: 'Marie Artisan',
         hostingProvider: 'OVH SAS',
         hostingAddress: '2 rue Kellermann, 59100 Roubaix, France',

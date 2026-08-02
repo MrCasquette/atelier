@@ -3,7 +3,6 @@ import {
   boolean,
   decimal,
   index,
-  integer,
   jsonb,
   pgTable,
   text,
@@ -76,11 +75,9 @@ export const company = pgTable('company', {
   country: uuid('country')
     .notNull()
     .references(() => country.id),
-  documentPrefix: varchar('document_prefix', { length: 10 }).notNull().default('REC'),
-  documentNextNumber: integer('document_next_number').notNull().default(1),
-  invoicePrefix: varchar('invoice_prefix', { length: 10 }).notNull().default('FA'),
-  invoiceNextNumber: integer('invoice_next_number').notNull().default(1),
-  taxExempt: boolean('tax_exempt').notNull().default(false),
+  // La numérotation des documents commerciaux et la franchise de TVA vivent dans
+  // `storeSettings` (schema/settings.ts) — ADR-0034 : `company` porte l'identité de l'entreprise,
+  // dont Prisme a besoin intégralement, pas les réglages de facturation d'une boutique.
   // Legal pages info
   publisherName: varchar('publisher_name', { length: 255 }),
   hostingProvider: varchar('hosting_provider', { length: 255 }),

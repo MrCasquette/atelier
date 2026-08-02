@@ -13,5 +13,7 @@ export * from './engagement';
 export * from './orders';
 export * from './payment';
 export * from './referential';
+export * from './settings';
 export * from './shipping';
 export * from './stock';
+export * from './tax';

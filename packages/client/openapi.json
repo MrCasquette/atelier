@@ -6953,8 +6953,7 @@
           "required": [
             "id",
             "name",
-            "code",
-            "isShippingEnabled"
+            "code"
           ],
           "properties": {
             "id": {
@@ -6969,10 +6968,6 @@
             "code": {
               "description": "Code ISO du pays (ex. « FR »).",
               "type": "string"
-            },
-            "isShippingEnabled": {
-              "description": "Livraison activée vers ce pays.",
-              "type": "boolean"
             }
           },
           "$id": "#/components/schemas/Country"
