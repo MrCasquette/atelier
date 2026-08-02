@@ -12,7 +12,14 @@ export {
 } from './config';
 export { ResendAdapter } from './resend';
 export { SmtpAdapter } from './smtp';
-export { renderTemplate } from './templates';
+export {
+  type EmailLayoutParams,
+  emailLayout,
+  hasEmailTemplate,
+  listEmailTemplates,
+  registerEmailTemplate,
+  renderTemplate,
+} from './templates';
 export type {
   CommunicationAdapter,
   CommunicationConfig,
@@ -21,6 +28,7 @@ export type {
   EmailMessage,
   EmailStatus,
   EmailTemplate,
+  EmailTemplateRenderer,
   SendResult,
 } from './types';
 export { COMMUNICATION_PROVIDERS, isCommunicationProvider } from './types';

@@ -77,60 +77,11 @@ export async function sendEmail(params: SendEmailParams): Promise<EmailResult> {
 }
 
 // ============================================
-// HELPERS TYPÉS PAR ACTION
+// HELPERS TYPÉS PAR ACTION — GABARITS DU SOCLE
 // ============================================
-
-export interface OrderEmailData {
-  customerEmail: string;
-  customerName?: string;
-  orderNumber: string;
-  total: string;
-  orderUrl?: string;
-}
-
-/**
- * Email de confirmation de commande
- */
-export async function sendOrderConfirmation(data: OrderEmailData): Promise<EmailResult> {
-  return sendEmail({
-    to: data.customerEmail,
-    subject: `Confirmation de votre commande #${data.orderNumber}`,
-    template: 'order-confirmation',
-    data: {
-      customerName: data.customerName,
-      orderNumber: data.orderNumber,
-      total: data.total,
-      orderUrl: data.orderUrl,
-    },
-  });
-}
-
-export interface ShipmentEmailData {
-  customerEmail: string;
-  customerName?: string;
-  orderNumber: string;
-  trackingNumber?: string;
-  trackingUrl?: string;
-  carrier?: string;
-}
-
-/**
- * Email de notification d'expédition
- */
-export async function sendShipmentNotification(data: ShipmentEmailData): Promise<EmailResult> {
-  return sendEmail({
-    to: data.customerEmail,
-    subject: `Votre commande #${data.orderNumber} a été expédiée`,
-    template: 'shipment',
-    data: {
-      customerName: data.customerName,
-      orderNumber: data.orderNumber,
-      trackingNumber: data.trackingNumber,
-      trackingUrl: data.trackingUrl,
-      carrier: data.carrier,
-    },
-  });
-}
+//
+// Les envois propres au commerce (commande, expédition, bienvenue boutique) vivent dans
+// `storefront-emails.ts`, avec les gabarits qu'ils inscrivent.
 
 export interface ResetPasswordEmailData {
   email: string;
@@ -149,25 +100,6 @@ export async function sendResetPasswordEmail(data: ResetPasswordEmailData): Prom
     data: {
       resetUrl: data.resetUrl,
       expiresIn: data.expiresIn ?? '1 heure',
-    },
-  });
-}
-
-export interface WelcomeEmailData {
-  customerEmail: string;
-  customerName?: string;
-}
-
-/**
- * Email de bienvenue après inscription
- */
-export async function sendWelcomeEmail(data: WelcomeEmailData): Promise<EmailResult> {
-  return sendEmail({
-    to: data.customerEmail,
-    subject: 'Bienvenue !',
-    template: 'welcome',
-    data: {
-      customerName: data.customerName,
     },
   });
 }

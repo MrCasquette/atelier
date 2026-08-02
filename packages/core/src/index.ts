@@ -70,19 +70,22 @@ export * from './db/schema/index';
 export {
   type ContactFormEmailData,
   type EmailResult,
-  type OrderEmailData,
   type ResetPasswordEmailData,
   type SendEmailParams,
-  type ShipmentEmailData,
   sendContactFormEmail,
   sendEmail,
-  sendOrderConfirmation,
   sendResetPasswordEmail,
-  sendShipmentNotification,
-  sendWelcomeEmail,
-  type WelcomeEmailData,
 } from './services/email';
 // Invoice service
 export * from './services/invoice';
+// Envois propres à la boutique — gabarits inscrits au chargement du module (cf. son en-tête).
+export {
+  type OrderEmailData,
+  type ShipmentEmailData,
+  sendOrderConfirmation,
+  sendShipmentNotification,
+  sendWelcomeEmail,
+  type WelcomeEmailData,
+} from './services/storefront-emails';
 // Utils
 export { decrypt, encrypt, generateEncryptionKey, isEncryptionConfigured } from './utils/crypto';

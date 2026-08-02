@@ -7,12 +7,18 @@ export function isCommunicationProvider(value: string): value is CommunicationPr
   return (COMMUNICATION_PROVIDERS as readonly string[]).includes(value);
 }
 export type EmailStatus = 'sent' | 'failed' | 'bounced';
-export type EmailTemplate =
-  | 'order-confirmation'
-  | 'shipment'
-  | 'reset-password'
-  | 'welcome'
-  | 'contact-form';
+
+// Le nom d'un gabarit appartient au PRODUIT, pas au socle : une boutique envoie
+// 'order-confirmation', un CMS enverra 'comment-reply'. Le socle décrit le contrat et tient le
+// registre ; le produit s'y inscrit (cf. conventions.md § Un registre, pas une union fermée).
+//
+// Contrairement à `Resource` (ADR-0038), l'espace n'est pas préfixé : un nom de gabarit n'est
+// jamais passé en argument par du code appelant — on appelle `sendOrderConfirmation()`, jamais
+// `sendEmail({ template: 'ordre-confirmation' })`. Il n'y a donc pas de faute de frappe à
+// attraper au type ; le registre refuse à l'exécution un gabarit non inscrit.
+export type EmailTemplate = string;
+
+export type EmailTemplateRenderer = (data: Record<string, unknown>) => string;
 
 export interface EmailMessage {
   to: string;
