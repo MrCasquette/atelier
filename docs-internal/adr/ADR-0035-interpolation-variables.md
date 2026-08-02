@@ -36,11 +36,29 @@ Le jeu exposé est un **type union, SSOT unique**, réutilisé partout où il es
 à l'écriture, autocomplétion dans l'éditeur, résolution à la lecture. Il s'élargit ou se rétrécit
 selon les besoins réels constatés.
 
-Pas d'accès arbitraire à la base : ce serait un moteur de template, avec la surface de sécurité
-correspondante.
+Pas d'accès arbitraire à la base : un chemin libre (`{{ user.passwordHash }}`,
+`{{ settings.stripeSecret }}`) fuiterait dans du contenu public.
 
 Chaque produit peut étendre le jeu de base avec ses propres réglages ; l'union diffère donc par
 produit, à partir d'un socle commun.
+
+### Substituer, jamais évaluer — INVARIANT
+
+**Aucune expression, aucune condition, aucune boucle, aucun appel de fonction.** Uniquement le
+remplacement d'un nom par une valeur.
+
+C'est une interdiction, pas une orientation. La pente naturelle de tout mécanisme de gabarit est
+d'accueillir « juste une condition », puis « juste un filtre » — et l'aboutissement est une
+**injection de gabarit côté serveur** : quiconque peut éditer du contenu exécute du code sur le
+serveur. Le jour où un besoin de logique apparaît, il relève d'une section déclarée
+([ADR-0026](./ADR-0026-sections-entites.md)), rendue par un composant du front, jamais de
+l'interpolation.
+
+### Une seule passe
+
+Le résultat d'une substitution n'est **jamais re-balayé**. Si la valeur d'une variable contient
+elle-même `{{ … }}`, ce texte est laissé tel quel. Sans cette règle, une valeur auto-référente fait
+boucler la résolution.
 
 ### Variable inconnue : laisser le littéral
 
