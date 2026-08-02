@@ -1,7 +1,7 @@
-# ADR-0026 — Prisme : sections et entités, deux natures de contenu
+# ADR-0026 — Sections et entités, deux natures de contenu
 
 Statut : accepté · 2026-08-01
-Portée : prisme
+Portée : content
 
 ## Contexte
 

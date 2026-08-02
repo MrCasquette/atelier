@@ -25,7 +25,7 @@ livré. Le profil servi est **l'utilisateur standard qui a un dev**.
 | Périmètre | ADR | Tâche |
 |---|---|---|
 | Sections vs entités | [0026](../adr/ADR-0026-sections-entites.md) | — |
-| Entités en vraies tables, définies en code | [0027](../adr/ADR-0027-entites-tables-reelles.md) | — |
+| Entités en vraies tables, déclarées en code et poussées | [0027](../adr/ADR-0027-entites-tables-reelles.md) | — |
 | Texte riche en Markdown | [0030](../adr/ADR-0030-texte-riche-markdown.md) | #10 |
 | Cibles référençables (découplage des menus) | [0032](../adr/ADR-0032-cibles-referencables.md) | #8 |
 | Identité, référentiel, réglages | [0034](../adr/ADR-0034-identite-referentiel-reglages.md) | #9 |
@@ -75,7 +75,8 @@ un utilisateur qui sait déployer — c'est-à-dire pas celui qu'elle vise.
 
 | Sujet | Où |
 |---|---|
-| Le « build » de l'utilisateur avancé, si un GUI de conception de schémas est ajouté | [0027](../adr/ADR-0027-entites-tables-reelles.md) |
+| Permission de modifier le schéma — Owner / Admin / dev, à traiter dans le RBAC **avant** l'implémentation | [0027](../adr/ADR-0027-entites-tables-reelles.md) |
+| GUI de conception d'entités, ultérieurement — purement additif | [0027](../adr/ADR-0027-entites-tables-reelles.md) |
 | Masqué : admin seul, ou admin + API publique — probablement du RBAC | [0028](../adr/ADR-0028-activation-entites.md) |
 | Granularité de remplacement du rendu : par `kind`, par entité, ou les deux | [0029](../adr/ADR-0029-rendu-generique.md) |
 | Où vit la liste des langues ; le statut est-il localisé | [0031](../adr/ADR-0031-i18n-champs-localises.md) |

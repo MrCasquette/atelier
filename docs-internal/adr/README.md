@@ -61,6 +61,8 @@ Portée : socle | <package> | échoppe | prisme
 | [0032](./ADR-0032-cibles-referencables.md) | Cibles référençables : le lien déclaré, la résolution ouverte | accepté | — |
 | [0035](./ADR-0035-interpolation-variables.md) | Interpolation de variables dans le contenu | accepté | — |
 | [0036](./ADR-0036-cycle-de-vie-contenu.md) | Cycle de vie du contenu : un statut déclaré, pas de versionnement | accepté | — |
+| [0026](./ADR-0026-sections-entites.md) | Sections et entités : deux natures de contenu | accepté | [lexique-prisme.md](../reference/lexique-prisme.md) |
+| [0027](./ADR-0027-entites-tables-reelles.md) | Entités en vraies tables, déclarées en code et poussées | accepté | — |
 
 ## Index — `assets` · Média et images
 
@@ -93,8 +95,6 @@ Portée : socle | <package> | échoppe | prisme
 
 | N° | Titre | Statut | Détail |
 |----|-------|--------|--------|
-| [0026](./ADR-0026-sections-entites.md) | Prisme : sections et entités, deux natures de contenu | accepté | [lexique-prisme.md](../reference/lexique-prisme.md) |
-| [0027](./ADR-0027-entites-tables-reelles.md) | Prisme : entités en vraies tables, définies en code | accepté | — |
 | [0028](./ADR-0028-activation-entites.md) | Prisme : activation à la carte, presets, masquer / supprimer | accepté · **V2** | — |
 | [0029](./ADR-0029-rendu-generique.md) | Prisme : rendu générique et front livré (V2) | accepté · **V2** | — |
 

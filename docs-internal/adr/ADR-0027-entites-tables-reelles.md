@@ -1,17 +1,22 @@
-# ADR-0027 — Prisme : entités en vraies tables, définies en code
+# ADR-0027 — Entités en vraies tables, déclarées en code et poussées
 
-Statut : accepté · 2026-08-01
-Portée : prisme
+Statut : accepté · 2026-08-02
+Portée : content
+
+> **Amendement 2026-08-02 — comment la table est créée.** La première rédaction disait « le dev écrit
+> la table Drizzle », sans dire comment elle atteignait une image Docker opaque — ce qui n'ouvrait
+> que le fork. La déclaration devient la SSOT et la table en est **dérivée**, poussée par la CLI. La
+> décision de fond — vraies tables, vraies clés étrangères — est inchangée.
 
 ## Contexte
 
 Une entité est de la donnée ([ADR-0026](./ADR-0026-sections-entites.md)). Reste à décider **où elle
-est stockée** et **qui peut la définir**.
+est stockée** et **comment sa structure atteint l'API**.
 
 Le repo est déjà souverain partout — `product`, `order`, `customer`, `media` sont de vraies tables
 lisibles par n'importe quel outil. **Le module contenu est le seul endroit qui suit le modèle
-WordPress** (tout en jsonb). Généraliser cette exception pour en faire le cœur de Prisme reviendrait
-à généraliser l'écart, pas la règle.
+WordPress** (tout en jsonb). Généraliser cette exception pour en faire le cœur d'un CMS reviendrait à
+généraliser l'écart, pas la règle.
 
 Ordre de priorité retenu, du plus important au moins important :
 
@@ -24,19 +29,37 @@ Ordre de priorité retenu, du plus important au moins important :
 
 | Approche | SQL / FK | Typé TS | GUI | Config as code |
 |---|---|---|---|---|
-| **Tables Drizzle écrites en code** | ✅ | ✅ | ❌ | ✅ |
-| **GUI qui écrit du code** (modèle Strapi) | ✅ | ✅ | ✅ *en dev* | ✅ |
-| **DDL réel à l'exécution** (modèle Directus) | ✅ | ❌ | ✅ *en prod* | ❌ |
+| **Déclaration poussée, table dérivée** | ✅ | ✅ | ⬜ ultérieurement | ✅ |
+| **Tables Drizzle compilées dans l'image** | ✅ | ✅ | ❌ | ✅ *au prix d'un fork* |
+| **DDL piloté par un GUI** (modèle Directus) | ✅ | ❌ | ✅ | ❌ |
 | **jsonb + vues SQL** | ❌ | ✅ | ✅ | ✅ |
 
 ## Décision
 
-**Tables Drizzle écrites en code.** Le dev écrit la table ; le DSL déclare la couche au-dessus —
-libellés, widgets, ordre des champs, validations d'édition. La structure a pour SSOT la table.
+**Le dev déclare son entité dans son code ; la CLI la pousse ; l'API en dérive la table.**
 
-**jsonb + vues SQL est écarté** : c'est la seule option qui échoue au critère n°1. Ce qu'elle fait
-perdre n'est pas de la capacité — presque tout reste faisable avec de la mécanique générée — mais des
-**garanties** :
+```
+prisme:check   →  l'API compare la déclaration à son schéma réel et renvoie le SQL qu'elle appliquerait
+prisme:push    →  l'API applique
+```
+
+C'est le chemin qui existe déjà pour le contenu — `content:push` alimente `content_definition` via
+une route protégée — étendu aux entités. **Aucun fork**, l'image reste opaque et standard. Et c'est
+l'ergonomie de `drizzle-kit` : un `check` qui montre, un `push` qui applique.
+
+### Ce n'est pas le modèle Directus
+
+Ce qui rend Directus lourd, c'est que **sa base est l'autorité** : sans artefact en code, il lui faut
+un mécanisme de snapshot/apply pour transporter un type d'un environnement à l'autre.
+
+Ici la SSOT reste les fichiers du dev. Le DDL n'est pas un acte d'écriture, c'est la **conséquence**
+d'une déclaration versionnée en git. Les fichiers *sont* le snapshot, git *est* l'historique, `push`
+*est* l'apply.
+
+### jsonb + vues SQL est écarté
+
+C'est la seule option qui échoue au critère n°1. Ce qu'elle fait perdre n'est pas de la capacité —
+presque tout reste faisable avec de la mécanique générée — mais des **garanties** :
 
 - savoir ce qui référence quoi, donc pas de « impossible de supprimer, utilisé sur 3 pages » fiable ;
 - `ON DELETE CASCADE` / `RESTRICT` ;
@@ -45,27 +68,32 @@ perdre n'est pas de la capacité — presque tout reste faisable avec de la méc
   Une garantie applicative ne protège que de l'intérieur ; une clé étrangère protège quel que soit
   l'écrivain.
 
-**DDL réel à l'exécution est écarté** : il coûte le typage des entités (critère n°2), sort une partie
-de la base du drift guard, et impose d'écrire un mécanisme de snapshot/apply pour transporter un type
-de dev vers prod.
-
-**Le GUI qui écrit du code reste ouvert comme ajout ergonomique ultérieur.** Il est purement additif :
-partir de vraies tables ne ferme aucune porte. L'inverse est faux — une fois le contenu en jsonb, en
-sortir est une migration.
+Pour un CMS dont le modèle est un graphe d'entités qui se référencent, ces garanties sont
+l'infrastructure.
 
 ## Conséquences
 
-- Créer une entité = commit + build + déploiement. Des minutes, pas des secondes.
-- **L'utilisateur standard n'est pas affecté** : il édite du contenu, il ne définit pas de schémas.
-  Cette expérience est identique dans les quatre options.
-- Le seul profil non servi est l'**utilisateur avancé sans dev**, qui veut définir ses propres
-  entités (cf. [ADR-0029](./ADR-0029-rendu-generique.md) pour les profils).
-- Le dev écrit **deux** choses — la table et la déclaration d'UI — qui peuvent diverger. À couvrir
-  par un garde CI table ↔ déclaration, sur le modèle des deux existants.
+- **Une seule source, donc aucune divergence possible.** La première rédaction notait comme dette que
+  « le dev écrit deux choses — la table et la déclaration d'UI — qui peuvent diverger », et réclamait
+  un garde CI. Le problème disparaît au lieu d'être surveillé.
+- **Les tables d'entités sont hors drift guard**, conformément à [ADR-0028](./ADR-0028-activation-entites.md) :
+  le schéma d'une installation n'est plus entièrement déterminé par les fichiers de migration.
+- **Du SQL est généré depuis des identifiants venus d'un fichier** : leur échappement est une
+  question de sécurité, au même titre que pour [ADR-0035](./ADR-0035-interpolation-variables.md).
+- **Modifier une déclaration devient un `ALTER TABLE`**, potentiellement destructif. `check` est
+  obligatoire avant : `push` refuse toute perte de données sans confirmation explicite. Jamais de
+  destruction implicite.
+- **L'expressivité est bornée à ce que le DSL sait dire.** Une contrainte `CHECK` exotique, un index
+  composite particulier, une colonne générée n'y entrent pas. Ces cas passent par un fork — marginal,
+  et sans effet sur le chemin courant.
+- **Créer une entité reste un geste de dev** : commit, `check`, `push`. L'utilisateur standard n'est
+  pas affecté — il édite du contenu, il ne définit pas de schémas.
+- La liste des ressources RBAC **cesse d'être fermée** : une entité déclarée est une ressource à
+  protéger, inconnue à la compilation du framework. Cf. le sujet auth.
 
-## Question ouverte
+## Questions ouvertes
 
-Le « build » de l'utilisateur avancé, si le GUI d'édition de schémas est ajouté un jour. Deux voies :
-un outil de développement local à la Strapi, ou une génération de migration appliquée à chaud — cette
-seconde donnant FK réelles **et** GUI en production, au prix de tables non couvertes par le drift
-guard. Non tranché.
+- **La permission de modifier le schéma** — réservée Owner / Admin / dev. Relève du RBAC, à traiter
+  dans ce sujet, **avant** l'implémentation de ce mécanisme.
+- **Un GUI de conception d'entités**, ultérieurement. Il est purement additif : il écrirait les
+  fichiers de déclaration, et le chemin `check` / `push` resterait inchangé.
