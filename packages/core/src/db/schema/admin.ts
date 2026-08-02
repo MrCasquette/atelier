@@ -1,3 +1,4 @@
+import { media } from '@repo/assets';
 import {
   boolean,
   decimal,
@@ -11,7 +12,6 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { role } from './auth';
-import { media } from './media';
 import { country } from './referential';
 
 export const user = pgTable('user', {

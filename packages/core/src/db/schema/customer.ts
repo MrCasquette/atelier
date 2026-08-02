@@ -1,3 +1,4 @@
+import { media } from '@repo/assets';
 import {
   boolean,
   index,
@@ -10,7 +11,6 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { variant } from './catalog';
-import { media } from './media';
 import { country } from './referential';
 
 export const addressTypeEnum = pgEnum('address_type', ['billing', 'shipping']);

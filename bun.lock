@@ -18,7 +18,7 @@
     },
     "apps/admin": {
       "name": "@echoppe/admin",
-      "version": "0.0.1",
+      "version": "0.6.0",
       "dependencies": {
         "@echoppe/api": "workspace:*",
         "@echoppe/shared": "workspace:*",
@@ -54,7 +54,7 @@
     },
     "apps/api": {
       "name": "@echoppe/api",
-      "version": "0.0.1",
+      "version": "0.6.0",
       "dependencies": {
         "@echoppe/core": "workspace:*",
         "@echoppe/shared": "workspace:*",
@@ -71,7 +71,7 @@
     },
     "apps/store": {
       "name": "@echoppe/store",
-      "version": "0.0.1",
+      "version": "0.0.2",
       "dependencies": {
         "@astrojs/node": "^11.0.2",
         "@echoppe/client": "workspace:*",
@@ -92,9 +92,19 @@
         "vue": "^3.5.39",
       },
     },
+    "packages/assets": {
+      "name": "@repo/assets",
+      "version": "0.0.1",
+      "dependencies": {
+        "drizzle-orm": "^0.45.2",
+      },
+      "devDependencies": {
+        "typescript": "6.0.3",
+      },
+    },
     "packages/client": {
       "name": "@echoppe/client",
-      "version": "0.4.0",
+      "version": "0.6.0",
       "dependencies": {
         "openapi-fetch": "^0.17.0",
       },
@@ -104,8 +114,8 @@
       },
     },
     "packages/content": {
-      "name": "@echoppe/content",
-      "version": "0.1.0",
+      "name": "@mrcasquette/content",
+      "version": "0.2.0",
       "devDependencies": {
         "@types/node": "^22.10.2",
         "typescript": "6.0.3",
@@ -118,6 +128,7 @@
         "@echoppe/shared": "workspace:*",
         "@getbrevo/brevo": "6",
         "@paypal/checkout-server-sdk": "^1.0.3",
+        "@repo/assets": "workspace:*",
         "drizzle-orm": "^0.45.2",
         "nodemailer": "9",
         "postgres": "^3.4.9",
@@ -338,8 +349,6 @@
 
     "@echoppe/client": ["@echoppe/client@workspace:packages/client"],
 
-    "@echoppe/content": ["@echoppe/content@workspace:packages/content"],
-
     "@echoppe/core": ["@echoppe/core@workspace:packages/core"],
 
     "@echoppe/docs": ["@echoppe/docs@workspace:docs"],
@@ -536,6 +545,8 @@
 
     "@manypkg/get-packages": ["@manypkg/get-packages@1.1.3", "", { "dependencies": { "@babel/runtime": "^7.5.5", "@changesets/types": "^4.0.1", "@manypkg/find-root": "^1.1.0", "fs-extra": "^8.1.0", "globby": "^11.0.0", "read-yaml-file": "^1.1.0" } }, "sha512-fo+QhuU3qE/2TQMQmbVMqaQ6EWbMhi4ABWP+O4AM1NqPBuy0OrApV5LO6BrrgnhtAHS2NH6RrVk9OL181tTi8A=="],
 
+    "@mrcasquette/content": ["@mrcasquette/content@workspace:packages/content"],
+
     "@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@1.1.6", "", { "dependencies": { "@tybys/wasm-util": "^0.10.3" }, "peerDependencies": { "@emnapi/core": "^1.7.1", "@emnapi/runtime": "^1.7.1" } }, "sha512-ZLv/JdUfkvOy9eCnnBaGfiO+XimbjebAeO+MRQqD/B+FR1tnRN0tpKSJHRbE8sFfS6aqsXZ67TQjfwfsxULVbg=="],
 
     "@nodelib/fs.scandir": ["@nodelib/fs.scandir@2.1.5", "", { "dependencies": { "@nodelib/fs.stat": "2.0.5", "run-parallel": "^1.1.9" } }, "sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g=="],
@@ -557,6 +568,8 @@
     "@redocly/config": ["@redocly/config@0.22.0", "", {}, "sha512-gAy93Ddo01Z3bHuVdPWfCwzgfaYgMdaZPcfL7JZ7hWJoK9V0lXDbigTWkhiPFAaLWzbOJ+kbUQG1+XwIm0KRGQ=="],
 
     "@redocly/openapi-core": ["@redocly/openapi-core@1.34.17", "", { "dependencies": { "@redocly/ajv": "8.11.2", "@redocly/config": "0.22.0", "colorette": "1.4.0", "https-proxy-agent": "7.0.6", "js-levenshtein": "1.1.6", "js-yaml": "4.2.0", "minimatch": "5.1.9", "pluralize": "8.0.0", "yaml-ast-parser": "0.0.43" } }, "sha512-wsV2keCt6B806XpSdezbWZ9aFJYf14YVh+XQf0ESt7M90yqVuxH9//PxvtC70sgj9OCkRM3nRaLfu4MsGQZRig=="],
+
+    "@repo/assets": ["@repo/assets@workspace:packages/assets"],
 
     "@rolldown/binding-android-arm64": ["@rolldown/binding-android-arm64@1.1.4", "", { "os": "android", "cpu": "arm64" }, "sha512-EZLpf/8y7GXkkra90ML47kzik/GMP3EMcE9bPyHmRfxLC6z9+aW5A8poCsoxjrT5GfEcNAAvWwUHjvP1pUQkfw=="],
 

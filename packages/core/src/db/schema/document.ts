@@ -1,5 +1,5 @@
+import { media } from '@repo/assets';
 import { decimal, jsonb, pgEnum, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
-import { media } from './media';
 import { order } from './orders';
 
 export const documentTypeEnum = pgEnum('document_type', ['receipt', 'credit_note']);

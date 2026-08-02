@@ -1,3 +1,4 @@
+import { media } from '@repo/assets';
 import { sql } from 'drizzle-orm';
 import {
   type AnyPgColumn,
@@ -14,7 +15,6 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { media } from './media';
 import { taxRate } from './referential';
 
 export const productStatusEnum = pgEnum('product_status', ['draft', 'published', 'archived']);
