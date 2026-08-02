@@ -30,7 +30,7 @@ apps/
 packages/
   echoppe-core  prisme-core
   echoppe-client  prisme-client
-  auth  content  assets  communication  adapters  shared
+  auth  content  assets  communication  adapters  identity  shared
   create-echoppe  create-prisme
 ```
 

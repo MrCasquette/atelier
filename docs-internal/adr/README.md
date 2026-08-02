@@ -35,6 +35,7 @@ Portée : socle | <package> | échoppe | prisme
 | [0024](./ADR-0024-portee-adr.md) | Portée des ADR : un compteur unique, un champ de portée | accepté | — |
 | [0025](./ADR-0025-deux-produits-un-repo.md) | Deux produits, un repo : frontière core / packages | accepté | — |
 | [0033](./ADR-0033-organisation-monorepo.md) | Organisation du monorepo : disposition à plat, deux cores, packages partagés | accepté | — |
+| [0034](./ADR-0034-identite-referentiel-reglages.md) | Identité, référentiel et réglages : ce que l'outil possède | accepté | — |
 
 ## Index — `client` · SDK et contrat d'API
 
@@ -54,10 +55,12 @@ Portée : socle | <package> | échoppe | prisme
 
 | N° | Titre | Statut | Détail |
 |----|-------|--------|--------|
-| [0012](./ADR-0012-module-contenu.md) | Module contenu / page-builder headless (`@echoppe/content`) | accepté | [content-module.md](../reference/content-module.md) |
+| [0012](./ADR-0012-module-contenu.md) | Module contenu / page-builder headless (`@mrcasquette/content`) | accepté | [content-module.md](../reference/content-module.md) |
 | [0030](./ADR-0030-texte-riche-markdown.md) | Texte riche : Markdown, attributs sémantiques, saut dur explicite | accepté | — |
 | [0031](./ADR-0031-i18n-champs-localises.md) | i18n de contenu : champs localisés, décidé mais non implémenté | accepté | — |
 | [0032](./ADR-0032-cibles-referencables.md) | Cibles référençables : le lien déclaré, la résolution ouverte | accepté | — |
+| [0035](./ADR-0035-interpolation-variables.md) | Interpolation de variables dans le contenu | accepté | — |
+| [0036](./ADR-0036-cycle-de-vie-contenu.md) | Cycle de vie du contenu : un statut déclaré, pas de versionnement | accepté | — |
 
 ## Index — `assets` · Média et images
 

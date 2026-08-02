@@ -1,4 +1,4 @@
-# ADR-0012 — Module contenu / page-builder headless (`@echoppe/content`)
+# ADR-0012 — Module contenu / page-builder headless (`@mrcasquette/content`)
 
 Statut : accepté
 Portée : content
