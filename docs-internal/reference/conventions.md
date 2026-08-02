@@ -1,9 +1,42 @@
-# Conventions projet — Échoppe
+# Conventions projet
 
 Capture les **choix et seuils projet non dérivables du code** (cf. philosophy §9). La SSOT des
-idiomes reste `~/.code-conform/docs/` ; ce fichier ne note que ce qui est **spécifique à Échoppe**
+idiomes reste `~/.code-conform/docs/` ; ce fichier ne note que ce qui est **spécifique à ce repo**
 ou qui **tranche un point contextuel**. Les décisions structurantes vivent dans les
 [ADR](../adr/README.md) ; ici on capture les conventions de travail et les seuils.
+
+## Un registre, pas une union fermée
+
+**Quand le framework doit nommer des concepts qui appartiennent au produit, il déclare un contrat et
+le produit s'enregistre.** Il n'énumère pas.
+
+Ce motif a été découvert quatre fois séparément en préparant le découpage Échoppe / Prisme, à chaque
+fois comme un couplage à défaire :
+
+| Où | Union fermée | Devient |
+|---|---|---|
+| `packages/content` — `RefTarget` | `'product' \| 'collection' \| 'category'` | registre de cibles référençables ([ADR-0032](../adr/ADR-0032-cibles-referencables.md)) |
+| `core/constants/resources.ts` — `RESOURCES` | 24 entrées dont 14 de commerce | espace `entity:` ouvert ([ADR-0038](../adr/ADR-0038-ressources-ouvertes-delegation.md)) |
+| `api/plugins/rbac.ts` — `RbacAuthContext` | `admin \| customer \| apikey \| public` | registre de principaux ([ADR-0037](../adr/ADR-0037-principaux-surfaces.md)) |
+| `core/db/schema/enums.ts` — `roleScopeEnum` | `['admin', 'store']` | surface validée contre le registre ([ADR-0037](../adr/ADR-0037-principaux-surfaces.md)) |
+
+**Le signal à reconnaître** : une union, un `pgEnum` ou une constante du framework qui énumère des
+valeurs nommant des concepts d'un produit. `'product'` dans un paquet de contenu, `'store'` dans un
+enum d'authentification. Le mot d'un produit dans le vocabulaire du socle.
+
+**Le gain mesuré** : ouvrir `RefTarget` à lui seul supprime cinq points de couplage, dont un dans un
+paquet publié.
+
+**Ce n'est pas une règle universelle.** Une union fermée est juste quand le vocabulaire appartient
+*vraiment* au framework — les actions `create/read/update/delete`, les verbes HTTP, les statuts d'une
+machine à états qu'il possède. Le critère n'est pas « est-ce que ça pourrait grandir », c'est
+**« qui décide de cette liste »**. Si la réponse est « le produit » ou « le dev qui consomme », c'est
+un registre.
+
+**Corollaire de typage** : ouvrir ne veut pas dire renoncer à la vérification. `Resource |
+\`entity:${string}\`` laisse passer l'espace ouvert tout en continuant de rejeter
+`permissionGuard('medai', 'read')`. Préférer un espace **préfixé** à un `| string` nu — le préfixe
+sert aussi à la maintenance (`LIKE 'entity:%'` pour purger).
 
 ## Structure des packages
 
