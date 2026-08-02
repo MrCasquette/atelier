@@ -27,6 +27,7 @@ livré. Le profil servi est **l'utilisateur standard qui a un dev**.
 | Sections vs entités | [0026](../adr/ADR-0026-sections-entites.md) | — |
 | Entités en vraies tables, déclarées en code et poussées | [0027](../adr/ADR-0027-entites-tables-reelles.md) | — |
 | Texte riche en Markdown | [0030](../adr/ADR-0030-texte-riche-markdown.md) | #10 |
+| Cardinalité des entités — singleton déclaré | [0039](../adr/ADR-0039-entites-singleton.md) | — |
 | Cibles référençables (découplage des menus) | [0032](../adr/ADR-0032-cibles-referencables.md) | #8 |
 | Identité, référentiel, réglages | [0034](../adr/ADR-0034-identite-referentiel-reglages.md) | #9 |
 | Interpolation de variables, humble | [0035](../adr/ADR-0035-interpolation-variables.md) | #12 |
@@ -88,6 +89,7 @@ un utilisateur qui sait déployer — c'est-à-dire pas celui qu'elle vise.
 | Prévisualisation d'un brouillon — un jeton côté front, distinct du versionnement | [0036](../adr/ADR-0036-cycle-de-vie-contenu.md) |
 | Scope npm du SDK Prisme | [0033](../adr/ADR-0033-organisation-monorepo.md) |
 | Nom du package d'identité — `@repo/identity` proposé | [0034](../adr/ADR-0034-identite-referentiel-reglages.md) |
-| Singleton vs liste, et la surface storefront | [systeme-contenu-leger.md](./systeme-contenu-leger.md) |
+| Surface storefront — endpoint générique vs dédiés | [systeme-contenu-leger.md](./systeme-contenu-leger.md) |
+| Réponse d'un singleton non renseigné — 404 ou 200 vide | [0039](../adr/ADR-0039-entites-singleton.md) |
 | i18n de l'interface admin — sans effet sur le modèle, peut attendre | [0031](../adr/ADR-0031-i18n-champs-localises.md) |
 | Lexique — provisoire, à ratifier | [lexique-prisme.md](../reference/lexique-prisme.md) |

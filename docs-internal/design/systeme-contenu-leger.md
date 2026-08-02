@@ -10,7 +10,9 @@ Détail des tâches **Système de contenu léger** du [backlog](../../BACKLOG.md
 > [ADR-0030](../adr/ADR-0030-texte-riche-markdown.md) (**Markdown**, la décision bloquante ci-dessous),
 > [ADR-0031](../adr/ADR-0031-i18n-champs-localises.md) (i18n).
 > Le document reste pour le **reframe** et les consommateurs cibles côté Échoppe, qui n'ont pas changé.
-> Restent non tranchés : le singleton vs liste, et la surface storefront.
+> Le singleton vs liste est tranché par [ADR-0039](../adr/ADR-0039-entites-singleton.md).
+> Reste non tranchée : la **surface storefront** (endpoint générique `/content/:type[/:slug]` vs
+> endpoints dédiés).
 
 ## Reframe
 

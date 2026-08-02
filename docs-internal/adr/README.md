@@ -65,6 +65,7 @@ Portée : socle | <package> | échoppe | prisme
 | [0036](./ADR-0036-cycle-de-vie-contenu.md) | Cycle de vie du contenu : un statut déclaré, pas de versionnement | accepté | — |
 | [0026](./ADR-0026-sections-entites.md) | Sections et entités : deux natures de contenu | accepté | [lexique-prisme.md](../reference/lexique-prisme.md) |
 | [0027](./ADR-0027-entites-tables-reelles.md) | Entités en vraies tables, déclarées en code et poussées | accepté | — |
+| [0039](./ADR-0039-entites-singleton.md) | Cardinalité d'une entité : singleton déclaré, borne haute seulement | accepté | — |
 
 ## Index — `assets` · Média et images
 
