@@ -1,7 +1,10 @@
-import { decimal, jsonb, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
-import { documentTypeEnum, invoiceStatusEnum, invoiceTypeEnum } from './enums';
+import { decimal, jsonb, pgEnum, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { media } from './media';
 import { order } from './orders';
+
+export const documentTypeEnum = pgEnum('document_type', ['receipt', 'credit_note']);
+export const invoiceTypeEnum = pgEnum('invoice_type', ['invoice', 'credit_note']);
+export const invoiceStatusEnum = pgEnum('invoice_status', ['pending', 'issued', 'cancelled']);
 
 export const orderDocument = pgTable('order_document', {
   id: uuid('id').primaryKey().defaultRandom(),

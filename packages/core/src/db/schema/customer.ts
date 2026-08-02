@@ -1,6 +1,7 @@
 import {
   boolean,
   index,
+  pgEnum,
   pgTable,
   primaryKey,
   text,
@@ -9,9 +10,10 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { variant } from './catalog';
-import { addressTypeEnum } from './enums';
 import { media } from './media';
 import { country } from './referential';
+
+export const addressTypeEnum = pgEnum('address_type', ['billing', 'shipping']);
 
 export const customer = pgTable('customer', {
   id: uuid('id').primaryKey().defaultRandom(),

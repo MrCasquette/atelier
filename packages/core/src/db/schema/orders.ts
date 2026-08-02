@@ -2,6 +2,7 @@ import {
   decimal,
   integer,
   jsonb,
+  pgEnum,
   pgTable,
   text,
   timestamp,
@@ -10,7 +11,16 @@ import {
 } from 'drizzle-orm/pg-core';
 import { variant } from './catalog';
 import { customer } from './customer';
-import { orderStatusEnum } from './enums';
+
+export const orderStatusEnum = pgEnum('order_status', [
+  'pending',
+  'confirmed',
+  'processing',
+  'shipped',
+  'delivered',
+  'cancelled',
+  'refunded',
+]);
 
 export const order = pgTable('order', {
   id: uuid('id').primaryKey().defaultRandom(),

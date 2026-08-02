@@ -5,6 +5,7 @@ import {
   decimal,
   integer,
   jsonb,
+  pgEnum,
   pgTable,
   primaryKey,
   text,
@@ -13,9 +14,18 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { optionTypeEnum, personalizationFieldTypeEnum, productStatusEnum } from './enums';
 import { media } from './media';
 import { taxRate } from './referential';
+
+export const productStatusEnum = pgEnum('product_status', ['draft', 'published', 'archived']);
+// Type d'une option produit : pilote le widget admin et le rendu storefront. `string` = valeur
+// texte (défaut) ; `color` = pastille, la valeur porte une couleur oklch dans `optionValue.metadata`.
+export const optionTypeEnum = pgEnum('option_type', ['string', 'color']);
+// Type d'un champ de personnalisation produit (ADR-0010) : pilote le widget admin/storefront.
+export const personalizationFieldTypeEnum = pgEnum('personalization_field_type', [
+  'text',
+  'textarea',
+]);
 
 export const category = pgTable('category', {
   id: uuid('id').primaryKey().defaultRandom(),

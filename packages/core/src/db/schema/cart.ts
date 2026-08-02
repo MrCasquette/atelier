@@ -1,7 +1,8 @@
-import { integer, jsonb, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { integer, jsonb, pgEnum, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { variant } from './catalog';
 import { customer } from './customer';
-import { cartStatusEnum } from './enums';
+
+export const cartStatusEnum = pgEnum('cart_status', ['active', 'converted', 'abandoned']);
 
 export const cart = pgTable('cart', {
   id: uuid('id').primaryKey().defaultRandom(),

@@ -1,6 +1,28 @@
-import { boolean, decimal, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
-import { shipmentStatusEnum, shippingProviderTypeEnum } from './enums';
+import {
+  boolean,
+  decimal,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core';
 import { order } from './orders';
+
+export const shipmentStatusEnum = pgEnum('shipment_status', [
+  'pending',
+  'label_created',
+  'shipped',
+  'in_transit',
+  'delivered',
+  'returned',
+]);
+export const shippingProviderTypeEnum = pgEnum('shipping_provider_type', [
+  'colissimo',
+  'mondialrelay',
+  'sendcloud',
+]);
 
 // Configuration des providers de livraison (credentials chiffrés)
 export const shippingProviderConfig = pgTable('shipping_provider_config', {

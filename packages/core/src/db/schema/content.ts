@@ -1,5 +1,15 @@
-import { integer, jsonb, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
-import { contentStatusEnum } from './enums';
+import {
+  integer,
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core';
+
+export const contentStatusEnum = pgEnum('content_status', ['draft', 'published']);
 
 // Module « content » — page builder headless (modèle façon Strapi : dynamic zone). Une PAGE
 // possède une liste ordonnée de SECTIONS (blocs embarqués). Une section est un bloc typé dont

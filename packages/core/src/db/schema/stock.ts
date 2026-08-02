@@ -1,6 +1,13 @@
-import { integer, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { integer, pgEnum, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { variant } from './catalog';
-import { stockMoveTypeEnum } from './enums';
+
+export const stockMoveTypeEnum = pgEnum('stock_move_type', [
+  'sale',
+  'return',
+  'restock',
+  'adjustment',
+  'reservation',
+]);
 
 export const stockMove = pgTable('stock_move', {
   id: uuid('id').primaryKey().defaultRandom(),

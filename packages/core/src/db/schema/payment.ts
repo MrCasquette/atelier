@@ -2,14 +2,27 @@ import {
   boolean,
   decimal,
   jsonb,
+  pgEnum,
   pgTable,
   text,
   timestamp,
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { paymentProviderEnum, paymentStatusEnum } from './enums';
 import { order } from './orders';
+
+export const paymentProviderEnum = pgEnum('payment_provider', [
+  'stripe',
+  'paypal',
+  'bank_transfer',
+  'check',
+]);
+export const paymentStatusEnum = pgEnum('payment_status', [
+  'pending',
+  'completed',
+  'failed',
+  'refunded',
+]);
 
 // Configuration des providers de paiement (credentials chiffrés)
 export const paymentProviderConfig = pgTable('payment_provider_config', {

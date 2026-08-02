@@ -1,5 +1,19 @@
-import { boolean, jsonb, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
-import { communicationProviderEnum } from './enums';
+import {
+  boolean,
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core';
+
+export const communicationProviderEnum = pgEnum('communication_provider', [
+  'resend',
+  'brevo',
+  'smtp',
+]);
 
 // Configuration des providers de communication (credentials chiffrés)
 export const communicationProviderConfig = pgTable('communication_provider_config', {

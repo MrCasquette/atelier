@@ -1,5 +1,15 @@
-import { boolean, pgTable, text, timestamp, unique, uuid, varchar } from 'drizzle-orm/pg-core';
-import { roleScopeEnum } from './enums';
+import {
+  boolean,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core';
+
+export const roleScopeEnum = pgEnum('role_scope', ['admin', 'store']);
 
 // Forward reference for user (defined in admin.ts)
 // Session needs to reference user, but user references role
