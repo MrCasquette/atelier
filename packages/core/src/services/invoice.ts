@@ -2,8 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { readFile, unlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { db } from '@repo/db';
 import { eq } from 'drizzle-orm';
-import { db } from '../db';
 import { company, country, customer, invoice, order, orderItem, storeSettings } from '../db/schema';
 import { getStoreSettings } from './store-settings';
 

@@ -1,9 +1,14 @@
-export type { Column, SQL } from 'drizzle-orm';
-// Re-export drizzle-orm utilities
+// Vocabulaire de requête — vient de @repo/db, réexporté pour ne pas changer la surface.
+export type { Column, SQL } from '@repo/db';
+// Connexion et runner de migrations : @repo/db (ADR-0025). Réexportés ici pour que la surface
+// d'@echoppe/core ne bouge pas — les routes continuent d'écrire `import { product, db, eq }`.
 export {
   and,
   asc,
+  client,
   count,
+  type Database,
+  db,
   desc,
   eq,
   gt,
@@ -18,8 +23,9 @@ export {
   ne,
   notInArray,
   or,
+  runMigrations,
   sql,
-} from 'drizzle-orm';
+} from '@repo/db';
 // Communication adapters
 export {
   BrevoAdapter,
@@ -62,9 +68,6 @@ export * from './adapters/payment';
 export * from './adapters/shipping';
 // RBAC constants
 export * from './constants/resources';
-export type { Database } from './db/index';
-export { db } from './db/index';
-export { runMigrations } from './db/migrate';
 export * from './db/schema/index';
 // Email service
 export {

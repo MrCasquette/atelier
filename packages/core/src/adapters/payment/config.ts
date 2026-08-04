@@ -1,5 +1,5 @@
+import { db } from '@repo/db';
 import { eq } from 'drizzle-orm';
-import { db } from '../../db';
 import { paymentProviderConfig } from '../../db/schema/payment';
 import { decrypt, encrypt } from '../../utils/crypto';
 import type { PaymentProvider } from './types';

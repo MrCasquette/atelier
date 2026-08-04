@@ -1,9 +1,9 @@
+import { db } from '@repo/db';
 import {
   type EmailTemplate,
   getActiveCommunicationAdapter,
   type SendResult,
 } from '../adapters/communication';
-import { db } from '../db';
 import { company } from '../db/schema/admin';
 import { communicationLog } from '../db/schema/communication';
 

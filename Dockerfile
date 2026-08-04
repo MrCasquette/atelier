@@ -26,6 +26,7 @@ COPY package.json bun.lock ./
 COPY packages/core/package.json ./packages/core/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/assets/package.json ./packages/assets/
+COPY packages/db/package.json ./packages/db/
 COPY packages/client/package.json ./packages/client/
 COPY packages/content/package.json ./packages/content/
 COPY packages/create-echoppe/package.json ./packages/create-echoppe/
@@ -43,6 +44,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/core/node_modules ./packages/core/node_modules
 COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY --from=deps /app/packages/assets/node_modules ./packages/assets/node_modules
+COPY --from=deps /app/packages/db/node_modules ./packages/db/node_modules
 COPY --from=deps /app/apps/echoppe-api/node_modules ./apps/echoppe-api/node_modules
 COPY --from=deps /app/apps/echoppe-admin/node_modules ./apps/echoppe-admin/node_modules
 COPY --from=deps /app/apps/echoppe-store/node_modules ./apps/echoppe-store/node_modules

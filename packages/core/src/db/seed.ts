@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { db } from '@repo/db';
 import { eq } from 'drizzle-orm';
-import { db } from './index';
 import {
   type ColorMetadata,
   category,

@@ -1,5 +1,5 @@
+import { db } from '@repo/db';
 import { eq } from 'drizzle-orm';
-import { db } from '../../db';
 import { shippingProviderConfig } from '../../db/schema/shipping';
 import { decrypt, encrypt } from '../../utils/crypto';
 import type { ShippingProvider } from './types';

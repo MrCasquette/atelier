@@ -21,9 +21,10 @@
   },
   "dependencies": {
     "@echoppe/shared": "workspace:*",
-    "@repo/assets": "workspace:*",
     "@getbrevo/brevo": "6",
     "@paypal/checkout-server-sdk": "^1.0.3",
+    "@repo/assets": "workspace:*",
+    "@repo/db": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "nodemailer": "9",
     "postgres": "^3.4.9",

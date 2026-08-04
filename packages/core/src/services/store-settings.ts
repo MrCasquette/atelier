@@ -1,5 +1,5 @@
+import { db } from '@repo/db';
 import { eq } from 'drizzle-orm';
-import { db } from '../db';
 import { storeSettings } from '../db/schema/settings';
 
 export type StoreSettings = typeof storeSettings.$inferSelect;
