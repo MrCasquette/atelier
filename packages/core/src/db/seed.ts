@@ -200,35 +200,40 @@ async function seed() {
   console.log('  → Roles...');
   const defaultRoles = [
     {
+      key: 'owner',
       name: 'Propriétaire',
       description: 'Propriétaire de la boutique - accès total',
       scope: 'admin' as const,
       isSystem: true,
     },
     {
+      key: 'admin',
       name: 'Administrateur',
       description: 'Administrateur - accès complet sauf rôles/permissions',
       scope: 'admin' as const,
       isSystem: true,
     },
     {
+      key: 'customer',
       name: 'Client',
       description: 'Client authentifié - accès à ses propres données',
-      scope: 'store' as const,
+      scope: 'public' as const,
       isSystem: true,
     },
     {
+      key: 'public',
       name: 'Public',
       description: 'Accès public non authentifié - lecture seule catalogue',
-      scope: 'store' as const,
+      scope: 'public' as const,
       isSystem: true,
     },
   ];
 
-  // Insérer seulement les rôles qui n'existent pas déjà
-  const existingRoles = await db.select({ name: role.name }).from(role);
-  const existingNames = new Set(existingRoles.map((r) => r.name));
-  const rolesToInsert = defaultRoles.filter((r) => !existingNames.has(r.name));
+  // Insérer seulement les rôles qui n'existent pas déjà. Le repère est la `key` immuable, pas le
+  // nom : celui-ci est affiché et renommable depuis l'administration.
+  const existingRoles = await db.select({ key: role.key }).from(role);
+  const existingKeys = new Set(existingRoles.map((r) => r.key));
+  const rolesToInsert = defaultRoles.filter((r) => !existingKeys.has(r.key));
 
   if (rolesToInsert.length > 0) {
     await db.insert(role).values(rolesToInsert);
@@ -240,7 +245,7 @@ async function seed() {
 
   // Récupérer tous les rôles (y compris ceux déjà existants)
   const allRoles = await db.select().from(role);
-  const roleByName = new Map(allRoles.map((r) => [r.name, r.id]));
+  const roleByKey = new Map(allRoles.flatMap((r) => (r.key ? [[r.key, r.id] as const] : [])));
 
   // Helper pour créer des permissions
   type PermDef = {
@@ -253,8 +258,8 @@ async function seed() {
     locked?: boolean; // Si true, permission non modifiable par le propriétaire
   };
 
-  async function setPermissions(roleName: string, perms: PermDef[]) {
-    const roleId = roleByName.get(roleName);
+  async function setPermissions(roleKey: string, perms: PermDef[]) {
+    const roleId = roleByKey.get(roleKey);
     if (!roleId) return;
 
     for (const p of perms) {
@@ -290,7 +295,7 @@ async function seed() {
   // - Tables système (natif Échoppe): lecture/update, pas de delete, LOCKED
   // - Tables compliance (RGPD): pas de delete
   // - Tables business: CRUD normal, modifiable
-  await setPermissions('Propriétaire', [
+  await setPermissions('owner', [
     // --- Tables système (LOCKED) ---
     { resource: 'identity', canRead: true, canUpdate: true, locked: true }, // Config boutique unique
     { resource: 'country', canRead: true, locked: true }, // Référentiel fixe
@@ -329,7 +334,7 @@ async function seed() {
   // - Pas d'accès aux credentials (payment, communication)
   // - Pas de gestion des users
   // - Gestion catalogue, commandes, clients
-  await setPermissions('Administrateur', [
+  await setPermissions('admin', [
     // --- Tables système (lecture seule ou aucun accès) ---
     { resource: 'identity', canRead: true, locked: true },
     { resource: 'country', canRead: true, locked: true },
@@ -373,7 +378,7 @@ async function seed() {
   // CLIENT
   // =============================================
   // Ses propres données uniquement (selfOnly)
-  await setPermissions('Client', [
+  await setPermissions('customer', [
     { resource: 'product', canRead: true, locked: true },
     { resource: 'category', canRead: true, locked: true },
     { resource: 'collection', canRead: true, locked: true },
@@ -417,7 +422,7 @@ async function seed() {
   // PUBLIC
   // =============================================
   // Lecture seule catalogue (non authentifié)
-  await setPermissions('Public', [
+  await setPermissions('public', [
     { resource: 'product', canRead: true, locked: true },
     { resource: 'category', canRead: true, locked: true },
     { resource: 'collection', canRead: true, locked: true },
@@ -1891,7 +1896,7 @@ async function seed() {
   // === DEFAULT ADMIN USER ===
   console.log('  → Default admin user...');
 
-  const [ownerRole] = await db.select().from(role).where(eq(role.name, 'Propriétaire'));
+  const [ownerRole] = await db.select().from(role).where(eq(role.key, 'owner'));
 
   if (ownerRole) {
     const [existingAdmin] = await db.select().from(user).where(eq(user.email, 'admin@echoppe.dev'));

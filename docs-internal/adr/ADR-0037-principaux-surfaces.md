@@ -1,6 +1,6 @@
 # ADR-0037 — Principaux, surfaces et sessions : un registre plutôt qu'une union fermée
 
-Statut : accepté · 2026-08-02
+Statut : accepté, partiellement amendé · 2026-08-02 (amendé le 2026-08-04)
 Portée : auth
 
 > Amende [ADR-0008](./ADR-0008-auth-sessions.md), dont le mécanisme — sessions Postgres, cookie
@@ -87,9 +87,40 @@ principal authentifié, commun aux deux produits.
 - `rbac.ts:277` identifie aujourd'hui le « soi » du filtrage `selfOnly` par un `if` sur le type de
   principal. Ça devient une **propriété du principal enregistré** — « voici comment on identifie le
   sujet » — au lieu d'une branche par type.
-- `roleScopeEnum` sort de `enums.ts` : la valeur est validée contre le registre, pas contre un
-  `pgEnum`. Petit gain sur le découpage d'`enums.ts`.
+- ~~`roleScopeEnum` sort de `enums.ts` : la valeur est validée contre le registre, pas contre un
+  `pgEnum`. Petit gain sur le découpage d'`enums.ts`.~~ **Amendé — voir ci-dessous.**
 - Trois mots désignaient la même chose — le scope `store`, le principal `customer`, le rôle système
   `Client`. Le registre impose d'en garder **un** : `customer`, celui du code.
 - Le mécanisme d'ADR-0008 est intact : sessions Postgres, cookie HTTP-only, pas de JWT, jeton opaque
   indexé.
+
+
+## Amendement du 2026-08-04 — la surface reste une union fermée
+
+**Ce qui était faux.** La conséquence « `roleScopeEnum` sort de `enums.ts` : la valeur est validée
+contre le registre » étendait le motif du registre à un endroit où son critère ne s'applique pas.
+`conventions.md` pose la question **« qui décide de cette liste »** : si c'est le produit, registre ;
+si c'est le socle, union fermée. Or une surface, c'est « dans quelle application ce rôle a un sens »,
+et c'est le socle qui décide qu'il existe une administration et une surface publique. Échoppe et
+Prisme ont exactement les deux mêmes. Le motif est bon, la liste ne lui appartenait pas.
+
+Le seul gain avancé — « petit gain sur le découpage d'`enums.ts` » — a d'ailleurs disparu entre-temps :
+la tâche `#2` a dissous `enums.ts`, chaque `pgEnum` ayant rejoint le fichier de sa table.
+`roleScopeEnum` vit désormais dans `packages/core/src/db/schema/auth.ts`, à côté de `role`.
+
+**Ce qui reste vrai**, et qui était l'essentiel : `store` n'était pas un concept de commerce, c'était
+le nom Échoppe de la surface publique. La valeur devient `public`, générique pour les deux produits.
+Migration `0012` : `ALTER TYPE "role_scope" RENAME VALUE 'store' TO 'public'` — renommer la valeur,
+pas recréer le type, sinon le transtypage échoue sur les lignes portant encore `'store'`.
+
+**Ce qui remplace la comparaison par nom.** `role` gagne une colonne `key` (`varchar(50)`, nullable,
+unique) : l'identifiant stable des rôles que le **code** doit retrouver seul. `rbac.ts` cherchait
+`role.name === 'Client'` et `=== 'Public'` — renommer « Client » depuis l'administration cassait
+silencieusement l'authentification de tout le storefront. Les quatre rôles système reçoivent
+`owner`, `admin`, `customer`, `public` ; tout rôle créé depuis l'administration a `key = NULL`, et
+c'est très bien : le code ne le cherche jamais. La clé n'est ni dans le corps de création ni
+modifiable — elle est exposée en lecture seule.
+
+C'est aussi ce qui tranche le « trois mots pour la même chose » de la décision initiale : le scope
+`store` disparaît, le rôle garde son nom affiché français « Client », et le code n'écrit plus que
+`customer`.

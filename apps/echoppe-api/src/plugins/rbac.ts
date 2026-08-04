@@ -8,58 +8,39 @@ import {
   getCustomerSessionFromToken,
   type SessionCustomer,
 } from './customerAuth';
+import {
+  createPrincipalRegistry,
+  type PermissionSet,
+  type Principal,
+  type PrincipalRequest,
+} from './principals';
 
-// Types pour les permissions
-export type PermissionSet = {
-  canCreate: boolean;
-  canRead: boolean;
-  canUpdate: boolean;
-  canDelete: boolean;
-  selfOnly: boolean;
+export type { PermissionSet };
+
+// Identité qu'un principal d'Échoppe projette dans le contexte des routes. Les trois champs sont
+// toujours présents, à `null` près : c'est ce qui permet à `checkPermission` de n'avoir aucune
+// branche par type de principal.
+export type EchoppeIdentity = {
+  currentUser: SessionUser | null;
+  currentRole: SessionRole | null;
+  currentCustomer: SessionCustomer | null;
 };
 
-// Types pour les contextes d'authentification
-export type AuthenticatedAdmin = {
-  type: 'admin';
-  user: SessionUser;
-  role: SessionRole;
-  permissions: Map<string, PermissionSet>;
-};
+export type EchoppePrincipal = Principal<EchoppeIdentity>;
 
-export type AuthenticatedCustomer = {
-  type: 'customer';
-  customer: SessionCustomer;
-  permissions: Map<string, PermissionSet>;
+const ANONYMOUS: EchoppeIdentity = {
+  currentUser: null,
+  currentRole: null,
+  currentCustomer: null,
 };
-
-export type PublicAccess = {
-  type: 'public';
-  permissions: Map<string, PermissionSet>;
-};
-
-// Client machine authentifié par clé d'API (CLI, CI). Pas d'utilisateur ni de rôle : ses
-// permissions sont dérivées de ses scopes. Jamais de bypass owner (ce n'est pas un humain).
-export type AuthenticatedApiKey = {
-  type: 'apikey';
-  keyId: string;
-  scopes: string[];
-  permissions: Map<string, PermissionSet>;
-};
-
-export type RbacAuthContext =
-  | AuthenticatedAdmin
-  | AuthenticatedCustomer
-  | AuthenticatedApiKey
-  | PublicAccess;
 
 // Cache des permissions par rôle (en mémoire)
 const permissionCache = new Map<string, Map<string, PermissionSet>>();
 const cacheTimestamps = new Map<string, number>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-// Cache pour les rôles système (Customer, Public)
-let customerRoleId: string | null = null;
-let publicRoleId: string | null = null;
+// Cache des identifiants de rôles système, résolus par leur `key` immuable.
+const systemRoleIds = new Map<string, string | null>();
 
 async function getPermissionsForRole(roleId: string): Promise<Map<string, PermissionSet>> {
   const now = Date.now();
@@ -89,33 +70,106 @@ async function getPermissionsForRole(roleId: string): Promise<Map<string, Permis
   return permMap;
 }
 
-async function getCustomerRoleId(): Promise<string | null> {
-  if (customerRoleId) return customerRoleId;
-
-  const [customerRole] = await db.select().from(role).where(eq(role.name, 'Client'));
-  customerRoleId = customerRole?.id ?? null;
-  return customerRoleId;
-}
-
-async function getPublicRoleId(): Promise<string | null> {
-  if (publicRoleId) return publicRoleId;
-
-  const [pubRole] = await db.select().from(role).where(eq(role.name, 'Public'));
-  publicRoleId = pubRole?.id ?? null;
-  return publicRoleId;
-}
-
-async function getCustomerPermissions(): Promise<Map<string, PermissionSet>> {
-  const roleId = await getCustomerRoleId();
+/**
+ * Permissions d'un rôle système désigné par sa `key` stable — jamais par son `name`, que
+ * l'utilisateur peut renommer depuis l'administration.
+ */
+async function getPermissionsForRoleKey(key: string): Promise<Map<string, PermissionSet>> {
+  let roleId = systemRoleIds.get(key);
+  if (roleId === undefined) {
+    const [systemRole] = await db.select().from(role).where(eq(role.key, key));
+    roleId = systemRole?.id ?? null;
+    systemRoleIds.set(key, roleId);
+  }
   if (!roleId) return new Map();
   return getPermissionsForRole(roleId);
 }
 
-async function getPublicPermissions(): Promise<Map<string, PermissionSet>> {
-  const roleId = await getPublicRoleId();
-  if (!roleId) return new Map();
-  return getPermissionsForRole(roleId);
-}
+// ── Principaux d'Échoppe ──────────────────────────────────────────────────────────────────────
+// L'ordre d'enregistrement est l'ordre d'essai : la clé machine d'abord (en-tête explicite), puis
+// les sessions, l'anonyme en dernier recours. Prisme enregistrera les mêmes moins `customer`.
+
+const principals = createPrincipalRegistry<EchoppeIdentity>();
+
+principals.register({
+  type: 'apikey',
+  async resolve({ authHeader }) {
+    const apiKeyPrincipal = await resolveApiKey(authHeader);
+    if (!apiKeyPrincipal) return null;
+    return {
+      type: 'apikey',
+      permissions: apiKeyPrincipal.permissions,
+      // Jamais de bypass owner : ce n'est pas un humain. Et pas de « soi » à filtrer — les
+      // permissions viennent des scopes de la clé, pas d'un compte.
+      bypass: false,
+      privileged: true,
+      honorsSelfOnly: false,
+      identity: ANONYMOUS,
+    };
+  },
+});
+
+principals.register({
+  type: 'admin',
+  async resolve({ cookie }) {
+    const token = cookie[COOKIE_NAME]?.value;
+    if (!token) return null;
+
+    const session = await getSessionFromToken(token);
+    if (!session.isAuthenticated || !session.currentUser || !session.currentRole) return null;
+
+    return {
+      type: 'admin',
+      permissions: await getPermissionsForRole(session.currentRole.id),
+      bypass: session.currentUser.isOwner,
+      privileged: true,
+      honorsSelfOnly: true,
+      identity: {
+        currentUser: session.currentUser,
+        currentRole: session.currentRole,
+        currentCustomer: null,
+      },
+    };
+  },
+});
+
+principals.register({
+  type: 'customer',
+  async resolve({ cookie }) {
+    const token = cookie[CUSTOMER_COOKIE_NAME]?.value;
+    if (!token) return null;
+
+    const session = await getCustomerSessionFromToken(token);
+    if (!session.isAuthenticated || !session.currentCustomer) return null;
+
+    return {
+      type: 'customer',
+      permissions: await getPermissionsForRoleKey('customer'),
+      bypass: false,
+      privileged: false,
+      honorsSelfOnly: true,
+      identity: {
+        currentUser: null,
+        currentRole: null,
+        currentCustomer: session.currentCustomer,
+      },
+    };
+  },
+});
+
+principals.registerFallback({
+  type: 'public',
+  async resolve() {
+    return {
+      type: 'public',
+      permissions: await getPermissionsForRoleKey('public'),
+      bypass: false,
+      privileged: false,
+      honorsSelfOnly: false,
+      identity: ANONYMOUS,
+    };
+  },
+});
 
 // Fonction utilitaire pour vérifier une permission
 export function hasPermission(
@@ -158,12 +212,11 @@ export function invalidatePermissionCache(roleId?: string) {
 }
 
 /**
- * Invalide le cache des rôles système (Customer, Public)
+ * Invalide le cache des rôles système (résolus par `key`)
  * Appeler si ces rôles sont recréés
  */
 export function invalidateSystemRoleCache() {
-  customerRoleId = null;
-  publicRoleId = null;
+  systemRoleIds.clear();
 }
 
 /**
@@ -176,132 +229,38 @@ export async function isPrivilegedRequest(
   cookie: Record<string, { value?: string }>,
   authHeader?: string,
 ): Promise<boolean> {
-  const authContext = await getAuthContext(cookie, authHeader);
-  return authContext.type === 'admin' || authContext.type === 'apikey';
+  const principal = await getPrincipal(cookie, authHeader);
+  return principal.privileged;
 }
 
 /**
- * Obtient le contexte d'authentification depuis les cookies
+ * Résout le principal de la requête via le registre.
  */
-export async function getAuthContext(
+export async function getPrincipal(
   cookie: Record<string, { value?: string }>,
   authHeader?: string,
-): Promise<RbacAuthContext> {
-  // 0. Essayer la clé d'API machine (Authorization: Bearer eck_…)
-  const apiKeyPrincipal = await resolveApiKey(authHeader);
-  if (apiKeyPrincipal) {
-    return {
-      type: 'apikey',
-      keyId: apiKeyPrincipal.keyId,
-      scopes: apiKeyPrincipal.scopes,
-      permissions: apiKeyPrincipal.permissions,
-    };
-  }
-
-  // 1. Essayer l'auth admin
-  const adminToken = cookie[COOKIE_NAME]?.value;
-  if (adminToken) {
-    const session = await getSessionFromToken(adminToken);
-    if (session.isAuthenticated && session.currentUser && session.currentRole) {
-      const permissions = await getPermissionsForRole(session.currentRole.id);
-      return {
-        type: 'admin',
-        user: session.currentUser,
-        role: session.currentRole,
-        permissions,
-      };
-    }
-  }
-
-  // 2. Essayer l'auth customer
-  const customerToken = cookie[CUSTOMER_COOKIE_NAME]?.value;
-  if (customerToken) {
-    const session = await getCustomerSessionFromToken(customerToken);
-    if (session.isAuthenticated && session.currentCustomer) {
-      const permissions = await getCustomerPermissions();
-      return {
-        type: 'customer',
-        customer: session.currentCustomer,
-        permissions,
-      };
-    }
-  }
-
-  // 3. Accès public
-  const permissions = await getPublicPermissions();
-  return {
-    type: 'public',
-    permissions,
-  };
+): Promise<EchoppePrincipal> {
+  const request: PrincipalRequest = { cookie, authHeader };
+  return principals.resolve(request);
 }
 
 /**
- * Vérifie si le contexte a la permission demandée
- * Owner bypass toutes les vérifications
+ * Vérifie si le principal a la permission demandée.
+ * Le propriétaire bypasse toutes les vérifications.
  */
 export function checkPermission(
-  authContext: RbacAuthContext,
+  principal: EchoppePrincipal,
   resource: Resource,
   action: Action,
-): {
-  allowed: boolean;
-  selfOnly: boolean;
-  currentUser: SessionUser | null;
-  currentRole: SessionRole | null;
-  currentCustomer: SessionCustomer | null;
-} {
-  // Owner admin bypass all checks
-  if (authContext.type === 'admin' && authContext.user.isOwner) {
-    return {
-      allowed: true,
-      selfOnly: false,
-      currentUser: authContext.user,
-      currentRole: authContext.role,
-      currentCustomer: null,
-    };
+): EchoppeIdentity & { allowed: boolean; selfOnly: boolean } {
+  if (principal.bypass) {
+    return { allowed: true, selfOnly: false, ...principal.identity };
   }
 
-  const allowed = hasPermission(authContext.permissions, resource, action);
-  const selfOnly = isSelfOnly(authContext.permissions, resource);
-
-  if (authContext.type === 'admin') {
-    return {
-      allowed,
-      selfOnly,
-      currentUser: authContext.user,
-      currentRole: authContext.role,
-      currentCustomer: null,
-    };
-  }
-
-  if (authContext.type === 'customer') {
-    return {
-      allowed,
-      selfOnly,
-      currentUser: null,
-      currentRole: null,
-      currentCustomer: authContext.customer,
-    };
-  }
-
-  if (authContext.type === 'apikey') {
-    // Client machine : permissions issues des scopes, aucun principal humain, pas de self-only.
-    return {
-      allowed,
-      selfOnly: false,
-      currentUser: null,
-      currentRole: null,
-      currentCustomer: null,
-    };
-  }
-
-  // Public access
   return {
-    allowed,
-    selfOnly: false,
-    currentUser: null,
-    currentRole: null,
-    currentCustomer: null,
+    allowed: hasPermission(principal.permissions, resource, action),
+    selfOnly: principal.honorsSelfOnly && isSelfOnly(principal.permissions, resource),
+    ...principal.identity,
   };
 }
 
@@ -324,16 +283,16 @@ export function permissionGuard(
   }).macro({
     permission: {
       async resolve({ cookie, headers, status }) {
-        const authContext = await getAuthContext(
+        const principal = await getPrincipal(
           cookie as Record<string, { value?: string }>,
           headers.authorization,
         );
 
-        if (options?.adminOnly && authContext.type !== 'admin' && authContext.type !== 'apikey') {
+        if (options?.adminOnly && !principal.privileged) {
           return status(403, { message: `Permission refusée: ${action} sur ${resource}` });
         }
 
-        const result = checkPermission(authContext, resource, action);
+        const result = checkPermission(principal, resource, action);
 
         if (!result.allowed) {
           return status(403, { message: `Permission refusée: ${action} sur ${resource}` });
@@ -344,7 +303,7 @@ export function permissionGuard(
           currentRole: result.currentRole,
           currentCustomer: result.currentCustomer,
           selfOnly: result.selfOnly,
-          authContext,
+          principal,
         };
       },
     },

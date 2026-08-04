@@ -159,7 +159,7 @@ function cancel() {
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Scope</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Surface</label>
             <select
               v-model="form.scope"
               :disabled="isSystem"
@@ -168,8 +168,8 @@ function cancel() {
               <option value="admin">
                 Admin
               </option>
-              <option value="store">
-                Boutique
+              <option value="public">
+                Public
               </option>
             </select>
           </div>
@@ -199,7 +199,7 @@ function cancel() {
         </h3>
         <PermissionMatrix
           :permissions="permissions"
-          :show-self-only="form.scope === 'store'"
+          :show-self-only="form.scope === 'public'"
           @update:permissions="permissions = $event"
         />
       </div>

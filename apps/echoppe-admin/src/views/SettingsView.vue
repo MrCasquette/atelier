@@ -896,7 +896,7 @@ const activeFiltersCount = computed(() => {
                       : 'bg-green-100 text-green-700'
                   ]"
                 >
-                  {{ r.scope === 'admin' ? 'Admin' : 'Boutique' }}
+                  {{ r.scope === 'admin' ? 'Admin' : 'Public' }}
                 </span>
               </td>
               <td class="px-6 py-4">

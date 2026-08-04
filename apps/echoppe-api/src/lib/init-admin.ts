@@ -17,12 +17,13 @@ export async function initAdmin() {
     }
 
     // Get or create owner role
-    let [ownerRole] = await db.select().from(role).where(eq(role.name, 'Propriétaire'));
+    let [ownerRole] = await db.select().from(role).where(eq(role.key, 'owner'));
 
     if (!ownerRole) {
       [ownerRole] = await db
         .insert(role)
         .values({
+          key: 'owner',
           name: 'Propriétaire',
           description: 'Propriétaire de la boutique - accès total',
           scope: 'admin',

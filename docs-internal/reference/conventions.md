@@ -18,7 +18,7 @@ fois comme un couplage à défaire :
 | `packages/content` — `RefTarget` | `'product' \| 'collection' \| 'category'` | registre de cibles référençables ([ADR-0032](../adr/ADR-0032-cibles-referencables.md)) |
 | `core/constants/resources.ts` — `RESOURCES` | 24 entrées dont 14 de commerce | espace `entity:` ouvert ([ADR-0038](../adr/ADR-0038-ressources-ouvertes-delegation.md)) |
 | `api/plugins/rbac.ts` — `RbacAuthContext` | `admin \| customer \| apikey \| public` | registre de principaux ([ADR-0037](../adr/ADR-0037-principaux-surfaces.md)) |
-| `core/db/schema/enums.ts` — `roleScopeEnum` | `['admin', 'store']` | surface validée contre le registre ([ADR-0037](../adr/ADR-0037-principaux-surfaces.md)) |
+| `core/db/schema/auth.ts` — `roleScopeEnum` | `['admin', 'store']` | ~~registre~~ → union fermée, valeur corrigée en `['admin', 'public']` ([ADR-0037 amendé](../adr/ADR-0037-principaux-surfaces.md)) |
 
 **Le signal à reconnaître** : une union, un `pgEnum` ou une constante du framework qui énumère des
 valeurs nommant des concepts d'un produit. `'product'` dans un paquet de contenu, `'store'` dans un

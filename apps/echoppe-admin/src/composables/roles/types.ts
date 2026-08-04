@@ -24,7 +24,7 @@ export type RoleWithPermissions = Role & {
 export interface RoleFormData {
   name: string;
   description: string | null;
-  scope: 'admin' | 'store';
+  scope: 'admin' | 'public';
 }
 
 export interface PermissionFormData {

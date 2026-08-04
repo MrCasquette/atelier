@@ -9,7 +9,11 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 
-export const roleScopeEnum = pgEnum('role_scope', ['admin', 'store']);
+// Surface : dans quelle application le rôle a un sens. `store` était le nom Échoppe de la surface
+// publique ; un CMS a exactement la même (un visiteur non connecté lit ce qui est publié). Union
+// fermée assumée : c'est le socle qui décide qu'il existe une administration et une surface
+// publique, pas le produit (cf. ADR-0037, amendé).
+export const roleScopeEnum = pgEnum('role_scope', ['admin', 'public']);
 
 // Forward reference for user (defined in admin.ts)
 // Session needs to reference user, but user references role
@@ -17,6 +21,10 @@ export const roleScopeEnum = pgEnum('role_scope', ['admin', 'store']);
 
 export const role = pgTable('role', {
   id: uuid('id').primaryKey().defaultRandom(),
+  // Identifiant stable des rôles que le CODE doit retrouver seul (`customer`, `public`). `name` est
+  // affiché et renommable par l'utilisateur : le chercher par nom casse silencieusement l'auth dès
+  // qu'on renomme « Client ». NULL pour tout rôle créé à la main — eux, le code ne les cherche pas.
+  key: varchar('key', { length: 50 }).unique(),
   name: varchar('name', { length: 50 }).notNull(),
   description: text('description'),
   scope: roleScopeEnum('scope').notNull().default('admin'),

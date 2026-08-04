@@ -5,11 +5,18 @@ import { invalidatePermissionCache, permissionGuard } from '../plugins/rbac';
 import { errorSchema, successSchema, withAuthErrors } from '../utils/responses';
 
 // Schemas
+// Surface d'un rôle : union fermée assumée — c'est le socle qui décide qu'il existe une
+// administration et une surface publique, pas le produit (ADR-0037, amendé).
+const roleScope = t.Union([t.Literal('admin'), t.Literal('public')]);
+
+// `key` : identifiant stable des rôles système, `null` pour les rôles créés depuis l'administration.
+// Exposé en lecture seule — il n'est ni dans `roleCreateBody` ni modifiable.
 const roleSchema = t.Object({
   id: t.String(),
+  key: t.Nullable(t.String()),
   name: t.String(),
   description: t.Nullable(t.String()),
-  scope: t.Union([t.Literal('admin'), t.Literal('store')]),
+  scope: roleScope,
   isSystem: t.Boolean(),
   dateCreated: t.Date(),
 });
@@ -28,9 +35,10 @@ const permissionSchema = t.Object({
 
 const roleWithPermissionsSchema = t.Object({
   id: t.String(),
+  key: t.Nullable(t.String()),
   name: t.String(),
   description: t.Nullable(t.String()),
-  scope: t.Union([t.Literal('admin'), t.Literal('store')]),
+  scope: roleScope,
   isSystem: t.Boolean(),
   dateCreated: t.Date(),
   permissions: t.Array(permissionSchema),
@@ -39,7 +47,7 @@ const roleWithPermissionsSchema = t.Object({
 const roleCreateBody = t.Object({
   name: t.String({ minLength: 1, maxLength: 50 }),
   description: t.Optional(t.Nullable(t.String())),
-  scope: t.Union([t.Literal('admin'), t.Literal('store')]),
+  scope: roleScope,
 });
 
 const permissionBody = t.Object({
@@ -77,13 +85,13 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
   .get(
     '/',
     async () => {
-      // Ordre métier fixe des rôles système (Propriétaire → Administrateur → Client → Public),
-      // puis les rôles custom par ordre alphabétique.
-      const systemOrder = sql`CASE ${role.name}
-        WHEN 'Propriétaire' THEN 0
-        WHEN 'Administrateur' THEN 1
-        WHEN 'Client' THEN 2
-        WHEN 'Public' THEN 3
+      // Ordre métier fixe des rôles système, désignés par leur `key` immuable : les renommer
+      // depuis l'administration ne doit pas les renvoyer au fond de la liste.
+      const systemOrder = sql`CASE ${role.key}
+        WHEN 'owner' THEN 0
+        WHEN 'admin' THEN 1
+        WHEN 'customer' THEN 2
+        WHEN 'public' THEN 3
         ELSE 4 END`;
       return db.select().from(role).orderBy(systemOrder, role.name);
     },
