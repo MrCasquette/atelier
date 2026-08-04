@@ -1,5 +1,5 @@
 import { db, eq, inArray, productTag, tag } from '@echoppe/core';
-import { slugify } from '@echoppe/shared';
+import { slugify } from '@repo/shared';
 
 // Tags produit (B3). Surface storefront = `tags: string[]` (noms, triés). L'identité canonique
 // d'un tag est son `slug` ; le `name` est le libellé affiché. Lecture batchée pour les cartes,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import type { CredentialStore } from '../credential-store';
+import type { CredentialStore } from '@repo/adapters';
 import type { StripeCredentials } from './config';
 import { StripeAdapter } from './stripe';
 

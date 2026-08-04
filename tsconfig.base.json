@@ -17,8 +17,8 @@
     "forceConsistentCasingInFileNames": true,
     "verbatimModuleSyntax": true,
     "paths": {
-      "@echoppe/shared": ["./packages/shared/src"],
-      "@echoppe/shared/*": ["./packages/shared/src/*"],
+      "@repo/shared": ["./packages/shared/src"],
+      "@repo/shared/*": ["./packages/shared/src/*"],
       "@echoppe/core": ["./packages/core/src"],
       "@echoppe/core/*": ["./packages/core/src/*"]
     }

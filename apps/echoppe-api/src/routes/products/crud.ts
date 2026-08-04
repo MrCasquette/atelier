@@ -9,7 +9,7 @@ import {
   variant,
   variantOptionValue,
 } from '@echoppe/core';
-import { slugify } from '@echoppe/shared';
+import { slugify } from '@repo/shared';
 import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../../lib/audit';
 import { models } from '../../models';

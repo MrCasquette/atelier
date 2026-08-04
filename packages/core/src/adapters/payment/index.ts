@@ -20,7 +20,7 @@ export type {
 } from './types';
 export { isPaymentProvider, PAYMENT_PROVIDERS } from './types';
 
-import { createAdapterRegistry } from '../registry';
+import { createAdapterRegistry } from '@repo/adapters';
 import { getProviderCredentials, getProviderStatus } from './config';
 import { PayPalAdapter } from './paypal';
 import { StripeAdapter } from './stripe';

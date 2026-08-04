@@ -1,7 +1,7 @@
 import { db } from '@repo/db';
+import { decrypt, encrypt } from '@repo/shared';
 import { eq } from 'drizzle-orm';
 import { paymentProviderConfig } from '../../db/schema/payment';
-import { decrypt, encrypt } from '../../utils/crypto';
 import type { PaymentProvider } from './types';
 
 export interface StripeCredentials {

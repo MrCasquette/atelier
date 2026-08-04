@@ -1,4 +1,7 @@
 // Vocabulaire de requête — vient de @repo/db, réexporté pour ne pas changer la surface.
+
+// Abstraction d'injection des credentials (DIP) partagée par les familles d'adapters
+export type { CredentialStore } from '@repo/adapters';
 export type { Column, SQL } from '@repo/db';
 // Connexion et runner de migrations : @repo/db (ADR-0025). Réexportés ici pour que la surface
 // d'@echoppe/core ne bouge pas — les routes continuent d'écrire `import { product, db, eq }`.
@@ -26,6 +29,8 @@ export {
   runMigrations,
   sql,
 } from '@repo/db';
+// Utils
+export { decrypt, encrypt, generateEncryptionKey, isEncryptionConfigured } from '@repo/shared';
 // Communication adapters
 export {
   BrevoAdapter,
@@ -60,8 +65,6 @@ export {
   saveProviderCredentials as saveCommunicationProviderCredentials,
   setProviderEnabled as setCommunicationProviderEnabled,
 } from './adapters/communication';
-// Abstraction d'injection des credentials (DIP) partagée par les familles d'adapters
-export type { CredentialStore } from './adapters/credential-store';
 // Payment adapters
 export * from './adapters/payment';
 // Shipping adapters
@@ -99,5 +102,3 @@ export {
   sendWelcomeEmail,
   type WelcomeEmailData,
 } from './services/storefront-emails';
-// Utils
-export { decrypt, encrypt, generateEncryptionKey, isEncryptionConfigured } from './utils/crypto';

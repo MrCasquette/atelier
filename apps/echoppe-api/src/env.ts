@@ -4,13 +4,14 @@
 // immédiate si sa config est incomplète, pas un crash cryptique tardif (ex. `ENCRYPTION_KEY` absente
 // qui n'échoue qu'au premier paiement, ou le throw brut du client Drizzle sur `DATABASE_URL`).
 //
-// Contrainte de conception : ce module ne DOIT importer ni `@echoppe/core` ni `./app` — leur
-// évaluation instancie le client DB qui throw lui-même sur `DATABASE_URL` absente, AVANT qu'on ait
-// pu afficher un message propre. Il est donc volontairement autonome (revalide `ENCRYPTION_KEY`
-// localement plutôt que via `core.isEncryptionConfigured`). N'est jamais chargé par `app.ts` (pure)
-// ni par les tests → ne touche pas leur exécution.
+// Contrainte de conception : ce module ne DOIT importer ni `@repo/db`, ni `@echoppe/core`, ni
+// `./app` — leur évaluation instancie le client DB qui throw lui-même sur `DATABASE_URL` absente,
+// AVANT qu'on ait pu afficher un message propre. Il est donc volontairement autonome (revalide
+// `ENCRYPTION_KEY` localement plutôt que via `shared.isEncryptionConfigured`). N'est jamais chargé
+// par `app.ts` (pure) ni par les tests → ne touche pas leur exécution.
 
-// ENCRYPTION_KEY = 32 octets en base64 (même contrainte que `core/utils/crypto`), sans importer core.
+// ENCRYPTION_KEY = 32 octets en base64 (même contrainte que `@repo/shared` utils/crypto), sans
+// importer le paquet.
 function encryptionKeyValid(): boolean {
   const key = process.env.ENCRYPTION_KEY;
   if (!key) return false;

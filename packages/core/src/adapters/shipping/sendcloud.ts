@@ -1,4 +1,4 @@
-import type { CredentialStore } from '../credential-store';
+import type { CredentialStore } from '@repo/adapters';
 import type { SendcloudCredentials } from './config';
 import type {
   CreateLabelParams,

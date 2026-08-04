@@ -1,5 +1,5 @@
+import type { CredentialStore } from '@repo/adapters';
 import Stripe from 'stripe';
-import type { CredentialStore } from '../credential-store';
 import type { StripeCredentials } from './config';
 import type {
   CaptureResult,

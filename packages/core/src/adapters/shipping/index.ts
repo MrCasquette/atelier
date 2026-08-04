@@ -22,7 +22,7 @@ export type {
 } from './types';
 export { isShippingProvider, SHIPPING_PROVIDERS } from './types';
 
-import { createAdapterRegistry } from '../registry';
+import { createAdapterRegistry } from '@repo/adapters';
 import { ColissimoAdapter } from './colissimo';
 import { getShippingProviderCredentials, getShippingProviderStatus } from './config';
 import { MondialRelayAdapter } from './mondialrelay';

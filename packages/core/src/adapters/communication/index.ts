@@ -33,7 +33,7 @@ export type {
 } from './types';
 export { COMMUNICATION_PROVIDERS, isCommunicationProvider } from './types';
 
-import { createAdapterRegistry } from '../registry';
+import { createAdapterRegistry } from '@repo/adapters';
 import { BrevoAdapter } from './brevo';
 import { getProviderConfig, getProviderCredentials, getProviderStatus } from './config';
 import { ResendAdapter } from './resend';

@@ -1,6 +1,6 @@
 // @ts-expect-error - No official types for PayPal SDK
 import paypal from '@paypal/checkout-server-sdk';
-import type { CredentialStore } from '../credential-store';
+import type { CredentialStore } from '@repo/adapters';
 import type { PayPalCredentials } from './config';
 import type {
   CaptureResult,

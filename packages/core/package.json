@@ -20,11 +20,12 @@
     "db:seed": "bun --env-file=../../.env src/db/seed.ts"
   },
   "dependencies": {
-    "@echoppe/shared": "workspace:*",
     "@getbrevo/brevo": "6",
     "@paypal/checkout-server-sdk": "^1.0.3",
+    "@repo/adapters": "workspace:*",
     "@repo/assets": "workspace:*",
     "@repo/db": "workspace:*",
+    "@repo/shared": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "nodemailer": "9",
     "postgres": "^3.4.9",

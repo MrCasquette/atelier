@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@echoppe/api": "workspace:*",
-    "@echoppe/shared": "workspace:*",
+    "@repo/shared": "workspace:*",
     "@tanstack/vue-table": "^8.21.3",
     "@tiptap/extension-image": "^3.27.1",
     "@tiptap/extension-link": "^3.27.1",

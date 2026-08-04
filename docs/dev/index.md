@@ -76,7 +76,7 @@ Exemple de boutique — non distribué en image ; sert de base au scaffolding
 - Utilitaires (slugify, formatters)
 - Constantes (permissions, statuts)
 
-### `@echoppe/shared`
+### `@repo/shared`
 
 - Types TypeScript partagés
 - Interfaces API

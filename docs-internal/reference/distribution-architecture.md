@@ -52,7 +52,7 @@ echoppe/                           ← 1 seul repo Git (le framework)
 │  └─ admin/                       → image Docker  echoppe-admin    (runtime)
 ├─ packages/
 │  ├─ core/          name:@echoppe/core           (privé, interne)
-│  ├─ shared/        name:@echoppe/shared          (privé, interne)
+│  ├─ shared/        name:@repo/shared          (privé, interne)
 │  ├─ client/        name:@echoppe/client         → npm publish  (SDK)
 │  └─ create-echoppe/ name:create-echoppe (bin)   → npm publish  (CLI)
 └─ examples/

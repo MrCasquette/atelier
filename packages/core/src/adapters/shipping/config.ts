@@ -1,7 +1,7 @@
 import { db } from '@repo/db';
+import { decrypt, encrypt } from '@repo/shared';
 import { eq } from 'drizzle-orm';
 import { shippingProviderConfig } from '../../db/schema/shipping';
-import { decrypt, encrypt } from '../../utils/crypto';
 import type { ShippingProvider } from './types';
 
 export interface ColissimoCredentials {
