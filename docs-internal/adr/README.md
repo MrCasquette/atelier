@@ -35,7 +35,7 @@ Portée : socle | <package> | échoppe | prisme
 | [0024](./ADR-0024-portee-adr.md) | Portée des ADR : un compteur unique, un champ de portée | accepté | — |
 | [0025](./ADR-0025-deux-produits-un-repo.md) | Deux produits, un repo : frontière core / packages | accepté | — |
 | [0033](./ADR-0033-organisation-monorepo.md) | Organisation du monorepo : disposition à plat, deux cores, packages partagés | accepté | — |
-| [0034](./ADR-0034-identite-referentiel-reglages.md) | Identité, référentiel et réglages : ce que l'outil possède | accepté | — |
+| [0034](./ADR-0034-identite-referentiel-reglages.md) | Identité, référentiel et réglages : ce que l'outil possède | accepté, partiellement amendé par [0040](./ADR-0040-identite-site-entite-legale.md) | — |
 
 ## Index — `client` · SDK et contrat d'API
 
@@ -73,6 +73,12 @@ Portée : socle | <package> | échoppe | prisme
 |----|-------|--------|--------|
 | [0018](./ADR-0018-stockage-media.md) | Stockage média (disque local, arbre de dossiers) | accepté | — |
 | [0021](./ADR-0021-strategie-images.md) | Stratégie images : pas de resize serveur, dimensions exposées | accepté | — |
+
+## Index — `identity` · Identité du site et entité légale
+
+| N° | Titre | Statut | Détail |
+|----|-------|--------|--------|
+| [0040](./ADR-0040-identite-site-entite-legale.md) | Identité du site et entité légale : structure commune, exigence par produit | accepté | — |
 
 ## Index — `adapters` · Providers externes
 

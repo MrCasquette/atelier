@@ -1,7 +1,14 @@
 # ADR-0034 — Identité, référentiel et réglages : ce que l'outil possède
 
-Statut : accepté · 2026-08-02
+Statut : accepté, partiellement amendé · 2026-08-02
 Portée : socle, échoppe
+
+> **Amendé le 2026-08-04 par [ADR-0040](./ADR-0040-identite-site-entite-legale.md).** La décision
+> « `company` reste entière et partagée » et son argument « Prisme en a besoin intégralement » sont
+> **caducs** : les colonnes universelles de la table sont nullables et les colonnes de boutique sont
+> `NOT NULL`, ce qui la rend inutilisable pour un CMS. `company` se décompose en `site` et
+> `legal_entity`. Le reste de cet ADR tient — en particulier le référentiel, les réglages par produit
+> et la règle sur les textes juridiques.
 
 ## Contexte
 
@@ -22,12 +29,20 @@ produit/catalogue.
 
 ## Décision
 
-### `company` reste entière et partagée
+### ~~`company` reste entière et partagée~~ — caduc, cf. [ADR-0040](./ADR-0040-identite-site-entite-legale.md)
 
 Elle porte des données de types différents — identité, adresse, hébergeur — mais qui concernent
 toutes l'entreprise. Un **regroupement logique dans l'UI** suffit ; il n'y a pas lieu de scinder la
 table. Prisme en a besoin intégralement : un site vitrine français doit publier son éditeur, son
 SIREN et son hébergeur, exactement comme une boutique.
+
+> **Ce qui était faux** : « intégralement ». Un blog personnel n'a ni raison sociale ni adresse à
+> publier, alors que `legalName`, `street`, `postalCode` et `city` sont `NOT NULL`. Et le clivage
+> particulier / professionnel n'est pas le clivage Prisme / Échoppe — `legalForm` liste déjà `EI` et
+> `AE`, des personnes physiques, profil dominant d'une boutique artisanale.
+>
+> **Ce qui reste vrai** : l'argument du regroupement logique. ADR-0040 le reprend tel quel pour
+> garder marque, directeur de publication et hébergeur dans une même table `site`.
 
 **Seul le bloc commercial sort** vers les réglages d'`echoppe-core` : `documentPrefix`,
 `documentNextNumber`, `invoicePrefix`, `invoiceNextNumber`, `taxExempt`.
