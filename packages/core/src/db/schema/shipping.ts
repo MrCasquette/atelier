@@ -1,3 +1,4 @@
+import { country } from '@repo/identity';
 import {
   boolean,
   decimal,
@@ -9,7 +10,6 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { order } from './orders';
-import { country } from './referential';
 
 // Pays vers lesquels la boutique livre (ADR-0034). Table-ensemble : la présence d'une ligne vaut
 // activation, il n'y a pas d'état « présent mais désactivé ». Le drapeau vivait sur `country`,

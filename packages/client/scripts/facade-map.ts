@@ -23,7 +23,7 @@ export const TAG_NAMESPACE: Record<string, string> = {
   Wishlist: 'wishlist',
   Checkout: 'checkout',
   Payments: 'checkout', // `/payments/checkout` fusionné dans checkout (`checkout.pay()`).
-  Company: 'company',
+  Identity: 'identity',
   'Tax Rates': 'taxRates',
   Countries: 'countries',
   Contact: 'contact',
@@ -74,8 +74,8 @@ export const METHOD_NAMES: Record<string, string> = {
   'getPagesBy-slugBySlug': 'bySlug',
   // menus (navigation)
   'getMenusBy-handleByHandle': 'byHandle',
-  // company / taxRates / contact
-  getCompany: 'get',
+  // identity / taxRates / contact
+  getIdentity: 'get',
   'getTax-rates': 'list',
   getCountries: 'list',
   postContact: 'send',

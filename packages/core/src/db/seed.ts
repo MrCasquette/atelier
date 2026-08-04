@@ -6,10 +6,10 @@ import { eq } from 'drizzle-orm';
 import {
   type ColorMetadata,
   category,
-  company,
   country,
   customer,
   folder,
+  legalEntity,
   media,
   option,
   optionValue,
@@ -24,6 +24,7 @@ import {
   shipment,
   shippingCountry,
   shippingProvider,
+  site,
   stockMove,
   taxRate,
   user,
@@ -138,17 +139,25 @@ async function seed() {
   const [france] = await db.select().from(country).where(eq(country.code, 'FR'));
 
   if (france) {
-    const [existingCompany] = await db.select().from(company).limit(1);
-    if (!existingCompany) {
+    const [existingSite] = await db.select().from(site).limit(1);
+    if (!existingSite) {
       // Create logo media
       const logoId = await createMedia('shop-logo', 'Logo boutique', 200, 200);
 
-      await db.insert(company).values({
-        shopName: 'Ma Boutique Artisanale',
+      await db.insert(site).values({
+        name: 'Ma Boutique Artisanale',
         logo: logoId,
+        url: 'https://maboutique.fr',
         publicEmail: 'contact@maboutique.fr',
         publicPhone: '01 23 45 67 89',
-        legalName: 'Ma Boutique Artisanale SASU',
+        publisherName: 'Marie Artisan',
+        hostName: 'OVH SAS',
+        hostAddress: '2 rue Kellermann, 59100 Roubaix, France',
+        hostPhone: '1007',
+      });
+
+      await db.insert(legalEntity).values({
+        name: 'Ma Boutique Artisanale SASU',
         legalForm: 'SASU',
         siren: '123456789',
         siret: '12345678900001',
@@ -159,14 +168,11 @@ async function seed() {
         postalCode: '75001',
         city: 'Paris',
         country: france.id,
-        publisherName: 'Marie Artisan',
-        hostingProvider: 'OVH SAS',
-        hostingAddress: '2 rue Kellermann, 59100 Roubaix, France',
-        hostingPhone: '1007',
       });
-      console.log('    ✓ Company settings created');
+
+      console.log('    ✓ Site + legal entity created');
     } else {
-      console.log('    ⊘ Company settings already exist');
+      console.log('    ⊘ Site already exists');
     }
   }
 
@@ -286,7 +292,7 @@ async function seed() {
   // - Tables business: CRUD normal, modifiable
   await setPermissions('Propriétaire', [
     // --- Tables système (LOCKED) ---
-    { resource: 'company', canRead: true, canUpdate: true, locked: true }, // Config boutique unique
+    { resource: 'identity', canRead: true, canUpdate: true, locked: true }, // Config boutique unique
     { resource: 'country', canRead: true, locked: true }, // Référentiel fixe
     { resource: 'tax_rate', canRead: true, canUpdate: true, locked: true }, // Taux légaux
     { resource: 'payment_config', canRead: true, canUpdate: true, locked: true }, // Credentials paiement
@@ -325,7 +331,7 @@ async function seed() {
   // - Gestion catalogue, commandes, clients
   await setPermissions('Administrateur', [
     // --- Tables système (lecture seule ou aucun accès) ---
-    { resource: 'company', canRead: true, locked: true },
+    { resource: 'identity', canRead: true, locked: true },
     { resource: 'country', canRead: true, locked: true },
     { resource: 'tax_rate', canRead: true, locked: true },
     { resource: 'shipping_provider', canRead: true, locked: true },
@@ -375,7 +381,7 @@ async function seed() {
     { resource: 'option', canRead: true, locked: true },
     { resource: 'tax_rate', canRead: true, locked: true },
     { resource: 'country', canRead: true, locked: true },
-    { resource: 'company', canRead: true, locked: true }, // Pour afficher infos boutique
+    { resource: 'identity', canRead: true, locked: true }, // Pour afficher infos boutique
     { resource: 'order', canRead: true, selfOnly: true, locked: true },
     {
       resource: 'address',
@@ -419,7 +425,7 @@ async function seed() {
     { resource: 'option', canRead: true, locked: true },
     { resource: 'tax_rate', canRead: true, locked: true },
     { resource: 'country', canRead: true, locked: true },
-    { resource: 'company', canRead: true, locked: true }, // Pour afficher infos boutique
+    { resource: 'identity', canRead: true, locked: true }, // Pour afficher infos boutique
   ]);
 
   console.log('    ✓ Permissions created');

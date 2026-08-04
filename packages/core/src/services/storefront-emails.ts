@@ -25,7 +25,7 @@ registerEmailTemplate('order-confirmation', (data) =>
       <p>Vous recevrez un email dès que votre commande sera expédiée.</p>
       ${data.orderUrl ? `<p><a href="${data.orderUrl}" class="button">Voir ma commande</a></p>` : ''}
     `,
-    footer: `${data.shopName ?? 'Notre boutique'}`,
+    footer: `${data.siteName ?? 'Notre site'}`,
   }),
 );
 
@@ -50,7 +50,7 @@ registerEmailTemplate('shipment', (data) =>
       }
       ${data.trackingUrl ? `<p><a href="${data.trackingUrl}" class="button">Suivre mon colis</a></p>` : ''}
     `,
-    footer: `${data.shopName ?? 'Notre boutique'}`,
+    footer: `${data.siteName ?? 'Notre site'}`,
   }),
 );
 
@@ -59,16 +59,16 @@ registerEmailTemplate('welcome', (data) =>
     title: 'Bienvenue !',
     content: `
       <p>Bonjour${data.customerName ? ` ${data.customerName}` : ''},</p>
-      <p>Merci de vous être inscrit sur ${data.shopName ?? 'notre boutique'} !</p>
+      <p>Merci de vous être inscrit sur ${data.siteName ?? 'notre site'} !</p>
       <p>Votre compte a bien été créé. Vous pouvez maintenant :</p>
       <ul>
         <li>Suivre vos commandes</li>
         <li>Gérer vos adresses</li>
         <li>Sauvegarder vos favoris</li>
       </ul>
-      ${data.shopUrl ? `<p><a href="${data.shopUrl}" class="button">Découvrir la boutique</a></p>` : ''}
+      ${data.siteUrl ? `<p><a href="${data.siteUrl}" class="button">Découvrir la boutique</a></p>` : ''}
     `,
-    footer: `${data.shopName ?? 'Notre boutique'}`,
+    footer: `${data.siteName ?? 'Notre site'}`,
   }),
 );
 

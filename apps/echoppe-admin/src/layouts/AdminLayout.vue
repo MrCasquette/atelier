@@ -13,15 +13,17 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:7532';
 const router = useRouter();
 const auth = useAuth();
 
-type Company = ApiData<ReturnType<typeof api.company.get>>;
-const company = ref<Company | null>(null);
+type Identity = ApiData<ReturnType<typeof api.identity.get>>;
+const identity = ref<Identity | null>(null);
 
-const shopName = computed(() => company.value?.shopName || 'Échoppe');
-const logoUrl = computed(() => company.value?.logo ? `${API_URL}/assets/${company.value.logo}` : null);
+const siteName = computed(() => identity.value?.site?.name || 'Échoppe');
+const logoUrl = computed(() =>
+  identity.value?.site?.logo ? `${API_URL}/assets/${identity.value.site.logo}` : null,
+);
 
 onMounted(async () => {
-  const { data } = await api.company.get();
-  if (data) company.value = data;
+  const { data } = await api.identity.get();
+  if (data) identity.value = data;
 });
 
 async function handleLogout() {
@@ -137,7 +139,7 @@ const badgeCounts = ref<Record<string, number>>({
         >
           <img
             :src="logoUrl"
-            :alt="shopName"
+            :alt="siteName"
             class="w-full h-full object-cover"
           />
         </div>
@@ -160,7 +162,7 @@ const badgeCounts = ref<Record<string, number>>({
           </svg>
         </div>
         <h1 class="text-lg font-semibold text-gray-900 truncate">
-          {{ shopName }}
+          {{ siteName }}
         </h1>
       </div>
 

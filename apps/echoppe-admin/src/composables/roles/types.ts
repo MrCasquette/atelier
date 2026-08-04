@@ -62,7 +62,7 @@ export const RESOURCE_GROUPS: ResourceGroup[] = [
   },
   {
     name: 'Administration',
-    resources: ['stock', 'user', 'role', 'permission', 'company', 'shipping_provider', 'payment_config', 'communication_config', 'audit_log'],
+    resources: ['stock', 'user', 'role', 'permission', 'identity', 'shipping_provider', 'payment_config', 'communication_config', 'audit_log'],
   },
   {
     name: 'Referentiel',
@@ -89,7 +89,7 @@ export const RESOURCE_LABELS: Record<string, string> = {
   user: 'Utilisateurs',
   role: 'Roles',
   permission: 'Permissions',
-  company: 'Entreprise',
+  identity: 'Identité du site',
   stock: 'Stock',
   shipping_provider: 'Transporteurs',
   payment_config: 'Paiements',

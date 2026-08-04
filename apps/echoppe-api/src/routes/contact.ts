@@ -1,4 +1,4 @@
-import { company, db, sendContactFormEmail } from '@echoppe/core';
+import { db, sendContactFormEmail, site } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
 import { strictRateLimitOptions } from '../utils/rate-limit';
@@ -16,16 +16,16 @@ export const contactRoutes = new Elysia({ prefix: '/contact' })
   .post(
     '/',
     async ({ body, status }) => {
-      const [companyData] = await db.select().from(company).limit(1);
+      const [siteData] = await db.select().from(site).limit(1);
 
-      if (!companyData?.publicEmail) {
+      if (!siteData?.publicEmail) {
         return status(503, {
           message: 'Le formulaire de contact est temporairement indisponible.',
         });
       }
 
       const result = await sendContactFormEmail({
-        adminEmail: companyData.publicEmail,
+        adminEmail: siteData.publicEmail,
         senderName: body.name,
         senderEmail: body.email,
         subject: body.subject,

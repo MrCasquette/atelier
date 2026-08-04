@@ -92,7 +92,7 @@ registerEmailTemplate('reset-password', (data) =>
       <p><small>Ce lien expire dans ${data.expiresIn ?? '1 heure'}.</small></p>
       <p><small>Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.</small></p>
     `,
-    footer: `${data.shopName ?? 'Notre boutique'}`,
+    footer: `${data.siteName ?? 'Notre site'}`,
   }),
 );
 

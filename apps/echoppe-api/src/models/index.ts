@@ -5,9 +5,9 @@ import { catalogModels } from './catalog';
 import { categoryModels } from './category';
 import { checkoutModels } from './checkout';
 import { collectionModels } from './collection';
-import { companyModels } from './company';
 import { contentModels } from './content';
 import { customerModels } from './customer';
+import { identityModels } from './identity';
 import { menuModels } from './menu';
 import { orderModels } from './order';
 import { taxRateModels } from './tax-rate';
@@ -28,7 +28,7 @@ export const allModels = {
   ...collectionModels,
   ...cartModels,
   ...taxRateModels,
-  ...companyModels,
+  ...identityModels,
   ...addressModels,
   ...customerModels,
   ...checkoutModels,

@@ -19,8 +19,8 @@ import type { StatusVariant } from '@/types/ui';
 import type { ApiData, ApiItem } from '@/types/api';
 
 // Types
-type Company = ApiData<ReturnType<typeof api.company.get>>;
-type Country = ApiItem<ReturnType<typeof api.company.countries.get>>;
+type Identity = ApiData<ReturnType<typeof api.identity.get>>;
+type Country = ApiItem<ReturnType<typeof api.identity.countries.get>>;
 type UsersResponse = ApiData<ReturnType<typeof api.users.get>>;
 type User = UsersResponse['data'][number];
 
@@ -68,9 +68,12 @@ const legalForms = [
   { value: 'SCI', label: 'SCI' },
 ];
 
+// L'écran reste UN formulaire à plat, groupé visuellement, alors que la base porte deux tables
+// (ADR-0040). La frontière métier n'est pas la frontière d'interface — le mapping se fait ici.
 const form = ref({
-  shopName: '',
+  siteName: '',
   logo: null as string | null,
+  siteUrl: '',
   publicEmail: '',
   publicPhone: '',
   legalName: '',
@@ -89,54 +92,55 @@ const form = ref({
   invoicePrefix: 'FA',
   taxExempt: false,
   publisherName: '',
-  hostingProvider: '',
-  hostingAddress: '',
-  hostingPhone: '',
+  hostName: '',
+  hostAddress: '',
+  hostPhone: '',
 });
 
 const hasChanges = computed(() => {
-  if (!initialState.value) return form.value.shopName.trim() !== '';
+  if (!initialState.value) return form.value.siteName.trim() !== '';
   return JSON.stringify(form.value) !== initialState.value;
 });
 
-async function loadCompany() {
+async function loadIdentity() {
   loading.value = true;
 
-  const [companyRes, countriesRes] = await Promise.all([
-    api.company.get(),
-    api.company.countries.get(),
+  const [identityRes, countriesRes] = await Promise.all([
+    api.identity.get(),
+    api.identity.countries.get(),
   ]);
 
   if (countriesRes.data) {
     countries.value = countriesRes.data;
   }
 
-  if (companyRes.data) {
-    const c = companyRes.data as Company;
+  if (identityRes.data) {
+    const { site, legal, settings } = identityRes.data as Identity;
     form.value = {
-      shopName: c.shopName,
-      logo: c.logo,
-      publicEmail: c.publicEmail,
-      publicPhone: c.publicPhone ?? '',
-      legalName: c.legalName,
-      legalForm: c.legalForm ?? '',
-      siren: c.siren ?? '',
-      siret: c.siret ?? '',
-      tvaIntra: c.tvaIntra ?? '',
-      rcsCity: c.rcsCity ?? '',
-      shareCapital: c.shareCapital ?? '',
-      street: c.street,
-      street2: c.street2 ?? '',
-      postalCode: c.postalCode,
-      city: c.city,
-      country: c.country,
-      documentPrefix: c.documentPrefix,
-      invoicePrefix: c.invoicePrefix,
-      taxExempt: c.taxExempt,
-      publisherName: c.publisherName ?? '',
-      hostingProvider: c.hostingProvider ?? '',
-      hostingAddress: c.hostingAddress ?? '',
-      hostingPhone: c.hostingPhone ?? '',
+      siteName: site?.name ?? '',
+      logo: site?.logo ?? null,
+      siteUrl: site?.url ?? '',
+      publicEmail: site?.publicEmail ?? '',
+      publicPhone: site?.publicPhone ?? '',
+      legalName: legal?.name ?? '',
+      legalForm: legal?.legalForm ?? '',
+      siren: legal?.siren ?? '',
+      siret: legal?.siret ?? '',
+      tvaIntra: legal?.tvaIntra ?? '',
+      rcsCity: legal?.rcsCity ?? '',
+      shareCapital: legal?.shareCapital ?? '',
+      street: legal?.street ?? '',
+      street2: legal?.street2 ?? '',
+      postalCode: legal?.postalCode ?? '',
+      city: legal?.city ?? '',
+      country: legal?.country ?? '',
+      documentPrefix: settings.documentPrefix,
+      invoicePrefix: settings.invoicePrefix,
+      taxExempt: settings.taxExempt,
+      publisherName: site?.publisherName ?? '',
+      hostName: site?.hostName ?? '',
+      hostAddress: site?.hostAddress ?? '',
+      hostPhone: site?.hostPhone ?? '',
     };
     initialState.value = JSON.stringify(form.value);
   }
@@ -144,39 +148,51 @@ async function loadCompany() {
   loading.value = false;
 }
 
-onMounted(loadCompany);
+onMounted(loadIdentity);
 
 async function save() {
   saving.value = true;
 
   try {
+    // `legal: null` supprime l'entité légale ; l'API la distingue d'un champ absent (ADR-0040).
+    const hasLegal = Boolean(form.value.legalName.trim());
+
     const payload = {
-      shopName: form.value.shopName,
-      logo: form.value.logo || null,
-      publicEmail: form.value.publicEmail,
-      publicPhone: form.value.publicPhone || null,
-      legalName: form.value.legalName,
-      legalForm: form.value.legalForm || null,
-      siren: form.value.siren || null,
-      siret: form.value.siret || null,
-      tvaIntra: form.value.tvaIntra || null,
-      rcsCity: form.value.rcsCity || null,
-      shareCapital: form.value.shareCapital || null,
-      street: form.value.street,
-      street2: form.value.street2 || null,
-      postalCode: form.value.postalCode,
-      city: form.value.city,
-      country: form.value.country,
-      documentPrefix: form.value.documentPrefix,
-      invoicePrefix: form.value.invoicePrefix,
-      taxExempt: form.value.taxExempt,
-      publisherName: form.value.publisherName || null,
-      hostingProvider: form.value.hostingProvider || null,
-      hostingAddress: form.value.hostingAddress || null,
-      hostingPhone: form.value.hostingPhone || null,
+      site: {
+        name: form.value.siteName,
+        logo: form.value.logo || null,
+        url: form.value.siteUrl || null,
+        publicEmail: form.value.publicEmail || null,
+        publicPhone: form.value.publicPhone || null,
+        publisherName: form.value.publisherName || null,
+        hostName: form.value.hostName || null,
+        hostAddress: form.value.hostAddress || null,
+        hostPhone: form.value.hostPhone || null,
+      },
+      legal: hasLegal
+        ? {
+            name: form.value.legalName,
+            legalForm: form.value.legalForm || undefined,
+            siren: form.value.siren || undefined,
+            siret: form.value.siret || undefined,
+            tvaIntra: form.value.tvaIntra || undefined,
+            rcsCity: form.value.rcsCity || undefined,
+            shareCapital: form.value.shareCapital || undefined,
+            street: form.value.street,
+            street2: form.value.street2 || undefined,
+            postalCode: form.value.postalCode,
+            city: form.value.city,
+            country: form.value.country || undefined,
+          }
+        : null,
+      settings: {
+        documentPrefix: form.value.documentPrefix,
+        invoicePrefix: form.value.invoicePrefix,
+        taxExempt: form.value.taxExempt,
+      },
     };
 
-    const { error } = await api.company.put(payload);
+    const { error } = await api.identity.put(payload);
 
     if (error) {
       toast.error('Erreur lors de la sauvegarde');
@@ -521,7 +537,7 @@ const activeFiltersCount = computed(() => {
             <div class="md:col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-1">Nom de la boutique *</label>
               <input
-                v-model="form.shopName"
+                v-model="form.siteName"
                 type="text"
                 required
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -746,7 +762,7 @@ const activeFiltersCount = computed(() => {
             <div class="md:col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-1">Hébergeur</label>
               <input
-                v-model="form.hostingProvider"
+                v-model="form.hostName"
                 type="text"
                 placeholder="Nom de l'hébergeur"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -755,7 +771,7 @@ const activeFiltersCount = computed(() => {
             <div class="md:col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-1">Adresse hébergeur</label>
               <input
-                v-model="form.hostingAddress"
+                v-model="form.hostAddress"
                 type="text"
                 placeholder="Adresse complète"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -764,7 +780,7 @@ const activeFiltersCount = computed(() => {
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone hébergeur</label>
               <input
-                v-model="form.hostingPhone"
+                v-model="form.hostPhone"
                 type="tel"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />

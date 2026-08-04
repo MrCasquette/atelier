@@ -15,6 +15,7 @@ export type Collection = components['schemas']['Collection'];
 export type CollectionList = components['schemas']['CollectionList'];
 export type CountryList = components['schemas']['CountryList'];
 export type CustomerAuth = components['schemas']['CustomerAuth'];
+export type Identity = components['schemas']['Identity'];
 export type LoginResult = components['schemas']['LoginResult'];
 export type Menu = components['schemas']['Menu'];
 export type MenuItemResolved = components['schemas']['MenuItemResolved'];

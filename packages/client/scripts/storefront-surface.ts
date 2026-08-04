@@ -48,7 +48,7 @@ export const STOREFRONT_SURFACE: ReadonlyArray<readonly [HttpMethod, string]> = 
 
   // --- Public : divers boutique ---
   ['get', '/checkout/payment-providers'],
-  ['get', '/company/'],
+  ['get', '/identity/'],
   ['get', '/tax-rates/'],
   ['get', '/countries/'],
   ['post', '/contact/'],

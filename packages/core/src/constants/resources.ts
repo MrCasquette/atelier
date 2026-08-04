@@ -34,7 +34,7 @@ export const RESOURCES = {
   USER: 'user',
   ROLE: 'role',
   PERMISSION: 'permission',
-  COMPANY: 'company',
+  IDENTITY: 'identity',
   STOCK: 'stock',
   SHIPPING_PROVIDER: 'shipping_provider',
   PAYMENT_CONFIG: 'payment_config',

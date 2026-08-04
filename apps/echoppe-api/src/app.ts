@@ -11,7 +11,6 @@ import { categoriesRoutes } from './routes/categories';
 import { checkoutRoutes } from './routes/checkout';
 import { collectionsRoutes } from './routes/collections';
 import { communicationsRoutes } from './routes/communications';
-import { companyRoutes } from './routes/company';
 import { contactRoutes } from './routes/contact';
 import { contentRoutes } from './routes/content';
 import { countriesRoutes } from './routes/countries';
@@ -20,6 +19,7 @@ import { customerAddressesRoutes } from './routes/customer-addresses';
 import { customerAuthRoutes } from './routes/customer-auth';
 import { customerOrdersRoutes } from './routes/customer-orders';
 import { customersRoutes } from './routes/customers';
+import { identityRoutes } from './routes/identity';
 import { mediaRoutes } from './routes/media';
 import { menusRoutes } from './routes/menus';
 import { optionsRoutes } from './routes/options';
@@ -121,7 +121,7 @@ export const app = new Elysia()
   .use(taxRatesRoutes)
   .use(countriesRoutes)
   .use(assetsRoutes)
-  .use(companyRoutes)
+  .use(identityRoutes)
   .use(stockRoutes)
   .use(paymentsRoutes)
   .use(shippingRoutes)

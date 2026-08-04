@@ -4,7 +4,16 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { db } from '@repo/db';
 import { eq } from 'drizzle-orm';
-import { company, country, customer, invoice, order, orderItem, storeSettings } from '../db/schema';
+import {
+  country,
+  customer,
+  invoice,
+  legalEntity,
+  order,
+  orderItem,
+  site,
+  storeSettings,
+} from '../db/schema';
 import { getStoreSettings } from './store-settings';
 
 // Types pour les snapshots (archivage légal)
@@ -115,12 +124,33 @@ export async function generateInvoice(
   const items = await db.select().from(orderItem).where(eq(orderItem.order, orderId));
   if (items.length === 0) throw new Error(`No items found for order ${orderId}`);
 
-  // Récupérer la company
-  const [comp] = await db.select().from(company).limit(1);
-  if (!comp) throw new Error('Company settings not found');
+  // Identité du vendeur (ADR-0040) : le site porte le nom et le contact, l'entité légale porte
+  // les mentions qu'une facture exige. La structure est permissive — c'est ICI, au point d'usage,
+  // qu'Échoppe applique son exigence, avec un message qui dit quoi remplir.
+  const [siteData] = await db.select().from(site).limit(1);
+  const [legal] = await db.select().from(legalEntity).limit(1);
 
-  // Récupérer le pays de la company
-  const [compCountry] = await db.select().from(country).where(eq(country.id, comp.country));
+  if (!siteData?.name || !legal?.name || !legal.street || !legal.postalCode || !legal.city) {
+    const missing = [
+      [siteData?.name, 'nom du site'],
+      [legal?.name, 'raison sociale'],
+      [legal?.street, 'adresse'],
+      [legal?.postalCode, 'code postal'],
+      [legal?.city, 'ville'],
+    ]
+      .filter(([value]) => !value)
+      .map(([, label]) => label);
+
+    throw new Error(
+      `Facturation impossible : identité du vendeur incomplète (${missing.join(', ')}). ` +
+        'À compléter dans Réglages.',
+    );
+  }
+
+  // Pays du siège
+  const [legalCountry] = legal.country
+    ? await db.select().from(country).where(eq(country.id, legal.country))
+    : [];
 
   // Récupérer le client pour l'email
   const [cust] = await db.select().from(customer).where(eq(customer.id, orderData.customer));
@@ -129,22 +159,25 @@ export async function generateInvoice(
   const invoiceNumber = await getNextInvoiceNumber();
 
   // Construire le snapshot vendeur
+  // Les NOMS de ce snapshot ne suivent pas le renommage `shopName` → `site.name` : c'est un format
+  // d'ARCHIVE, relu tel quel par regenerateInvoicePdf et par le gabarit Typst. Renommer les clés
+  // casserait le rendu de toutes les factures déjà émises.
   const sellerSnapshot: SellerSnapshot = {
-    shopName: comp.shopName,
-    legalName: comp.legalName,
-    legalForm: comp.legalForm,
-    siren: comp.siren,
-    siret: comp.siret,
-    tvaIntra: comp.tvaIntra,
-    rcsCity: comp.rcsCity,
-    shareCapital: comp.shareCapital,
-    street: comp.street,
-    street2: comp.street2,
-    postalCode: comp.postalCode,
-    city: comp.city,
-    country: compCountry?.name ?? 'France',
-    publicEmail: comp.publicEmail,
-    publicPhone: comp.publicPhone,
+    shopName: siteData.name,
+    legalName: legal.name,
+    legalForm: legal.legalForm,
+    siren: legal.siren,
+    siret: legal.siret,
+    tvaIntra: legal.tvaIntra,
+    rcsCity: legal.rcsCity,
+    shareCapital: legal.shareCapital,
+    street: legal.street,
+    street2: legal.street2,
+    postalCode: legal.postalCode,
+    city: legal.city,
+    country: legalCountry?.name ?? 'France',
+    publicEmail: siteData.publicEmail ?? '',
+    publicPhone: siteData.publicPhone,
   };
 
   // Construire le snapshot acheteur depuis l'adresse de facturation

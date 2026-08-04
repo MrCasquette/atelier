@@ -25,6 +25,7 @@
     "@repo/adapters": "workspace:*",
     "@repo/assets": "workspace:*",
     "@repo/db": "workspace:*",
+    "@repo/identity": "workspace:*",
     "@repo/shared": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "nodemailer": "9",

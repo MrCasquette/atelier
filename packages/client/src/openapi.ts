@@ -372,14 +372,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/company/": {
+    "/identity/": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getCompany"];
+        get: operations["getIdentity"];
         put?: never;
         post?: never;
         delete?: never;
@@ -994,6 +994,53 @@ export interface components {
                 emailVerified: boolean;
                 /** @description Consentement aux communications marketing. */
                 marketingOptin: boolean;
+            };
+        };
+        Identity: {
+            site: ({
+                /**
+                 * Format: uuid
+                 * @description Identifiant unique de la fiche site.
+                 */
+                id: string;
+                /** @description Nom du site. */
+                name: string;
+                logo: (string | null) | null;
+                url: (string | null) | null;
+                description: (string | null) | null;
+                publicEmail: (string | null) | null;
+                publicPhone: (string | null) | null;
+                publisherName: (string | null) | null;
+                hostName: (string | null) | null;
+                hostAddress: (string | null) | null;
+                hostPhone: (string | null) | null;
+            } | null) | null;
+            legal: ({
+                /**
+                 * Format: uuid
+                 * @description Identifiant unique de l'entité légale.
+                 */
+                id: string;
+                name: (string | null) | null;
+                legalForm: (string | null) | null;
+                siren: (string | null) | null;
+                siret: (string | null) | null;
+                tvaIntra: (string | null) | null;
+                rcsCity: (string | null) | null;
+                shareCapital: (string | null) | null;
+                street: (string | null) | null;
+                street2: (string | null) | null;
+                postalCode: (string | null) | null;
+                city: (string | null) | null;
+                country: (string | null) | null;
+            } | null) | null;
+            settings: {
+                /** @description Préfixe des numéros de documents (ex. « REC »). */
+                documentPrefix: string;
+                /** @description Préfixe des numéros de factures (ex. « FA »). */
+                invoicePrefix: string;
+                /** @description Franchise de TVA (art. 293 B). */
+                taxExempt: boolean;
             };
         };
         LoginResult: {
@@ -2944,7 +2991,7 @@ export interface operations {
             };
         };
     };
-    getCompany: {
+    getIdentity: {
         parameters: {
             query?: never;
             header?: never;
@@ -2959,52 +3006,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /**
-                         * Format: uuid
-                         * @description Identifiant unique de la fiche entreprise.
-                         */
-                        id: string;
-                        /** @description Nom commercial de la boutique. */
-                        shopName: string;
-                        logo: (string | null) | null;
-                        /**
-                         * Format: email
-                         * @description E-mail de contact public.
-                         */
-                        publicEmail: string;
-                        publicPhone: (string | null) | null;
-                        /** @description Raison sociale (dénomination légale). */
-                        legalName: string;
-                        legalForm: (string | null) | null;
-                        siren: (string | null) | null;
-                        siret: (string | null) | null;
-                        tvaIntra: (string | null) | null;
-                        rcsCity: (string | null) | null;
-                        shareCapital: (string | null) | null;
-                        /** @description Rue et numéro du siège. */
-                        street: string;
-                        street2: (string | null) | null;
-                        /** @description Code postal. */
-                        postalCode: string;
-                        /** @description Ville. */
-                        city: string;
-                        /**
-                         * Format: uuid
-                         * @description UUID du pays du siège.
-                         */
-                        country: string;
-                        /** @description Préfixe des numéros de documents (ex. « REC »). */
-                        documentPrefix: string;
-                        /** @description Préfixe des numéros de factures (ex. « FA »). */
-                        invoicePrefix: string;
-                        /** @description Franchise de TVA (art. 293 B). */
-                        taxExempt: boolean;
-                        publisherName: (string | null) | null;
-                        hostingProvider: (string | null) | null;
-                        hostingAddress: (string | null) | null;
-                        hostingPhone: (string | null) | null;
-                    } | null;
+                    "application/json": components["schemas"]["Identity"];
                 };
             };
             /** @description Entité non traitable - Règle métier non respectée */

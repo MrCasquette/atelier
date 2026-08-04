@@ -42,7 +42,7 @@ export type AuditAction =
   | 'folder.update'
   | 'folder.delete'
   // Company
-  | 'company.update'
+  | 'identity.update'
   // Customers
   | 'customer.create'
   | 'customer.update'
@@ -69,7 +69,7 @@ export type EntityType =
   | 'permission'
   | 'media'
   | 'folder'
-  | 'company'
+  | 'identity'
   | 'customer'
   | 'stock'
   | 'shipment'

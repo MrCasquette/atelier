@@ -52,14 +52,14 @@ export function createResources(client: Client<paths>) {
       list: (init?: MaybeOptionalInit<paths['/collections/'], 'get'>) => client.GET('/collections/', init),
       products: (init: MaybeOptionalInit<paths['/collections/{id}/products'], 'get'>) => client.GET('/collections/{id}/products', init),
     },
-    company: {
-      get: (init?: MaybeOptionalInit<paths['/company/'], 'get'>) => client.GET('/company/', init),
-    },
     contact: {
       send: (init: MaybeOptionalInit<paths['/contact/'], 'post'>) => client.POST('/contact/', init),
     },
     countries: {
       list: (init?: MaybeOptionalInit<paths['/countries/'], 'get'>) => client.GET('/countries/', init),
+    },
+    identity: {
+      get: (init?: MaybeOptionalInit<paths['/identity/'], 'get'>) => client.GET('/identity/', init),
     },
     menus: {
       byHandle: (init: MaybeOptionalInit<paths['/menus/by-handle/{handle}'], 'get'>) => client.GET('/menus/by-handle/{handle}', init),

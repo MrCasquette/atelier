@@ -2497,10 +2497,10 @@
         "operationId": "getCheckoutPayment-providers"
       }
     },
-    "/company/": {
+    "/identity/": {
       "get": {
         "tags": [
-          "Company"
+          "Identity"
         ],
         "responses": {
           "200": {
@@ -2508,247 +2508,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "anyOf": [
-                    {
-                      "type": "object",
-                      "required": [
-                        "id",
-                        "shopName",
-                        "logo",
-                        "publicEmail",
-                        "publicPhone",
-                        "legalName",
-                        "legalForm",
-                        "siren",
-                        "siret",
-                        "tvaIntra",
-                        "rcsCity",
-                        "shareCapital",
-                        "street",
-                        "street2",
-                        "postalCode",
-                        "city",
-                        "country",
-                        "documentPrefix",
-                        "invoicePrefix",
-                        "taxExempt",
-                        "publisherName",
-                        "hostingProvider",
-                        "hostingAddress",
-                        "hostingPhone"
-                      ],
-                      "properties": {
-                        "id": {
-                          "format": "uuid",
-                          "description": "Identifiant unique de la fiche entreprise.",
-                          "type": "string"
-                        },
-                        "shopName": {
-                          "description": "Nom commercial de la boutique.",
-                          "type": "string"
-                        },
-                        "logo": {
-                          "nullable": true,
-                          "anyOf": [
-                            {
-                              "format": "uuid",
-                              "description": "UUID du média du logo.",
-                              "type": "string"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "publicEmail": {
-                          "format": "email",
-                          "description": "E-mail de contact public.",
-                          "type": "string"
-                        },
-                        "publicPhone": {
-                          "nullable": true,
-                          "anyOf": [
-                            {
-                              "description": "Téléphone de contact public.",
-                              "type": "string"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "legalName": {
-                          "description": "Raison sociale (dénomination légale).",
-                          "type": "string"
-                        },
-                        "legalForm": {
-                          "nullable": true,
-                          "anyOf": [
-                            {
-                              "description": "Forme juridique (ex. « SARL »).",
-                              "type": "string"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "siren": {
-                          "nullable": true,
-                          "anyOf": [
-                            {
-                              "description": "Numéro SIREN (9 chiffres).",
-                              "type": "string"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "siret": {
-                          "nullable": true,
-                          "anyOf": [
-                            {
-                              "description": "Numéro SIRET (14 chiffres).",
-                              "type": "string"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "tvaIntra": {
-                          "nullable": true,
-                          "anyOf": [
-                            {
-                              "description": "Numéro de TVA intracommunautaire.",
-                              "type": "string"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "rcsCity": {
-                          "nullable": true,
-                          "anyOf": [
-                            {
-                              "description": "Ville d'immatriculation au RCS.",
-                              "type": "string"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "shareCapital": {
-                          "nullable": true,
-                          "anyOf": [
-                            {
-                              "description": "Capital social, décimal en chaîne.",
-                              "type": "string"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "street": {
-                          "description": "Rue et numéro du siège.",
-                          "type": "string"
-                        },
-                        "street2": {
-                          "nullable": true,
-                          "anyOf": [
-                            {
-                              "description": "Complément d'adresse.",
-                              "type": "string"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "postalCode": {
-                          "description": "Code postal.",
-                          "type": "string"
-                        },
-                        "city": {
-                          "description": "Ville.",
-                          "type": "string"
-                        },
-                        "country": {
-                          "format": "uuid",
-                          "description": "UUID du pays du siège.",
-                          "type": "string"
-                        },
-                        "documentPrefix": {
-                          "description": "Préfixe des numéros de documents (ex. « REC »).",
-                          "type": "string"
-                        },
-                        "invoicePrefix": {
-                          "description": "Préfixe des numéros de factures (ex. « FA »).",
-                          "type": "string"
-                        },
-                        "taxExempt": {
-                          "description": "Franchise de TVA (art. 293 B).",
-                          "type": "boolean"
-                        },
-                        "publisherName": {
-                          "nullable": true,
-                          "anyOf": [
-                            {
-                              "description": "Nom du directeur de la publication.",
-                              "type": "string"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "hostingProvider": {
-                          "nullable": true,
-                          "anyOf": [
-                            {
-                              "description": "Nom de l'hébergeur du site.",
-                              "type": "string"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "hostingAddress": {
-                          "nullable": true,
-                          "anyOf": [
-                            {
-                              "description": "Adresse de l'hébergeur.",
-                              "type": "string"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "hostingPhone": {
-                          "nullable": true,
-                          "anyOf": [
-                            {
-                              "description": "Téléphone de l'hébergeur.",
-                              "type": "string"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        }
-                      },
-                      "$id": "#/components/schemas/Company"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "$ref": "#/components/schemas/Identity"
                 }
               }
             }
@@ -2794,7 +2554,7 @@
             }
           }
         },
-        "operationId": "getCompany"
+        "operationId": "getIdentity"
       }
     },
     "/tax-rates/": {
@@ -7035,6 +6795,363 @@
           }
         },
         "$id": "#/components/schemas/CustomerAuth"
+      },
+      "Identity": {
+        "type": "object",
+        "required": [
+          "site",
+          "legal",
+          "settings"
+        ],
+        "properties": {
+          "site": {
+            "nullable": true,
+            "anyOf": [
+              {
+                "type": "object",
+                "required": [
+                  "id",
+                  "name",
+                  "logo",
+                  "url",
+                  "description",
+                  "publicEmail",
+                  "publicPhone",
+                  "publisherName",
+                  "hostName",
+                  "hostAddress",
+                  "hostPhone"
+                ],
+                "properties": {
+                  "id": {
+                    "format": "uuid",
+                    "description": "Identifiant unique de la fiche site.",
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Nom du site.",
+                    "type": "string"
+                  },
+                  "logo": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "format": "uuid",
+                        "description": "UUID du média du logo.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "url": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "URL publique du site.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "description": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Description courte du site.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "publicEmail": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "E-mail de contact public.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "publicPhone": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Téléphone de contact public.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "publisherName": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Nom du directeur de la publication.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "hostName": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Nom de l'hébergeur du site.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "hostAddress": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Adresse de l'hébergeur.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "hostPhone": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Téléphone de l'hébergeur.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "$id": "#/components/schemas/Site"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "legal": {
+            "nullable": true,
+            "anyOf": [
+              {
+                "type": "object",
+                "required": [
+                  "id",
+                  "name",
+                  "legalForm",
+                  "siren",
+                  "siret",
+                  "tvaIntra",
+                  "rcsCity",
+                  "shareCapital",
+                  "street",
+                  "street2",
+                  "postalCode",
+                  "city",
+                  "country"
+                ],
+                "properties": {
+                  "id": {
+                    "format": "uuid",
+                    "description": "Identifiant unique de l'entité légale.",
+                    "type": "string"
+                  },
+                  "name": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Raison sociale, ou prénom et nom.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "legalForm": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Forme juridique (ex. « SASU », « AE »).",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "siren": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Numéro SIREN (9 chiffres).",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "siret": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Numéro SIRET (14 chiffres).",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "tvaIntra": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Numéro de TVA intracommunautaire.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "rcsCity": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Ville d'immatriculation au RCS.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "shareCapital": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Capital social, décimal en chaîne.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "street": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Rue et numéro du siège.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "street2": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Complément d'adresse.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "postalCode": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Code postal.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "city": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "description": "Ville.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "country": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "format": "uuid",
+                        "description": "UUID du pays du siège.",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "$id": "#/components/schemas/LegalEntity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "settings": {
+            "type": "object",
+            "required": [
+              "documentPrefix",
+              "invoicePrefix",
+              "taxExempt"
+            ],
+            "properties": {
+              "documentPrefix": {
+                "description": "Préfixe des numéros de documents (ex. « REC »).",
+                "type": "string"
+              },
+              "invoicePrefix": {
+                "description": "Préfixe des numéros de factures (ex. « FA »).",
+                "type": "string"
+              },
+              "taxExempt": {
+                "description": "Franchise de TVA (art. 293 B).",
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "$id": "#/components/schemas/Identity"
       },
       "LoginResult": {
         "type": "object",

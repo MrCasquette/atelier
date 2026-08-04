@@ -1,7 +1,5 @@
-import { media } from '@repo/assets';
 import {
   boolean,
-  decimal,
   index,
   jsonb,
   pgTable,
@@ -11,7 +9,6 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { role } from './auth';
-import { country } from './referential';
 
 export const user = pgTable('user', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -53,36 +50,6 @@ export const auditLog = pgTable('audit_log', {
   data: jsonb('data'), // Contextual details
   ipAddress: varchar('ip_address', { length: 45 }),
   dateCreated: timestamp('date_created', { withTimezone: true }).notNull().defaultNow(),
-});
-
-export const company = pgTable('company', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  shopName: varchar('shop_name', { length: 255 }).notNull(),
-  logo: uuid('logo').references(() => media.id, { onDelete: 'set null' }),
-  publicEmail: varchar('public_email', { length: 255 }).notNull(),
-  publicPhone: varchar('public_phone', { length: 20 }),
-  legalName: varchar('legal_name', { length: 255 }).notNull(),
-  legalForm: varchar('legal_form', { length: 50 }), // SASU, EURL, EI, AE...
-  siren: varchar('siren', { length: 9 }),
-  siret: varchar('siret', { length: 14 }),
-  tvaIntra: varchar('tva_intra', { length: 20 }),
-  rcsCity: varchar('rcs_city', { length: 100 }),
-  shareCapital: decimal('share_capital', { precision: 10, scale: 2 }),
-  street: varchar('street', { length: 255 }).notNull(),
-  street2: varchar('street_2', { length: 255 }),
-  postalCode: varchar('postal_code', { length: 10 }).notNull(),
-  city: varchar('city', { length: 100 }).notNull(),
-  country: uuid('country')
-    .notNull()
-    .references(() => country.id),
-  // La numérotation des documents commerciaux et la franchise de TVA vivent dans
-  // `storeSettings` (schema/settings.ts) — ADR-0034 : `company` porte l'identité de l'entreprise,
-  // dont Prisme a besoin intégralement, pas les réglages de facturation d'une boutique.
-  // Legal pages info
-  publisherName: varchar('publisher_name', { length: 255 }),
-  hostingProvider: varchar('hosting_provider', { length: 255 }),
-  hostingAddress: varchar('hosting_address', { length: 500 }),
-  hostingPhone: varchar('hosting_phone', { length: 20 }),
 });
 
 // Clés d'API machine (P2b) : authentifient un client non-interactif (CLI, CI) via

@@ -4,7 +4,7 @@ import {
   getActiveCommunicationAdapter,
   type SendResult,
 } from '../adapters/communication';
-import { company } from '../db/schema/admin';
+import { site } from '../db/schema';
 import { communicationLog } from '../db/schema/communication';
 
 export interface SendEmailParams {
@@ -20,13 +20,16 @@ export interface EmailResult extends SendResult {
 }
 
 /**
- * Récupère les infos de la boutique pour les emails
+ * Identité du site, pour les pieds de page des e-mails (ADR-0040).
+ *
+ * Le repli existe parce que `site` peut ne pas encore être renseigné — rien n'est fabriqué à
+ * l'installation (ADR-0039).
  */
-async function getShopInfo(): Promise<{ name: string; url?: string }> {
-  const [companyData] = await db.select().from(company).limit(1);
+async function getSiteInfo(): Promise<{ name: string; url?: string }> {
+  const [siteData] = await db.select().from(site).limit(1);
   return {
-    name: companyData?.shopName ?? 'Notre boutique',
-    url: undefined, // TODO: ajouter l'URL du store dans company
+    name: siteData?.name ?? 'Notre site',
+    url: siteData?.url ?? undefined,
   };
 }
 
@@ -44,10 +47,10 @@ export async function sendEmail(params: SendEmailParams): Promise<EmailResult> {
   }
 
   // Enrichir les data avec les infos boutique
-  const shopInfo = await getShopInfo();
+  const siteInfo = await getSiteInfo();
   const enrichedData = {
-    shopName: shopInfo.name,
-    shopUrl: shopInfo.url,
+    siteName: siteInfo.name,
+    siteUrl: siteInfo.url,
     ...params.data,
   };
 
