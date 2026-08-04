@@ -51,7 +51,7 @@ services:
     ports:
       - '7532:7532'
     volumes:
-      - ./apps/api/uploads:/app/uploads
+      - ./apps/echoppe-api/uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy

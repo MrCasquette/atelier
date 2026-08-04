@@ -31,7 +31,7 @@ async function waitReady(url: string, timeoutMs = 20000): Promise<void> {
 }
 
 // App pure offline : DATABASE_URL placeholder (aucune requête n'est exécutée, cf. serve-contract.ts).
-const server = Bun.spawn(['bun', 'run', 'apps/api/src/scripts/serve-contract.ts'], {
+const server = Bun.spawn(['bun', 'run', 'apps/echoppe-api/src/scripts/serve-contract.ts'], {
   env: {
     ...process.env,
     API_PORT: String(PORT),

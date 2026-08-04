@@ -22,7 +22,7 @@ echoppe/
 
 ## Stack technique
 
-### API (`apps/api`)
+### API (`apps/echoppe-api`)
 
 | Technologie | Usage |
 |-------------|-------|
@@ -32,7 +32,7 @@ echoppe/
 | [PostgreSQL](https://www.postgresql.org/) | Base de données |
 | [Redis](https://redis.io/) | Cache / rate-limit distribué (optionnel) |
 
-### Admin (`apps/admin`)
+### Admin (`apps/echoppe-admin`)
 
 | Technologie | Usage |
 |-------------|-------|
@@ -41,7 +41,7 @@ echoppe/
 | [Tailwind CSS 4](https://tailwindcss.com/) | Styling |
 | [Eden](https://elysiajs.com/eden/overview) | Client API type-safe |
 
-### Store (`apps/store`)
+### Store (`apps/echoppe-store`)
 
 Exemple de boutique — non distribué en image ; sert de base au scaffolding
 `create-echoppe`.

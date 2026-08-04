@@ -7,7 +7,7 @@ Guide des conventions architecturales et patterns utilisés dans le projet.
 ## 1. Architecture Atomic Design
 
 ```
-apps/admin/src/components/
+apps/echoppe-admin/src/components/
 ├── atoms/           # Composants primitifs (Button, Modal, Checkbox, Thumbnail...)
 ├── molecules/       # Compositions d'atoms (Breadcrumb, SearchInput, ContextMenu...)
 └── organisms/       # Sections complètes (FolderSidebar, MediaGrid, MediaDetailModal...)
@@ -362,15 +362,15 @@ function handleDragStart(e: DragEvent, id: string) {
 
 ### Composable complet
 
-- `apps/admin/src/composables/media/useMedia.ts`
-- `apps/admin/src/composables/media/types.ts`
+- `apps/echoppe-admin/src/composables/media/useMedia.ts`
+- `apps/echoppe-admin/src/composables/media/types.ts`
 
 ### Vue complète
 
-- `apps/admin/src/views/MediaView.vue`
+- `apps/echoppe-admin/src/views/MediaView.vue`
 
 ### Composants exemples
 
-- **Atom** : `apps/admin/src/components/atoms/Button.vue`
-- **Molecule** : `apps/admin/src/components/molecules/ContextMenu.vue`
-- **Organism** : `apps/admin/src/components/organisms/MediaGrid.vue`
+- **Atom** : `apps/echoppe-admin/src/components/atoms/Button.vue`
+- **Molecule** : `apps/echoppe-admin/src/components/molecules/ContextMenu.vue`
+- **Organism** : `apps/echoppe-admin/src/components/organisms/MediaGrid.vue`

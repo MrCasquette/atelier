@@ -10,7 +10,7 @@
 ## API (Elysia)
 
 ### Routes
-- Fichier par ressource : `apps/api/src/routes/[resource].ts`
+- Fichier par ressource : `apps/echoppe-api/src/routes/[resource].ts`
 - Valider avec `t.Object()` pour body/params
 - Importer DB depuis `@echoppe/core`
 

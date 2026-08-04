@@ -2,7 +2,7 @@
 // que `@echoppe/client` expose. Le générateur (generate.ts) filtre le contrat complet de
 // l'API sur cette liste, puis tree-shake les schémas → le SDK ne voit QUE la boutique.
 //
-// La doc humaine de référence est `apps/api/docs/route-audience.md` (côté API). Cette liste
+// La doc humaine de référence est `apps/echoppe-api/docs/route-audience.md` (côté API). Cette liste
 // en est la traduction exécutable. `generate.ts` avertit si une entrée ne correspond à
 // aucune route du contrat (garde anti-dérive).
 //

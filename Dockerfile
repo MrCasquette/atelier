@@ -8,7 +8,7 @@
 # L'API applique les migrations SQL versionnées au démarrage (RUN_MIGRATIONS=1,
 # dossier /app/drizzle) : plus de conteneur d'init séparé.
 #
-# NB : apps/store (exemple Astro) n'est pas distribué en image Docker. C'est un
+# NB : apps/echoppe-store (exemple Astro) n'est pas distribué en image Docker. C'est un
 # template de référence exécuté localement (bun dev/build) ou servi de base au
 # scaffolding create-echoppe ; les vraies boutiques vivent dans leur propre repo.
 
@@ -29,9 +29,9 @@ COPY packages/assets/package.json ./packages/assets/
 COPY packages/client/package.json ./packages/client/
 COPY packages/content/package.json ./packages/content/
 COPY packages/create-echoppe/package.json ./packages/create-echoppe/
-COPY apps/api/package.json ./apps/api/
-COPY apps/admin/package.json ./apps/admin/
-COPY apps/store/package.json ./apps/store/
+COPY apps/echoppe-api/package.json ./apps/echoppe-api/
+COPY apps/echoppe-admin/package.json ./apps/echoppe-admin/
+COPY apps/echoppe-store/package.json ./apps/echoppe-store/
 COPY docs/package.json ./docs/
 RUN bun install --frozen-lockfile
 
@@ -43,9 +43,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/core/node_modules ./packages/core/node_modules
 COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY --from=deps /app/packages/assets/node_modules ./packages/assets/node_modules
-COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
-COPY --from=deps /app/apps/admin/node_modules ./apps/admin/node_modules
-COPY --from=deps /app/apps/store/node_modules ./apps/store/node_modules
+COPY --from=deps /app/apps/echoppe-api/node_modules ./apps/echoppe-api/node_modules
+COPY --from=deps /app/apps/echoppe-admin/node_modules ./apps/echoppe-admin/node_modules
+COPY --from=deps /app/apps/echoppe-store/node_modules ./apps/echoppe-store/node_modules
 COPY --from=deps /app/docs/node_modules ./docs/node_modules
 COPY . .
 
@@ -62,7 +62,7 @@ RUN bun build src/index.ts \
     --sourcemap=none \
     --outfile api \
     --target bun \
-    --cwd apps/api
+    --cwd apps/echoppe-api
 
 FROM oven/bun:1-alpine AS api
 WORKDIR /app
@@ -75,7 +75,7 @@ ENV MIGRATIONS_DIR=/app/drizzle
 RUN addgroup -g 1001 -S echoppe && \
     adduser -S echoppe -u 1001
 
-COPY --from=api-builder --chown=echoppe:echoppe /app/apps/api/api ./api
+COPY --from=api-builder --chown=echoppe:echoppe /app/apps/echoppe-api/api ./api
 COPY --chown=echoppe:echoppe packages/core/drizzle ./drizzle
 
 RUN mkdir -p /app/uploads && chown -R echoppe:echoppe /app/uploads
@@ -98,11 +98,11 @@ CMD ["./api"]
 FROM source AS admin-builder
 ARG VITE_API_URL=http://localhost:7532
 ENV VITE_API_URL=$VITE_API_URL
-RUN bun run --cwd apps/admin build
+RUN bun run --cwd apps/echoppe-admin build
 
 FROM caddy:2-alpine AS admin
-COPY --from=admin-builder /app/apps/admin/dist /srv
-COPY apps/admin/Caddyfile /etc/caddy/Caddyfile
+COPY --from=admin-builder /app/apps/echoppe-admin/dist /srv
+COPY apps/echoppe-admin/Caddyfile /etc/caddy/Caddyfile
 
 EXPOSE 80
 

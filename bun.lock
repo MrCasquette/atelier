@@ -16,7 +16,7 @@
         "vue": "^3.5.39",
       },
     },
-    "apps/admin": {
+    "apps/echoppe-admin": {
       "name": "@echoppe/admin",
       "version": "0.6.0",
       "dependencies": {
@@ -52,7 +52,7 @@
         "vue-tsc": "^3.3.6",
       },
     },
-    "apps/api": {
+    "apps/echoppe-api": {
       "name": "@echoppe/api",
       "version": "0.6.0",
       "dependencies": {
@@ -69,7 +69,7 @@
         "typescript": "6.0.3",
       },
     },
-    "apps/store": {
+    "apps/echoppe-store": {
       "name": "@echoppe/store",
       "version": "0.0.2",
       "dependencies": {
@@ -343,9 +343,9 @@
 
     "@drizzle-team/brocli": ["@drizzle-team/brocli@0.10.2", "", {}, "sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w=="],
 
-    "@echoppe/admin": ["@echoppe/admin@workspace:apps/admin"],
+    "@echoppe/admin": ["@echoppe/admin@workspace:apps/echoppe-admin"],
 
-    "@echoppe/api": ["@echoppe/api@workspace:apps/api"],
+    "@echoppe/api": ["@echoppe/api@workspace:apps/echoppe-api"],
 
     "@echoppe/client": ["@echoppe/client@workspace:packages/client"],
 
@@ -355,7 +355,7 @@
 
     "@echoppe/shared": ["@echoppe/shared@workspace:packages/shared"],
 
-    "@echoppe/store": ["@echoppe/store@workspace:apps/store"],
+    "@echoppe/store": ["@echoppe/store@workspace:apps/echoppe-store"],
 
     "@elysiajs/cors": ["@elysiajs/cors@1.4.2", "", { "peerDependencies": { "elysia": ">= 1.4.0" } }, "sha512-FTCcbH35brTLigF1W7BYySRZomgI/dBEMK9BgK9RP9Nez7zmpGh4koL/Yr1BFv8nYz7CfhRvcM8d/c+XnwMaVQ=="],
 

@@ -172,7 +172,7 @@ du monorepo). Mais il porte sa **propre version** : une boutique déclare la com
 
 1. ✅ **Stabiliser l'OpenAPI** de l'API (le contrat).
 2. ✅ **`@echoppe/client`** (SDK OpenAPI) → publié npm (`0.1.1`).
-3. ✅ Exemple **Astro** à `apps/store` (remplace le store Next, supprimé).
+3. ✅ Exemple **Astro** à `apps/echoppe-store` (remplace le store Next, supprimé).
 4. ✅ **`create-echoppe`** (CLI) → publié npm (`0.1.0`) : scaffolde front + `compose.yaml` + `.env`.
 5. ⏳ Première **boutique réelle** (repo Astro externe via la CLI) — flux validé nativement sur arm64, reste le test grandeur nature sur VM x86.
 
@@ -183,8 +183,8 @@ multi-arch** (amd64+arm64), **release CI par Trusted Publishing / OIDC** (aucun 
 ## Points ouverts
 
 - ✅ Contrat externe : **B** (SDK publié) retenu.
-- ✅ Template : **exemple interne** (`apps/store`) retenu ; pas de starter clonable sorti pour l'instant.
-- ✅ Sort de `apps/store` : **remplacé par un exemple Astro** ; le Next est supprimé.
+- ✅ Template : **exemple interne** (`apps/echoppe-store`) retenu ; pas de starter clonable sorti pour l'instant.
+- ✅ Sort de `apps/echoppe-store` : **remplacé par un exemple Astro** ; le Next est supprimé.
 - Alignement versions SDK ↔ images API : principe acté (versionner en phase) ; à
   formaliser dans le process de release quand les contrats évolueront.
 - Modules / plugins / thèmes (customisation par boutique) : **cap post-1.0** (modèle C

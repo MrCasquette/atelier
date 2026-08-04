@@ -25,7 +25,7 @@ change ; la version n'est jamais saisie à la main — elle vient du **niveau de
   taggés en git (`changeset publish --no-git-tag`, action `createGithubReleases: false`) — leur
   registre de versions **est npm**.
 - `api`/`admin` sont **privés mais versionnés** par changesets (`privatePackages.version: true`) →
-  bump + `CHANGELOG` en repo, sans publication npm. La version `v*` vient de `apps/api/package.json`.
+  bump + `CHANGELOG` en repo, sans publication npm. La version `v*` vient de `apps/echoppe-api/package.json`.
 - **0.x** : un changement **cassant = `minor`** (`major` réservé au passage 1.0). Mode pre changesets
   **désactivé** → versions propres (`0.6.0`, pas `-next.N`), publiées sur le dist-tag **`latest`**.
 - Raccourci : `bun run ship <unité> <niveau> "résumé"` (ex. `ship runtime minor "…"`) crée le
@@ -78,8 +78,8 @@ publiée**, jamais `db:push` (dev only). Cf. [`release-runbook.md`](./release-ru
 | `bun run contracts` | régénère le SDK figé depuis l'app pure offline (remplace le boot `:7533` manuel) |
 | `bun run contracts:check` | idem + échoue si les types divergent des routes (garde CI) |
 | `bun run ship <unité> <niveau> "msg"` | cut une release d'une unité (runtime/sdk/content/cli) → changeset + push `main` (interactif sans args) |
-| `bun run --cwd apps/api test:integration` | rejoue le gate T2–T5 en local |
-| `bun run --cwd apps/api test:smoke` | smoke source-level (base jetable) |
+| `bun run --cwd apps/echoppe-api test:integration` | rejoue le gate T2–T5 en local |
+| `bun run --cwd apps/echoppe-api test:smoke` | smoke source-level (base jetable) |
 
 ## Checklist minimale
 

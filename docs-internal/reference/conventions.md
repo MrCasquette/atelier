@@ -54,14 +54,14 @@ philosophy §6 / typescript.md §8, acté ici :
   qui recompose la même logique métier hors des routes. C'est le signal #1 de typescript.md §4.
 - **Suivi** : refactor différé, tracé en tâche dédiée. À rouvrir formellement (ADR) avant exécution.
 
-### `apps/api` — frontière + SSOT contrat
+### `apps/echoppe-api` — frontière + SSOT contrat
 
 `models/*.ts` (TypeBox) = SSOT du contrat : validation runtime **+** OpenAPI **+** inférence Eden.
 Une donnée `jsonb` typée côté `core` **et** validée côté `api` suit le pattern à double
 représentation verrouillée (interface core + TypeBox api + guard `Static<> extends`) —
 cf. [ADR-0020](../adr/ADR-0020-colormetadata-double-representation.md).
 
-### `apps/admin` — atomic + composables
+### `apps/echoppe-admin` — atomic + composables
 
 Détail dans [PATTERNS.md](./PATTERNS.md) / [ADR-0016](../adr/ADR-0016-conventions-front-admin.md) :
 atomic design, **imports directs** (pas de barrel pour les composants Vue), types **inférés depuis
@@ -102,7 +102,7 @@ occurrences déclenchent la factorisation, pas l'anticipation).
 ## Tests
 
 Filet **lean anti-régression** (esprit CI/CD, sans gonfler la CI) : `bun test` intégré. Smoke API via
-`bun run --cwd apps/api test:smoke` sur **base Postgres jetable éphémère** (conteneur sur port libre,
+`bun run --cwd apps/echoppe-api test:smoke` sur **base Postgres jetable éphémère** (conteneur sur port libre,
 **jamais** la base dev ni `dpc-*`/5432). Les routes auth-gated se testent **sans Redis** en injectant
 user+rôle+session Postgres et le cookie `echoppe_admin_session` (owner bypass). Chaque capacité ajoute
 1–2 assertions ciblées (contrat + comportement clé), rien de plus.
@@ -118,7 +118,7 @@ qui attrape « route changée, SDK oublié » dès la PR. `openapi.json` n'est p
 
 ## Configuration & exploitation (self-host)
 
-**Validation env au boot.** `apps/api/src/env.ts` est un **garde-fou fail-fast** importé EN PREMIER
+**Validation env au boot.** `apps/echoppe-api/src/env.ts` est un **garde-fou fail-fast** importé EN PREMIER
 par `index.ts` (avant tout import de `@echoppe/core`, dont le client DB throw sur `DATABASE_URL`
 absente). Il refuse le démarrage avec un message clair si une variable **critique** manque :
 `DATABASE_URL`, `ENCRYPTION_KEY` (32 octets base64). Les optionnelles ont des défauts sûrs. Autonome

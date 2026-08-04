@@ -9,7 +9,7 @@
     "ignoreUnknown": true,
     "includes": [
       "packages/**",
-      "apps/api/**",
+      "apps/echoppe-api/**",
       "!packages/client/src/openapi.ts",
       "!packages/client/src/models.ts",
       "!packages/client/src/facade.ts",

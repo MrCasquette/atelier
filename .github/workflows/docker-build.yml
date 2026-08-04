@@ -53,7 +53,7 @@ jobs:
       # Construit `echoppe-api:integration` (via l'orchestrateur) + T2 (fresh) / T3 (upgrade
       # depuis :latest publié) / T4 (parité contrat) / T5 (idempotence). Docker dispo sur le runner.
       - name: Integration gate (image T2–T5)
-        run: bun run --cwd apps/api test:integration
+        run: bun run --cwd apps/echoppe-api test:integration
 
   build-and-push:
     needs: integration

@@ -12,7 +12,7 @@
  *        boot de la nouvelle image → migrations forward (0006) → T2.
  *
  * Tout est auto-provisionné (Postgres + image), détruit en fin de run. Utilisable en local
- * et en CI (`bun run --cwd apps/api test:integration`). INTEGRATION_IMAGE réutilise une image
+ * et en CI (`bun run --cwd apps/echoppe-api test:integration`). INTEGRATION_IMAGE réutilise une image
  * déjà buildée (itération locale rapide). PREV_IMAGE = image n-1 pour le test d'upgrade.
  */
 import { spawn } from 'node:child_process';
@@ -166,7 +166,7 @@ async function startApi(image: string = IMAGE): Promise<void> {
     `DATABASE_URL=postgresql://echoppe:echoppe@${DB_C}:5432/echoppe`,
     '-e',
     'RUN_MIGRATIONS=1',
-    // Clé de test (32 octets base64) — requise par le garde-fou env au boot (apps/api/src/env.ts).
+    // Clé de test (32 octets base64) — requise par le garde-fou env au boot (apps/echoppe-api/src/env.ts).
     // Fixe → stable entre les boots T2/T3/T5 sur la même base.
     '-e',
     'ENCRYPTION_KEY=ZWNob3BwZS1pbnRlZ3JhdGlvbi10ZXN0LWtleS0zMmI=',

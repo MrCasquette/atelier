@@ -5,7 +5,7 @@ import { generateApiKey, isValidScope } from '../plugins/apiKey';
 // Commande serveur d'AMORÇAGE d'une clé d'API (P2b) — accès DB direct, sans HTTP ni cookie.
 // Usage typique au premier run / en CI, avant que l'admin ait une page de gestion :
 //
-//   bun run --cwd apps/api api-key:create --name "CLI DPC" --scopes read:content,write:content
+//   bun run --cwd apps/echoppe-api api-key:create --name "CLI DPC" --scopes read:content,write:content
 //   docker compose exec api bun run api-key:create --name CI --scopes write:content --expires 2027-01-01
 //
 // La clé est affichée UNE seule fois. `createdBy` est null (clé système, sans propriétaire humain

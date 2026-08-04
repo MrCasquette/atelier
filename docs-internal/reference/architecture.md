@@ -16,9 +16,9 @@ scaffolding. La boutique réelle vit **hors** du monorepo (consommateur, pas mor
 
 | Couche | Techno | Rôle | Distribution |
 |--------|--------|------|--------------|
-| `apps/api` | Elysia (Bun) | API REST + OpenAPI, auth, RBAC, paiement, migrations au boot | image Docker |
-| `apps/admin` | Vue 3 | Dashboard admin (Eden Treaty, co-versionné) | image Docker |
-| `apps/store` | Astro + îlots Vue | **Exemple** storefront dogfooding le SDK | non distribué |
+| `apps/echoppe-api` | Elysia (Bun) | API REST + OpenAPI, auth, RBAC, paiement, migrations au boot | image Docker |
+| `apps/echoppe-admin` | Vue 3 | Dashboard admin (Eden Treaty, co-versionné) | image Docker |
+| `apps/echoppe-store` | Astro + îlots Vue | **Exemple** storefront dogfooding le SDK | non distribué |
 | `packages/core` | Drizzle | Schéma DB (SSOT), migrations, adapters | interne |
 | `packages/client` | openapi-typescript/fetch | **SDK** storefront figé sur `openapi.json` | npm |
 | `packages/create-echoppe` | @clack/prompts | CLI de scaffolding boutique | npm |
@@ -30,7 +30,7 @@ scaffolding. La boutique réelle vit **hors** du monorepo (consommateur, pas mor
 - **Externe (storefront)** : **SDK OpenAPI** figé, généré depuis `/docs/json`, surface **publique
   uniquement**. → [ADR-0007](../adr/ADR-0007-contrat-sdk.md).
 
-La SSOT du contrat = les schémas **TypeBox** (`apps/api/src/models/*`). Les projections publiques
+La SSOT du contrat = les schémas **TypeBox** (`apps/echoppe-api/src/models/*`). Les projections publiques
 (`variantPublicSchema`, `productDetailSchema`…) filtrent ce qui fuit vers le SDK.
 → [ADR-0006](../adr/ADR-0006-visibilite-catalogue.md).
 

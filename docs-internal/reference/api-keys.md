@@ -28,7 +28,7 @@ Décision : ajouter une **auth machine par clé d'API scopée**, en `Authorizati
 Le vocabulaire de scopes est **dérivé**, pas déclaré à la main :
 
 ```ts
-// apps/api/src/plugins/apiKey.ts
+// apps/echoppe-api/src/plugins/apiKey.ts
 export const SCOPES = RESOURCE_LIST
   .filter((resource) => resource !== 'api_key')
   .flatMap((resource) => [`read:${resource}`, `write:${resource}`]);
@@ -152,7 +152,7 @@ permissionGuard('content', 'update')  → inchangé
 ## Amorçage sans admin (bootstrap CLI)
 
 Pour créer une première clé **sans passer par l'admin** (ex. CI, provisioning), un script
-serveur : `apps/api/src/scripts/create-api-key.ts` (`bun run api-key:create --name … --scopes
+serveur : `apps/echoppe-api/src/scripts/create-api-key.ts` (`bun run api-key:create --name … --scopes
 …`). Il insère avec `createdBy: null` (clé « système ») et imprime le clair une fois. C'est
 l'échappatoire assumée ; le flux nominal reste l'admin.
 

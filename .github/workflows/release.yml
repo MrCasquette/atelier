@@ -10,7 +10,7 @@ name: Release
 #   - Packages npm (client/content/cli) → versionnés/publiés par changesets, SANS tag ni Release git
 #     (`--no-git-tag`, `createGithubReleases: false`). npm EST leur registre de versions.
 #   - Runtime api+admin → seule épine de tags git `v*` (+ GitHub Release). Sa version vient de
-#     `apps/api/package.json` (bumpée par changesets, paire `fixed` avec admin).
+#     `apps/echoppe-api/package.json` (bumpée par changesets, paire `fixed` avec admin).
 #
 # Flux « one-move » : push main AVEC changesets → PR « Version Packages ». Merge de la PR →
 # publie npm (si paquet bumpé) ET/OU tague `v x.y.z` + construit les images (si runtime bumpé,
@@ -76,13 +76,13 @@ jobs:
           # PUBLIC (elle doit être vérifiable par des tiers). Depuis le passage du monorepo en
           # privé, l'activer ferait échouer le publish. À réactiver si le dépôt redevient public.
 
-      # Version runtime = `apps/api/package.json` (paire `fixed` avec admin). Un bump runtime ne publie
+      # Version runtime = `apps/echoppe-api/package.json` (paire `fixed` avec admin). Un bump runtime ne publie
       # RIEN sur npm (privé) → on ne peut pas se fier à `published` : on détecte le bump par l'ABSENCE
       # du tag `v x.y.z` sur origin. Un push sans release (version inchangée) → tag présent → no-op.
       - name: Resolve runtime version
         id: runtime
         run: |
-          VERSION=$(jq -r .version apps/api/package.json)
+          VERSION=$(jq -r .version apps/echoppe-api/package.json)
           if [ -n "$(git ls-remote --tags origin "refs/tags/v${VERSION}")" ]; then
             echo "bumped=false" >> "$GITHUB_OUTPUT"
             echo "Runtime v${VERSION} déjà taggé → aucune nouvelle image."

@@ -96,7 +96,7 @@ La CI **bloque la publication d'image** si les tests échouent :
   **upgrade depuis `:latest`** (T3), **parité contrat** (T4), **idempotence** (T5). Aucune image ne
   part si un test casse.
 
-Pour reproduire le gate en local : `bun run --cwd apps/api test:integration`.
+Pour reproduire le gate en local : `bun run --cwd apps/echoppe-api test:integration`.
 
 ## Raccourci : `bun run ship`
 
@@ -134,6 +134,6 @@ avant ; le changeset est le seul ajout embarqué). En 0.x, un **changement cassa
 | push tag `v*` (manuel) | `docker-build.yml` | Échappatoire : re-cut d'images hors release npm |
 
 L'unique acte humain d'une release = le **merge de la PR**. La version des images = celle du **runtime**
-(`apps/api/package.json`, paire `fixed` avec admin), détectée par l'absence du tag `v x.y.z` sur
+(`apps/echoppe-api/package.json`, paire `fixed` avec admin), détectée par l'absence du tag `v x.y.z` sur
 origin. Le tag est posé automatiquement (traçage) mais ne re-déclenche pas les images (garde
 anti-récursion GitHub : un tag poussé au `GITHUB_TOKEN` ne relance aucun workflow).

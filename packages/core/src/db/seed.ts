@@ -31,7 +31,7 @@ import {
   variantOptionValue,
 } from './schema';
 
-const UPLOAD_DIR = join(import.meta.dir, '../../../../apps/api/uploads');
+const UPLOAD_DIR = join(import.meta.dir, '../../../../apps/echoppe-api/uploads');
 
 // Download placeholder image from Picsum
 async function downloadPlaceholder(
