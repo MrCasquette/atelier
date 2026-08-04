@@ -1,5 +1,9 @@
-import { emailLayout, registerEmailTemplate } from '../adapters/communication/templates';
-import { type EmailResult, sendEmail } from './email';
+import {
+  type EmailResult,
+  emailLayout,
+  registerEmailTemplate,
+  sendEmail,
+} from '@repo/communication';
 
 /**
  * Envois e-mail propres à la boutique — commande, expédition, bienvenue client.

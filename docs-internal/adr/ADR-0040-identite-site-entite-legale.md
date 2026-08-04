@@ -132,9 +132,16 @@ remplir.
 - **`shopName` devient `site.name`.** Ce nom a fait obstacle trois fois : signalé en `#7`, reporté en
   `#9`, bloquant ici. Il traîne dans `getShopInfo()`, les pieds de page des gabarits, le contrat SDK
   et l'écran d'administration.
-- `@repo/communication` ne dépend ni de `company` ni de `@repo/identity` : il lit `site.name` dans le
-  **contrat de variables**, comme n'importe quel autre consommateur. C'est ce qui débloque son
-  extraction.
+- `@repo/communication` ne dépend plus de `company`, ce qui débloque son extraction.
+
+  > **Corrigé à l'implémentation (2026-08-04).** Cet ADR annonçait qu'il lirait `site.name` dans le
+  > **contrat de variables**, sans dépendre de `@repo/identity`. Ce contrat n'existe pas encore —
+  > c'est [ADR-0035](./ADR-0035-interpolation-variables.md), non implémenté. Le paquet dépend donc
+  > de `@repo/identity` et lit la table : dépendance acyclique entre deux paquets neutres, et un
+  > e-mail a légitimement besoin de savoir de quel site il part. L'alternative — un résolveur
+  > injecté — coûtait un singleton mutable et un point de câblage oubliable, pour un gain qui
+  > n'arrive qu'avec l'interpolation. La bascule vers le contrat sera un changement local à
+  > `getSiteInfo()`.
 - Le contrat de variables converge avec [ADR-0035](./ADR-0035-interpolation-variables.md) : c'est la
   même surface, vue depuis l'identité plutôt que depuis l'interpolation.
 - L'écran de réglages devra être écrit deux fois, un par produit. Coût réel et assumé — deux profils

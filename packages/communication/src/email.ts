@@ -1,11 +1,8 @@
 import { db } from '@repo/db';
-import {
-  type EmailTemplate,
-  getActiveCommunicationAdapter,
-  type SendResult,
-} from '../adapters/communication';
-import { site } from '../db/schema';
-import { communicationLog } from '../db/schema/communication';
+import { site } from '@repo/identity';
+import { getActiveCommunicationAdapter } from './registry';
+import { communicationLog } from './schema';
+import type { EmailTemplate, SendResult } from './types';
 
 export interface SendEmailParams {
   to: string;

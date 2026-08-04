@@ -1,38 +1,3 @@
-export { BrevoAdapter } from './brevo';
-export {
-  type BrevoCredentials,
-  getAllProvidersStatus,
-  getProviderConfig,
-  getProviderCredentials,
-  getProviderStatus,
-  type ResendCredentials,
-  type SmtpCredentials,
-  saveProviderCredentials,
-  setProviderEnabled,
-} from './config';
-export { ResendAdapter } from './resend';
-export { SmtpAdapter } from './smtp';
-export {
-  type EmailLayoutParams,
-  emailLayout,
-  hasEmailTemplate,
-  listEmailTemplates,
-  registerEmailTemplate,
-  renderTemplate,
-} from './templates';
-export type {
-  CommunicationAdapter,
-  CommunicationConfig,
-  CommunicationCredentialStore,
-  CommunicationProvider,
-  EmailMessage,
-  EmailStatus,
-  EmailTemplate,
-  EmailTemplateRenderer,
-  SendResult,
-} from './types';
-export { COMMUNICATION_PROVIDERS, isCommunicationProvider } from './types';
-
 import { createAdapterRegistry } from '@repo/adapters';
 import { BrevoAdapter } from './brevo';
 import { getProviderConfig, getProviderCredentials, getProviderStatus } from './config';
@@ -45,6 +10,9 @@ import {
 } from './types';
 
 // Registre déclaratif : store réel (credentials + config d'envoi déchiffrés) injecté par fabrique.
+//
+// Séparé du barrel `index.ts` : `email.ts` a besoin de `getActiveCommunicationAdapter` et le barrel
+// réexporte `email.ts`. Passer par lui créerait un cycle.
 const registry = createAdapterRegistry<CommunicationProvider, CommunicationAdapter>(
   COMMUNICATION_PROVIDERS,
   {

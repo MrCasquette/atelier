@@ -1,7 +1,7 @@
 import { db } from '@repo/db';
 import { decrypt, encrypt } from '@repo/shared';
 import { eq } from 'drizzle-orm';
-import { communicationProviderConfig } from '../../db/schema/communication';
+import { communicationProviderConfig } from './schema';
 import type { CommunicationConfig, CommunicationProvider } from './types';
 
 export interface ResendCredentials {

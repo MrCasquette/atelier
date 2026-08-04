@@ -29,6 +29,7 @@ COPY packages/assets/package.json ./packages/assets/
 COPY packages/db/package.json ./packages/db/
 COPY packages/adapters/package.json ./packages/adapters/
 COPY packages/identity/package.json ./packages/identity/
+COPY packages/communication/package.json ./packages/communication/
 COPY packages/client/package.json ./packages/client/
 COPY packages/content/package.json ./packages/content/
 COPY packages/create-echoppe/package.json ./packages/create-echoppe/
@@ -49,6 +50,7 @@ COPY --from=deps /app/packages/assets/node_modules ./packages/assets/node_module
 COPY --from=deps /app/packages/db/node_modules ./packages/db/node_modules
 COPY --from=deps /app/packages/adapters/node_modules ./packages/adapters/node_modules
 COPY --from=deps /app/packages/identity/node_modules ./packages/identity/node_modules
+COPY --from=deps /app/packages/communication/node_modules ./packages/communication/node_modules
 COPY --from=deps /app/apps/echoppe-api/node_modules ./apps/echoppe-api/node_modules
 COPY --from=deps /app/apps/echoppe-admin/node_modules ./apps/echoppe-admin/node_modules
 COPY --from=deps /app/apps/echoppe-store/node_modules ./apps/echoppe-store/node_modules
