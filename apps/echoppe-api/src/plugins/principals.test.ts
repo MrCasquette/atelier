@@ -8,7 +8,7 @@ const principal = (type: string, who: string | null): Principal<Identity> => ({
   permissions: new Map(),
   bypass: false,
   privileged: false,
-  honorsSelfOnly: false,
+  hasSubject: false,
   identity: { who },
 });
 
@@ -54,6 +54,41 @@ describe('registre de principaux', () => {
     const registry = createPrincipalRegistry<Identity>();
     registry.register({ type: 'admin', resolve: async () => null });
     expect(registry.resolve(anonymous)).rejects.toThrow('dernier recours');
+  });
+
+  test('refuse un bypass venu d’un résolveur non habilité', async () => {
+    const registry = createPrincipalRegistry<Identity>();
+    registry.register({
+      type: 'customer',
+      resolve: async () => ({ ...principal('customer', 'mallory'), bypass: true }),
+    });
+    registry.registerFallback({ type: 'public', resolve: async () => principal('public', null) });
+
+    expect(registry.resolve(anonymous)).rejects.toThrow('Le principal « customer »');
+  });
+
+  test('laisse passer le bypass du résolveur habilité', async () => {
+    const registry = createPrincipalRegistry<Identity>();
+    registry.register({
+      type: 'admin',
+      mayBypass: true,
+      resolve: async () => ({ ...principal('admin', 'alice'), bypass: true }),
+    });
+    registry.registerFallback({ type: 'public', resolve: async () => principal('public', null) });
+
+    expect((await registry.resolve(anonymous)).bypass).toBe(true);
+  });
+
+  test('refuse un bypass venu du dernier recours', async () => {
+    const registry = createPrincipalRegistry<Identity>();
+    registry.registerFallback({
+      type: 'public',
+      resolve: async () => ({ ...principal('public', null), bypass: true }),
+    });
+
+    expect(registry.resolve(anonymous)).rejects.toThrow(
+      'dernier recours ne peut pas court-circuiter',
+    );
   });
 
   test("expose les types enregistrés dans l'ordre d'essai", () => {

@@ -7,7 +7,7 @@
 //
 // Le socle déclare ici le CONTRAT ; le produit enregistre les principaux qu'il connaît. Ce qui
 // distinguait les variantes devient des PROPRIÉTÉS du principal résolu — `bypass`, `privileged`,
-// `honorsSelfOnly` — si bien que la vérification de permission n'a plus une seule branche par type.
+// `hasSubject` — si bien que la vérification de permission n'a plus une seule branche par type.
 //
 // Ce fichier ne connaît ni cookie, ni table, ni schéma : il partira tel quel dans `packages/auth`.
 
@@ -30,14 +30,16 @@ export type Principal<Identity> = {
   // décision a besoin est porté par les champs ci-dessous.
   type: string;
   permissions: Map<string, PermissionSet>;
-  // Court-circuite toute vérification (propriétaire de l'installation).
+  // Court-circuite toute vérification (propriétaire de l'installation). Seul un résolveur déclaré
+  // `mayBypass` a le droit de le poser — cf. `PrincipalResolver`.
   bypass: boolean;
   // Principal de confiance : humain de l'administration ou machine authentifiée. Sert aux routes
   // dont la VISIBILITÉ dépend de l'appelant, et à l'option `adminOnly` des guards.
   privileged: boolean;
-  // Le bit `selfOnly` d'une permission s'applique-t-il ? Faux pour une clé machine (pas de sujet
-  // humain à qui rapporter un « soi ») et pour l'anonyme.
-  honorsSelfOnly: boolean;
+  // Y a-t-il un compte personnel derrière ce principal ? Si oui, le drapeau `selfOnly` d'une
+  // permission peut s'appliquer — il y a un « soi » sur lequel filtrer. Faux pour une clé machine
+  // et pour l'anonyme : filtrer sur un sujet inexistant ne renverrait jamais rien, en silence.
+  hasSubject: boolean;
   // Identité projetée dans le contexte des routes. Sa forme appartient au produit.
   identity: Identity;
 };
@@ -46,6 +48,13 @@ export type Principal<Identity> = {
 // suivant, dans l'ordre d'enregistrement.
 export type PrincipalResolver<Identity> = {
   type: string;
+  // Ce résolveur a-t-il le droit de rendre un principal qui court-circuite toute vérification ?
+  //
+  // Sans ce drapeau, `bypass` serait une donnée qu'un résolveur pose librement à chaque requête :
+  // tout principal enregistré pourrait se déclarer propriétaire. Le déclarer à l'ENREGISTREMENT
+  // déplace la décision de confiance d'une donnée par requête vers un acte délibéré, écrit une
+  // fois, greppable. Un résolveur non déclaré qui tente le coup échoue franchement.
+  mayBypass?: boolean;
   resolve(request: PrincipalRequest): Promise<Principal<Identity> | null>;
 };
 
@@ -84,12 +93,23 @@ export function createPrincipalRegistry<Identity>(): PrincipalRegistry<Identity>
     async resolve(request) {
       for (const resolver of resolvers) {
         const principal = await resolver.resolve(request);
-        if (principal) return principal;
+        if (!principal) continue;
+        if (principal.bypass && !resolver.mayBypass) {
+          throw new Error(
+            `Le principal « ${resolver.type} » n'est pas autorisé à court-circuiter les vérifications`,
+          );
+        }
+        return principal;
       }
       if (!fallback) {
         throw new Error("Aucun principal de dernier recours n'est enregistré");
       }
-      return fallback.resolve(request);
+      // Le dernier recours est l'appelant que personne n'a reconnu : jamais de bypass, par nature.
+      const principal = await fallback.resolve(request);
+      if (principal.bypass) {
+        throw new Error('Le principal de dernier recours ne peut pas court-circuiter');
+      }
+      return principal;
     },
 
     types() {

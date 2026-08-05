@@ -103,7 +103,7 @@ principals.register({
       // permissions viennent des scopes de la clé, pas d'un compte.
       bypass: false,
       privileged: true,
-      honorsSelfOnly: false,
+      hasSubject: false,
       identity: ANONYMOUS,
     };
   },
@@ -111,6 +111,9 @@ principals.register({
 
 principals.register({
   type: 'admin',
+  // Seul résolveur habilité au bypass : le propriétaire de l'installation est un humain de
+  // l'administration, et rien d'autre ne l'est.
+  mayBypass: true,
   async resolve({ cookie }) {
     const token = cookie[COOKIE_NAME]?.value;
     if (!token) return null;
@@ -123,7 +126,7 @@ principals.register({
       permissions: await getPermissionsForRole(session.currentRole.id),
       bypass: session.currentUser.isOwner,
       privileged: true,
-      honorsSelfOnly: true,
+      hasSubject: true,
       identity: {
         currentUser: session.currentUser,
         currentRole: session.currentRole,
@@ -147,7 +150,7 @@ principals.register({
       permissions: await getPermissionsForRoleKey('customer'),
       bypass: false,
       privileged: false,
-      honorsSelfOnly: true,
+      hasSubject: true,
       identity: {
         currentUser: null,
         currentRole: null,
@@ -165,7 +168,7 @@ principals.registerFallback({
       permissions: await getPermissionsForRoleKey('public'),
       bypass: false,
       privileged: false,
-      honorsSelfOnly: false,
+      hasSubject: false,
       identity: ANONYMOUS,
     };
   },
@@ -259,7 +262,7 @@ export function checkPermission(
 
   return {
     allowed: hasPermission(principal.permissions, resource, action),
-    selfOnly: principal.honorsSelfOnly && isSelfOnly(principal.permissions, resource),
+    selfOnly: principal.hasSubject && isSelfOnly(principal.permissions, resource),
     ...principal.identity,
   };
 }
