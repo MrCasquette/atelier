@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { runMigrations } from '@echoppe/core';
 import { app } from './app';
 import { cleanupExpiredOrders } from './jobs/cleanup-expired-orders';
-import { initAdmin } from './lib/init-admin';
+import { initAdmin } from './modules/auth/init-admin';
 
 export type { App } from './app';
 

@@ -1,7 +1,7 @@
 import { asc, db, eq, menu } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { conflictResponse, successSchema, withCrudErrors } from '../../lib/response';
-import { permissionGuard } from '../../plugins/rbac';
+import { permissionGuard } from '../auth/rbac';
 import { menuItemsSchema } from './model';
 
 // Administration des menus. Protégé par RBAC `content` — le menu n'est pas du contenu (ADR-0043,

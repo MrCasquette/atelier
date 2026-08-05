@@ -1,8 +1,8 @@
 import { asc, db, eq, folder, media } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { errorSchema, successSchema, withAuthErrors } from '../../lib/response';
-import { permissionGuard } from '../../plugins/rbac';
 import { getClientIp, logAudit } from '../audit/service';
+import { permissionGuard } from '../auth/rbac';
 import { folderBody, folderSchema, uuidParam } from './model';
 
 // Arborescence de la médiathèque. Sous-concept du média : même préfixe, même ressource RBAC

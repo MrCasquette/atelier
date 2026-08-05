@@ -18,8 +18,8 @@ import {
 import { Elysia, t } from 'elysia';
 import { buildListResponse, getPaginationParams, listResponse } from '../../lib/pagination';
 import { errorSchema, successSchema, withAuthErrors } from '../../lib/response';
-import { permissionGuard } from '../../plugins/rbac';
 import { getClientIp, logAudit } from '../audit/service';
+import { permissionGuard } from '../auth/rbac';
 import {
   batchDeleteBody,
   batchDeleteResultSchema,

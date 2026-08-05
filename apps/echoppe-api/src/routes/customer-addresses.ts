@@ -6,7 +6,7 @@ import {
   customerAuthPlugin,
   customerCookieSchema,
   type SessionCustomer,
-} from '../plugins/customerAuth';
+} from '../modules/auth/customer-session';
 
 // Schéma d'entité adresse (Address, AddressList) → src/models/address.ts
 

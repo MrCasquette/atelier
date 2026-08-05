@@ -16,7 +16,7 @@ import {
   customerAuthPlugin,
   customerCookieSchema,
   type SessionCustomer,
-} from '../../plugins/customerAuth';
+} from '../auth/customer-session';
 import { imageRef, loadMediaDimensions } from '../media/image-ref';
 
 // Wishlist storefront (ADR : surface client authentifiée, comme customer-addresses/orders). Porte

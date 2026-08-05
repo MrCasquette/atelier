@@ -19,7 +19,7 @@ import {
   optionTypeSchema,
   optionValueSchema,
 } from '../../models/catalog';
-import { permissionGuard } from '../../plugins/rbac';
+import { permissionGuard } from '../../modules/auth/rbac';
 
 const optionParams = t.Object({
   id: t.String({ format: 'uuid' }),

@@ -1,7 +1,9 @@
 import { cors } from '@elysiajs/cors';
 import { openapi } from '@elysiajs/openapi';
 import { Elysia } from 'elysia';
+import { apiKeyRoutes } from './modules/api-key';
 import { auditLogsRoutes } from './modules/audit';
+import { authRoutes } from './modules/auth';
 import { communicationsRoutes } from './modules/communication';
 import { contactRoutes } from './modules/contact';
 import { definitionRoutes } from './modules/content/definition';
@@ -10,28 +12,24 @@ import { countriesRoutes } from './modules/country';
 import { identityRoutes } from './modules/identity';
 import { mediaRoutes } from './modules/media';
 import { menuRoutes } from './modules/menu';
+import { rolesRoutes } from './modules/role';
 import { taxRatesRoutes } from './modules/tax-rate';
+import { usersRoutes } from './modules/user';
 import { wishlistRoutes } from './modules/wishlist';
-import { apiKeyRoutes } from './routes/api-keys';
-import { authRoutes } from './routes/auth';
 import { cartRoutes } from './routes/cart';
 import { categoriesRoutes } from './routes/categories';
 import { checkoutRoutes } from './routes/checkout';
 import { collectionsRoutes } from './routes/collections';
 import { customerAccountRoutes } from './routes/customer-account';
 import { customerAddressesRoutes } from './routes/customer-addresses';
-import { customerAuthRoutes } from './routes/customer-auth';
 import { customerOrdersRoutes } from './routes/customer-orders';
 import { customersRoutes } from './routes/customers';
 import { optionsRoutes } from './routes/options';
 import { ordersRoutes } from './routes/orders';
-
 import { paymentsRoutes } from './routes/payments';
 import { productsRoutes } from './routes/products';
-import { rolesRoutes } from './routes/roles';
 import { shippingRoutes } from './routes/shipping';
 import { stockRoutes } from './routes/stock';
-import { usersRoutes } from './routes/users';
 import { securityHeaders } from './security-headers';
 
 // Application Elysia PURE : construction des routes/plugins, sans aucun side-effect de
@@ -108,7 +106,6 @@ export const app = new Elysia()
     { detail: { tags: ['General'], summary: 'Health check' } },
   )
   .use(authRoutes)
-  .use(customerAuthRoutes)
   .use(categoriesRoutes)
   .use(productsRoutes)
   .use(optionsRoutes)

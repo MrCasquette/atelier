@@ -1,8 +1,8 @@
 import { and, db, eq, permission, RESOURCES, role, sql, user } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { errorSchema, successSchema, withAuthErrors } from '../lib/response';
-import { getClientIp, logAudit } from '../modules/audit/service';
-import { invalidatePermissionCache, permissionGuard } from '../plugins/rbac';
+import { errorSchema, successSchema, withAuthErrors } from '../../lib/response';
+import { getClientIp, logAudit } from '../audit/service';
+import { invalidatePermissionCache, permissionGuard } from '../auth/rbac';
 
 // Schemas
 // Surface d'un rôle : union fermée assumée — c'est le socle qui décide qu'il existe une

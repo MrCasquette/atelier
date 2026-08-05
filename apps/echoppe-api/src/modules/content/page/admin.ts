@@ -1,7 +1,7 @@
 import { asc, db, eq, page, section } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { conflictResponse, successSchema, withCrudErrors } from '../../../lib/response';
-import { permissionGuard } from '../../../plugins/rbac';
+import { permissionGuard } from '../../auth/rbac';
 import { validateSectionData } from '../definition/service';
 import { sectionInputSchema } from './model';
 

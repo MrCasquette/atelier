@@ -8,7 +8,7 @@ import {
   optionTypeSchema,
   optionValueSchema,
 } from '../models/catalog';
-import { permissionGuard } from '../plugins/rbac';
+import { permissionGuard } from '../modules/auth/rbac';
 
 // Ressource GLOBALE de gestion des axes d'option (catalogue). Distincte des endpoints
 // product-scoped (`/products/:id/options/...`) qui ne font que l'ASSOCIATION axe↔produit et

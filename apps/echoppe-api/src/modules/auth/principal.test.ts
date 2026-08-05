@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { createPrincipalRegistry, type Principal, type PrincipalRequest } from './principals';
+import { createPrincipalRegistry, type Principal, type PrincipalRequest } from './principal';
 
 type Identity = { who: string | null };
 

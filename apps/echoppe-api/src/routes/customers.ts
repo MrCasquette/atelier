@@ -18,7 +18,7 @@ import {
 import { Elysia, t } from 'elysia';
 import { buildListResponse, listResponse, parseListQuery } from '../lib/pagination';
 import { successSchema, withCrudErrors } from '../lib/response';
-import { permissionGuard } from '../plugins/rbac';
+import { permissionGuard } from '../modules/auth/rbac';
 
 // Query schemas
 const customerSearchQuery = t.Object({

@@ -10,8 +10,8 @@ import {
 import { Elysia } from 'elysia';
 import { withAuthErrors, withReadErrors } from '../../lib/response';
 import { models } from '../../model';
-import { permissionGuard } from '../../plugins/rbac';
 import { getClientIp, logAudit } from '../audit/service';
+import { permissionGuard } from '../auth/rbac';
 import { identityBody } from './model';
 
 // Identité du site et entité légale (ADR-0040) — remplace /company.

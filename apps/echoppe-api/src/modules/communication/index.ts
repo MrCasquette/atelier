@@ -16,7 +16,7 @@ import {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { errorSchema, successSchema } from '../../lib/response';
-import { permissionGuard } from '../../plugins/rbac';
+import { permissionGuard } from '../auth/rbac';
 import {
   brevoConfigBody,
   providerStatusSchema,

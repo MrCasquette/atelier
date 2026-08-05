@@ -7,7 +7,7 @@ import {
   paginationQuery,
 } from '../lib/pagination';
 import { withCrudErrors } from '../lib/response';
-import { permissionGuard } from '../plugins/rbac';
+import { permissionGuard } from '../modules/auth/rbac';
 
 const stockMoveCreateBody = t.Object({
   variant: t.String({ format: 'uuid' }),

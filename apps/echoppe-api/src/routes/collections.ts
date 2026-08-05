@@ -12,7 +12,7 @@ import {
 } from '../lib/response';
 import { models } from '../model';
 import { getClientIp, logAudit } from '../modules/audit/service';
-import { isPrivilegedRequest, permissionGuard } from '../plugins/rbac';
+import { isPrivilegedRequest, permissionGuard } from '../modules/auth/rbac';
 import { visibilityFilter } from '../utils/visibility';
 import { productSubListQuery, queryProductCards } from './products/shared';
 

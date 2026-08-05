@@ -4,7 +4,7 @@ import { rateLimit } from 'elysia-rate-limit';
 import { checkoutRateLimitOptions } from '../lib/rate-limit';
 import { errorSchema, withReadErrors } from '../lib/response';
 import { models } from '../model';
-import { customerAuthPlugin, type SessionCustomer } from '../plugins/customerAuth';
+import { customerAuthPlugin, type SessionCustomer } from '../modules/auth/customer-session';
 import {
   calculateOrderTotals,
   createAddressSnapshot,

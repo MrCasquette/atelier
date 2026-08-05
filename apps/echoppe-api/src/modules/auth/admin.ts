@@ -2,14 +2,14 @@ import { randomBytes } from 'node:crypto';
 import { and, db, eq, gt, role, session, user } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
-import { authRateLimitOptions } from '../lib/rate-limit';
+import { authRateLimitOptions } from '../../lib/rate-limit';
 import {
   forbiddenResponse,
   rateLimitResponse,
   successSchema,
   unauthorizedResponse,
-} from '../lib/response';
-import { getClientIp, logAudit } from '../modules/audit/service';
+} from '../../lib/response';
+import { getClientIp, logAudit } from '../audit/service';
 
 const COOKIE_NAME = 'echoppe_admin_session';
 const SESSION_DURATION_DAYS = 7;
@@ -155,7 +155,7 @@ const loginRoute = new Elysia().use(rateLimit(authRateLimitOptions)).post(
   },
 );
 
-export const authRoutes = new Elysia({ prefix: '/auth', detail: { tags: ['Auth'] } })
+export const authAdminRoutes = new Elysia({ prefix: '/auth', detail: { tags: ['Auth'] } })
 
   // GET /auth/me - NO rate limit
   .get(

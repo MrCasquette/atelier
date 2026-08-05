@@ -6,7 +6,7 @@ import {
   customerAuthPlugin,
   customerCookieSchema,
   type SessionCustomer,
-} from '../plugins/customerAuth';
+} from '../modules/auth/customer-session';
 
 // Compte client (données du profil) — distinct de `customer-auth` (credentials/session).
 // Futur foyer de la famille RGPD (export des données, demande de suppression). Toutes les

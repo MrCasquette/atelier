@@ -1,7 +1,7 @@
 import { contentDefinition, db } from '@echoppe/core';
 import { Elysia } from 'elysia';
 import { successSchema, withCrudErrors } from '../../../lib/response';
-import { permissionGuard } from '../../../plugins/rbac';
+import { permissionGuard } from '../../auth/rbac';
 import { type Registry, registrySchema } from './model';
 import { assertRegistryCoherent, invalidateRegistryCache, loadRegistry } from './service';
 

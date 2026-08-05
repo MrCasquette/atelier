@@ -3,7 +3,7 @@ import { Elysia, t } from 'elysia';
 import { successSchema, withCrudErrors } from '../../lib/response';
 import { models } from '../../model';
 import { productMediaSchema } from '../../models/catalog';
-import { permissionGuard } from '../../plugins/rbac';
+import { permissionGuard } from '../../modules/auth/rbac';
 import { productParams } from './shared';
 
 const mediaParams = t.Object({

@@ -18,7 +18,7 @@ import {
   customerAuthPlugin,
   customerCookieSchema,
   type SessionCustomer,
-} from '../plugins/customerAuth';
+} from '../modules/auth/customer-session';
 
 // Espace commandes du client connecté (lecture seule). Chaque requête est filtrée sur
 // `order.customer = currentCustomer.id` : un client ne voit QUE ses propres commandes.

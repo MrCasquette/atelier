@@ -20,7 +20,7 @@ export type SessionUser = {
 export type SessionRole = {
   id: string;
   name: string;
-  scope: 'admin' | 'store';
+  scope: 'admin' | 'public';
 };
 
 export type AuthContext = {

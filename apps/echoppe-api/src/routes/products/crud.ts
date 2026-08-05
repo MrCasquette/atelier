@@ -20,7 +20,7 @@ import {
 } from '../../lib/response';
 import { models } from '../../model';
 import { getClientIp, logAudit } from '../../modules/audit/service';
-import { permissionGuard } from '../../plugins/rbac';
+import { permissionGuard } from '../../modules/auth/rbac';
 import { getRelatedProductIds, setRelatedProducts } from '../../utils/related';
 import { getProductTags, setProductTags } from '../../utils/tags';
 import {

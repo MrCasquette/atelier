@@ -1,9 +1,9 @@
 import { and, count, db, desc, eq, ilike, or, role, session, sql, user } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { buildListResponse, listResponse, parseListQuery } from '../lib/pagination';
-import { badRequestResponse, successSchema, withCrudErrors } from '../lib/response';
-import { getClientIp, logAudit } from '../modules/audit/service';
-import { permissionGuard } from '../plugins/rbac';
+import { buildListResponse, listResponse, parseListQuery } from '../../lib/pagination';
+import { badRequestResponse, successSchema, withCrudErrors } from '../../lib/response';
+import { getClientIp, logAudit } from '../audit/service';
+import { permissionGuard } from '../auth/rbac';
 
 // Query schemas
 const userSearchQuery = t.Object({

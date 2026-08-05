@@ -13,17 +13,16 @@ import {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
-import { PASSWORD_RESET_PATH, STOREFRONT_URL } from '../lib/config';
-import { authRateLimitOptions, strictRateLimitOptions } from '../lib/rate-limit';
+import { authRateLimitOptions, strictRateLimitOptions } from '../../lib/rate-limit';
 import {
   conflictResponse,
   errorSchema,
   rateLimitResponse,
   successSchema,
   unauthorizedResponse,
-} from '../lib/response';
-import { models } from '../model';
-import { customerAuthPlugin, type SessionCustomer } from '../plugins/customerAuth';
+} from '../../lib/response';
+import { models } from '../../model';
+import { customerAuthPlugin, type SessionCustomer } from './customer-session';
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 heure
 const sha256 = (value: string): string => createHash('sha256').update(value).digest('hex');
@@ -31,11 +30,19 @@ const sha256 = (value: string): string => createHash('sha256').update(value).dig
 const COOKIE_NAME = 'echoppe_customer_session';
 const SESSION_DURATION_DAYS = 7;
 
+// URL publique du storefront, pour les liens envoyés par e-mail (réinitialisation de mot de passe).
+// Réutilise `STORE_URL` — déjà l'origine de la boutique (CORS + liste blanche de redirection) : en
+// faire une variable d'environnement à part créerait deux sources de vérité pour la même adresse.
+const STOREFRONT_URL = (process.env.STORE_URL || 'http://localhost:4321').replace(/\/+$/, '');
+// Le storefront est remplaçable, donc ce chemin POURRAIT varier par déploiement — mais personne ne
+// l'a demandé, et le jour venu `process.env.PASSWORD_RESET_PATH ?? …` est un changement d'une ligne.
+const PASSWORD_RESET_PATH = '/reset-password';
+
 const cookieSchema = t.Cookie({
   [COOKIE_NAME]: t.Optional(t.String()),
 });
 
-// Les réponses sont des modèles nommés (src/models/customer.ts), référencés par nom :
+// Les réponses sont des modèles nommés (src/models/customer.ts → module `customer`), référencés par nom :
 // register/`me` → `CustomerAuth` (profil complet), login → `LoginResult` (identité réduite).
 // Chaque instance qui les référence fait `.use(models)`.
 
