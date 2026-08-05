@@ -2,7 +2,7 @@ import { and, db, eq, permission, RESOURCES, role, sql, user } from '@echoppe/co
 import { Elysia, t } from 'elysia';
 import { errorSchema, successSchema, withAuthErrors } from '../../lib/response';
 import { getClientIp, logAudit } from '../audit/service';
-import { invalidatePermissionCache, permissionGuard } from '../auth/rbac';
+import { invalidatePermissionCache, permissionGuard, undelegatableGrants } from '../auth/rbac';
 
 // Schemas
 // Surface d'un rôle : union fermée assumée — c'est le socle qui décide qu'il existe une
@@ -259,10 +259,19 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
   .use(permissionGuard('permission', 'update'))
   .put(
     '/:id/permissions',
-    async ({ params, body, status, currentUser, request }) => {
+    async ({ params, body, status, currentUser, request, principal }) => {
       const [existing] = await db.select().from(role).where(eq(role.id, params.id));
       if (!existing) {
         return status(404, { message: 'Rôle non trouvé' });
+      }
+
+      // Délégation (ADR-0038) : on ne peut accorder que ce qu'on détient. `permission:update` seul
+      // laissait un administrateur borné s'attribuer n'importe quel droit via son propre rôle.
+      const refused = undelegatableGrants(principal, body.permissions);
+      if (refused.length > 0) {
+        return status(403, {
+          message: `Droits non détenus, donc non délégables : ${refused.join(', ')}`,
+        });
       }
 
       // Récupérer les permissions verrouillées existantes (on ne les touche pas)
@@ -317,6 +326,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
       body: permissionsUpdateBody,
       response: {
         200: t.Object({ permissions: t.Array(permissionSchema) }),
+        403: errorSchema,
         404: errorSchema,
       },
     },

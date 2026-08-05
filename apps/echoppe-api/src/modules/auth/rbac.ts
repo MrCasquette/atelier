@@ -200,6 +200,66 @@ export function isSelfOnly(permissions: Map<string, PermissionSet>, resource: Re
   return perm?.selfOnly ?? false;
 }
 
+// Un droit tel qu'on demande à l'accorder à un rôle. `resource` est une chaîne et non `Resource` :
+// l'espace des ressources s'ouvrira aux entités déclarées (ADR-0038), et la règle ci-dessous vaut
+// telle quelle pour elles.
+export type PermissionGrant = {
+  resource: string;
+  canCreate: boolean;
+  canRead: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+  selfOnly?: boolean;
+};
+
+const GRANTABLE_ACTIONS = [
+  ['create', 'canCreate'],
+  ['read', 'canRead'],
+  ['update', 'canUpdate'],
+  ['delete', 'canDelete'],
+] as const;
+
+/**
+ * Délégation (ADR-0038) : **on ne peut accorder que ce qu'on détient**, action par action.
+ *
+ * Sans cette règle, quiconque a `permission:update` peut s'attribuer n'importe quel droit via son
+ * propre rôle — le drapeau `locked` ne protège que les lignes qu'on a pensé à verrouiller, pas le
+ * principe. L'alternative écartée par l'ADR, une portée d'administration par catégories, laissait
+ * justement passer cette élévation ; la délégation la rend structurellement impossible.
+ *
+ * Renvoie les droits demandés que le principal ne détient pas — vide s'il peut tout accorder.
+ * Rendre la liste plutôt qu'un booléen permet de dire à l'appelant CE QUI est refusé.
+ */
+export function undelegatableGrants(
+  principal: EchoppePrincipal,
+  grants: PermissionGrant[],
+): string[] {
+  // Le propriétaire de l'installation court-circuite, comme partout ailleurs.
+  if (principal.bypass) return [];
+
+  const refused: string[] = [];
+
+  for (const grant of grants) {
+    const held = principal.permissions.get(grant.resource);
+
+    for (const [action, flag] of GRANTABLE_ACTIONS) {
+      if (grant[flag] && !held?.[flag]) {
+        refused.push(`${grant.resource}:${action}`);
+      }
+    }
+
+    // `selfOnly` borne un droit aux lignes dont on est le sujet. L'accorder SANS cette borne quand
+    // on ne le détient qu'avec, c'est accorder plus large que ce qu'on a — même interdit, autre
+    // dimension. L'ADR ne l'explicitait pas ; c'est la lecture fidèle de la règle.
+    const grantsAnything = GRANTABLE_ACTIONS.some(([, flag]) => grant[flag]);
+    if (grantsAnything && held?.selfOnly && grant.selfOnly !== true) {
+      refused.push(`${grant.resource}:selfOnly`);
+    }
+  }
+
+  return refused;
+}
+
 /**
  * Invalide le cache des permissions
  * Appeler après modification des permissions d'un rôle
