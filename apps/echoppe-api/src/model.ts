@@ -9,6 +9,7 @@ import { contentModels } from './models/content';
 import { customerModels } from './models/customer';
 import { identityModels } from './models/identity';
 import { orderModels } from './models/order';
+import { countryModels } from './modules/country/model';
 import { menuModels } from './modules/menu/model';
 import { taxRateModels } from './modules/tax-rate/model';
 import { wishlistModels } from './modules/wishlist/model';
@@ -29,6 +30,7 @@ export const allModels = {
   ...cartModels,
   ...taxRateModels,
   ...identityModels,
+  ...countryModels,
   ...addressModels,
   ...customerModels,
   ...checkoutModels,

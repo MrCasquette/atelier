@@ -57,12 +57,6 @@ export const identitySchema = t.Object({
   settings: storeSettingsSchema,
 });
 
-export const countrySchema = t.Object({
-  id: t.String({ format: 'uuid', description: 'Identifiant unique du pays.' }),
-  name: t.String({ description: 'Nom du pays.' }),
-  code: t.String({ description: 'Code ISO du pays (ex. « FR »).' }),
-});
-
 // ============================================
 // PROFILS D'EXIGENCE
 // ============================================
@@ -123,6 +117,4 @@ export const identityModels = {
   Identity: identitySchema,
   Site: siteSchema,
   LegalEntity: legalEntitySchema,
-  Country: countrySchema,
-  CountryList: t.Array(countrySchema),
 };
