@@ -18,7 +18,14 @@ import {
   variantOptionValue,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { models } from '../models';
+import {
+  badRequestResponse,
+  forbiddenResponse,
+  notFoundResponse,
+  successSchema,
+  unauthorizedResponse,
+} from '../lib/response';
+import { models } from '../model';
 import {
   calculateAddonPrice,
   displayPersonalization,
@@ -26,13 +33,6 @@ import {
   getPersonalizationFieldsByProduct,
   resolvePersonalization,
 } from '../utils/personalization';
-import {
-  badRequestResponse,
-  forbiddenResponse,
-  notFoundResponse,
-  successSchema,
-  unauthorizedResponse,
-} from '../utils/responses';
 
 const CART_COOKIE_NAME = 'echoppe_cart_session';
 const CUSTOMER_COOKIE_NAME = 'echoppe_customer_session';

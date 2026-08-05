@@ -23,10 +23,10 @@ import {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
+import { webhookRateLimitOptions } from '../lib/rate-limit';
+import { errorSchema, successSchema } from '../lib/response';
 import { customerAuthPlugin, type SessionCustomer } from '../plugins/customerAuth';
 import { permissionGuard } from '../plugins/rbac';
-import { webhookRateLimitOptions } from '../utils/rate-limit';
-import { errorSchema, successSchema } from '../utils/responses';
 import { validateCheckoutUrls } from '../utils/url-validation';
 
 const checkoutBody = t.Object({

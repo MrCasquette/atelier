@@ -13,13 +13,13 @@ import {
   variantOptionValue,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { models } from '../../models';
+import { withNotFound, withReadErrors } from '../../lib/response';
+import { models } from '../../model';
 import { variantPublicSchema } from '../../models/catalog';
 import { type ImageRef, imageRef, loadMediaDimensions } from '../../utils/image-ref';
 import { getPersonalizationFields } from '../../utils/personalization';
 import { enrichProductCards } from '../../utils/product-cards';
 import { getFallbackRelatedIds, getRelatedProductIds } from '../../utils/related';
-import { withNotFound, withReadErrors } from '../../utils/responses';
 import { getProductTags } from '../../utils/tags';
 import { productParams, productSearchQuery, queryProductCards } from './shared';
 

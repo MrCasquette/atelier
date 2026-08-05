@@ -1,7 +1,7 @@
 import { country, db, eq, shippingCountry } from '@echoppe/core';
 import { Elysia } from 'elysia';
-import { models } from '../models';
-import { withReadErrors } from '../utils/responses';
+import { withReadErrors } from '../lib/response';
+import { models } from '../model';
 
 // Schéma d'entité pays (Country, CountryList) → src/models/company.ts
 

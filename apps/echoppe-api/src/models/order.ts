@@ -1,5 +1,5 @@
 import { t } from 'elysia';
-import { listResponse } from '../utils/pagination';
+import { listResponse } from '../lib/pagination';
 
 // Projection STOREFRONT d'une commande — vue du client connecté sur SES propres commandes.
 // Volontairement plus pauvre que la vue admin (routes/orders.ts) : pas de `internalNote`

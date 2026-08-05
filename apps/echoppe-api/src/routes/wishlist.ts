@@ -10,14 +10,14 @@ import {
   wishlistItem,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { models } from '../models';
+import { errorSchema, notFound, successSchema } from '../lib/response';
+import { models } from '../model';
 import {
   customerAuthPlugin,
   customerCookieSchema,
   type SessionCustomer,
 } from '../plugins/customerAuth';
 import { imageRef, loadMediaDimensions } from '../utils/image-ref';
-import { errorSchema, notFound, successSchema } from '../utils/responses';
 
 // Wishlist storefront (ADR : surface client authentifiée, comme customer-addresses/orders). Porte
 // sur des VARIANTES (PK customer+variant). Ajout idempotent (onConflictDoNothing). La table existait

@@ -1,8 +1,8 @@
 import { and, db, eq, personalizationField, product } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { models } from '../../models';
+import { successSchema, withCrudErrors } from '../../lib/response';
+import { models } from '../../model';
 import { permissionGuard } from '../../plugins/rbac';
-import { successSchema, withCrudErrors } from '../../utils/responses';
 import { productParams } from './shared';
 
 // Champs de personnalisation d'un produit (ADR-0010) — CRUD admin, guard product:update.

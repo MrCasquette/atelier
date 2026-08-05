@@ -11,7 +11,8 @@ import {
   variantOptionValue,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { models } from '../../models';
+import { conflictResponse, successSchema, withCrudErrors } from '../../lib/response';
+import { models } from '../../model';
 import {
   colorMetadataSchema,
   optionSchema,
@@ -19,7 +20,6 @@ import {
   optionValueSchema,
 } from '../../models/catalog';
 import { permissionGuard } from '../../plugins/rbac';
-import { conflictResponse, successSchema, withCrudErrors } from '../../utils/responses';
 
 const optionParams = t.Object({
   id: t.String({ format: 'uuid' }),

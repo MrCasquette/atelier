@@ -12,16 +12,16 @@ import {
 import { slugify } from '@repo/shared';
 import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../../lib/audit';
-import { models } from '../../models';
-import { permissionGuard } from '../../plugins/rbac';
-import { getRelatedProductIds, setRelatedProducts } from '../../utils/related';
 import {
   successSchema,
   withAuthErrors,
   withCrudErrors,
   withNotFound,
   withReadErrors,
-} from '../../utils/responses';
+} from '../../lib/response';
+import { models } from '../../model';
+import { permissionGuard } from '../../plugins/rbac';
+import { getRelatedProductIds, setRelatedProducts } from '../../utils/related';
 import { getProductTags, setProductTags } from '../../utils/tags';
 import {
   buildEqFilters,

@@ -1,13 +1,13 @@
 import type { SQL } from '@echoppe/core';
 import { and, asc, count, db, desc, eq, ilike, inArray, or, product } from '@echoppe/core';
 import { t } from 'elysia';
-import { selectDefaultVariants } from '../../utils/default-variant';
 import {
   buildEqFilters,
   buildListResponse,
   getPaginationParams,
   paginationQuery,
-} from '../../utils/pagination';
+} from '../../lib/pagination';
+import { selectDefaultVariants } from '../../utils/default-variant';
 import { enrichProductCards } from '../../utils/product-cards';
 
 // Éléments partagés par les sous-routes produits (public ↔ admin) : params, schémas de recherche et

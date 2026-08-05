@@ -1,8 +1,8 @@
 import { db, sendContactFormEmail, site } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
-import { strictRateLimitOptions } from '../utils/rate-limit';
-import { messageSchema, withRateLimitErrors, withServiceErrors } from '../utils/responses';
+import { strictRateLimitOptions } from '../lib/rate-limit';
+import { messageSchema, withRateLimitErrors, withServiceErrors } from '../lib/response';
 
 const contactBody = t.Object({
   name: t.String({ minLength: 1, maxLength: 100 }),

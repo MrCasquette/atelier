@@ -1,13 +1,13 @@
 import { db, desc, eq, product, sql, stockMove, variant } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { permissionGuard } from '../plugins/rbac';
 import {
   buildListResponse,
   getPaginationParams,
   listResponse,
   paginationQuery,
-} from '../utils/pagination';
-import { withCrudErrors } from '../utils/responses';
+} from '../lib/pagination';
+import { withCrudErrors } from '../lib/response';
+import { permissionGuard } from '../plugins/rbac';
 
 const stockMoveCreateBody = t.Object({
   variant: t.String({ format: 'uuid' }),

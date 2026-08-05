@@ -1,8 +1,8 @@
 import type { SQL } from '@echoppe/core';
 import { and, auditLog, count, db, desc, eq, gte, isNotNull, lte, user } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
+import { buildListResponse, getPaginationParams, listResponse } from '../lib/pagination';
 import { permissionGuard } from '../plugins/rbac';
-import { buildListResponse, getPaginationParams, listResponse } from '../utils/pagination';
 
 // Query schema
 const auditLogQuery = t.Object({

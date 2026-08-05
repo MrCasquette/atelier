@@ -9,10 +9,10 @@ import {
 } from '@echoppe/core';
 import { Elysia } from 'elysia';
 import { getClientIp, logAudit } from '../lib/audit';
-import { models } from '../models';
+import { withAuthErrors, withReadErrors } from '../lib/response';
+import { models } from '../model';
 import { identityBody } from '../models/identity';
 import { permissionGuard } from '../plugins/rbac';
-import { withAuthErrors, withReadErrors } from '../utils/responses';
 
 // Identité du site et entité légale (ADR-0040) — remplace /company.
 //

@@ -1,6 +1,7 @@
 import { and, asc, db, eq, ilike, option, optionValue, variantOptionValue } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { models } from '../models';
+import { conflictResponse, successSchema, withCrudErrors } from '../lib/response';
+import { models } from '../model';
 import {
   colorMetadataSchema,
   optionSchema,
@@ -8,7 +9,6 @@ import {
   optionValueSchema,
 } from '../models/catalog';
 import { permissionGuard } from '../plugins/rbac';
-import { conflictResponse, successSchema, withCrudErrors } from '../utils/responses';
 
 // Ressource GLOBALE de gestion des axes d'option (catalogue). Distincte des endpoints
 // product-scoped (`/products/:id/options/...`) qui ne font que l'ASSOCIATION axe↔produit et

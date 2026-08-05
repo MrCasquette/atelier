@@ -1,12 +1,12 @@
 import { address, and, country, db, eq } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { models } from '../models';
+import { errorSchema, successSchema } from '../lib/response';
+import { models } from '../model';
 import {
   customerAuthPlugin,
   customerCookieSchema,
   type SessionCustomer,
 } from '../plugins/customerAuth';
-import { errorSchema, successSchema } from '../utils/responses';
 
 // Schéma d'entité adresse (Address, AddressList) → src/models/address.ts
 

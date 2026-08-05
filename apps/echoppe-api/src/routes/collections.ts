@@ -2,9 +2,7 @@ import { and, collection, count, db, eq, inArray, product, productCollection } f
 import { slugify } from '@repo/shared';
 import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../lib/audit';
-import { models } from '../models';
-import { isPrivilegedRequest, permissionGuard } from '../plugins/rbac';
-import { buildListResponse, getPaginationParams, paginationQuery } from '../utils/pagination';
+import { buildListResponse, getPaginationParams, paginationQuery } from '../lib/pagination';
 import {
   notFound,
   successSchema,
@@ -12,7 +10,9 @@ import {
   withCrudErrors,
   withNotFound,
   withReadErrors,
-} from '../utils/responses';
+} from '../lib/response';
+import { models } from '../model';
+import { isPrivilegedRequest, permissionGuard } from '../plugins/rbac';
 import { visibilityFilter } from '../utils/visibility';
 import { productSubListQuery, queryProductCards } from './products/shared';
 

@@ -1,5 +1,6 @@
 import { asc, contentDefinition, db, eq, menu, page, section } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
+import { conflictResponse, successSchema, withCrudErrors } from '../lib/response';
 import { type Registry, registrySchema, sectionInputSchema } from '../models/content';
 import { menuItemsSchema } from '../models/menu';
 import { permissionGuard } from '../plugins/rbac';
@@ -9,7 +10,6 @@ import {
   loadRegistry,
   validateSectionData,
 } from '../services/content-registry';
-import { conflictResponse, successSchema, withCrudErrors } from '../utils/responses';
 
 // Administration du module content (page builder). Protégé par RBAC `content`. Les sections
 // d'une page sont remplacées d'un bloc via PUT (façon « save de la dynamic zone ») : plus

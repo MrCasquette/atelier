@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import { db, eq, media } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { UPLOAD_DIR } from '../lib/config';
-import { errorSchema } from '../utils/responses';
+import { errorSchema } from '../lib/response';
 
 export const assetsRoutes = new Elysia({ prefix: '/assets', detail: { tags: ['Assets'] } }).get(
   '/:id',

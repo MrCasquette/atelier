@@ -18,15 +18,15 @@ import {
 import { Elysia, t } from 'elysia';
 import { getClientIp, logAudit } from '../lib/audit';
 import { UPLOAD_DIR } from '../lib/config';
-import { permissionGuard } from '../plugins/rbac';
 import {
   buildListResponse,
   DEFAULT_LIMIT,
   getPaginationParams,
   listResponse,
   MAX_LIMIT,
-} from '../utils/pagination';
-import { errorSchema, successSchema, withAuthErrors } from '../utils/responses';
+} from '../lib/pagination';
+import { errorSchema, successSchema, withAuthErrors } from '../lib/response';
+import { permissionGuard } from '../plugins/rbac';
 
 // Schema de réponse pour les médias
 const mediaSchema = t.Object({

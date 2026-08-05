@@ -1,7 +1,7 @@
 import { cors } from '@elysiajs/cors';
 import { openapi } from '@elysiajs/openapi';
 import { Elysia } from 'elysia';
-import { securityHeaders } from './plugins/security-headers';
+import { taxRatesRoutes } from './modules/tax-rate';
 import { apiKeyRoutes } from './routes/api-keys';
 import { assetsRoutes } from './routes/assets';
 import { auditLogsRoutes } from './routes/audit-logs';
@@ -30,9 +30,9 @@ import { productsRoutes } from './routes/products';
 import { rolesRoutes } from './routes/roles';
 import { shippingRoutes } from './routes/shipping';
 import { stockRoutes } from './routes/stock';
-import { taxRatesRoutes } from './routes/tax-rates';
 import { usersRoutes } from './routes/users';
 import { wishlistRoutes } from './routes/wishlist';
+import { securityHeaders } from './security-headers';
 
 // Application Elysia PURE : construction des routes/plugins, sans aucun side-effect de
 // bootstrap (pas de listen, migrations, initAdmin ni intervals — cf. index.ts). Importable

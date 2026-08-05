@@ -3,13 +3,13 @@ import { and, db, eq, gt, role, session, user } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
 import { getClientIp, logAudit } from '../lib/audit';
-import { authRateLimitOptions } from '../utils/rate-limit';
+import { authRateLimitOptions } from '../lib/rate-limit';
 import {
   forbiddenResponse,
   rateLimitResponse,
   successSchema,
   unauthorizedResponse,
-} from '../utils/responses';
+} from '../lib/response';
 
 const COOKIE_NAME = 'echoppe_admin_session';
 const SESSION_DURATION_DAYS = 7;

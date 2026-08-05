@@ -14,16 +14,16 @@ import {
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
 import { PASSWORD_RESET_PATH, STOREFRONT_URL } from '../lib/config';
-import { models } from '../models';
-import { customerAuthPlugin, type SessionCustomer } from '../plugins/customerAuth';
-import { authRateLimitOptions, strictRateLimitOptions } from '../utils/rate-limit';
+import { authRateLimitOptions, strictRateLimitOptions } from '../lib/rate-limit';
 import {
   conflictResponse,
   errorSchema,
   rateLimitResponse,
   successSchema,
   unauthorizedResponse,
-} from '../utils/responses';
+} from '../lib/response';
+import { models } from '../model';
+import { customerAuthPlugin, type SessionCustomer } from '../plugins/customerAuth';
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 heure
 const sha256 = (value: string): string => createHash('sha256').update(value).digest('hex');

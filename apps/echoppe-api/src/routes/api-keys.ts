@@ -1,8 +1,8 @@
 import { apiKey, asc, db, eq } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
+import { successSchema, withCrudErrors } from '../lib/response';
 import { type ApiKeyScope, generateApiKey, isValidScope } from '../plugins/apiKey';
 import { permissionGuard } from '../plugins/rbac';
-import { successSchema, withCrudErrors } from '../utils/responses';
 
 // Gestion des clés d'API machine (P2b). Protégé par RBAC `api_key` (seedé Owner). La clé en clair
 // n'est renvoyée qu'UNE fois, à la création — ensuite seul son hash existe. Voir plugins/apiKey.

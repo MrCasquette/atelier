@@ -1,5 +1,5 @@
 import { type TSchema, t } from 'elysia';
-import type { ModelName } from '../models';
+import type { ModelName } from '../model';
 
 // ============================================
 // Schemas de réponse communs

@@ -1,9 +1,9 @@
 import { and, db, eq, product, productMedia } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { models } from '../../models';
+import { successSchema, withCrudErrors } from '../../lib/response';
+import { models } from '../../model';
 import { productMediaSchema } from '../../models/catalog';
 import { permissionGuard } from '../../plugins/rbac';
-import { successSchema, withCrudErrors } from '../../utils/responses';
 import { productParams } from './shared';
 
 const mediaParams = t.Object({

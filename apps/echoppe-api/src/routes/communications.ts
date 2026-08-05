@@ -16,8 +16,8 @@ import {
   saveCommunicationProviderCredentials,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
+import { errorSchema, successSchema } from '../lib/response';
 import { permissionGuard } from '../plugins/rbac';
-import { errorSchema, successSchema } from '../utils/responses';
 
 // Body schemas
 const resendConfigBody = t.Object({
