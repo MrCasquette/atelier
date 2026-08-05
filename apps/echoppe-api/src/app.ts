@@ -2,8 +2,10 @@ import { cors } from '@elysiajs/cors';
 import { openapi } from '@elysiajs/openapi';
 import { Elysia } from 'elysia';
 import { auditLogsRoutes } from './modules/audit';
+import { definitionRoutes } from './modules/content/definition';
+import { pageRoutes } from './modules/content/page';
 import { countriesRoutes } from './modules/country';
-import { menusRoutes } from './modules/menu';
+import { menuRoutes } from './modules/menu';
 import { taxRatesRoutes } from './modules/tax-rate';
 import { wishlistRoutes } from './modules/wishlist';
 import { apiKeyRoutes } from './routes/api-keys';
@@ -15,7 +17,6 @@ import { checkoutRoutes } from './routes/checkout';
 import { collectionsRoutes } from './routes/collections';
 import { communicationsRoutes } from './routes/communications';
 import { contactRoutes } from './routes/contact';
-import { contentRoutes } from './routes/content';
 import { customerAccountRoutes } from './routes/customer-account';
 import { customerAddressesRoutes } from './routes/customer-addresses';
 import { customerAuthRoutes } from './routes/customer-auth';
@@ -25,7 +26,7 @@ import { identityRoutes } from './routes/identity';
 import { mediaRoutes } from './routes/media';
 import { optionsRoutes } from './routes/options';
 import { ordersRoutes } from './routes/orders';
-import { pagesRoutes } from './routes/pages';
+
 import { paymentsRoutes } from './routes/payments';
 import { productsRoutes } from './routes/products';
 import { rolesRoutes } from './routes/roles';
@@ -112,9 +113,9 @@ export const app = new Elysia()
   .use(categoriesRoutes)
   .use(productsRoutes)
   .use(optionsRoutes)
-  .use(pagesRoutes)
-  .use(menusRoutes)
-  .use(contentRoutes)
+  .use(menuRoutes)
+  .use(definitionRoutes)
+  .use(pageRoutes)
   .use(apiKeyRoutes)
   .use(mediaRoutes)
   .use(collectionsRoutes)

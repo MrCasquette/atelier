@@ -1,7 +1,7 @@
 import { and, asc, db, eq, page, section } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { withNotFound, withReadErrors } from '../lib/response';
-import { models } from '../model';
+import { withNotFound, withReadErrors } from '../../../lib/response';
+import { models } from '../../../model';
 
 // Lecture storefront du module content (page builder). Public : seules les pages `published`
 // sont visibles. Une page renvoie ses sections (blocs) ordonnées et résolues.

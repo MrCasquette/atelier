@@ -1,28 +1,9 @@
-import { db, eq, menu } from '@echoppe/core';
-import { Elysia, t } from 'elysia';
-import { withNotFound } from '../../lib/response';
-import { models } from '../../model';
-import { resolveMenuItems } from './service';
+import { Elysia } from 'elysia';
+import { menuAdminRoutes } from './admin';
+import { menusRoutes } from './public';
 
-// Lecture storefront des menus de navigation. Public. Un menu est fetché par son `handle` stable
-// (main, footer…) ; ses refs internes sont résolues en projection { id, slug, name }.
+// Le menu porte DEUX surfaces aux préfixes distincts : l'administration sous `/content` (il partage
+// l'écran du page builder) et la lecture storefront sous `/menus`. Chaque fichier déclare UNE
+// instance Elysia — « 1 instance = 1 controller » — et ce module les compose.
 
-export const menusRoutes = new Elysia({ prefix: '/menus', detail: { tags: ['Menus'] } })
-  .use(models)
-
-  // GET /menus/by-handle/:handle - Menu résolu (arbre d'items, refs internes projetées).
-  .get(
-    '/by-handle/:handle',
-    async ({ params, status }) => {
-      const [row] = await db.select().from(menu).where(eq(menu.handle, params.handle));
-      if (!row) {
-        return status(404, { message: 'Menu introuvable' });
-      }
-      // `row.items` est typé MenuItem[] (colonne $type) : validé à l'écriture, trusté en lecture.
-      return { handle: row.handle, label: row.label, items: await resolveMenuItems(row.items) };
-    },
-    {
-      params: t.Object({ handle: t.String() }),
-      response: withNotFound({ 200: 'Menu' }),
-    },
-  );
+export const menuRoutes = new Elysia().use(menuAdminRoutes).use(menusRoutes);

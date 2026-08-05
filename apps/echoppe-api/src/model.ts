@@ -5,10 +5,10 @@ import { catalogModels } from './models/catalog';
 import { categoryModels } from './models/category';
 import { checkoutModels } from './models/checkout';
 import { collectionModels } from './models/collection';
-import { contentModels } from './models/content';
 import { customerModels } from './models/customer';
 import { identityModels } from './models/identity';
 import { orderModels } from './models/order';
+import { pageModels } from './modules/content/page/model';
 import { countryModels } from './modules/country/model';
 import { menuModels } from './modules/menu/model';
 import { taxRateModels } from './modules/tax-rate/model';
@@ -35,7 +35,7 @@ export const allModels = {
   ...customerModels,
   ...checkoutModels,
   ...orderModels,
-  ...contentModels,
+  ...pageModels,
   ...menuModels,
   ...wishlistModels,
 };
