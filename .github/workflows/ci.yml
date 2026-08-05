@@ -109,7 +109,7 @@ jobs:
       # SMOKE_DATABASE_URL cible le service Postgres neuf (base vierge). Le wrapper l'utilise
       # tel quel (pas de conteneur éphémère à provisionner en CI) et pose ECHOPPE_SMOKE=1, sans
       # quoi les tests refusent de tourner — garde-fou contre un run sur une base non jetable.
-      - name: Integration tests
+      - name: Smoke tests
         env:
           SMOKE_DATABASE_URL: postgresql://echoppe:echoppe@localhost:5432/echoppe
         run: bun run --cwd apps/echoppe-api test:smoke
