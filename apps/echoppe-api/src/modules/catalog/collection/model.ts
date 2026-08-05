@@ -1,5 +1,5 @@
 import { t } from 'elysia';
-import { listResponse } from '../lib/pagination';
+import { listResponse } from '../../../lib/pagination';
 
 // Schéma d'entité collection — SOURCE UNIQUE. Importé par les routes (par valeur) ET agrégé
 // dans `collectionModels` pour être enregistré comme modèle nommé → peuple

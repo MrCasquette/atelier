@@ -1,6 +1,6 @@
 import type { ColorMetadata } from '@echoppe/core';
 import { type Static, t } from 'elysia';
-import { listResponse } from '../lib/pagination';
+import { listResponse } from '../../lib/pagination';
 
 // Schémas d'entité (réponses) du domaine catalogue — SOURCE UNIQUE. Importés par les
 // routes (par valeur) ET agrégés dans le registre `catalogModels` pour être enregistrés

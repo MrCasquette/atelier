@@ -19,7 +19,10 @@ import {
   taxRate,
   variant,
 } from '@echoppe/core';
-import { calculateAddonPrice, getPersonalizationFieldsByProduct } from '../utils/personalization';
+import {
+  calculateAddonPrice,
+  getPersonalizationFieldsByProduct,
+} from '../modules/catalog/product/personalization/service';
 
 // ============================================================================
 // TYPES

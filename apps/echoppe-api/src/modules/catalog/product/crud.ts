@@ -17,18 +17,18 @@ import {
   withCrudErrors,
   withNotFound,
   withReadErrors,
-} from '../../lib/response';
-import { models } from '../../model';
-import { getClientIp, logAudit } from '../../modules/audit/service';
-import { permissionGuard } from '../../modules/auth/rbac';
-import { getRelatedProductIds, setRelatedProducts } from '../../utils/related';
-import { getProductTags, setProductTags } from '../../utils/tags';
+} from '../../../lib/response';
+import { models } from '../../../model';
+import { getClientIp, logAudit } from '../../audit/service';
+import { permissionGuard } from '../../auth/rbac';
+import { getRelatedProductIds, setRelatedProducts } from './related';
 import {
   buildEqFilters,
   productAdminSearchQuery,
   productParams,
   queryProductCards,
 } from './shared';
+import { getProductTags, setProductTags } from './tags';
 
 const productCreateBody = t.Object({
   name: t.String({ minLength: 1, maxLength: 255 }),

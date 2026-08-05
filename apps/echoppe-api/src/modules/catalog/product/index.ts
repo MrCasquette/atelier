@@ -1,10 +1,10 @@
 import { Elysia } from 'elysia';
 import { productCrudRoutes } from './crud';
-import { mediaRoutes } from './media';
-import { optionRoutes } from './options';
+import { productMediaRoutes } from './media';
+import { productOptionRoutes } from './option';
 import { personalizationRoutes } from './personalization';
 import { publicProductRoutes } from './public';
-import { variantRoutes } from './variants';
+import { variantRoutes } from './variant';
 
 // `products.ts` était un monolithe (~1350 lignes, 6 sous-ressources). Découpé par sous-ressource
 // (public / crud / variants / personnalisation / media / options), composé ici. Contrat d'API et
@@ -14,5 +14,5 @@ export const productsRoutes = new Elysia({ prefix: '/products', detail: { tags: 
   .use(productCrudRoutes)
   .use(variantRoutes)
   .use(personalizationRoutes)
-  .use(mediaRoutes)
-  .use(optionRoutes);
+  .use(productMediaRoutes)
+  .use(productOptionRoutes);

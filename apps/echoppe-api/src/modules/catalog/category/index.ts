@@ -8,14 +8,14 @@ import {
   withCrudErrors,
   withNotFound,
   withReadErrors,
-} from '../lib/response';
-import { models } from '../model';
-import { getClientIp, logAudit } from '../modules/audit/service';
-import { isPrivilegedRequest, permissionGuard } from '../modules/auth/rbac';
-import { visibilityFilter } from '../utils/visibility';
-import { productSubListQuery, queryProductCards } from './products/shared';
+} from '../../../lib/response';
+import { models } from '../../../model';
+import { getClientIp, logAudit } from '../../audit/service';
+import { isPrivilegedRequest, permissionGuard } from '../../auth/rbac';
+import { productSubListQuery, queryProductCards } from '../product/shared';
+import { visibilityFilter } from '../visibility';
 
-// Schéma d'entité catégorie → src/models/category.ts
+// Schéma d'entité catégorie → ./model.ts
 
 const batchOrderBody = t.Array(
   t.Object({

@@ -6,9 +6,9 @@ import {
   buildListResponse,
   getPaginationParams,
   paginationQuery,
-} from '../../lib/pagination';
-import { selectDefaultVariants } from '../../utils/default-variant';
-import { enrichProductCards } from '../../utils/product-cards';
+} from '../../../lib/pagination';
+import { enrichProductCards } from './card';
+import { selectDefaultVariants } from './default-variant';
 
 // Éléments partagés par les sous-routes produits (public ↔ admin) : params, schémas de recherche et
 // la projection « cartes produit » unique. `buildEqFilters` réexporté pour la liste admin.

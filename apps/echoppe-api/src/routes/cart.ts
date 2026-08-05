@@ -32,7 +32,7 @@ import {
   getPersonalizationFields,
   getPersonalizationFieldsByProduct,
   resolvePersonalization,
-} from '../utils/personalization';
+} from '../modules/catalog/product/personalization/service';
 
 const CART_COOKIE_NAME = 'echoppe_cart_session';
 const CUSTOMER_COOKIE_NAME = 'echoppe_customer_session';

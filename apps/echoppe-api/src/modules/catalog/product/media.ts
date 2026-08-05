@@ -1,9 +1,9 @@
 import { and, db, eq, product, productMedia } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { successSchema, withCrudErrors } from '../../lib/response';
-import { models } from '../../model';
-import { productMediaSchema } from '../../models/catalog';
-import { permissionGuard } from '../../modules/auth/rbac';
+import { successSchema, withCrudErrors } from '../../../lib/response';
+import { models } from '../../../model';
+import { permissionGuard } from '../../auth/rbac';
+import { productMediaSchema } from '../model';
 import { productParams } from './shared';
 
 const mediaParams = t.Object({
@@ -26,7 +26,7 @@ const productMediaUpdateBody = t.Object({
 
 // Galerie média d'un produit. Lecture + POST/PUT sous `product:update`, suppression sous
 // `product:delete` (matrice RBAC identique à l'ancien fichier monolithique).
-export const mediaRoutes = new Elysia()
+export const productMediaRoutes = new Elysia()
   .use(models)
   .use(permissionGuard('product', 'update'))
 

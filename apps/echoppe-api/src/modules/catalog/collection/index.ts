@@ -1,7 +1,7 @@
 import { and, collection, count, db, eq, inArray, product, productCollection } from '@echoppe/core';
 import { slugify } from '@repo/shared';
 import { Elysia, t } from 'elysia';
-import { buildListResponse, getPaginationParams, paginationQuery } from '../lib/pagination';
+import { buildListResponse, getPaginationParams, paginationQuery } from '../../../lib/pagination';
 import {
   notFound,
   successSchema,
@@ -9,14 +9,14 @@ import {
   withCrudErrors,
   withNotFound,
   withReadErrors,
-} from '../lib/response';
-import { models } from '../model';
-import { getClientIp, logAudit } from '../modules/audit/service';
-import { isPrivilegedRequest, permissionGuard } from '../modules/auth/rbac';
-import { visibilityFilter } from '../utils/visibility';
-import { productSubListQuery, queryProductCards } from './products/shared';
+} from '../../../lib/response';
+import { models } from '../../../model';
+import { getClientIp, logAudit } from '../../audit/service';
+import { isPrivilegedRequest, permissionGuard } from '../../auth/rbac';
+import { productSubListQuery, queryProductCards } from '../product/shared';
+import { visibilityFilter } from '../visibility';
 
-// Schéma d'entité collection → src/models/collection.ts
+// Schéma d'entité collection → ./model.ts
 
 const collectionCreateBody = t.Object({
   name: t.String({ minLength: 1, maxLength: 100 }),

@@ -1,8 +1,8 @@
 import { and, db, eq, ne, product, variant, variantOptionValue } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { successSchema, withCrudErrors } from '../../lib/response';
-import { models } from '../../model';
-import { permissionGuard } from '../../modules/auth/rbac';
+import { successSchema, withCrudErrors } from '../../../lib/response';
+import { models } from '../../../model';
+import { permissionGuard } from '../../auth/rbac';
 import { productParams } from './shared';
 
 const variantParams = t.Object({

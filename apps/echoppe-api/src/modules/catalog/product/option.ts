@@ -11,15 +11,10 @@ import {
   variantOptionValue,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { conflictResponse, successSchema, withCrudErrors } from '../../lib/response';
-import { models } from '../../model';
-import {
-  colorMetadataSchema,
-  optionSchema,
-  optionTypeSchema,
-  optionValueSchema,
-} from '../../models/catalog';
-import { permissionGuard } from '../../modules/auth/rbac';
+import { conflictResponse, successSchema, withCrudErrors } from '../../../lib/response';
+import { models } from '../../../model';
+import { permissionGuard } from '../../auth/rbac';
+import { colorMetadataSchema, optionSchema, optionTypeSchema, optionValueSchema } from '../model';
 
 const optionParams = t.Object({
   id: t.String({ format: 'uuid' }),
@@ -60,7 +55,7 @@ const optionValueUpdateBody = t.Object({
 
 // Axes d'option (globaux) + leurs valeurs, associés aux produits. Guards option:read/create/
 // update/delete (matrice RBAC identique à l'ancien fichier monolithique).
-export const optionRoutes = new Elysia()
+export const productOptionRoutes = new Elysia()
   .use(models)
 
   // GET /products/option-axes - Liste toutes les options globales

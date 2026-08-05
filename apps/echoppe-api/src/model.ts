@@ -1,12 +1,12 @@
 import { Elysia } from 'elysia';
 import { addressModels } from './models/address';
 import { cartModels } from './models/cart';
-import { catalogModels } from './models/catalog';
-import { categoryModels } from './models/category';
 import { checkoutModels } from './models/checkout';
-import { collectionModels } from './models/collection';
 import { customerModels } from './models/customer';
 import { orderModels } from './models/order';
+import { categoryModels } from './modules/catalog/category/model';
+import { collectionModels } from './modules/catalog/collection/model';
+import { catalogModels } from './modules/catalog/model';
 import { pageModels } from './modules/content/page/model';
 import { countryModels } from './modules/country/model';
 import { identityModels } from './modules/identity/model';

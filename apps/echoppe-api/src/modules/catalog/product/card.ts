@@ -10,7 +10,7 @@ import {
   variant,
   variantOptionValue,
 } from '@echoppe/core';
-import { type ImageRef, imageRef, loadMediaDimensions } from '../modules/media/image-ref';
+import { type ImageRef, imageRef, loadMediaDimensions } from '../../media/image-ref';
 import { selectDefaultVariants } from './default-variant';
 import { getTagsByProduct } from './tags';
 
