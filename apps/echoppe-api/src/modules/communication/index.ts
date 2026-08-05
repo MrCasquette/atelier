@@ -1,7 +1,6 @@
 import type {
   BrevoCredentials,
   CommunicationConfig,
-  CommunicationProvider,
   ResendCredentials,
   SmtpCredentials,
 } from '@echoppe/core';
@@ -16,166 +15,21 @@ import {
   saveCommunicationProviderCredentials,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { errorSchema, successSchema } from '../lib/response';
-import { permissionGuard } from '../plugins/rbac';
+import { errorSchema, successSchema } from '../../lib/response';
+import { permissionGuard } from '../../plugins/rbac';
+import {
+  brevoConfigBody,
+  providerStatusSchema,
+  resendConfigBody,
+  smtpConfigBody,
+  testEmailBody,
+  testResultSchema,
+} from './model';
+import { providerMeta } from './provider-meta';
 
-// Body schemas
-const resendConfigBody = t.Object({
-  apiKey: t.String({ minLength: 1 }),
-  fromEmail: t.String({ format: 'email' }),
-  fromName: t.String({ minLength: 1 }),
-  replyTo: t.Optional(t.String({ format: 'email' })),
-  isEnabled: t.Optional(t.Boolean()),
-});
-
-const brevoConfigBody = t.Object({
-  apiKey: t.String({ minLength: 1 }),
-  fromEmail: t.String({ format: 'email' }),
-  fromName: t.String({ minLength: 1 }),
-  replyTo: t.Optional(t.String({ format: 'email' })),
-  isEnabled: t.Optional(t.Boolean()),
-});
-
-const smtpConfigBody = t.Object({
-  host: t.String({ minLength: 1 }),
-  port: t.Number({ minimum: 1, maximum: 65535 }),
-  secure: t.Boolean(),
-  user: t.String({ minLength: 1 }),
-  pass: t.String({ minLength: 1 }),
-  fromEmail: t.String({ format: 'email' }),
-  fromName: t.String({ minLength: 1 }),
-  replyTo: t.Optional(t.String({ format: 'email' })),
-  isEnabled: t.Optional(t.Boolean()),
-});
-
-const testEmailBody = t.Object({
-  // Littéraux explicites (l'inférence Eden exige des TLiteral précis) — garder en phase avec COMMUNICATION_PROVIDERS.
-  provider: t.Union([t.Literal('resend'), t.Literal('brevo'), t.Literal('smtp')]),
-  to: t.String({ format: 'email' }),
-});
-
-// Response schemas
-
-const providerFieldSchema = t.Object({
-  key: t.String(),
-  label: t.String(),
-  type: t.String(),
-  placeholder: t.Optional(t.String()),
-  options: t.Optional(t.Array(t.Object({ value: t.String(), label: t.String() }))),
-});
-
-const providerStatusSchema = t.Object({
-  id: t.String(),
-  name: t.String(),
-  description: t.String(),
-  recommended: t.Optional(t.Boolean()),
-  fields: t.Array(providerFieldSchema),
-  isConfigured: t.Boolean(),
-  isEnabled: t.Boolean(),
-  encryptionReady: t.Boolean(),
-});
-
-const testResultSchema = t.Object({
-  success: t.Boolean(),
-  messageId: t.Optional(t.String()),
-  error: t.Optional(t.String()),
-});
-
-// Provider metadata
-const providerMeta: Record<
-  CommunicationProvider,
-  {
-    name: string;
-    description: string;
-    recommended?: boolean;
-    fields: {
-      key: string;
-      label: string;
-      type: string;
-      placeholder?: string;
-      options?: { value: string; label: string }[];
-    }[];
-  }
-> = {
-  resend: {
-    name: 'Resend',
-    description: "Service d'email transactionnel moderne et fiable",
-    recommended: true,
-    fields: [
-      { key: 'apiKey', label: 'Clé API', type: 'password', placeholder: 're_...' },
-      {
-        key: 'fromEmail',
-        label: 'Email expéditeur',
-        type: 'email',
-        placeholder: 'contact@votredomaine.fr',
-      },
-      { key: 'fromName', label: 'Nom expéditeur', type: 'text', placeholder: 'Ma Boutique' },
-      {
-        key: 'replyTo',
-        label: 'Email de réponse (optionnel)',
-        type: 'email',
-        placeholder: 'reponse@votredomaine.fr',
-      },
-    ],
-  },
-  brevo: {
-    name: 'Brevo',
-    description: 'Solution française (ex-Sendinblue), 300 emails/jour gratuits',
-    fields: [
-      { key: 'apiKey', label: 'Clé API', type: 'password', placeholder: 'xkeysib-...' },
-      {
-        key: 'fromEmail',
-        label: 'Email expéditeur',
-        type: 'email',
-        placeholder: 'contact@votredomaine.fr',
-      },
-      { key: 'fromName', label: 'Nom expéditeur', type: 'text', placeholder: 'Ma Boutique' },
-      {
-        key: 'replyTo',
-        label: 'Email de réponse (optionnel)',
-        type: 'email',
-        placeholder: 'reponse@votredomaine.fr',
-      },
-    ],
-  },
-  smtp: {
-    name: 'SMTP',
-    description: 'Serveur SMTP personnalisé (OVH, Ionos, Gmail...)',
-    fields: [
-      { key: 'host', label: 'Serveur SMTP', type: 'text', placeholder: 'ssl0.ovh.net' },
-      {
-        key: 'port',
-        label: 'Port',
-        type: 'select',
-        options: [
-          { value: '465', label: '465 (SSL)' },
-          { value: '587', label: '587 (TLS)' },
-          { value: '25', label: '25 (non sécurisé)' },
-        ],
-      },
-      {
-        key: 'secure',
-        label: 'Connexion sécurisée (SSL)',
-        type: 'checkbox',
-      },
-      { key: 'user', label: 'Identifiant', type: 'text', placeholder: 'contact@votredomaine.fr' },
-      { key: 'pass', label: 'Mot de passe', type: 'password' },
-      {
-        key: 'fromEmail',
-        label: 'Email expéditeur',
-        type: 'email',
-        placeholder: 'contact@votredomaine.fr',
-      },
-      { key: 'fromName', label: 'Nom expéditeur', type: 'text', placeholder: 'Ma Boutique' },
-      {
-        key: 'replyTo',
-        label: 'Email de réponse (optionnel)',
-        type: 'email',
-        placeholder: 'reponse@votredomaine.fr',
-      },
-    ],
-  },
-};
+// Configuration des fournisseurs d'e-mail. Le module ne sait PAS envoyer : l'envoi vit dans
+// @repo/communication, appelé ici pour vérifier une connexion et enregistrer les identifiants
+// chiffrés. Surface entièrement protégée par `communication_config`.
 
 export const communicationsRoutes = new Elysia({
   prefix: '/communications',

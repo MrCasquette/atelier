@@ -7,7 +7,7 @@ import { t } from 'elysia';
 // d'exigence en dérivent par t.Partial / t.Required / t.Composite.
 //
 // Elle vit dans l'app plutôt que dans @repo/identity pour deux raisons : conventions.md situe la
-// SSOT du contrat dans models/*.ts, et TypeBox n'est présent qu'en dépendance transitive — en faire
+// SSOT du contrat dans le model.ts du module, et TypeBox n'est présent qu'en dépendance transitive — en faire
 // une dépendance directe du paquet inviterait un décalage de version avec Elysia. On l'extraira sur
 // duplication réelle, quand prisme-api existera.
 

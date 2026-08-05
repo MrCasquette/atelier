@@ -8,18 +8,18 @@ import {
   site,
 } from '@echoppe/core';
 import { Elysia } from 'elysia';
-import { withAuthErrors, withReadErrors } from '../lib/response';
-import { models } from '../model';
-import { identityBody } from '../models/identity';
-import { getClientIp, logAudit } from '../modules/audit/service';
-import { permissionGuard } from '../plugins/rbac';
+import { withAuthErrors, withReadErrors } from '../../lib/response';
+import { models } from '../../model';
+import { permissionGuard } from '../../plugins/rbac';
+import { getClientIp, logAudit } from '../audit/service';
+import { identityBody } from './model';
 
 // Identité du site et entité légale (ADR-0040) — remplace /company.
 //
 // Deux tables derrière une seule surface, parce qu'elles partagent un écran. La frontière métier
 // n'est pas la frontière d'interface ; la séparation d'écran est un sujet à part.
 //
-// Schémas d'entité (Identity, Site, LegalEntity, Country, CountryList) → src/models/identity.ts
+// Schémas d'entité (Identity, Site, LegalEntity, Country, CountryList) → ./model.ts
 
 async function readIdentity() {
   const [siteData] = await db.select().from(site).limit(1);
