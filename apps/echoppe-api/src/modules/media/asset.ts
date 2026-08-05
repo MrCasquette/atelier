@@ -1,8 +1,12 @@
 import { join } from 'node:path';
 import { db, eq, media } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { UPLOAD_DIR } from '../lib/config';
-import { errorSchema } from '../lib/response';
+import { errorSchema } from '../../lib/response';
+import { UPLOAD_DIR } from './storage';
+
+// Livraison publique d'un fichier de la médiathèque. Préfixe distinct de `/media` — c'est l'URL que
+// portent les pages et les fiches produit — mais même concept propriétaire : le fichier appartient
+// au média, pas à son consommateur (ADR-0042 §2).
 
 export const assetsRoutes = new Elysia({ prefix: '/assets', detail: { tags: ['Assets'] } }).get(
   '/:id',

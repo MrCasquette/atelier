@@ -16,216 +16,38 @@ import {
   type SQL,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { UPLOAD_DIR } from '../lib/config';
+import { buildListResponse, getPaginationParams, listResponse } from '../../lib/pagination';
+import { errorSchema, successSchema, withAuthErrors } from '../../lib/response';
+import { permissionGuard } from '../../plugins/rbac';
+import { getClientIp, logAudit } from '../audit/service';
 import {
-  buildListResponse,
-  DEFAULT_LIMIT,
-  getPaginationParams,
-  listResponse,
-  MAX_LIMIT,
-} from '../lib/pagination';
-import { errorSchema, successSchema, withAuthErrors } from '../lib/response';
-import { getClientIp, logAudit } from '../modules/audit/service';
-import { permissionGuard } from '../plugins/rbac';
+  batchDeleteBody,
+  batchDeleteResultSchema,
+  batchMoveBody,
+  batchResultSchema,
+  mediaQuery,
+  mediaSchema,
+  mediaUpdate,
+  uploadBody,
+  uuidParam,
+} from './model';
+import { UPLOAD_DIR } from './storage';
 
-// Schema de réponse pour les médias
-const mediaSchema = t.Object({
-  id: t.String(),
-  folder: t.Nullable(t.String()),
-  filenameDisk: t.String(),
-  filenameOriginal: t.String(),
-  title: t.Nullable(t.String()),
-  description: t.Nullable(t.String()),
-  alt: t.Nullable(t.String()),
-  mimeType: t.String(),
-  size: t.Number(),
-  width: t.Nullable(t.Number()),
-  height: t.Nullable(t.Number()),
-  dateCreated: t.Date(),
-});
+// Les fichiers de la médiathèque. Surface entièrement protégée : la lecture publique d'un fichier
+// passe par `asset.ts` (`/assets/:id`).
 
-// Schema de réponse pour les dossiers
-const folderSchema = t.Object({
-  id: t.String(),
-  parent: t.Nullable(t.String()),
-  name: t.String(),
-  sortOrder: t.Number(),
-});
-
-// Ensure upload directory exists
 await mkdir(UPLOAD_DIR, { recursive: true });
 
-const uuidParam = t.Object({
-  id: t.String({ format: 'uuid' }),
-});
-
-const folderBody = t.Object({
-  name: t.String({ minLength: 1, maxLength: 100 }),
-  parent: t.Optional(t.Union([t.String({ format: 'uuid' }), t.Null()])),
-});
-
-const mediaUpdate = t.Object({
-  title: t.Optional(t.String({ maxLength: 255 })),
-  description: t.Optional(t.String()),
-  alt: t.Optional(t.String({ maxLength: 255 })),
-  folder: t.Optional(t.Union([t.String({ format: 'uuid' }), t.Null()])),
-});
-
-const mediaQuery = t.Object({
-  folder: t.Optional(t.String({ format: 'uuid' })),
-  search: t.Optional(t.String()),
-  sort: t.Optional(t.String()),
-  order: t.Optional(t.String()),
-  all: t.Optional(t.String()),
-  type: t.Optional(
-    t.Union([t.Literal('images'), t.Literal('pdf'), t.Literal('documents'), t.Literal('all')]),
-  ),
-  page: t.Optional(t.Numeric({ minimum: 1, default: 1 })),
-  limit: t.Optional(t.Numeric({ minimum: 1, maximum: MAX_LIMIT, default: DEFAULT_LIMIT })),
-});
-
-const uploadBody = t.Object({
-  file: t.Union([t.File(), t.Array(t.File())]),
-  folder: t.Optional(t.String({ format: 'uuid' })),
-  folderName: t.Optional(t.String({ maxLength: 100 })),
-});
-
-const batchMoveBody = t.Object({
-  ids: t.Array(t.String({ format: 'uuid' })),
-  folder: t.Union([t.String({ format: 'uuid' }), t.Null()]),
-});
-
-const batchDeleteBody = t.Object({
-  ids: t.Array(t.String({ format: 'uuid' })),
-});
-
-// Schemas génériques
-const batchResultSchema = t.Object({ moved: t.Array(t.String()), count: t.Number() });
-const batchDeleteResultSchema = t.Object({ deleted: t.Array(t.String()), count: t.Number() });
-
-export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Media'] } })
-
-  // === ALL ROUTES ARE PROTECTED (Admin only) ===
-
-  // === FOLDERS - READ ===
+export const mediaItemRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Media'] } })
   .use(permissionGuard('media', 'read'))
 
-  // GET /media/folders - List all folders (flat list for tree building)
-  .get(
-    '/folders',
-    async () => {
-      const folders = await db.select().from(folder).orderBy(asc(folder.name));
-      return folders;
-    },
-    { permission: true, response: t.Array(folderSchema) },
-  )
-
-  // === FOLDERS - CREATE ===
-  .use(permissionGuard('media', 'create'))
-
-  // POST /media/folders - Create folder
-  .post(
-    '/folders',
-    async ({ body, currentUser, request }) => {
-      const [created] = await db
-        .insert(folder)
-        .values({
-          name: body.name,
-          parent: body.parent || null,
-        })
-        .returning();
-
-      logAudit({
-        userId: currentUser?.id,
-        action: 'folder.create',
-        entityType: 'folder',
-        entityId: created.id,
-        data: { name: created.name },
-        ipAddress: getClientIp(request.headers),
-      });
-
-      return created;
-    },
-    { permission: true, body: folderBody, response: withAuthErrors({ 200: folderSchema }) },
-  )
-
-  // === FOLDERS - UPDATE ===
-  .use(permissionGuard('media', 'update'))
-
-  // PUT /media/folders/:id - Update folder
-  .put(
-    '/folders/:id',
-    async ({ params, body, status }) => {
-      const [updated] = await db
-        .update(folder)
-        .set({ name: body.name, parent: body.parent || null })
-        .where(eq(folder.id, params.id))
-        .returning();
-
-      if (!updated) return status(404, { message: 'Dossier non trouvé' });
-      return updated;
-    },
-    {
-      permission: true,
-      params: uuidParam,
-      body: folderBody,
-      response: { 200: folderSchema, 404: errorSchema },
-    },
-  )
-
-  // === FOLDERS - DELETE ===
-  .use(permissionGuard('media', 'delete'))
-
-  // DELETE /media/folders/:id - Delete folder
-  .delete(
-    '/folders/:id',
-    async ({ params, status, currentUser, request }) => {
-      // Move child folders to parent
-      const [currentFolder] = await db.select().from(folder).where(eq(folder.id, params.id));
-      if (currentFolder) {
-        await db
-          .update(folder)
-          .set({ parent: currentFolder.parent })
-          .where(eq(folder.parent, params.id));
-        await db
-          .update(media)
-          .set({ folder: currentFolder.parent })
-          .where(eq(media.folder, params.id));
-      }
-
-      const [deleted] = await db.delete(folder).where(eq(folder.id, params.id)).returning();
-
-      if (!deleted) return status(404, { message: 'Dossier non trouvé' });
-
-      logAudit({
-        userId: currentUser?.id,
-        action: 'folder.delete',
-        entityType: 'folder',
-        entityId: params.id,
-        data: { name: deleted.name },
-        ipAddress: getClientIp(request.headers),
-      });
-
-      return { success: true };
-    },
-    {
-      permission: true,
-      params: uuidParam,
-      response: { 200: successSchema, 404: errorSchema },
-    },
-  )
-
-  // === MEDIA - READ ===
-  .use(permissionGuard('media', 'read'))
-
-  // GET /media - List media with search, filter, sort, pagination
+  // GET /media - Liste avec recherche, filtre, tri et pagination
   .get(
     '/',
     async ({ query }) => {
       const { folder: folderId, search, sort, order, all, type } = query;
       const { page, limit, offset } = getPaginationParams(query);
 
-      // Build where conditions
       const conditions: SQL[] = [];
 
       if (all !== 'true') {
@@ -245,14 +67,13 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
         if (searchCondition) conditions.push(searchCondition);
       }
 
-      // Filter by type
       if (type && type !== 'all') {
         if (type === 'images') {
           conditions.push(like(media.mimeType, 'image/%'));
         } else if (type === 'pdf') {
           conditions.push(eq(media.mimeType, 'application/pdf'));
         } else if (type === 'documents') {
-          // Documents: PDF, Word, Excel, Text, etc.
+          // Documents : PDF, Word, Excel, texte…
           const docCondition = or(
             eq(media.mimeType, 'application/pdf'),
             like(media.mimeType, 'application/msword%'),
@@ -264,12 +85,10 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
         }
       }
 
-      // Sort
       const sortField =
         sort === 'name' ? media.filenameOriginal : sort === 'size' ? media.size : media.dateCreated;
       const sortOrder = order === 'asc' ? asc(sortField) : desc(sortField);
 
-      // Build where clause
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
       const [items, [{ total }]] = await Promise.all([
@@ -295,7 +114,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
     { permission: true, query: mediaQuery, response: listResponse(mediaSchema) },
   )
 
-  // GET /media/:id - Get single media
+  // GET /media/:id
   .get(
     '/:id',
     async ({ params, status }) => {
@@ -314,17 +133,16 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
     },
   )
 
-  // === MEDIA - CREATE ===
   .use(permissionGuard('media', 'create'))
 
-  // POST /media/upload - Upload file(s)
+  // POST /media/upload - Téléversement d'un ou plusieurs fichiers
   .post(
     '/upload',
     async ({ body, currentUser, request }) => {
       const files = Array.isArray(body.file) ? body.file : [body.file];
       let folderId = body.folder || null;
 
-      // Si folderName est fourni et pas de folder, créer/trouver le dossier
+      // `folderName` sans `folder` : on retrouve le dossier par son nom, ou on le crée.
       if (body.folderName && !folderId) {
         let [targetFolder] = await db
           .select({ id: folder.id })
@@ -348,14 +166,11 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
         const filenameDisk = `${randomUUID()}.${ext}`;
         const filePath = join(UPLOAD_DIR, filenameDisk);
 
-        // Write file to disk
         await Bun.write(filePath, file);
 
-        // Get image dimensions if applicable
         const width: number | null = null;
         const height: number | null = null;
 
-        // Insert into database
         const [created] = await db
           .insert(media)
           .values({
@@ -391,10 +206,9 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
     },
   )
 
-  // === MEDIA - UPDATE ===
   .use(permissionGuard('media', 'update'))
 
-  // PUT /media/:id - Update media metadata
+  // PUT /media/:id - Métadonnées
   .put(
     '/:id',
     async ({ params, body, status }) => {
@@ -421,7 +235,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
     },
   )
 
-  // PUT /media/batch/move - Move multiple media to folder
+  // PUT /media/batch/move
   .put(
     '/batch/move',
     async ({ body }) => {
@@ -442,10 +256,9 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
     { permission: true, body: batchMoveBody, response: withAuthErrors({ 200: batchResultSchema }) },
   )
 
-  // === MEDIA - DELETE ===
   .use(permissionGuard('media', 'delete'))
 
-  // DELETE /media/:id - Delete media
+  // DELETE /media/:id
   .delete(
     '/:id',
     async ({ params, status, currentUser, request }) => {
@@ -453,11 +266,10 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
 
       if (!item) return status(404, { message: 'Média non trouvé' });
 
-      // Delete file from disk
       try {
         await unlink(join(UPLOAD_DIR, item.filenameDisk));
       } catch {
-        // File might not exist, continue anyway
+        // Le fichier peut avoir déjà disparu du disque — la ligne, elle, doit partir.
       }
 
       await db.delete(media).where(eq(media.id, params.id));
@@ -480,7 +292,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
     },
   )
 
-  // DELETE /media/batch - Delete multiple media
+  // DELETE /media/batch
   .delete(
     '/batch',
     async ({ body }) => {
@@ -493,7 +305,7 @@ export const mediaRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Medi
           try {
             await unlink(join(UPLOAD_DIR, item.filenameDisk));
           } catch {
-            // Ignore
+            // Idem : disque et base peuvent diverger, la base fait foi.
           }
           await db.delete(media).where(eq(media.id, id));
           deleted.push(id);

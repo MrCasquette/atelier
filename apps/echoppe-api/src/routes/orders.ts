@@ -27,9 +27,9 @@ import {
   variant,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { UPLOAD_DIR } from '../lib/config';
 import { buildListResponse, listResponse, parseListQuery } from '../lib/pagination';
 import { successSchema, withCrudErrors } from '../lib/response';
+import { UPLOAD_DIR } from '../modules/media/storage';
 import { permissionGuard } from '../plugins/rbac';
 
 const ordersQuery = t.Object({

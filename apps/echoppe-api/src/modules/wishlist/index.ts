@@ -17,7 +17,7 @@ import {
   customerCookieSchema,
   type SessionCustomer,
 } from '../../plugins/customerAuth';
-import { imageRef, loadMediaDimensions } from '../../utils/image-ref';
+import { imageRef, loadMediaDimensions } from '../media/image-ref';
 
 // Wishlist storefront (ADR : surface client authentifiée, comme customer-addresses/orders). Porte
 // sur des VARIANTES (PK customer+variant). Ajout idempotent (onConflictDoNothing). La table existait

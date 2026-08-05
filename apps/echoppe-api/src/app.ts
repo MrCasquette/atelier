@@ -5,11 +5,11 @@ import { auditLogsRoutes } from './modules/audit';
 import { definitionRoutes } from './modules/content/definition';
 import { pageRoutes } from './modules/content/page';
 import { countriesRoutes } from './modules/country';
+import { mediaRoutes } from './modules/media';
 import { menuRoutes } from './modules/menu';
 import { taxRatesRoutes } from './modules/tax-rate';
 import { wishlistRoutes } from './modules/wishlist';
 import { apiKeyRoutes } from './routes/api-keys';
-import { assetsRoutes } from './routes/assets';
 import { authRoutes } from './routes/auth';
 import { cartRoutes } from './routes/cart';
 import { categoriesRoutes } from './routes/categories';
@@ -23,7 +23,6 @@ import { customerAuthRoutes } from './routes/customer-auth';
 import { customerOrdersRoutes } from './routes/customer-orders';
 import { customersRoutes } from './routes/customers';
 import { identityRoutes } from './routes/identity';
-import { mediaRoutes } from './routes/media';
 import { optionsRoutes } from './routes/options';
 import { ordersRoutes } from './routes/orders';
 
@@ -121,7 +120,6 @@ export const app = new Elysia()
   .use(collectionsRoutes)
   .use(taxRatesRoutes)
   .use(countriesRoutes)
-  .use(assetsRoutes)
   .use(identityRoutes)
   .use(stockRoutes)
   .use(paymentsRoutes)

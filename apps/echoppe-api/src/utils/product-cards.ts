@@ -10,8 +10,8 @@ import {
   variant,
   variantOptionValue,
 } from '@echoppe/core';
+import { type ImageRef, imageRef, loadMediaDimensions } from '../modules/media/image-ref';
 import { selectDefaultVariants } from './default-variant';
-import { type ImageRef, imageRef, loadMediaDimensions } from './image-ref';
 import { getTagsByProduct } from './tags';
 
 // Projection « carte produit » storefront — SOURCE UNIQUE partagée par les endpoints de
