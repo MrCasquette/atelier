@@ -261,6 +261,53 @@ export function undelegatableGrants(
 }
 
 /**
+ * Le pendant de `undelegatableGrants` : **on ne peut retirer que ce qu'on détient**.
+ *
+ * `PUT /roles/:id/permissions` remplace l'ensemble des droits — ce qui n'est pas soumis est
+ * supprimé. Borner la seule attribution empêchait l'élévation de privilèges mais laissait la
+ * destruction : un administrateur borné au catalogue ne pouvait plus s'attribuer `user:delete`,
+ * mais pouvait soumettre son seul `product:read` sur le rôle Administrateur et faire disparaître
+ * tout le reste. Il ne s'élevait plus ; il paralysait encore.
+ *
+ * ADR-0038 raisonnait en termes d'élévation de privilèges et n'a pas tranché ce cas. La règle est
+ * la même, appliquée dans l'autre sens, et ne demande aucun mécanisme supplémentaire.
+ *
+ * `current` ne doit contenir que les lignes NON verrouillées : `locked` est traité en amont, et une
+ * ligne verrouillée n'est de toute façon jamais supprimée.
+ */
+export function undelegatableRevocations(
+  principal: EchoppePrincipal,
+  current: PermissionGrant[],
+  submitted: PermissionGrant[],
+): string[] {
+  if (principal.bypass) return [];
+
+  const refused: string[] = [];
+  const next = new Map(submitted.map((grant) => [grant.resource, grant]));
+
+  for (const existing of current) {
+    const after = next.get(existing.resource);
+    const held = principal.permissions.get(existing.resource);
+
+    for (const [action, flag] of GRANTABLE_ACTIONS) {
+      const removed = existing[flag] && !(after?.[flag] ?? false);
+      if (removed && !held?.[flag]) {
+        refused.push(`${existing.resource}:${action}`);
+      }
+    }
+
+    // Poser `selfOnly` sur un droit qui ne l'avait pas, c'est retirer de la portée sans retirer
+    // d'action. Même exigence : il faut détenir la ressource pour la resserrer.
+    const narrowed = !existing.selfOnly && (after?.selfOnly ?? false);
+    if (narrowed && !held) {
+      refused.push(`${existing.resource}:selfOnly`);
+    }
+  }
+
+  return refused;
+}
+
+/**
  * Invalide le cache des permissions
  * Appeler après modification des permissions d'un rôle
  */

@@ -117,6 +117,27 @@ describe('délégation des droits', () => {
     expect(res.status).toBe(200);
   });
 
+  it("refuse de retirer un droit qu'on ne détient pas", async () => {
+    // L'owner installe sur le rôle cible un droit hors de la portée du rôle borné.
+    const seeded = await req('PUT', `/roles/${targetRoleId}/permissions`, {
+      cookie: ownerCookie,
+      body: { permissions: [grant('media', { canRead: true, canDelete: true })] },
+    });
+    expect(seeded.status).toBe(200);
+
+    // La route remplace l'ensemble : soumettre une liste vide, c'est demander la suppression.
+    const res = await req('PUT', `/roles/${targetRoleId}/permissions`, {
+      cookie: boundedCookie,
+      body: { permissions: [] },
+    });
+
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as { message: string };
+    expect(body.message).toContain('non révocables');
+    expect(body.message).toContain('media:read');
+    expect(body.message).toContain('media:delete');
+  });
+
   it("l'owner court-circuite la délégation", async () => {
     const res = await req('PUT', `/roles/${targetRoleId}/permissions`, {
       cookie: ownerCookie,
