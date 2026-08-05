@@ -38,6 +38,29 @@ un registre.
 `permissionGuard('medai', 'read')`. Préférer un espace **préfixé** à un `| string` nu — le préfixe
 sert aussi à la maintenance (`LIKE 'entity:%'` pour purger).
 
+## Où vit un fichier
+
+**Un fichier appartient au module de son concept, pas à celui qui l'utilise.** Plusieurs
+consommateurs, c'est une dépendance entre modules — normal. Le transverse n'accueille que ce
+qu'**aucun concept ne revendique** ([ADR-0042](../adr/ADR-0042-structure-api-modules.md)).
+
+**Test d'admission dans un dossier transverse — les deux clauses :**
+
+1. ≥2 modules le consomment ;
+2. **aucun concept ne le revendique.**
+
+La clause 2 est la plus importante et c'est celle qu'aucun nom de dossier ne porte. Compter les
+consommateurs ne suffit pas : `personalization` en avait trois (panier, produits, commande) et
+appartient au catalogue ; `visibility` en avait deux, tous deux du catalogue. C'est l'absence de ce
+test qui a fabriqué `utils/` — 7 fichiers sur 11 y touchaient la base.
+
+**Le signal à reconnaître** : un dossier dont le nom désigne un *statut* (« ce qui ne rentre pas
+ailleurs ») plutôt qu'une *nature*. `utils/`, `helpers/`, `common/`, `misc/`. Un fichier à un seul
+consommateur appartient à ce consommateur, jamais au dossier partagé.
+
+**Corollaire sur la profondeur** : un concept naît fichier et devient dossier quand il porte
+plusieurs natures. Pas d'arborescence posée d'avance (philosophy §4 appliquée à l'arbre).
+
 ## Structure des packages
 
 ### `packages/core` — slicing horizontal assumé (pour l'instant)
@@ -54,9 +77,18 @@ philosophy §6 / typescript.md §8, acté ici :
   qui recompose la même logique métier hors des routes. C'est le signal #1 de typescript.md §4.
 - **Suivi** : refactor différé, tracé en tâche dédiée. À rouvrir formellement (ADR) avant exécution.
 
-### `apps/echoppe-api` — frontière + SSOT contrat
+### `apps/echoppe-api` — modules Elysia + SSOT contrat
 
-`models/*.ts` (TypeBox) = SSOT du contrat : validation runtime **+** OpenAPI **+** inférence Eden.
+Structure dérivée de la doc Elysia ([ADR-0042](../adr/ADR-0042-structure-api-modules.md), en
+application d'[ADR-0041](../adr/ADR-0041-hierarchie-autorites.md)) : `modules/<concept>/` avec
+`index.ts` (controller), `service.ts` (logique), `model.ts` (validation). Un module par concept que
+l'utilisateur nomme spontanément — « 1 instance Elysia = 1 controller ».
+
+Pas de `routes/`, `models/`, `utils/`, `plugins/` ni `services/` : ce sont des couches techniques,
+que la doc Elysia déconseille explicitement. `lib/` accueille le non-métier transverse et rien
+d'autre — écart assumé vs le `utils/` que le schéma d'Elysia *montre* sans jamais le définir.
+
+`model.ts` (TypeBox) = SSOT du contrat : validation runtime **+** OpenAPI **+** inférence Eden.
 Une donnée `jsonb` typée côté `core` **et** validée côté `api` suit le pattern à double
 représentation verrouillée (interface core + TypeBox api + guard `Static<> extends`) —
 cf. [ADR-0020](../adr/ADR-0020-colormetadata-double-representation.md).

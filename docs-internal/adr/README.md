@@ -35,6 +35,7 @@ Portée : socle | <package> | échoppe | prisme
 | [0024](./ADR-0024-portee-adr.md) | Portée des ADR : un compteur unique, un champ de portée | accepté | — |
 | [0025](./ADR-0025-deux-produits-un-repo.md) | Deux produits, un repo : frontière core / packages | accepté | — |
 | [0033](./ADR-0033-organisation-monorepo.md) | Organisation du monorepo : disposition à plat, deux cores, packages partagés | accepté | — |
+| [0041](./ADR-0041-hierarchie-autorites.md) | Hiérarchie des autorités : framework → décision produit → SSOT personnelle | accepté | — |
 | [0034](./ADR-0034-identite-referentiel-reglages.md) | Identité, référentiel et réglages : ce que l'outil possède | accepté, partiellement amendé par [0040](./ADR-0040-identite-site-entite-legale.md) | — |
 
 ## Index — `client` · SDK et contrat d'API
@@ -99,6 +100,7 @@ Portée : socle | <package> | échoppe | prisme
 | [0019](./ADR-0019-tags-produit.md) | Tags produit (entité gérée + slug, surface storefront) | accepté | — |
 | [0020](./ADR-0020-colormetadata-double-representation.md) | ColorMetadata : représentation double verrouillée (pas un drift) | accepté | — |
 | [0022](./ADR-0022-produits-lies.md) | Produits liés : curation directionnelle + fallback voisinage | accepté | — |
+| [0042](./ADR-0042-structure-api-modules.md) | Structure de l'API : modules Elysia, règle de propriété, `lib/` | accepté | — |
 
 ## Index — `prisme` · CMS
 
