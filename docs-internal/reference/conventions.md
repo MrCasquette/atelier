@@ -88,6 +88,25 @@ Pas de `routes/`, `models/`, `utils/`, `plugins/` ni `services/` : ce sont des c
 que la doc Elysia déconseille explicitement. `lib/` accueille le non-métier transverse et rien
 d'autre — écart assumé vs le `utils/` que le schéma d'Elysia *montre* sans jamais le définir.
 
+**Trois formes de module**, selon ce que le concept porte réellement. Un concept naît fichier et ne
+devient dossier que quand il porte plusieurs natures ; le dossier ne se subdivise que quand il porte
+plusieurs enfants.
+
+| Forme | Quand | Exemples |
+|---|---|---|
+| un `index.ts` | une seule surface | `contact`, `stock`, `shipping`, `cart` |
+| plusieurs contrôleurs composés par `index.ts` | plusieurs surfaces au même concept | par public : `auth` (`admin` + `customer`), `order`, `page`, `menu` · par sous-concept : `media` (`folder` + `item` + `asset`) |
+| terme parent **sans** `index.ts` | le dossier n'a pas de surface propre, seulement des enfants | `content` (`definition`, `page`), `catalog` (`product`, `category`, `collection`, `option`) |
+
+Un terme parent n'accueille de fichier que si **aucun de ses enfants ne le revendique** — c'est la
+règle de propriété appliquée un cran plus bas. `catalog/visibility.ts` y est parce qu'il sert la
+catégorie *et* la collection ; `catalog/model.ts` parce que ses schémas croisent produit, variante
+et option.
+
+Quand plusieurs contrôleurs partagent un préfixe, **l'ordre de composition dans `index.ts` est
+significatif** : Elysia laisse la dernière déclaration l'emporter, donc une route statique doit
+précéder la route à paramètre qui l'absorberait (`/media/folders` avant `/media/:id`).
+
 `model.ts` (TypeBox) = SSOT du contrat : validation runtime **+** OpenAPI **+** inférence Eden.
 Une donnée `jsonb` typée côté `core` **et** validée côté `api` suit le pattern à double
 représentation verrouillée (interface core + TypeBox api + guard `Static<> extends`) —
