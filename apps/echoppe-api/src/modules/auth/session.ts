@@ -19,6 +19,10 @@ export type SessionUser = {
 
 export type SessionRole = {
   id: string;
+  // Clé immuable des rôles système (`owner`, `admin`, `customer`, `public`), `null` pour un rôle
+  // créé depuis l'administration. C'est elle qui porte le RANG, jamais `name` qui est de
+  // l'affichage — cf. ADR-0038.
+  key: string | null;
   name: string;
   scope: 'admin' | 'public';
 };
@@ -58,6 +62,7 @@ export async function getSessionFromToken(token: string | undefined): Promise<Se
       },
       role: {
         id: role.id,
+        key: role.key,
         name: role.name,
         scope: role.scope,
       },

@@ -260,51 +260,67 @@ export function undelegatableGrants(
   return refused;
 }
 
+// Rangs qui gouvernent, par clé de rôle système. Le propriétaire n'y figure pas : il est reconnu
+// par son `bypass`, qui ne dépend d'aucun rôle. `key` est immuable et porté par le code (ADR-0038) ;
+// `name` est de l'affichage et ne doit jamais servir ici.
+const FIRST_RANK_ROLE_KEYS = new Set(['admin']);
+
 /**
- * Le pendant de `undelegatableGrants` : **on ne peut retirer que ce qu'on détient**.
+ * Le premier rang : propriétaire et administrateur.
  *
- * `PUT /roles/:id/permissions` remplace l'ensemble des droits — ce qui n'est pas soumis est
- * supprimé. Borner la seule attribution empêchait l'élévation de privilèges mais laissait la
- * destruction : un administrateur borné au catalogue ne pouvait plus s'attribuer `user:delete`,
- * mais pouvait soumettre son seul `product:read` sur le rôle Administrateur et faire disparaître
- * tout le reste. Il ne s'élevait plus ; il paralysait encore.
+ * **Retirer un droit est un acte de gouvernance, pas un acte de domaine.** Accorder est additif et
+ * se borne naturellement à ce qu'on détient ; retirer est destructeur, et son rayon d'action n'est
+ * pas borné par la portée de celui qui retire — il désactive le travail des autres. Le rang est
+ * donc le bon critère, pas la possession.
  *
- * ADR-0038 raisonnait en termes d'élévation de privilèges et n'a pas tranché ce cas. La règle est
- * la même, appliquée dans l'autre sens, et ne demande aucun mécanisme supplémentaire.
+ * Conséquence assumée : un administrateur peut retirer un droit qu'il ne détient pas lui-même. Le
+ * rang l'autorise, la portée n'entre pas en compte.
  *
- * `current` ne doit contenir que les lignes NON verrouillées : `locked` est traité en amont, et une
- * ligne verrouillée n'est de toute façon jamais supprimée.
+ * Une clé d'API machine n'a pas de rôle → jamais de premier rang, donc jamais de révocation. Un
+ * rôle créé depuis l'administration a `key === null` → jamais de premier rang non plus ; un rang
+ * sur mesure est un sujet à part, remis à plus tard.
  */
-export function undelegatableRevocations(
-  principal: EchoppePrincipal,
+export function isFirstRank(principal: EchoppePrincipal): boolean {
+  // Propriétaire de l'installation.
+  if (principal.bypass) return true;
+
+  const key = principal.identity.currentRole?.key;
+  return key !== null && key !== undefined && FIRST_RANK_ROLE_KEYS.has(key);
+}
+
+/**
+ * Y a-t-il révocation ? `PUT /roles/:id/permissions` remplace l'ensemble des droits : tout ce qui
+ * n'est pas soumis est supprimé. Une soumission peut donc retirer sans en avoir l'air.
+ *
+ * Renvoie les droits que la soumission ferait disparaître — vide si elle ne fait qu'ajouter.
+ *
+ * `current` ne doit contenir que les lignes NON verrouillées : une ligne `locked` n'est jamais
+ * supprimée, elle ne peut donc pas être révoquée.
+ */
+export function revokedByGrants(
   current: PermissionGrant[],
   submitted: PermissionGrant[],
 ): string[] {
-  if (principal.bypass) return [];
-
-  const refused: string[] = [];
+  const revoked: string[] = [];
   const next = new Map(submitted.map((grant) => [grant.resource, grant]));
 
   for (const existing of current) {
     const after = next.get(existing.resource);
-    const held = principal.permissions.get(existing.resource);
 
     for (const [action, flag] of GRANTABLE_ACTIONS) {
-      const removed = existing[flag] && !(after?.[flag] ?? false);
-      if (removed && !held?.[flag]) {
-        refused.push(`${existing.resource}:${action}`);
+      if (existing[flag] && !(after?.[flag] ?? false)) {
+        revoked.push(`${existing.resource}:${action}`);
       }
     }
 
-    // Poser `selfOnly` sur un droit qui ne l'avait pas, c'est retirer de la portée sans retirer
-    // d'action. Même exigence : il faut détenir la ressource pour la resserrer.
-    const narrowed = !existing.selfOnly && (after?.selfOnly ?? false);
-    if (narrowed && !held) {
-      refused.push(`${existing.resource}:selfOnly`);
+    // Poser `selfOnly` sur un droit qui ne l'avait pas retire de la portée sans retirer d'action :
+    // c'est une révocation, même si aucun bit CRUD ne bouge.
+    if (!existing.selfOnly && (after?.selfOnly ?? false)) {
+      revoked.push(`${existing.resource}:selfOnly`);
     }
   }
 
-  return refused;
+  return revoked;
 }
 
 /**

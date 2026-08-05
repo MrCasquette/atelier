@@ -4,9 +4,10 @@ import { errorSchema, successSchema, withAuthErrors } from '../../lib/response';
 import { getClientIp, logAudit } from '../audit/service';
 import {
   invalidatePermissionCache,
+  isFirstRank,
   permissionGuard,
+  revokedByGrants,
   undelegatableGrants,
-  undelegatableRevocations,
 } from '../auth/rbac';
 
 // Schemas
@@ -276,9 +277,10 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
       const lockedResources = new Set(currentPerms.filter((p) => p.locked).map((p) => p.resource));
       const unlocked = currentPerms.filter((p) => !p.locked);
 
-      // Délégation (ADR-0038) : on ne peut accorder que ce qu'on détient — et, l'ensemble étant
-      // remplacé d'un bloc, on ne peut retirer que ce qu'on détient. Sans le second volet,
-      // `permission:update` permettait encore de vider les droits d'un rôle qu'on n'administre pas.
+      // Délégation (ADR-0038) : on ne peut accorder que ce qu'on détient. Retirer, en revanche,
+      // est un acte de gouvernance réservé au premier rang — l'ensemble étant remplacé d'un bloc,
+      // une soumission réduite supprime le reste, ce qui permettait de vider un rôle qu'on
+      // n'administre pas.
       const ungrantable = undelegatableGrants(principal, body.permissions);
       if (ungrantable.length > 0) {
         return status(403, {
@@ -286,10 +288,10 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
         });
       }
 
-      const unrevocable = undelegatableRevocations(principal, unlocked, body.permissions);
-      if (unrevocable.length > 0) {
+      const revoked = revokedByGrants(unlocked, body.permissions);
+      if (revoked.length > 0 && !isFirstRank(principal)) {
         return status(403, {
-          message: `Droits non détenus, donc non révocables : ${unrevocable.join(', ')}`,
+          message: `Retirer un droit est réservé au premier rang : ${revoked.join(', ')}`,
         });
       }
 

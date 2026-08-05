@@ -78,6 +78,34 @@ des pouvoirs — ouvrir l'accès aux candidatures sans lire les CV — n'est pas
 besoin d'organisation à plusieurs personnes, hors cible ; la portée d'administration s'ajouterait
 par-dessus sans rien casser.
 
+### Amendement 2026-08-05 — retirer un droit est réservé au premier rang
+
+La règle ci-dessus ne couvre que l'**attribution**. Or `PUT /roles/:id/permissions` remplace
+l'ensemble des droits : ce qui n'est pas soumis est supprimé. Borner la seule attribution empêchait
+l'élévation de privilèges mais laissait la **destruction** — un administrateur borné au catalogue ne
+pouvait plus s'attribuer `user:delete`, mais pouvait soumettre son seul `product:read` sur le rôle
+Administrateur et faire disparaître tout le reste. Il ne s'élevait plus ; il paralysait encore.
+
+**Décision : la révocation est réservée au premier rang — Owner et Admin.**
+
+Accorder et retirer ne sont pas symétriques. Accorder est **additif** et se borne naturellement à ce
+qu'on détient : la possession est le bon critère. Retirer est **destructeur**, et son rayon d'action
+n'est pas borné par la portée de celui qui retire — il désactive le travail des autres. C'est un acte
+de **gouvernance**, pas un acte de domaine ; le **rang** est donc le bon critère, pas la possession.
+
+**Conséquence assumée** : un Admin peut retirer un droit qu'il ne détient pas lui-même. C'est
+exactement ce que « le rang autorise, la portée n'entre pas en compte » veut dire.
+
+Le rang se lit sur `role.key` — immuable et porté par le code — jamais sur `name`, qui est de
+l'affichage. Deux conséquences en découlent sans travail supplémentaire : une **clé d'API machine**
+n'a pas de rôle, donc ne révoque jamais ; un **rôle créé depuis l'administration** a `key === null`,
+donc ne révoque jamais non plus.
+
+**Reporté** : un rang sur mesure, qui permettrait de déléguer la gouvernance à un rôle créé pour
+l'occasion. Le besoin est réel dans une organisation à plusieurs, mais il demande de décider ce qui
+fait rang — une colonne, une clé réservée, une permission dédiée — et rien ne presse tant que Owner
+et Admin couvrent la cible.
+
 ### Les rôles système ont une clé stable
 
 Aujourd'hui `rbac.ts` cherche `role.name === 'Client'` (l. 92) et `'Public'` (l. 100). Ce n'est pas un
