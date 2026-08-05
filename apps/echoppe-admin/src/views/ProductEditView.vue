@@ -160,7 +160,9 @@ onMounted(async () => {
               />
             </div>
             <div class="bg-white rounded-lg shadow p-6">
-              <h3 class="text-sm font-medium text-gray-900 mb-1">Produits liés</h3>
+              <h3 class="text-sm font-medium text-gray-900 mb-1">
+                Produits liés
+              </h3>
               <p class="text-xs text-gray-500 mb-3">
                 Produits recommandés sur la fiche (ordre respecté). Vide = voisinage automatique.
               </p>
