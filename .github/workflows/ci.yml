@@ -42,6 +42,15 @@ jobs:
       - name: Lint
         run: bun run lint
 
+      # Tests unitaires des paquets et de l'API (24 tests, 5 espaces de travail). Sans base : ce
+      # sont des tests de logique pure — les tests de frontière, eux, tournent dans le job `smoke`
+      # contre un vrai Postgres. DATABASE_URL placeholder, car importer @echoppe/core construit son
+      # client au chargement du module et lève sans la variable.
+      - name: Unit tests
+        env:
+          DATABASE_URL: postgres://placeholder:placeholder@localhost:5432/placeholder
+        run: bun run test
+
       # T1 — Garde anti-dérive : le schéma TS doit être entièrement capturé par les
       # migrations committées. `db:generate` est hors-ligne (compare schéma ↔ snapshots),
       # DATABASE_URL est un placeholder requis par drizzle.config mais aucune connexion
@@ -68,9 +77,9 @@ jobs:
           DATABASE_URL: postgres://placeholder:placeholder@localhost:5432/placeholder
         run: bun run contracts:check
 
-  # T2 — Smoke « base vierge depuis les migrations » : Postgres neuf → migrate → les routes
-  # clés répondent (/products/ 200 sans 500, /countries/ non vide). Aurait attrapé le 500
-  # de l'image 0.4.0 (colonnes manquantes) et le /countries/ vide.
+  # T2 — Tests de frontière sur base vierge depuis les migrations : Postgres neuf → migrate → la
+  # suite `tests/` complète (contrat HTTP, matrice RBAC, SQL). Le smoke storefront en fait partie —
+  # il aurait attrapé le 500 de l'image 0.4.0 (colonnes manquantes) et le /countries/ vide.
   smoke:
     runs-on: ubuntu-latest
     services:
@@ -98,8 +107,9 @@ jobs:
         run: bun install --frozen-lockfile
 
       # SMOKE_DATABASE_URL cible le service Postgres neuf (base vierge). Le wrapper l'utilise
-      # tel quel (pas de conteneur éphémère à provisionner en CI).
-      - name: Smoke storefront
+      # tel quel (pas de conteneur éphémère à provisionner en CI) et pose ECHOPPE_SMOKE=1, sans
+      # quoi les tests refusent de tourner — garde-fou contre un run sur une base non jetable.
+      - name: Integration tests
         env:
           SMOKE_DATABASE_URL: postgresql://echoppe:echoppe@localhost:5432/echoppe
         run: bun run --cwd apps/echoppe-api test:smoke
