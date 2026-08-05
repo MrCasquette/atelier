@@ -70,12 +70,18 @@ function fail(msg: string): never {
   throw new Error(msg);
 }
 
+// `-h 127.0.0.1` force le TCP, et ce n'est pas un détail : l'image officielle démarre un serveur
+// TEMPORAIRE pendant `initdb`, qui n'écoute QUE la socket Unix. Sans `-h`, `pg_isready` répond 0 sur
+// ce serveur-là, on enchaîne, et la première requête tombe sur « the database system is starting up »
+// quand le vrai serveur redémarre. Le serveur temporaire n'ouvre jamais le TCP → plus de faux positif.
 async function waitPg(container: string): Promise<void> {
   for (let i = 0; i < 60; i++) {
     const { code } = await docker([
       'exec',
       container,
       'pg_isready',
+      '-h',
+      '127.0.0.1',
       '-U',
       'echoppe',
       '-d',

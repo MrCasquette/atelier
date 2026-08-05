@@ -38,12 +38,18 @@ function runQuiet(cmd: string, args: string[]): Promise<{ code: number; out: str
   });
 }
 
+// `-h 127.0.0.1` force le TCP, et ce n'est pas un détail : l'image officielle démarre un serveur
+// TEMPORAIRE pendant `initdb`, qui n'écoute QUE la socket Unix. Sans `-h`, `pg_isready` répond 0 sur
+// ce serveur-là, on enchaîne, et la première requête tombe sur « the database system is starting up »
+// quand le vrai serveur redémarre. Le serveur temporaire n'ouvre jamais le TCP → plus de faux positif.
 async function waitReady(): Promise<void> {
   for (let i = 0; i < 40; i++) {
     const { code } = await runQuiet('docker', [
       'exec',
       CONTAINER,
       'pg_isready',
+      '-h',
+      '127.0.0.1',
       '-U',
       'echoppe',
       '-d',
