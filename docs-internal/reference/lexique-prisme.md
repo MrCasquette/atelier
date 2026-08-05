@@ -1,7 +1,8 @@
 # Lexique Prisme — vocabulaire du système de contenu
 
-> **Provisoire.** Établi en cours de conception pour pouvoir rédiger les ADR sans ambiguïté.
-> **À ratifier** une fois la série d'ADR Prisme terminée.
+> **Ratifié** par [ADR-0043](../adr/ADR-0043-lexique-contenu.md), qui ajoute `definition` (une
+> entrée du registre) et `content` (la famille), et tranche que `menu` relève de la navigation, pas
+> du contenu.
 
 Le mot `type` était déjà pris en base (`section.type` = quel bloc est-ce) : le réemployer pour
 désigner un modèle d'entité garantissait la collision. D'où ce lexique.
@@ -17,6 +18,8 @@ désigner un modèle d'entité garantissait la collision. D'où ce lexique.
 | **Component** | un groupe de champs réutilisable, non insérable seul | `Bouton` | `content_definition.role` |
 | **Page** | un document composé de sections | `/a-propos` | table `page` |
 | **Entité** | un modèle de données éditable | `Article`, `Événement` | une table par entité |
+| **Definition** | une entrée du registre : un schema nommé, de rôle `section` ou `component` | `Hero`, `Bouton` | ligne de `content_definition` |
+| **Registry** | l'ensemble des definitions, remplacé en un geste | — | table `content_definition` |
 
 Une **instance** n'a pas besoin de mot dédié : c'est un `Hero`, c'est un `Article`.
 
