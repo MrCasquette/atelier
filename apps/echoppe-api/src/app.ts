@@ -4,32 +4,29 @@ import { Elysia } from 'elysia';
 import { apiKeyRoutes } from './modules/api-key';
 import { auditLogsRoutes } from './modules/audit';
 import { authRoutes } from './modules/auth';
+import { cartRoutes } from './modules/cart';
 import { categoriesRoutes } from './modules/catalog/category';
 import { collectionsRoutes } from './modules/catalog/collection';
 import { optionsRoutes } from './modules/catalog/option';
 import { productsRoutes } from './modules/catalog/product';
+import { checkoutRoutes } from './modules/checkout';
 import { communicationsRoutes } from './modules/communication';
 import { contactRoutes } from './modules/contact';
 import { definitionRoutes } from './modules/content/definition';
 import { pageRoutes } from './modules/content/page';
 import { countriesRoutes } from './modules/country';
+import { customerRoutes } from './modules/customer';
 import { identityRoutes } from './modules/identity';
 import { mediaRoutes } from './modules/media';
 import { menuRoutes } from './modules/menu';
+import { orderRoutes } from './modules/order';
+import { paymentsRoutes } from './modules/payment';
 import { rolesRoutes } from './modules/role';
+import { shippingRoutes } from './modules/shipping';
+import { stockRoutes } from './modules/stock';
 import { taxRatesRoutes } from './modules/tax-rate';
 import { usersRoutes } from './modules/user';
 import { wishlistRoutes } from './modules/wishlist';
-import { cartRoutes } from './routes/cart';
-import { checkoutRoutes } from './routes/checkout';
-import { customerAccountRoutes } from './routes/customer-account';
-import { customerAddressesRoutes } from './routes/customer-addresses';
-import { customerOrdersRoutes } from './routes/customer-orders';
-import { customersRoutes } from './routes/customers';
-import { ordersRoutes } from './routes/orders';
-import { paymentsRoutes } from './routes/payments';
-import { shippingRoutes } from './routes/shipping';
-import { stockRoutes } from './routes/stock';
 import { securityHeaders } from './security-headers';
 
 // Application Elysia PURE : construction des routes/plugins, sans aucun side-effect de
@@ -121,15 +118,12 @@ export const app = new Elysia()
   .use(stockRoutes)
   .use(paymentsRoutes)
   .use(shippingRoutes)
-  .use(ordersRoutes)
+  .use(orderRoutes)
   .use(rolesRoutes)
   .use(cartRoutes)
-  .use(customerAddressesRoutes)
-  .use(customerOrdersRoutes)
-  .use(customerAccountRoutes)
   .use(checkoutRoutes)
   .use(communicationsRoutes)
-  .use(customersRoutes)
+  .use(customerRoutes)
   .use(wishlistRoutes)
   .use(usersRoutes)
   .use(contactRoutes)

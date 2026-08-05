@@ -22,7 +22,7 @@ import {
 import {
   calculateAddonPrice,
   getPersonalizationFieldsByProduct,
-} from '../modules/catalog/product/personalization/service';
+} from '../catalog/product/personalization/service';
 
 // ============================================================================
 // TYPES

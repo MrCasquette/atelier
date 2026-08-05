@@ -1,10 +1,10 @@
 import { getAvailablePaymentProviders, getPaymentAdapter } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
-import { checkoutRateLimitOptions } from '../lib/rate-limit';
-import { errorSchema, withReadErrors } from '../lib/response';
-import { models } from '../model';
-import { customerAuthPlugin, type SessionCustomer } from '../modules/auth/customer-session';
+import { checkoutRateLimitOptions } from '../../lib/rate-limit';
+import { errorSchema, withReadErrors } from '../../lib/response';
+import { models } from '../../model';
+import { customerAuthPlugin, type SessionCustomer } from '../auth/customer-session';
 import {
   calculateOrderTotals,
   createAddressSnapshot,
@@ -15,8 +15,8 @@ import {
   initiatePayment,
   rollbackOrder,
   validateStock,
-} from '../services/checkout';
-import { validateCheckoutUrls } from '../utils/url-validation';
+} from './service';
+import { validateCheckoutUrls } from './url-validation';
 
 // ============================================================================
 // SCHEMAS

@@ -27,10 +27,10 @@ import {
   variant,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { buildListResponse, listResponse, parseListQuery } from '../lib/pagination';
-import { successSchema, withCrudErrors } from '../lib/response';
-import { permissionGuard } from '../modules/auth/rbac';
-import { UPLOAD_DIR } from '../modules/media/storage';
+import { buildListResponse, listResponse, parseListQuery } from '../../lib/pagination';
+import { successSchema, withCrudErrors } from '../../lib/response';
+import { permissionGuard } from '../auth/rbac';
+import { UPLOAD_DIR } from '../media/storage';
 
 const ordersQuery = t.Object({
   page: t.Optional(t.Numeric({ minimum: 1, default: 1 })),

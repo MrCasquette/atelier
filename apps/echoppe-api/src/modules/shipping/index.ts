@@ -16,8 +16,8 @@ import {
   shippingProvider,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { errorSchema, successSchema, withAuthErrors } from '../lib/response';
-import { permissionGuard } from '../modules/auth/rbac';
+import { errorSchema, successSchema, withAuthErrors } from '../../lib/response';
+import { permissionGuard } from '../auth/rbac';
 
 const colissimoConfigBody = t.Object({
   contractNumber: t.String({ minLength: 1 }),

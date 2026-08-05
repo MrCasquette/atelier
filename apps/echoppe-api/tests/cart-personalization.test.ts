@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { db, personalizationField, product, variant } from '@echoppe/core';
-import { calculateOrderTotals } from '../src/services/checkout';
+import { calculateOrderTotals } from '../src/modules/checkout/service';
 import {
   createAdminSession,
   ensureCategory,

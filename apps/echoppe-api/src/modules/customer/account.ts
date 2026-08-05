@@ -1,12 +1,12 @@
 import { customer, db, eq } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { unauthorizedResponse } from '../lib/response';
-import { models } from '../model';
+import { unauthorizedResponse } from '../../lib/response';
+import { models } from '../../model';
 import {
   customerAuthPlugin,
   customerCookieSchema,
   type SessionCustomer,
-} from '../modules/auth/customer-session';
+} from '../auth/customer-session';
 
 // Compte client (données du profil) — distinct de `customer-auth` (credentials/session).
 // Futur foyer de la famille RGPD (export des données, demande de suppression). Toutes les

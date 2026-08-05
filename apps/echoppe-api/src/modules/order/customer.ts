@@ -11,14 +11,14 @@ import {
   sql,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { buildListResponse, getPaginationParams, paginationQuery } from '../lib/pagination';
-import { withAuthErrors, withCrudErrors } from '../lib/response';
-import { models } from '../model';
+import { buildListResponse, getPaginationParams, paginationQuery } from '../../lib/pagination';
+import { withAuthErrors, withCrudErrors } from '../../lib/response';
+import { models } from '../../model';
 import {
   customerAuthPlugin,
   customerCookieSchema,
   type SessionCustomer,
-} from '../modules/auth/customer-session';
+} from '../auth/customer-session';
 
 // Espace commandes du client connecté (lecture seule). Chaque requête est filtrée sur
 // `order.customer = currentCustomer.id` : un client ne voit QUE ses propres commandes.

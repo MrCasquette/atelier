@@ -1,16 +1,16 @@
 import { Elysia } from 'elysia';
-import { addressModels } from './models/address';
-import { cartModels } from './models/cart';
-import { checkoutModels } from './models/checkout';
-import { customerModels } from './models/customer';
-import { orderModels } from './models/order';
+import { cartModels } from './modules/cart/model';
 import { categoryModels } from './modules/catalog/category/model';
 import { collectionModels } from './modules/catalog/collection/model';
 import { catalogModels } from './modules/catalog/model';
+import { checkoutModels } from './modules/checkout/model';
 import { pageModels } from './modules/content/page/model';
 import { countryModels } from './modules/country/model';
+import { addressModels } from './modules/customer/address/model';
+import { customerModels } from './modules/customer/model';
 import { identityModels } from './modules/identity/model';
 import { menuModels } from './modules/menu/model';
+import { orderModels } from './modules/order/model';
 import { taxRateModels } from './modules/tax-rate/model';
 import { wishlistModels } from './modules/wishlist/model';
 

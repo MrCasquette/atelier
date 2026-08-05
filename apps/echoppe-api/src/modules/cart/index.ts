@@ -24,15 +24,15 @@ import {
   notFoundResponse,
   successSchema,
   unauthorizedResponse,
-} from '../lib/response';
-import { models } from '../model';
+} from '../../lib/response';
+import { models } from '../../model';
 import {
   calculateAddonPrice,
   displayPersonalization,
   getPersonalizationFields,
   getPersonalizationFieldsByProduct,
   resolvePersonalization,
-} from '../modules/catalog/product/personalization/service';
+} from '../catalog/product/personalization/service';
 
 const CART_COOKIE_NAME = 'echoppe_cart_session';
 const CUSTOMER_COOKIE_NAME = 'echoppe_customer_session';

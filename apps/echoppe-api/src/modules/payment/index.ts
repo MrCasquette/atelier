@@ -23,11 +23,11 @@ import {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
-import { webhookRateLimitOptions } from '../lib/rate-limit';
-import { errorSchema, successSchema } from '../lib/response';
-import { customerAuthPlugin, type SessionCustomer } from '../modules/auth/customer-session';
-import { permissionGuard } from '../modules/auth/rbac';
-import { validateCheckoutUrls } from '../utils/url-validation';
+import { webhookRateLimitOptions } from '../../lib/rate-limit';
+import { errorSchema, successSchema } from '../../lib/response';
+import { customerAuthPlugin, type SessionCustomer } from '../auth/customer-session';
+import { permissionGuard } from '../auth/rbac';
+import { validateCheckoutUrls } from '../checkout/url-validation';
 
 const checkoutBody = t.Object({
   orderId: t.String({ format: 'uuid' }),
