@@ -11,7 +11,6 @@ import {
 } from '@echoppe/core';
 import { slugify } from '@repo/shared';
 import { Elysia, t } from 'elysia';
-import { getClientIp, logAudit } from '../../lib/audit';
 import {
   successSchema,
   withAuthErrors,
@@ -20,6 +19,7 @@ import {
   withReadErrors,
 } from '../../lib/response';
 import { models } from '../../model';
+import { getClientIp, logAudit } from '../../modules/audit/service';
 import { permissionGuard } from '../../plugins/rbac';
 import { getRelatedProductIds, setRelatedProducts } from '../../utils/related';
 import { getProductTags, setProductTags } from '../../utils/tags';

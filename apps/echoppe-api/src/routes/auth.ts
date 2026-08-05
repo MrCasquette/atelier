@@ -2,7 +2,6 @@ import { randomBytes } from 'node:crypto';
 import { and, db, eq, gt, role, session, user } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
-import { getClientIp, logAudit } from '../lib/audit';
 import { authRateLimitOptions } from '../lib/rate-limit';
 import {
   forbiddenResponse,
@@ -10,6 +9,7 @@ import {
   successSchema,
   unauthorizedResponse,
 } from '../lib/response';
+import { getClientIp, logAudit } from '../modules/audit/service';
 
 const COOKIE_NAME = 'echoppe_admin_session';
 const SESSION_DURATION_DAYS = 7;

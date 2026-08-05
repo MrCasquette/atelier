@@ -2,7 +2,7 @@ import { asc, contentDefinition, db, eq, menu, page, section } from '@echoppe/co
 import { Elysia, t } from 'elysia';
 import { conflictResponse, successSchema, withCrudErrors } from '../lib/response';
 import { type Registry, registrySchema, sectionInputSchema } from '../models/content';
-import { menuItemsSchema } from '../models/menu';
+import { menuItemsSchema } from '../modules/menu/model';
 import { permissionGuard } from '../plugins/rbac';
 import {
   assertRegistryCoherent,

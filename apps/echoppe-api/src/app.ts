@@ -1,10 +1,12 @@
 import { cors } from '@elysiajs/cors';
 import { openapi } from '@elysiajs/openapi';
 import { Elysia } from 'elysia';
+import { auditLogsRoutes } from './modules/audit';
+import { menusRoutes } from './modules/menu';
 import { taxRatesRoutes } from './modules/tax-rate';
+import { wishlistRoutes } from './modules/wishlist';
 import { apiKeyRoutes } from './routes/api-keys';
 import { assetsRoutes } from './routes/assets';
-import { auditLogsRoutes } from './routes/audit-logs';
 import { authRoutes } from './routes/auth';
 import { cartRoutes } from './routes/cart';
 import { categoriesRoutes } from './routes/categories';
@@ -21,7 +23,6 @@ import { customerOrdersRoutes } from './routes/customer-orders';
 import { customersRoutes } from './routes/customers';
 import { identityRoutes } from './routes/identity';
 import { mediaRoutes } from './routes/media';
-import { menusRoutes } from './routes/menus';
 import { optionsRoutes } from './routes/options';
 import { ordersRoutes } from './routes/orders';
 import { pagesRoutes } from './routes/pages';
@@ -31,7 +32,6 @@ import { rolesRoutes } from './routes/roles';
 import { shippingRoutes } from './routes/shipping';
 import { stockRoutes } from './routes/stock';
 import { usersRoutes } from './routes/users';
-import { wishlistRoutes } from './routes/wishlist';
 import { securityHeaders } from './security-headers';
 
 // Application Elysia PURE : construction des routes/plugins, sans aucun side-effect de

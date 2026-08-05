@@ -1,8 +1,8 @@
 import { db, eq, menu } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { withNotFound } from '../lib/response';
-import { models } from '../model';
-import { resolveMenuItems } from '../services/menu-resolve';
+import { withNotFound } from '../../lib/response';
+import { models } from '../../model';
+import { resolveMenuItems } from './service';
 
 // Lecture storefront des menus de navigation. Public. Un menu est fetché par son `handle` stable
 // (main, footer…) ; ses refs internes sont résolues en projection { id, slug, name }.

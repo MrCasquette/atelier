@@ -16,7 +16,6 @@ import {
   type SQL,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { getClientIp, logAudit } from '../lib/audit';
 import { UPLOAD_DIR } from '../lib/config';
 import {
   buildListResponse,
@@ -26,6 +25,7 @@ import {
   MAX_LIMIT,
 } from '../lib/pagination';
 import { errorSchema, successSchema, withAuthErrors } from '../lib/response';
+import { getClientIp, logAudit } from '../modules/audit/service';
 import { permissionGuard } from '../plugins/rbac';
 
 // Schema de réponse pour les médias

@@ -1,7 +1,7 @@
 import { and, db, eq, permission, RESOURCES, role, sql, user } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { getClientIp, logAudit } from '../lib/audit';
 import { errorSchema, successSchema, withAuthErrors } from '../lib/response';
+import { getClientIp, logAudit } from '../modules/audit/service';
 import { invalidatePermissionCache, permissionGuard } from '../plugins/rbac';
 
 // Schemas

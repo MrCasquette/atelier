@@ -8,10 +8,10 @@ import { collectionModels } from './models/collection';
 import { contentModels } from './models/content';
 import { customerModels } from './models/customer';
 import { identityModels } from './models/identity';
-import { menuModels } from './models/menu';
 import { orderModels } from './models/order';
-import { wishlistModels } from './models/wishlist';
+import { menuModels } from './modules/menu/model';
 import { taxRateModels } from './modules/tax-rate/model';
+import { wishlistModels } from './modules/wishlist/model';
 
 // Registre central des modèles nommés du contrat. Une seule source qui alimente :
 // - la validation runtime (via `.model()`),

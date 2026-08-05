@@ -1,5 +1,5 @@
 import { t } from 'elysia';
-import { imageRefSchema } from './catalog';
+import { imageRefSchema } from '../../models/catalog';
 
 // Schéma d'entité wishlist (liste d'envies) — SOURCE UNIQUE. La wishlist porte sur des VARIANTES
 // (PK customer+variant, cf. schema.wishlistItem) : le client épingle une variante précise (taille,

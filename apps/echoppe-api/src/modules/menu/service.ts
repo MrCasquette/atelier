@@ -1,5 +1,5 @@
 import { category, collection, db, inArray, page, product } from '@echoppe/core';
-import type { EntityProjection, MenuItemInput, ResolvedMenuItem } from '../models/menu';
+import type { EntityProjection, MenuItemInput, ResolvedMenuItem } from './model';
 
 // Résolution des refs internes d'un menu au read storefront : chaque lien vers une entité
 // (page/produit/collection/catégorie) est remplacé par sa projection { id, slug, name } (null si

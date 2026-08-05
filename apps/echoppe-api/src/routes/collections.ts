@@ -1,7 +1,6 @@
 import { and, collection, count, db, eq, inArray, product, productCollection } from '@echoppe/core';
 import { slugify } from '@repo/shared';
 import { Elysia, t } from 'elysia';
-import { getClientIp, logAudit } from '../lib/audit';
 import { buildListResponse, getPaginationParams, paginationQuery } from '../lib/pagination';
 import {
   notFound,
@@ -12,6 +11,7 @@ import {
   withReadErrors,
 } from '../lib/response';
 import { models } from '../model';
+import { getClientIp, logAudit } from '../modules/audit/service';
 import { isPrivilegedRequest, permissionGuard } from '../plugins/rbac';
 import { visibilityFilter } from '../utils/visibility';
 import { productSubListQuery, queryProductCards } from './products/shared';
