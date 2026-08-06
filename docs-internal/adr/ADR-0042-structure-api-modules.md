@@ -198,6 +198,11 @@ la réflexion est consigné ici pour qu'elles ne repartent pas de zéro.
 
 ### La surface HTTP des paquets partagés
 
+> **Tranchée depuis** par [ADR-0044](./ADR-0044-surface-http-paquets-partages.md) : un paquet expose
+> `service.ts` et `model.ts`, jamais de routes. La troisième voie esquissée ci-dessous a été mesurée
+> — 43 % de déclaration, 57 % de logique — et retenue. Ce qui suit est l'état de la réflexion **avant**
+> cette mesure ; il est conservé pour la trace.
+
 40 % de l'API est générique (5 556 lignes sur 13 821) et serait recopié dans `prisme-api`.
 
 **Ce qui est mesuré et ne fait plus débat** : `app.ts` est déjà un pur assemblage (30 imports, 30
