@@ -132,3 +132,21 @@ Ce qui reste **autorisé** : importer `t`, `type Static`, `type TSchema` depuis 
 Ce que l'amendement ne change pas : le produit possède son contrat, écrit ses controllers, et aucune
 route ne vit dans un paquet. La substance de la décision est intacte — seule sa vérification
 mécanique était mal cadrée.
+
+## Amendement 2026-08-09 — `model.ts` se scinde par nature
+
+La décision dit que le paquet emporte `model.ts` **et** que le produit possède son contrat. Les deux
+phrases se contredisent dès qu'un `model.ts` mélange deux natures de schéma — ce qu'ils font tous.
+
+**Règle** : ce qui part dans le paquet, ce sont les **schémas d'entité** — la forme de la donnée,
+commune aux deux produits. Ce qui reste dans le produit, ce sont les schémas **propres à une route** :
+corps de requête, paramètres de requête, cartes de réponse. Ceux-là *sont* le contrat, et le contrat
+appartient au produit.
+
+Le critère est simple à appliquer : si le schéma décrit **ce qu'est** un média, un site, une page, il
+est partagé. S'il décrit **ce qu'une route accepte ou renvoie**, il reste.
+
+Conséquence pratique : chaque `model.ts` générique est à relire et à couper en deux avant son
+déplacement, ce qui est du ressort de `#28`. Un module dont tout le `model.ts` est du contrat n'a
+simplement pas de `model.ts` à donner — c'est le cas de `contact`, dont le seul schéma est un corps de
+requête, laissé dans `index.ts`.
