@@ -55,8 +55,11 @@ La troisième voie n'est donc pas un ré-emballage : c'est une extraction qui n'
 
 ## Décision
 
-**Un paquet partagé expose `service.ts` et `model.ts`. Jamais de routes, jamais de dépendance à
-Elysia.**
+**Un paquet partagé expose `service.ts` et `model.ts`. Jamais de routes.**
+
+> La formule initiale disait « jamais de dépendance à Elysia ». Elle était trop large et a été
+> corrigée par l'amendement du 2026-08-09 : ce qui est proscrit est la **surface HTTP**, pas l'usage
+> de TypeBox qu'Elysia réexporte.
 
 L'argument décisif d'ADR-0042 tient toujours — une route est la **surface publique d'un produit**,
 versionnée avec lui, alimentant son SDK publié — et la mesure montre qu'il coûte 43 % de lignes
@@ -85,9 +88,9 @@ est préféré au revers inverse — un bump de paquet qui modifie deux SDK en s
 
 ## Conséquences
 
-- Les paquets partagés n'ont **aucune dépendance HTTP**. Pas de sous-chemin `./routes`, pas d'Elysia
-  dans leurs `dependencies`. Le test d'admission est mécanique : un paquet qui importe `elysia` viole
-  cet ADR.
+- Les paquets partagés n'exposent **aucune surface HTTP**. Pas de sous-chemin `./routes`, aucune
+  route déclarée. Le test d'admission est mécanique — voir l'amendement ci-dessous pour sa
+  formulation exacte.
 - **`#11` est débloqué**, et son geste est précisé : extraire un concept, c'est déplacer `service.ts`
   et `model.ts`, en **laissant `index.ts` dans le produit**.
 - **Une tâche préalable apparaît** : extraire la logique des handlers génériques vers des `service.ts`.
@@ -98,3 +101,34 @@ est préféré au revers inverse — un bump de paquet qui modifie deux SDK en s
 - **`#24` (injection de dépendance) n'est pas résolu mais borné.** Les services partagés attraperont
   toujours le `db` global ; en revanche, le couplage ne s'étend pas à la couche HTTP, ce qui était
   l'aggravation que redoutait ADR-0042. Les deux sujets sont désormais séparables.
+
+## Amendement 2026-08-09 — le test d'admission visait la mauvaise chose
+
+Le test posé initialement — « un paquet qui importe `elysia` viole cet ADR » — est **faux**, et la
+première tentative d'application (`#28`, module `contact`) l'a montré immédiatement.
+
+Il confond deux choses : **dépendre d'Elysia** et **exposer une surface HTTP**. Seule la seconde est
+visée par cet ADR. Trois faits mesurés l'établissent :
+
+- Les **17 `model.ts`** importent `t` depuis `elysia`. Or `t` **est** TypeBox — Elysia le réexporte.
+  Un schéma n'est pas du transport.
+- Ils dépendent des **extensions Elysia** absentes de TypeBox nu : `t.Nullable` (~85 usages),
+  `t.File` et `t.Numeric` dans `media`. Basculer les paquets sur `@sinclair/typebox` en direct
+  supposerait de réécrire tous les modèles — coût réel, gain nul.
+- `content/definition/service.ts` importe `elysia/type-system` **à l'exécution** (`TypeCompiler`,
+  `FormatRegistry`) pour valider les entités déclarées dynamiquement. C'est un besoin de validation,
+  pas de HTTP, et il est irréductible.
+
+**Test d'admission corrigé.** Un paquet partagé ne doit contenir aucune des trois constructions
+suivantes :
+
+1. `new Elysia(...)` — instancier une application ou un plugin ;
+2. une déclaration de route — `.get`, `.post`, `.put`, `.patch`, `.delete` ;
+3. `status(...)` ou tout autre mapping vers un code HTTP.
+
+Ce qui reste **autorisé** : importer `t`, `type Static`, `type TSchema` depuis `elysia`, et
+`elysia/type-system` pour la validation à l'exécution.
+
+Ce que l'amendement ne change pas : le produit possède son contrat, écrit ses controllers, et aucune
+route ne vit dans un paquet. La substance de la décision est intacte — seule sa vérification
+mécanique était mal cadrée.
