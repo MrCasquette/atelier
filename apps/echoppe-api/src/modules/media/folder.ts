@@ -1,9 +1,9 @@
-import { asc, db, eq, folder, media } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { errorSchema, successSchema, withAuthErrors } from '../../lib/response';
 import { getClientIp, logAudit } from '../audit/service';
 import { permissionGuard } from '../auth/rbac';
 import { folderBody, folderSchema, uuidParam } from './model';
+import { createFolder, deleteFolder, listFolders, updateFolder } from './service';
 
 // Arborescence de la médiathèque. Sous-concept du média : même préfixe, même ressource RBAC
 // (`media`), mais son propre cycle de vie — d'où un contrôleur à part.
@@ -15,13 +15,10 @@ export const mediaFolderRoutes = new Elysia({ prefix: '/media', detail: { tags: 
   .use(permissionGuard('media', 'read'))
 
   // GET /media/folders - Liste plate des dossiers, pour reconstruire l'arbre côté client
-  .get(
-    '/folders',
-    async () => {
-      return db.select().from(folder).orderBy(asc(folder.name));
-    },
-    { permission: true, response: t.Array(folderSchema) },
-  )
+  .get('/folders', () => listFolders(), {
+    permission: true,
+    response: t.Array(folderSchema),
+  })
 
   .use(permissionGuard('media', 'create'))
 
@@ -29,13 +26,7 @@ export const mediaFolderRoutes = new Elysia({ prefix: '/media', detail: { tags: 
   .post(
     '/folders',
     async ({ body, currentUser, request }) => {
-      const [created] = await db
-        .insert(folder)
-        .values({
-          name: body.name,
-          parent: body.parent || null,
-        })
-        .returning();
+      const created = await createFolder(body);
 
       logAudit({
         userId: currentUser?.id,
@@ -57,11 +48,7 @@ export const mediaFolderRoutes = new Elysia({ prefix: '/media', detail: { tags: 
   .put(
     '/folders/:id',
     async ({ params, body, status }) => {
-      const [updated] = await db
-        .update(folder)
-        .set({ name: body.name, parent: body.parent || null })
-        .where(eq(folder.id, params.id))
-        .returning();
+      const updated = await updateFolder(params.id, body);
 
       if (!updated) return status(404, { message: 'Dossier non trouvé' });
       return updated;
@@ -80,19 +67,7 @@ export const mediaFolderRoutes = new Elysia({ prefix: '/media', detail: { tags: 
   .delete(
     '/folders/:id',
     async ({ params, status, currentUser, request }) => {
-      const [currentFolder] = await db.select().from(folder).where(eq(folder.id, params.id));
-      if (currentFolder) {
-        await db
-          .update(folder)
-          .set({ parent: currentFolder.parent })
-          .where(eq(folder.parent, params.id));
-        await db
-          .update(media)
-          .set({ folder: currentFolder.parent })
-          .where(eq(media.folder, params.id));
-      }
-
-      const [deleted] = await db.delete(folder).where(eq(folder.id, params.id)).returning();
+      const deleted = await deleteFolder(params.id);
 
       if (!deleted) return status(404, { message: 'Dossier non trouvé' });
 
