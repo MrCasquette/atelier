@@ -1,9 +1,15 @@
-import { asc, db, eq, page, section } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { conflictResponse, successSchema, withCrudErrors } from '../../../lib/response';
 import { permissionGuard } from '../../auth/rbac';
-import { validateSectionData } from '../definition/service';
 import { sectionInputSchema } from './model';
+import {
+  createPage,
+  deletePage,
+  findPage,
+  listPages,
+  replaceSections,
+  updatePage,
+} from './service';
 
 // Administration du page builder. Protégé par RBAC `content`. Les sections d'une page sont
 // remplacées d'un bloc via PUT (façon « save de la dynamic zone ») : plus simple et atomique que
@@ -58,25 +64,11 @@ const pagePatchBody = t.Object({
   status: t.Optional(pageStatus),
 });
 
-async function loadSections(pageId: string) {
-  return db
-    .select({
-      id: section.id,
-      name: section.name,
-      type: section.type,
-      data: section.data,
-      sort: section.sort,
-    })
-    .from(section)
-    .where(eq(section.page, pageId))
-    .orderBy(asc(section.sort));
-}
-
 export const pageAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: ['Content'] } })
   // === READ ===
   .use(permissionGuard('content', 'read'))
 
-  .get('/pages', async () => db.select().from(page).orderBy(asc(page.title)), {
+  .get('/pages', () => listPages(), {
     permission: true,
     response: { 200: t.Array(adminPageListItem) },
   })
@@ -84,11 +76,10 @@ export const pageAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: 
   .get(
     '/pages/:id',
     async ({ params, status }) => {
-      const [pageRow] = await db.select().from(page).where(eq(page.id, params.id));
-      if (!pageRow) {
-        return status(404, { message: 'Page introuvable' });
-      }
-      return { ...pageRow, sections: await loadSections(pageRow.id) };
+      const found = await findPage(params.id);
+      if (!found) return status(404, { message: 'Page introuvable' });
+
+      return found;
     },
     { permission: true, params: uuidParam, response: withCrudErrors({ 200: adminPageDetail }) },
   )
@@ -99,15 +90,12 @@ export const pageAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: 
   .post(
     '/pages',
     async ({ body, status }) => {
-      const [existing] = await db
-        .select({ id: page.id })
-        .from(page)
-        .where(eq(page.slug, body.slug));
-      if (existing) {
+      const result = await createPage(body);
+
+      if (result.outcome === 'slug-taken') {
         return status(409, { message: 'Une page existe déjà avec ce slug' });
       }
-      const [created] = await db.insert(page).values(body).returning();
-      return { ...created, sections: [] };
+      return result.page;
     },
     {
       permission: true,
@@ -122,16 +110,10 @@ export const pageAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: 
   .patch(
     '/pages/:id',
     async ({ params, body, status }) => {
-      const [existing] = await db.select({ id: page.id }).from(page).where(eq(page.id, params.id));
-      if (!existing) {
-        return status(404, { message: 'Page introuvable' });
-      }
-      const [updated] = await db
-        .update(page)
-        .set({ ...body, dateUpdated: new Date() })
-        .where(eq(page.id, params.id))
-        .returning();
-      return { ...updated, sections: await loadSections(params.id) };
+      const updated = await updatePage(params.id, body);
+      if (!updated) return status(404, { message: 'Page introuvable' });
+
+      return updated;
     },
     {
       permission: true,
@@ -145,42 +127,16 @@ export const pageAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: 
   .put(
     '/pages/:id/sections',
     async ({ params, body, status }) => {
-      const [existing] = await db.select({ id: page.id }).from(page).where(eq(page.id, params.id));
-      if (!existing) {
-        return status(404, { message: 'Page introuvable' });
-      }
+      const result = await replaceSections(params.id, body);
 
-      // Valide chaque bloc contre sa définition dans le registre (validateur générique P2b).
-      const errors: string[] = [];
-      for (const [index, block] of body.entries()) {
-        const result = await validateSectionData(block.type, block.data);
-        if (!result.ok) {
-          errors.push(
-            ...result.errors.map((error) => `bloc ${index} « ${block.type} » : ${error}`),
-          );
-        }
+      switch (result.outcome) {
+        case 'page-not-found':
+          return status(404, { message: 'Page introuvable' });
+        case 'invalid':
+          return status(422, { message: result.errors.join(' ; ') });
+        case 'replaced':
+          return result.sections;
       }
-      if (errors.length > 0) {
-        return status(422, { message: errors.join(' ; ') });
-      }
-
-      await db.transaction(async (tx) => {
-        await tx.delete(section).where(eq(section.page, params.id));
-        if (body.length > 0) {
-          await tx.insert(section).values(
-            body.map((block, index) => ({
-              page: params.id,
-              name: block.name ?? null,
-              type: block.type,
-              data: block.data,
-              sort: index,
-            })),
-          );
-        }
-        await tx.update(page).set({ dateUpdated: new Date() }).where(eq(page.id, params.id));
-      });
-
-      return loadSections(params.id);
     },
     {
       permission: true,
@@ -196,11 +152,9 @@ export const pageAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: 
   .delete(
     '/pages/:id',
     async ({ params, status }) => {
-      const [existing] = await db.select({ id: page.id }).from(page).where(eq(page.id, params.id));
-      if (!existing) {
-        return status(404, { message: 'Page introuvable' });
-      }
-      await db.delete(page).where(eq(page.id, params.id)); // sections supprimées en cascade
+      const deleted = await deletePage(params.id);
+      if (!deleted) return status(404, { message: 'Page introuvable' });
+
       return { success: true };
     },
     { permission: true, params: uuidParam, response: withCrudErrors({ 200: successSchema }) },

@@ -161,6 +161,50 @@ export function assertRegistryCoherent(registry: Registry): void {
   compileSections(registry);
 }
 
+// Aplati le registre (sections + components) en lignes `content_definition` (une par définition).
+function registryToRows(registry: Registry): (typeof contentDefinition.$inferInsert)[] {
+  const toRow =
+    (role: 'section' | 'component') => (entry: [string, Registry['sections'][string]]) => {
+      const [name, def] = entry;
+      return { name, role, label: def.label ?? null, icon: def.icon ?? null, fields: def.fields };
+    };
+  return [
+    ...Object.entries(registry.sections).map(toRow('section')),
+    ...Object.entries(registry.components).map(toRow('component')),
+  ];
+}
+
+export type SyncRegistryOutcome =
+  | { outcome: 'synced' }
+  /** Référence de component introuvable ou cycle : refusé AVANT de persister quoi que ce soit. */
+  | { outcome: 'incoherent'; message: string };
+
+/**
+ * Remplace le registre stocké d'un bloc. La source d'autorité, ce sont les fichiers du dev ; la
+ * base n'en est que le miroir. L'incohérence est une issue métier, pas une exception qui remonte.
+ */
+export async function syncRegistry(registry: Registry): Promise<SyncRegistryOutcome> {
+  try {
+    assertRegistryCoherent(registry);
+  } catch (error) {
+    return {
+      outcome: 'incoherent',
+      message: error instanceof Error ? error.message : 'Registre de contenu invalide',
+    };
+  }
+
+  await db.transaction(async (tx) => {
+    await tx.delete(contentDefinition);
+    const rows = registryToRows(registry);
+    if (rows.length > 0) {
+      await tx.insert(contentDefinition).values(rows);
+    }
+  });
+
+  invalidateRegistryCache();
+  return { outcome: 'synced' };
+}
+
 type ValidationResult = { ok: true } | { ok: false; errors: string[] };
 
 /** Valide le `data` d'une section contre la définition de son `type` dans le registre. */
