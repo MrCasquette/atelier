@@ -1,19 +1,3 @@
-import type {
-  BrevoCredentials,
-  CommunicationConfig,
-  ResendCredentials,
-  SmtpCredentials,
-} from '@echoppe/core';
-import {
-  COMMUNICATION_PROVIDERS,
-  communicationLog,
-  db,
-  getCommunicationAdapter,
-  getCommunicationProviderStatus,
-  isEncryptionConfigured,
-  resetCommunicationAdapters,
-  saveCommunicationProviderCredentials,
-} from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { errorSchema, successSchema } from '../../lib/response';
 import { permissionGuard } from '../auth/rbac';
@@ -25,11 +9,16 @@ import {
   testEmailBody,
   testResultSchema,
 } from './model';
-import { providerMeta } from './provider-meta';
+import { listProviderStatuses, saveProvider, sendTestEmail } from './service';
 
 // Configuration des fournisseurs d'e-mail. Le module ne sait PAS envoyer : l'envoi vit dans
-// @repo/communication, appelé ici pour vérifier une connexion et enregistrer les identifiants
-// chiffrés. Surface entièrement protégée par `communication_config`.
+// @repo/communication, appelé par ./service.ts pour vérifier une connexion et enregistrer les
+// identifiants chiffrés. Surface entièrement protégée par `communication_config`.
+//
+// Les trois routes de configuration ne diffèrent que par la forme des identifiants ; c'est
+// précisément ce que leur schéma de corps exprime, et tout ce qu'elles ajoutent au service.
+
+const ENCRYPTION_MISSING = { message: 'ENCRYPTION_KEY non configurée' } as const;
 
 export const communicationsRoutes = new Elysia({
   prefix: '/communications',
@@ -40,28 +29,10 @@ export const communicationsRoutes = new Elysia({
   .use(permissionGuard('communication_config', 'read'))
 
   // GET /communications/providers - Liste des providers avec statut
-  .get(
-    '/providers',
-    async () => {
-      const providers = COMMUNICATION_PROVIDERS;
-      const encryptionReady = isEncryptionConfigured();
-
-      const result = await Promise.all(
-        providers.map(async (id) => {
-          const status = await getCommunicationProviderStatus(id);
-          return {
-            id,
-            ...providerMeta[id],
-            ...status,
-            encryptionReady,
-          };
-        }),
-      );
-
-      return result;
-    },
-    { permission: true, response: { 200: t.Array(providerStatusSchema) } },
-  )
+  .get('/providers', () => listProviderStatuses(), {
+    permission: true,
+    response: { 200: t.Array(providerStatusSchema) },
+  })
 
   // === COMMUNICATION CONFIG UPDATE ===
   .use(permissionGuard('communication_config', 'update'))
@@ -70,29 +41,16 @@ export const communicationsRoutes = new Elysia({
   .put(
     '/providers/resend',
     async ({ body, status }) => {
-      if (!isEncryptionConfigured()) {
-        return status(400, { message: 'ENCRYPTION_KEY non configurée' });
-      }
-
-      const credentials: ResendCredentials = {
-        apiKey: body.apiKey,
-      };
-
-      const config: CommunicationConfig = {
-        fromEmail: body.fromEmail,
-        fromName: body.fromName,
-        replyTo: body.replyTo,
-      };
-
-      await saveCommunicationProviderCredentials(
+      const result = await saveProvider(
         'resend',
-        credentials,
-        config,
+        { apiKey: body.apiKey },
+        { fromEmail: body.fromEmail, fromName: body.fromName, replyTo: body.replyTo },
         body.isEnabled ?? true,
       );
-      resetCommunicationAdapters();
 
-      return { success: true };
+      return result.outcome === 'encryption-missing'
+        ? status(400, ENCRYPTION_MISSING)
+        : { success: true };
     },
     {
       permission: true,
@@ -105,29 +63,16 @@ export const communicationsRoutes = new Elysia({
   .put(
     '/providers/brevo',
     async ({ body, status }) => {
-      if (!isEncryptionConfigured()) {
-        return status(400, { message: 'ENCRYPTION_KEY non configurée' });
-      }
-
-      const credentials: BrevoCredentials = {
-        apiKey: body.apiKey,
-      };
-
-      const config: CommunicationConfig = {
-        fromEmail: body.fromEmail,
-        fromName: body.fromName,
-        replyTo: body.replyTo,
-      };
-
-      await saveCommunicationProviderCredentials(
+      const result = await saveProvider(
         'brevo',
-        credentials,
-        config,
+        { apiKey: body.apiKey },
+        { fromEmail: body.fromEmail, fromName: body.fromName, replyTo: body.replyTo },
         body.isEnabled ?? true,
       );
-      resetCommunicationAdapters();
 
-      return { success: true };
+      return result.outcome === 'encryption-missing'
+        ? status(400, ENCRYPTION_MISSING)
+        : { success: true };
     },
     { permission: true, body: brevoConfigBody, response: { 200: successSchema, 400: errorSchema } },
   )
@@ -136,33 +81,22 @@ export const communicationsRoutes = new Elysia({
   .put(
     '/providers/smtp',
     async ({ body, status }) => {
-      if (!isEncryptionConfigured()) {
-        return status(400, { message: 'ENCRYPTION_KEY non configurée' });
-      }
-
-      const credentials: SmtpCredentials = {
-        host: body.host,
-        port: body.port,
-        secure: body.secure,
-        user: body.user,
-        pass: body.pass,
-      };
-
-      const config: CommunicationConfig = {
-        fromEmail: body.fromEmail,
-        fromName: body.fromName,
-        replyTo: body.replyTo,
-      };
-
-      await saveCommunicationProviderCredentials(
+      const result = await saveProvider(
         'smtp',
-        credentials,
-        config,
+        {
+          host: body.host,
+          port: body.port,
+          secure: body.secure,
+          user: body.user,
+          pass: body.pass,
+        },
+        { fromEmail: body.fromEmail, fromName: body.fromName, replyTo: body.replyTo },
         body.isEnabled ?? true,
       );
-      resetCommunicationAdapters();
 
-      return { success: true };
+      return result.outcome === 'encryption-missing'
+        ? status(400, ENCRYPTION_MISSING)
+        : { success: true };
     },
     { permission: true, body: smtpConfigBody, response: { 200: successSchema, 400: errorSchema } },
   )
@@ -171,46 +105,18 @@ export const communicationsRoutes = new Elysia({
   .post(
     '/test',
     async ({ body, status }) => {
-      const adapter = getCommunicationAdapter(body.provider);
+      const result = await sendTestEmail(body.provider, body.to);
 
-      if (!(await adapter.isConfigured())) {
-        return status(400, { message: `Provider ${body.provider} non configuré` });
+      switch (result.outcome) {
+        case 'not-configured':
+          return status(400, { message: `Provider ${body.provider} non configuré` });
+        case 'unreachable':
+          return status(400, {
+            message: 'Impossible de se connecter au provider. Vérifiez vos identifiants.',
+          });
+        case 'sent':
+          return result.result;
       }
-
-      // Vérifier la connexion
-      const isValid = await adapter.verify();
-      if (!isValid) {
-        return status(400, {
-          message: 'Impossible de se connecter au provider. Vérifiez vos identifiants.',
-        });
-      }
-
-      // Envoyer l'email de test
-      const result = await adapter.send({
-        to: body.to,
-        subject: 'Test de configuration email - Échoppe',
-        template: 'welcome',
-        data: {
-          customerName: 'Administrateur',
-          shopName: 'Votre Boutique Échoppe',
-          shopUrl: '#',
-        },
-      });
-
-      // Log le résultat
-      await db.insert(communicationLog).values({
-        provider: body.provider,
-        channel: 'email',
-        template: 'welcome',
-        recipient: body.to,
-        subject: 'Test de configuration email - Échoppe',
-        status: result.success ? 'sent' : 'failed',
-        providerMessageId: result.messageId,
-        error: result.error,
-        metadata: { isTest: true },
-      });
-
-      return result;
     },
     {
       permission: true,
