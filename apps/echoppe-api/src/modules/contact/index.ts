@@ -1,8 +1,8 @@
-import { db, sendContactFormEmail, site } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
 import { strictRateLimitOptions } from '../../lib/rate-limit';
 import { messageSchema, withRateLimitErrors, withServiceErrors } from '../../lib/response';
+import { sendContactMessage } from './service';
 
 const contactBody = t.Object({
   name: t.String({ minLength: 1, maxLength: 100 }),
@@ -16,31 +16,20 @@ export const contactRoutes = new Elysia({ prefix: '/contact' })
   .post(
     '/',
     async ({ body, status }) => {
-      const [siteData] = await db.select().from(site).limit(1);
+      const result = await sendContactMessage(body);
 
-      if (!siteData?.publicEmail) {
-        return status(503, {
-          message: 'Le formulaire de contact est temporairement indisponible.',
-        });
+      switch (result.outcome) {
+        case 'no-recipient':
+          return status(503, {
+            message: 'Le formulaire de contact est temporairement indisponible.',
+          });
+        case 'send-failed':
+          return status(500, { message: "Une erreur est survenue lors de l'envoi du message." });
+        case 'not-configured':
+          return status(503, { message: "Le service d'envoi d'emails n'est pas configuré." });
+        case 'sent':
+          return { message: 'Message envoyé avec succès.' };
       }
-
-      const result = await sendContactFormEmail({
-        adminEmail: siteData.publicEmail,
-        senderName: body.name,
-        senderEmail: body.email,
-        subject: body.subject,
-        message: body.message,
-      });
-
-      if (!result.success) {
-        return status(500, { message: "Une erreur est survenue lors de l'envoi du message." });
-      }
-
-      if (result.skipped) {
-        return status(503, { message: "Le service d'envoi d'emails n'est pas configuré." });
-      }
-
-      return { message: 'Message envoyé avec succès.' };
     },
     {
       body: contactBody,
