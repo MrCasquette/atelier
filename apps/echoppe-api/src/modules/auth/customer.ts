@@ -1,16 +1,3 @@
-import { createHash, randomBytes } from 'node:crypto';
-import {
-  and,
-  customer,
-  customerSession,
-  db,
-  eq,
-  gt,
-  ne,
-  passwordResetToken,
-  sendResetPasswordEmail,
-  sendWelcomeEmail,
-} from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
 import { authRateLimitOptions, strictRateLimitOptions } from '../../lib/rate-limit';
@@ -22,38 +9,44 @@ import {
   unauthorizedResponse,
 } from '../../lib/response';
 import { models } from '../../model';
-import { customerAuthPlugin, type SessionCustomer } from './customer-session';
-
-const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 heure
-const sha256 = (value: string): string => createHash('sha256').update(value).digest('hex');
-
-const COOKIE_NAME = 'echoppe_customer_session';
-const SESSION_DURATION_DAYS = 7;
-
-// URL publique du storefront, pour les liens envoyés par e-mail (réinitialisation de mot de passe).
-// Réutilise `STORE_URL` — déjà l'origine de la boutique (CORS + liste blanche de redirection) : en
-// faire une variable d'environnement à part créerait deux sources de vérité pour la même adresse.
-const STOREFRONT_URL = (process.env.STORE_URL || 'http://localhost:4321').replace(/\/+$/, '');
-// Le storefront est remplaçable, donc ce chemin POURRAIT varier par déploiement — mais personne ne
-// l'a demandé, et le jour venu `process.env.PASSWORD_RESET_PATH ?? …` est un changement d'une ligne.
-const PASSWORD_RESET_PATH = '/reset-password';
-
-const cookieSchema = t.Cookie({
-  [COOKIE_NAME]: t.Optional(t.String()),
-});
+import {
+  authenticateCustomer,
+  CUSTOMER_SESSION_DURATION_DAYS,
+  changeCustomerPassword,
+  destroyCustomerSession,
+  readCustomerSession,
+  refreshCustomerSession,
+  registerCustomer,
+  requestPasswordReset,
+  resetPassword,
+  type SessionContext,
+} from './customer-service';
+import {
+  CUSTOMER_COOKIE_NAME,
+  customerAuthPlugin,
+  customerCookieSchema,
+  type SessionCustomer,
+} from './customer-session';
 
 // Les réponses sont des modèles nommés (src/models/customer.ts → module `customer`), référencés par nom :
 // register/`me` → `CustomerAuth` (profil complet), login → `LoginResult` (identité réduite).
 // Chaque instance qui les référence fait `.use(models)`.
 
-function generateToken(): string {
-  return randomBytes(32).toString('hex');
-}
+const SESSION_COOKIE = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  path: '/',
+  maxAge: CUSTOMER_SESSION_DURATION_DAYS * 24 * 60 * 60,
+} as const;
 
-function getExpiresAt(): Date {
-  const date = new Date();
-  date.setDate(date.getDate() + SESSION_DURATION_DAYS);
-  return date;
+/** Ce que la requête dit du client, tel qu'on le garde sur la session. */
+function sessionContext(request: Request): SessionContext {
+  return {
+    ipAddress:
+      request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+    userAgent: request.headers.get('user-agent') || 'unknown',
+  };
 }
 
 // Rate-limited register route (strict: 5 requests / 15 min)
@@ -63,80 +56,15 @@ const registerRoute = new Elysia()
   .post(
     '/register',
     async ({ body, cookie, request, status }) => {
-      // Check if email already exists
-      const [existing] = await db
-        .select({ id: customer.id })
-        .from(customer)
-        .where(eq(customer.email, body.email.toLowerCase()));
+      const result = await registerCustomer(body, sessionContext(request));
 
-      if (existing) {
+      if (result.outcome === 'email-taken') {
         return status(409, { message: 'Un compte existe déjà avec cet email' });
       }
 
-      // Hash password
-      const passwordHash = await Bun.password.hash(body.password, {
-        algorithm: 'bcrypt',
-        cost: 10,
-      });
+      cookie[CUSTOMER_COOKIE_NAME].set({ value: result.token, ...SESSION_COOKIE });
 
-      // Create customer
-      const [created] = await db
-        .insert(customer)
-        .values({
-          email: body.email.toLowerCase(),
-          passwordHash,
-          firstName: body.firstName,
-          lastName: body.lastName,
-          phone: body.phone,
-          marketingOptin: body.marketingOptin ?? false,
-        })
-        .returning();
-
-      // Create session
-      const token = generateToken();
-      const expiresAt = getExpiresAt();
-      const ipAddress =
-        request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
-      const userAgent = request.headers.get('user-agent') || 'unknown';
-
-      await db.insert(customerSession).values({
-        token,
-        customer: created.id,
-        ipAddress,
-        userAgent,
-        expiresAt,
-      });
-
-      // Update lastLogin
-      await db.update(customer).set({ lastLogin: new Date() }).where(eq(customer.id, created.id));
-
-      // Send welcome email
-      await sendWelcomeEmail({
-        customerEmail: created.email,
-        customerName: created.firstName,
-      });
-
-      // Set cookie
-      cookie[COOKIE_NAME].set({
-        value: token,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path: '/',
-        maxAge: SESSION_DURATION_DAYS * 24 * 60 * 60,
-      });
-
-      return {
-        customer: {
-          id: created.id,
-          email: created.email,
-          firstName: created.firstName,
-          lastName: created.lastName,
-          phone: created.phone,
-          emailVerified: created.emailVerified,
-          marketingOptin: created.marketingOptin,
-        },
-      };
+      return { customer: result.customer };
     },
     {
       body: t.Object({
@@ -147,7 +75,7 @@ const registerRoute = new Elysia()
         phone: t.Optional(t.String({ maxLength: 20 })),
         marketingOptin: t.Optional(t.Boolean()),
       }),
-      cookie: cookieSchema,
+      cookie: customerCookieSchema,
       response: {
         200: 'CustomerAuth',
         409: conflictResponse,
@@ -163,70 +91,22 @@ const loginRoute = new Elysia()
   .post(
     '/login',
     async ({ body, cookie, request, status }) => {
-      const [found] = await db
-        .select({
-          id: customer.id,
-          email: customer.email,
-          passwordHash: customer.passwordHash,
-          firstName: customer.firstName,
-          lastName: customer.lastName,
-        })
-        .from(customer)
-        .where(eq(customer.email, body.email.toLowerCase()));
+      const result = await authenticateCustomer(body, sessionContext(request));
 
-      if (!found) {
+      if (result.outcome === 'invalid-credentials') {
         return status(401, { message: 'Email ou mot de passe incorrect' });
       }
 
-      const validPassword = await Bun.password.verify(body.password, found.passwordHash);
+      cookie[CUSTOMER_COOKIE_NAME].set({ value: result.token, ...SESSION_COOKIE });
 
-      if (!validPassword) {
-        return status(401, { message: 'Email ou mot de passe incorrect' });
-      }
-
-      // Create session
-      const token = generateToken();
-      const expiresAt = getExpiresAt();
-      const ipAddress =
-        request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
-      const userAgent = request.headers.get('user-agent') || 'unknown';
-
-      await db.insert(customerSession).values({
-        token,
-        customer: found.id,
-        ipAddress,
-        userAgent,
-        expiresAt,
-      });
-
-      // Update lastLogin
-      await db.update(customer).set({ lastLogin: new Date() }).where(eq(customer.id, found.id));
-
-      // Set cookie
-      cookie[COOKIE_NAME].set({
-        value: token,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path: '/',
-        maxAge: SESSION_DURATION_DAYS * 24 * 60 * 60,
-      });
-
-      return {
-        customer: {
-          id: found.id,
-          email: found.email,
-          firstName: found.firstName,
-          lastName: found.lastName,
-        },
-      };
+      return { customer: result.customer };
     },
     {
       body: t.Object({
         email: t.String({ format: 'email' }),
         password: t.String({ minLength: 1 }),
       }),
-      cookie: cookieSchema,
+      cookie: customerCookieSchema,
       response: {
         200: 'LoginResult',
         401: unauthorizedResponse,
@@ -245,22 +125,7 @@ const passwordResetRoutes = new Elysia()
   .post(
     '/password/forgot',
     async ({ body }) => {
-      const [found] = await db
-        .select({ id: customer.id, email: customer.email })
-        .from(customer)
-        .where(eq(customer.email, body.email.toLowerCase()));
-
-      if (found) {
-        const rawToken = generateToken();
-        await db.insert(passwordResetToken).values({
-          customer: found.id,
-          tokenHash: sha256(rawToken),
-          expiresAt: new Date(Date.now() + RESET_TOKEN_TTL_MS),
-        });
-
-        const resetUrl = `${STOREFRONT_URL}${PASSWORD_RESET_PATH}?token=${rawToken}`;
-        await sendResetPasswordEmail({ email: found.email, resetUrl, expiresIn: '1 heure' });
-      }
+      await requestPasswordReset(body.email);
 
       // Réponse identique que l'email existe ou non.
       return { success: true };
@@ -273,38 +138,11 @@ const passwordResetRoutes = new Elysia()
   .post(
     '/password/reset',
     async ({ body, status }) => {
-      const [tokenRow] = await db
-        .select({
-          id: passwordResetToken.id,
-          customer: passwordResetToken.customer,
-          expiresAt: passwordResetToken.expiresAt,
-          usedAt: passwordResetToken.usedAt,
-        })
-        .from(passwordResetToken)
-        .where(eq(passwordResetToken.tokenHash, sha256(body.token)));
+      const result = await resetPassword(body.token, body.newPassword);
 
-      if (!tokenRow || tokenRow.usedAt || tokenRow.expiresAt < new Date()) {
-        return status(400, { message: 'Lien de réinitialisation invalide ou expiré' });
-      }
-
-      const passwordHash = await Bun.password.hash(body.newPassword, {
-        algorithm: 'bcrypt',
-        cost: 10,
-      });
-
-      await db
-        .update(customer)
-        .set({ passwordHash, dateUpdated: new Date() })
-        .where(eq(customer.id, tokenRow.customer));
-
-      // Jeton consommé + révocation de toutes les sessions (sécurité).
-      await db
-        .update(passwordResetToken)
-        .set({ usedAt: new Date() })
-        .where(eq(passwordResetToken.id, tokenRow.id));
-      await db.delete(customerSession).where(eq(customerSession.customer, tokenRow.customer));
-
-      return { success: true };
+      return result.outcome === 'invalid-token'
+        ? status(400, { message: 'Lien de réinitialisation invalide ou expiré' })
+        : { success: true };
     },
     {
       body: t.Object({
@@ -333,18 +171,13 @@ export const customerAuthRoutes = new Elysia({
   .post(
     '/logout',
     async ({ cookie }) => {
-      const token = cookie[COOKIE_NAME].value;
-
-      if (token) {
-        await db.delete(customerSession).where(eq(customerSession.token, token));
-      }
-
-      cookie[COOKIE_NAME].remove();
+      await destroyCustomerSession(cookie[CUSTOMER_COOKIE_NAME].value);
+      cookie[CUSTOMER_COOKIE_NAME].remove();
 
       return { success: true };
     },
     {
-      cookie: cookieSchema,
+      cookie: customerCookieSchema,
       response: { 200: successSchema },
     },
   )
@@ -353,43 +186,20 @@ export const customerAuthRoutes = new Elysia({
   .get(
     '/me',
     async ({ cookie, status }) => {
-      const token = cookie[COOKIE_NAME].value;
+      const token = cookie[CUSTOMER_COOKIE_NAME].value;
+      if (!token) return status(401, { message: 'Non authentifié' });
 
-      if (!token) {
-        return status(401, { message: 'Non authentifié' });
-      }
+      const found = await readCustomerSession(token);
 
-      const [sessionData] = await db
-        .select({
-          session: {
-            id: customerSession.id,
-            expiresAt: customerSession.expiresAt,
-          },
-          customer: {
-            id: customer.id,
-            email: customer.email,
-            firstName: customer.firstName,
-            lastName: customer.lastName,
-            phone: customer.phone,
-            emailVerified: customer.emailVerified,
-            marketingOptin: customer.marketingOptin,
-          },
-        })
-        .from(customerSession)
-        .innerJoin(customer, eq(customerSession.customer, customer.id))
-        .where(and(eq(customerSession.token, token), gt(customerSession.expiresAt, new Date())));
-
-      if (!sessionData) {
-        cookie[COOKIE_NAME].remove();
+      if (!found) {
+        cookie[CUSTOMER_COOKIE_NAME].remove();
         return status(401, { message: 'Session invalide ou expirée' });
       }
 
-      return {
-        customer: sessionData.customer,
-      };
+      return { customer: found };
     },
     {
-      cookie: cookieSchema,
+      cookie: customerCookieSchema,
       response: {
         200: 'CustomerAuth',
         401: unauthorizedResponse,
@@ -401,57 +211,22 @@ export const customerAuthRoutes = new Elysia({
   .post(
     '/refresh',
     async ({ cookie, request, status }) => {
-      const token = cookie[COOKIE_NAME].value;
+      const token = cookie[CUSTOMER_COOKIE_NAME].value;
+      if (!token) return status(401, { message: 'Non authentifié' });
 
-      if (!token) {
-        return status(401, { message: 'Non authentifié' });
-      }
+      const newToken = await refreshCustomerSession(token, sessionContext(request));
 
-      // Find valid session
-      const [sessionData] = await db
-        .select({
-          id: customerSession.id,
-          customerId: customerSession.customer,
-        })
-        .from(customerSession)
-        .where(and(eq(customerSession.token, token), gt(customerSession.expiresAt, new Date())));
-
-      if (!sessionData) {
-        cookie[COOKIE_NAME].remove();
+      if (!newToken) {
+        cookie[CUSTOMER_COOKIE_NAME].remove();
         return status(401, { message: 'Session invalide ou expirée' });
       }
 
-      // Generate new token and extend expiry
-      const newToken = generateToken();
-      const newExpiresAt = getExpiresAt();
-      const ipAddress =
-        request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
-      const userAgent = request.headers.get('user-agent') || 'unknown';
-
-      await db
-        .update(customerSession)
-        .set({
-          token: newToken,
-          expiresAt: newExpiresAt,
-          ipAddress,
-          userAgent,
-        })
-        .where(eq(customerSession.id, sessionData.id));
-
-      // Set new cookie
-      cookie[COOKIE_NAME].set({
-        value: newToken,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path: '/',
-        maxAge: SESSION_DURATION_DAYS * 24 * 60 * 60,
-      });
+      cookie[CUSTOMER_COOKIE_NAME].set({ value: newToken, ...SESSION_COOKIE });
 
       return { success: true };
     },
     {
-      cookie: cookieSchema,
+      cookie: customerCookieSchema,
       response: {
         200: successSchema,
         401: unauthorizedResponse,
@@ -466,39 +241,15 @@ export const customerAuthRoutes = new Elysia({
     async ({ body, cookie, currentCustomer, status }) => {
       const c = currentCustomer as SessionCustomer;
 
-      const [row] = await db
-        .select({ passwordHash: customer.passwordHash })
-        .from(customer)
-        .where(eq(customer.id, c.id));
+      const result = await changeCustomerPassword(c.id, body, cookie[CUSTOMER_COOKIE_NAME].value);
 
-      const valid = row && (await Bun.password.verify(body.currentPassword, row.passwordHash));
-      if (!valid) {
-        return status(401, { message: 'Mot de passe actuel incorrect' });
-      }
-
-      const passwordHash = await Bun.password.hash(body.newPassword, {
-        algorithm: 'bcrypt',
-        cost: 10,
-      });
-
-      await db
-        .update(customer)
-        .set({ passwordHash, dateUpdated: new Date() })
-        .where(eq(customer.id, c.id));
-
-      // Révoque les autres sessions (sécurité) — la session courante reste valide.
-      const token = cookie[COOKIE_NAME].value;
-      if (token) {
-        await db
-          .delete(customerSession)
-          .where(and(eq(customerSession.customer, c.id), ne(customerSession.token, token)));
-      }
-
-      return { success: true };
+      return result.outcome === 'wrong-password'
+        ? status(401, { message: 'Mot de passe actuel incorrect' })
+        : { success: true };
     },
     {
       customerAuth: true,
-      cookie: cookieSchema,
+      cookie: customerCookieSchema,
       body: t.Object({
         currentPassword: t.String({ minLength: 1 }),
         newPassword: t.String({ minLength: 8 }),

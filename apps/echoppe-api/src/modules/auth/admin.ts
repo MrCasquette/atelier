@@ -1,5 +1,3 @@
-import { randomBytes } from 'node:crypto';
-import { and, db, eq, gt, role, session, user } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
 import { authRateLimitOptions } from '../../lib/rate-limit';
@@ -10,24 +8,13 @@ import {
   unauthorizedResponse,
 } from '../../lib/response';
 import { getClientIp, logAudit } from '../audit/service';
-
-const COOKIE_NAME = 'echoppe_admin_session';
-const SESSION_DURATION_DAYS = 7;
-
-function generateToken(): string {
-  return randomBytes(32).toString('hex');
-}
-
-function getExpiresAt(): Date {
-  const date = new Date();
-  date.setDate(date.getDate() + SESSION_DURATION_DAYS);
-  return date;
-}
-
-// Schema cookie pour le typage
-const cookieSchema = t.Cookie({
-  [COOKIE_NAME]: t.Optional(t.String()),
-});
+import {
+  authenticateAdmin,
+  destroyAdminSession,
+  readAdminSession,
+  SESSION_DURATION_DAYS,
+} from './service';
+import { COOKIE_NAME, cookieSchema } from './session';
 
 // Schema pour /auth/me (réponse)
 const meUserSchema = t.Object({
@@ -66,55 +53,21 @@ const loginResponseSchema = t.Object({
 const loginRoute = new Elysia().use(rateLimit(authRateLimitOptions)).post(
   '/login',
   async ({ body, cookie, request, status }) => {
-    // Find user by email
-    const [foundUser] = await db
-      .select({
-        id: user.id,
-        email: user.email,
-        passwordHash: user.passwordHash,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        isActive: user.isActive,
-      })
-      .from(user)
-      .where(eq(user.email, body.email.toLowerCase()));
-
-    if (!foundUser) {
-      return status(401, { message: 'Email ou mot de passe incorrect' });
-    }
-
-    if (!foundUser.isActive) {
-      return status(403, { message: 'Compte désactivé' });
-    }
-
-    // Verify password
-    const validPassword = await Bun.password.verify(body.password, foundUser.passwordHash);
-    if (!validPassword) {
-      return status(401, { message: 'Email ou mot de passe incorrect' });
-    }
-
-    // Create session
-    const token = generateToken();
-    const expiresAt = getExpiresAt();
     const ipAddress =
       request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
-    await db.insert(session).values({
-      token,
-      user: foundUser.id,
-      ipAddress,
-      userAgent,
-      expiresAt,
-    });
+    const result = await authenticateAdmin(body, { ipAddress, userAgent });
 
-    // Update last login
-    await db.update(user).set({ lastLogin: new Date() }).where(eq(user.id, foundUser.id));
+    if (result.outcome === 'invalid-credentials') {
+      return status(401, { message: 'Email ou mot de passe incorrect' });
+    }
+    if (result.outcome === 'account-disabled') {
+      return status(403, { message: 'Compte désactivé' });
+    }
 
-    // Set cookie
     cookie[COOKIE_NAME].set({
-      value: token,
+      value: result.token,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
@@ -122,23 +75,15 @@ const loginRoute = new Elysia().use(rateLimit(authRateLimitOptions)).post(
       maxAge: SESSION_DURATION_DAYS * 24 * 60 * 60,
     });
 
-    // Log successful login
     logAudit({
-      userId: foundUser.id,
+      userId: result.user.id,
       action: 'user.login',
       entityType: 'user',
-      entityId: foundUser.id,
+      entityId: result.user.id,
       ipAddress: ipAddress !== 'unknown' ? ipAddress : undefined,
     });
 
-    return {
-      user: {
-        id: foundUser.id,
-        email: foundUser.email,
-        firstName: foundUser.firstName,
-        lastName: foundUser.lastName,
-      },
-    };
+    return { user: result.user };
   },
   {
     body: t.Object({
@@ -162,51 +107,21 @@ export const authAdminRoutes = new Elysia({ prefix: '/auth', detail: { tags: ['A
     '/me',
     async ({ cookie, status }) => {
       const token = cookie[COOKIE_NAME].value;
+      if (!token) return status(401, { message: 'Non authentifié' });
 
-      if (!token) {
-        return status(401, { message: 'Non authentifié' });
-      }
+      const result = await readAdminSession(token);
 
-      // Find valid session with user and role
-      const [sessionData] = await db
-        .select({
-          session: {
-            id: session.id,
-            expiresAt: session.expiresAt,
-          },
-          user: {
-            id: user.id,
-            email: user.email,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            isOwner: user.isOwner,
-            isActive: user.isActive,
-          },
-          role: {
-            id: role.id,
-            name: role.name,
-            scope: role.scope,
-          },
-        })
-        .from(session)
-        .innerJoin(user, eq(session.user, user.id))
-        .innerJoin(role, eq(user.role, role.id))
-        .where(and(eq(session.token, token), gt(session.expiresAt, new Date())));
-
-      if (!sessionData) {
+      // Une session refusée ne doit pas laisser traîner son cookie : le client repart propre.
+      if (result.outcome === 'invalid') {
         cookie[COOKIE_NAME].remove();
         return status(401, { message: 'Session invalide ou expirée' });
       }
-
-      if (!sessionData.user.isActive) {
+      if (result.outcome === 'account-disabled') {
         cookie[COOKIE_NAME].remove();
         return status(403, { message: 'Compte désactivé' });
       }
 
-      return {
-        user: sessionData.user,
-        role: sessionData.role,
-      };
+      return { user: result.user, role: result.role };
     },
     {
       cookie: cookieSchema,
@@ -222,31 +137,18 @@ export const authAdminRoutes = new Elysia({ prefix: '/auth', detail: { tags: ['A
   .post(
     '/logout',
     async ({ cookie, request }) => {
-      const token = cookie[COOKIE_NAME].value;
+      const userId = await destroyAdminSession(cookie[COOKIE_NAME].value);
 
-      if (token) {
-        // Get user ID before deleting session for audit
-        const [sessionData] = await db
-          .select({ userId: session.user })
-          .from(session)
-          .where(eq(session.token, token));
-
-        // Delete session from DB
-        await db.delete(session).where(eq(session.token, token));
-
-        // Log logout
-        if (sessionData) {
-          logAudit({
-            userId: sessionData.userId,
-            action: 'user.logout',
-            entityType: 'user',
-            entityId: sessionData.userId,
-            ipAddress: getClientIp(request.headers),
-          });
-        }
+      if (userId) {
+        logAudit({
+          userId,
+          action: 'user.logout',
+          entityType: 'user',
+          entityId: userId,
+          ipAddress: getClientIp(request.headers),
+        });
       }
 
-      // Clear cookie
       cookie[COOKIE_NAME].remove();
 
       return { success: true };
