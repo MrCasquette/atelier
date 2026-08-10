@@ -110,6 +110,16 @@
         "typescript": "6.0.3",
       },
     },
+    "packages/auth": {
+      "name": "@repo/auth",
+      "version": "0.0.1",
+      "dependencies": {
+        "drizzle-orm": "^0.45.2",
+      },
+      "devDependencies": {
+        "typescript": "6.0.3",
+      },
+    },
     "packages/client": {
       "name": "@echoppe/client",
       "version": "0.6.0",
@@ -154,6 +164,7 @@
         "@paypal/checkout-server-sdk": "^1.0.3",
         "@repo/adapters": "workspace:*",
         "@repo/assets": "workspace:*",
+        "@repo/auth": "workspace:*",
         "@repo/communication": "workspace:*",
         "@repo/db": "workspace:*",
         "@repo/identity": "workspace:*",
@@ -620,6 +631,8 @@
     "@repo/adapters": ["@repo/adapters@workspace:packages/adapters"],
 
     "@repo/assets": ["@repo/assets@workspace:packages/assets"],
+
+    "@repo/auth": ["@repo/auth@workspace:packages/auth"],
 
     "@repo/communication": ["@repo/communication@workspace:packages/communication"],
 

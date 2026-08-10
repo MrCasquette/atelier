@@ -1,6 +1,17 @@
 // Sonde d'extraction (ADR-0025) : les tables média vivent dans @repo/assets et sont réexportées
 // ici. Le cœur reste propriétaire des migrations — drizzle.config.ts ne lit que ce barrel.
 export { folder, media } from '@repo/assets';
+// Authentification et droits : @repo/auth (ADR-0033). Le cœur les inclut dans SON barrel, donc
+// dans ses migrations.
+export {
+  apiKey,
+  auditLog,
+  permission,
+  role,
+  roleScopeEnum,
+  session,
+  user,
+} from '@repo/auth';
 // Tables de communication : @repo/communication (ADR-0025) — le cœur les inclut dans SON
 // barrel, donc dans ses migrations.
 export {
@@ -11,8 +22,6 @@ export {
 // Identité et référentiel : @repo/identity (ADR-0040). Le cœur les inclut dans SON barrel,
 // donc dans ses migrations.
 export { country, legalEntity, site } from '@repo/identity';
-export * from './admin';
-export * from './auth';
 export * from './cart';
 export * from './catalog';
 export * from './content';

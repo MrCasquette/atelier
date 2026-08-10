@@ -2,13 +2,58 @@ import {
   boolean,
   index,
   jsonb,
+  pgEnum,
   pgTable,
   text,
   timestamp,
+  unique,
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { role } from './auth';
+
+// Les sept tables de l'authentification et des droits. Elles forment une île : aucune ne référence
+// une table d'un autre paquet, et `user` est le seul point d'entrée pour celles qui les référencent
+// de l'extérieur (cf. ADR-0025 — les relations transverses sont déclarées dans le cœur).
+//
+// L'ancienne coupure `auth.ts` / `admin.ts` obligeait à une référence différée entre `user` et
+// `role` ; les réunir la supprime.
+
+// Surface : dans quelle application le rôle a un sens. `store` était le nom Échoppe de la surface
+// publique ; un CMS a exactement la même (un visiteur non connecté lit ce qui est publié). Union
+// fermée assumée : c'est le socle qui décide qu'il existe une administration et une surface
+// publique, pas le produit (cf. ADR-0037, amendé).
+export const roleScopeEnum = pgEnum('role_scope', ['admin', 'public']);
+
+export const role = pgTable('role', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  // Identifiant stable des rôles que le CODE doit retrouver seul (`customer`, `public`). `name` est
+  // affiché et renommable par l'utilisateur : le chercher par nom casse silencieusement l'auth dès
+  // qu'on renomme « Client ». NULL pour tout rôle créé à la main — eux, le code ne les cherche pas.
+  key: varchar('key', { length: 50 }).unique(),
+  name: varchar('name', { length: 50 }).notNull(),
+  description: text('description'),
+  scope: roleScopeEnum('scope').notNull().default('admin'),
+  isSystem: boolean('is_system').notNull().default(false), // public, customer, owner cannot be deleted
+  dateCreated: timestamp('date_created', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const permission = pgTable(
+  'permission',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    role: uuid('role')
+      .notNull()
+      .references(() => role.id),
+    resource: varchar('resource', { length: 50 }).notNull(), // product, order, customer...
+    canCreate: boolean('can_create').notNull().default(false),
+    canRead: boolean('can_read').notNull().default(false),
+    canUpdate: boolean('can_update').notNull().default(false),
+    canDelete: boolean('can_delete').notNull().default(false),
+    selfOnly: boolean('self_only').notNull().default(false), // Auto ownership filter
+    locked: boolean('locked').notNull().default(false), // If true, permission cannot be modified by owner
+  },
+  (table) => [unique().on(table.role, table.resource)],
+);
 
 export const user = pgTable('user', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -55,7 +100,7 @@ export const auditLog = pgTable('audit_log', {
 // Clés d'API machine (P2b) : authentifient un client non-interactif (CLI, CI) via
 // `Authorization: Bearer eck_…`. La clé en clair n'est JAMAIS stockée — seul son hash SHA-256.
 // Les `scopes` (ex. ['read:content','write:content']) sont dérivés en permissions RBAC à la
-// résolution (cf. plugins/rbac). Portée réduite + révocable, contrairement aux creds humaines.
+// résolution (cf. modules/auth/rbac). Portée réduite + révocable, contrairement aux creds humaines.
 export const apiKey = pgTable(
   'api_key',
   {

@@ -23,6 +23,7 @@
     "@paypal/checkout-server-sdk": "^1.0.3",
     "@repo/adapters": "workspace:*",
     "@repo/assets": "workspace:*",
+    "@repo/auth": "workspace:*",
     "@repo/communication": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/identity": "workspace:*",
