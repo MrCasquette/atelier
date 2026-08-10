@@ -1,4 +1,5 @@
 import { apiKey, asc, db, eq } from '@echoppe/core';
+import { undelegatableScopes } from '@repo/auth';
 import { Elysia, t } from 'elysia';
 import { successSchema, withCrudErrors } from '../../lib/response';
 import { permissionGuard } from '../auth/rbac';
@@ -73,11 +74,20 @@ export const apiKeyRoutes = new Elysia({ prefix: '/api-keys', detail: { tags: ['
 
   .post(
     '/',
-    async ({ body, currentUser, status }) => {
+    async ({ body, currentUser, principal, status }) => {
       // Frontière : les scopes sont typés `string[]`, on rejette ici tout scope hors vocabulaire.
       const invalid = body.scopes.filter((scope) => !isValidScope(scope));
       if (invalid.length > 0) {
         return status(422, { message: `Portées inconnues : ${invalid.join(', ')}` });
+      }
+
+      // Une clé est une DÉLÉGATION D'AUTORITÉ : on ne peut lui donner que ce qu'on détient
+      // (ADR-0038, amendement). Sans ça, `api_key:create` serait un droit universel déguisé.
+      const ungrantable = undelegatableScopes(principal, body.scopes);
+      if (ungrantable.length > 0) {
+        return status(403, {
+          message: `Portées que vous ne détenez pas : ${ungrantable.join(', ')}`,
+        });
       }
 
       const { plaintext, hash } = generateApiKey();

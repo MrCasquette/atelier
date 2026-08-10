@@ -1,84 +1,13 @@
-import { db, eq } from '@repo/db';
 import type { PermissionSet, Principal } from './principal';
-import { permission, role } from './schema';
 
-// Lecture des droits et règles de délégation, sans rien savoir du transport : ni cookie, ni code
-// HTTP. Les gardes qui traduisent un refus en 403 sont du produit (ADR-0044).
+// Les RÈGLES de droits : qui peut quoi, qui peut déléguer quoi. Pures — aucune base, aucun
+// transport. La lecture des droits en base et son cache vivent dans `permission-cache.ts` : les
+// séparer garde ces règles testables sans connexion, et elles sont ce qu'il y a de plus important
+// à tester.
+//
+// Les gardes qui traduisent un refus en 403 sont du produit (ADR-0044).
 
 export type Action = 'create' | 'read' | 'update' | 'delete';
-
-// Cache des permissions par rôle (en mémoire)
-const permissionCache = new Map<string, Map<string, PermissionSet>>();
-const cacheTimestamps = new Map<string, number>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
-// Cache des identifiants de rôles système, résolus par leur `key` immuable.
-const systemRoleIds = new Map<string, string | null>();
-
-export async function getPermissionsForRole(roleId: string): Promise<Map<string, PermissionSet>> {
-  const now = Date.now();
-  const cached = permissionCache.get(roleId);
-  const timestamp = cacheTimestamps.get(roleId);
-
-  if (cached && timestamp && now - timestamp < CACHE_TTL) {
-    return cached;
-  }
-
-  const perms = await db.select().from(permission).where(eq(permission.role, roleId));
-
-  const permMap = new Map<string, PermissionSet>();
-  for (const p of perms) {
-    permMap.set(p.resource, {
-      canCreate: p.canCreate,
-      canRead: p.canRead,
-      canUpdate: p.canUpdate,
-      canDelete: p.canDelete,
-      selfOnly: p.selfOnly,
-    });
-  }
-
-  permissionCache.set(roleId, permMap);
-  cacheTimestamps.set(roleId, now);
-
-  return permMap;
-}
-
-/**
- * Permissions d'un rôle système désigné par sa `key` stable — jamais par son `name`, que
- * l'utilisateur peut renommer depuis l'administration.
- */
-export async function getPermissionsForRoleKey(key: string): Promise<Map<string, PermissionSet>> {
-  let roleId = systemRoleIds.get(key);
-  if (roleId === undefined) {
-    const [systemRole] = await db.select().from(role).where(eq(role.key, key));
-    roleId = systemRole?.id ?? null;
-    systemRoleIds.set(key, roleId);
-  }
-  if (!roleId) return new Map();
-  return getPermissionsForRole(roleId);
-}
-
-/**
- * Invalide le cache des permissions
- * Appeler après modification des permissions d'un rôle
- */
-export function invalidatePermissionCache(roleId?: string) {
-  if (roleId) {
-    permissionCache.delete(roleId);
-    cacheTimestamps.delete(roleId);
-  } else {
-    permissionCache.clear();
-    cacheTimestamps.clear();
-  }
-}
-
-/**
- * Invalide le cache des rôles système (résolus par `key`)
- * Appeler si ces rôles sont recréés
- */
-export function invalidateSystemRoleCache() {
-  systemRoleIds.clear();
-}
 
 // `resource` est une chaîne et non une union fermée : l'espace des ressources s'ouvre aux entités
 // déclarées (ADR-0038). C'est le produit qui garde une union à SA frontière — `permissionGuard`
@@ -160,6 +89,57 @@ export function undelegatableGrants(
     const grantsAnything = GRANTABLE_ACTIONS.some(([, flag]) => grant[flag]);
     if (grantsAnything && held?.selfOnly && grant.selfOnly !== true) {
       refused.push(`${grant.resource}:selfOnly`);
+    }
+  }
+
+  return refused;
+}
+
+// Ce qu'un scope de clé d'API recouvre. `write` est COMPOSITE, façon GitHub : create + update +
+// delete. Le détail granulaire reste au RBAC des rôles humains ; les clés machine restent simples.
+const SCOPE_WRITE_FLAGS = ['canCreate', 'canUpdate', 'canDelete'] as const;
+
+/**
+ * Une clé d'API est une DÉLÉGATION D'AUTORITÉ : la règle d'`undelegatableGrants` s'y applique
+ * telle quelle (ADR-0038, amendement du 2026-08-10).
+ *
+ * Sans elle, `api_key:create` est un droit universel déguisé — qui le détient se forge une clé
+ * portant n'importe quel scope, y compris ce qu'il ne peut pas faire lui-même. La validation
+ * existante ne vérifiait que le VOCABULAIRE : « ce scope existe-t-il », jamais « l'as-tu ».
+ *
+ * Renvoie les scopes refusés. Vide si l'émetteur peut tout déléguer.
+ */
+export function undelegatableScopes(principal: Principal<unknown>, scopes: string[]): string[] {
+  // Le propriétaire de l'installation court-circuite, comme partout ailleurs.
+  if (principal.bypass) return [];
+
+  const refused: string[] = [];
+
+  for (const scope of scopes) {
+    // Découpe sur le PREMIER `:` seulement : une ressource peut en contenir (`write:entity:article`).
+    const separator = scope.indexOf(':');
+    const action = scope.slice(0, separator);
+    const resource = scope.slice(separator + 1);
+    const held = principal.permissions.get(resource);
+
+    if (!held) {
+      refused.push(scope);
+      continue;
+    }
+
+    const covered =
+      action === 'read' ? held.canRead : SCOPE_WRITE_FLAGS.every((flag) => held[flag]);
+    if (!covered) {
+      refused.push(scope);
+      continue;
+    }
+
+    // `selfOnly` borne un droit aux lignes dont on est le sujet. Une clé machine n'a pas de sujet
+    // (`hasSubject: false`), donc elle ne PEUT PAS porter cette borne : lui déléguer un droit qu'on
+    // ne détient que borné le rendrait illimité entre ses mains. Refusé, faute de pouvoir le
+    // restreindre.
+    if (held.selfOnly) {
+      refused.push(scope);
     }
   }
 

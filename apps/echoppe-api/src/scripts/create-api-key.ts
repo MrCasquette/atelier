@@ -9,7 +9,12 @@ import { generateApiKey, isValidScope } from '../modules/api-key/service';
 //   docker compose exec api bun run api-key:create --name CI --scopes write:content --expires 2027-01-01
 //
 // La clé est affichée UNE seule fois. `createdBy` est null (clé système, sans propriétaire humain
-// → visible/révocable uniquement par l'Owner en gouvernance, cf. plugins/rbac).
+// → visible/révocable uniquement par l'Owner en gouvernance, cf. modules/auth/rbac).
+//
+// Ce script ne passe PAS par la borne de délégation d'ADR-0038 — `POST /api-keys` refuse un scope
+// que l'appelant ne détient pas, pas lui. Ce n'est pas un oubli : cette commande suppose déjà
+// l'accès à la base ou au conteneur, c'est-à-dire l'autorité de l'exploitant. Il n'y a pas
+// d'émetteur dont borner les droits ; il n'y a que l'exploitant, qui les a tous par construction.
 
 function fail(message: string): never {
   console.error(`✗ ${message}`);

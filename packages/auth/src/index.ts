@@ -4,18 +4,22 @@
 // barrel et donc dans ses migrations (ADR-0025). Le paquet n'expose aucune route ni aucun plugin
 // Elysia — les gardes (`authPlugin`, `permissionGuard`) sont du produit, parce qu'elles traduisent
 // en codes HTTP (ADR-0044).
+
 export {
   type Action,
-  getPermissionsForRole,
-  getPermissionsForRoleKey,
   hasPermission,
-  invalidatePermissionCache,
-  invalidateSystemRoleCache,
   isSelfOnly,
   type PermissionGrant,
   revokedByGrants,
   undelegatableGrants,
+  undelegatableScopes,
 } from './permission';
+export {
+  getPermissionsForRole,
+  getPermissionsForRoleKey,
+  invalidatePermissionCache,
+  invalidateSystemRoleCache,
+} from './permission-cache';
 export {
   createPrincipalRegistry,
   type FallbackPrincipalResolver,
