@@ -117,12 +117,13 @@ apps/
 - `prisme-core` cesse d'être hypothétique. Il n'a toujours pas à naître avant son consommateur — un
   cœur porte une `drizzle.config.ts` et un dossier de migrations, qui dérivent aussitôt s'ils ne
   migrent rien —, mais ce consommateur est le prochain chantier, pas un lointain.
-- Le dernier couplage du socle, `RESOURCES` dans `echoppe-core/src/constants/resources.ts`, devient
-  bloquant plutôt que gênant : une API Prisme qui monte `@repo/auth` hériterait du vocabulaire
-  e-commerce dans son RBAC (cf. #26).
-- Ce qui manque à Prisme n'est plus du découplage mais de la fonctionnalité : les **entités**
+- **Le socle ne retient plus rien.** Vérifié après #11 : `Resource` n'apparaît dans aucun paquet
+  `@repo/*`. `hasPermission` prend un nom de ressource et non une union fermée (ADR-0038) ;
+  `RESOURCES` et `permissionGuard` sont du PRODUIT, et c'est leur place — Prisme déclarera son
+  propre vocabulaire et sa propre garde, avec ses propres principaux.
+- Ce qui manque à Prisme n'est donc plus du découplage mais de la fonctionnalité : les **entités**
   ([ADR-0027](./ADR-0027-entites-tables-reelles.md), #27), sans lesquelles Prisme n'est qu'un
-  constructeur de pages.
+  constructeur de pages. #26 en découle, il n'en est pas le préalable.
 
 ## Amendement 2026-08-10 — deux écarts de nommage, acquis à l'extraction
 
