@@ -38,7 +38,7 @@ export type LinkMode =
   | { mode: 'anchor'; parent: string };
 
 /**
- * Une cible référençable. `project` sert la résolution au read (un menu rendu au storefront),
+ * Une cible référençable. `project` sert la résolution au read (un menu rendu au front),
  * `search` le sélecteur de l'administration — deux besoins réels, aucun réductible à l'autre :
  * l'un part d'identifiants connus, l'autre d'un terme saisi.
  */

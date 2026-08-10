@@ -2,7 +2,7 @@ import { and, asc, db, eq } from '@repo/db';
 import { validateSectionData } from './definition-service';
 import { page, section } from './schema';
 
-// Logique du page builder — lecture storefront et administration —, sans rien savoir du transport.
+// Logique du page builder — lecture front et administration —, sans rien savoir du transport.
 // Les absences sont des `null`, les refus des issues typées (ADR-0044).
 
 export type PageInput = {

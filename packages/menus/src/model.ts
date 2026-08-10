@@ -2,7 +2,7 @@ import { t } from 'elysia';
 import type { MenuItem } from './schema';
 
 // Ce qu'un menu EST, en schéma de validation — la forme de ce qui entre en base, pendant du type
-// `MenuItem` qui type la colonne. Le CONTRAT de lecture storefront, lui, appartient au produit :
+// `MenuItem` qui type la colonne. Le CONTRAT de lecture front, lui, appartient au produit :
 // il décrit ce qu'une route rend, pas ce qu'une donnée est (ADR-0044).
 
 // `target` est un NOM de cible et non une union fermée (ADR-0032) : `'url'`, ou le nom d'une cible

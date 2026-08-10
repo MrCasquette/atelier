@@ -43,7 +43,7 @@ export async function sendEmail(params: SendEmailParams): Promise<EmailResult> {
     return { success: true, skipped: true };
   }
 
-  // Enrichir les data avec les infos boutique
+  // Enrichir les data avec les infos du site
   const siteInfo = await getSiteInfo();
   const enrichedData = {
     siteName: siteInfo.name,

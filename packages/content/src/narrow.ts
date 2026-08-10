@@ -5,7 +5,7 @@
 // retype ce tableau brut en union discriminée inférée de la déclaration du dev (`InferSections<C>`).
 //
 // C'est l'UNIQUE cast de frontière de la partie front : légitime car l'API a déjà validé la donnée
-// à l'écriture (cf. validateur registre-dérivé, P2b) → on truste, exactement comme le storefront
+// à l'écriture (cf. validateur registre-dérivé, P2b) → on truste, exactement comme le front
 // truste déjà les types du SDK pour tout le catalogue. Le dev n'écrit donc jamais de `as` lui-même :
 // il appelle `asSections(content, page.sections)` à sa frontière (typiquement `src/lib/api.ts`).
 

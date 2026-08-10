@@ -30,6 +30,15 @@ Une **instance** n'a pas besoin de mot dédié : c'est un `Hero`, c'est un `Arti
 - **Entité** plutôt que « collection » (Directus) ou « content type » (Strapi) — vocabulaire Doctrine,
   sémantiquement plus juste, et « content type » retombe dans le mot piégé.
 - **Schema** plutôt que « modèle » — vient de Zod ; « modèle » est chargé par le MVC.
+- **Front** plutôt que « storefront » — dans tout ce qui est partagé. « Storefront » nomme la
+  vitrine d'un commerce ; un CMS n'en a pas. Le mot avait survécu dans les commentaires de
+  `@repo/pages`, `@repo/menus`, `@repo/references` et du DSL publié, où il désignait simplement
+  l'application qui LIT le contenu.
+
+  La frontière est celle des paquets : dans `apps/echoppe-*` et `echoppe-core`, « storefront » est
+  exact et reste. Dans un paquet partagé, il ne l'est pas. Même règle pour « boutique », qui garde
+  sa place quand il nomme précisément ce qui N'appartient PAS au socle — par exemple, dans
+  `@repo/identity`, « des colonnes de boutique obligatoires, inutilisable pour un CMS ».
 
 ## Ce que le lexique ne recouvre pas encore
 
