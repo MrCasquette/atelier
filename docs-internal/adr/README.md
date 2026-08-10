@@ -69,6 +69,7 @@ Portée : socle | <package> | échoppe | prisme
 | [0027](./ADR-0027-entites-tables-reelles.md) | Entités en vraies tables, déclarées en code et poussées | accepté | — |
 | [0039](./ADR-0039-entites-singleton.md) | Cardinalité d'une entité : singleton déclaré, borne haute seulement | accepté | — |
 | [0043](./ADR-0043-lexique-contenu.md) | Ratification du lexique du contenu, `definition` et le découpage `content` / `menu` | accepté | [lexique-prisme.md](../reference/lexique-prisme.md) |
+| [0045](./ADR-0045-cles-etrangeres-entites.md) | Clés étrangères d'une entité : la cible déclare son stockage, `required` dit la politique | accepté | [entites.md](../reference/entites.md) |
 
 ## Index — `assets` · Média et images
 
