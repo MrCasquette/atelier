@@ -46,8 +46,8 @@ livré. Le profil servi est **l'utilisateur standard qui a un dev**.
 
 | | ADR | Tâche |
 |---|---|---|
-| Registre de principaux, surfaces `admin`/`public`, une session par sujet | [0037](../adr/ADR-0037-principaux-surfaces.md) | #14 |
-| Espace `entity:`, rien par défaut, délégation, clé de rôle système | [0038](../adr/ADR-0038-ressources-ouvertes-delegation.md) | #13 |
+| Registre de principaux, surfaces `admin`/`public`, une session par sujet | [0037](../adr/ADR-0037-principaux-surfaces.md) | #17 ✅ |
+| Espace `entity:`, rien par défaut, délégation, clé de rôle système | [0038](../adr/ADR-0038-ressources-ouvertes-delegation.md) | #18 ✅ (délégation) · #26 (espace `entity:`) |
 
 Rôles de la surface admin : **Owner** (tout, non révocable), **Admin** (tout y compris le schéma,
 sauf révoquer l'Owner), **Editor** (ce qu'on lui accorde, borné par la délégation). Pas de rôle

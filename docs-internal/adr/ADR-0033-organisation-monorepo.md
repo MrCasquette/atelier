@@ -26,7 +26,8 @@ seul `core` qui porte la base, les schémas, les adapters et les services.
 ```
 apps/
   echoppe-api  echoppe-admin  echoppe-store
-  prisme-api   prisme-admin   prisme-store      (V2, cf. ADR-0029)
+  prisme-api   prisme-admin                     (V1 — cf. amendement du 2026-08-10)
+  prisme-store                                  (V2, cf. ADR-0029)
 packages/
   echoppe-core  prisme-core
   echoppe-client  prisme-client
@@ -89,3 +90,64 @@ produit assemble ce dont il a besoin à la compilation. (À ne pas confondre ave
 
 **Le scope npm du SDK Prisme.** `@echoppe/client` reste tel quel ; l'équivalent Prisme dépend de la
 disponibilité du scope sur npm, à vérifier au moment de la publication.
+
+## Amendement 2026-08-10 — Prisme n'est pas en V2, seul son front livré l'est
+
+L'arborescence de la décision porte `prisme-api prisme-admin prisme-store (V2, cf. ADR-0029)`. Le
+marqueur est faux pour deux des trois, et il contredit
+[`roadmap-prisme.md`](../design/roadmap-prisme.md), qui place « Prisme headless, dev only » en **V1**
+avec ses prérequis d'infrastructure — dont cet ADR lui-même.
+
+L'erreur est une confusion de portée. [ADR-0029](./ADR-0029-rendu-generique.md) traite du **rendu
+générique** : l'utilisateur active une entité et la voit en ligne sans thème et sans dev. C'est ça
+qui est en V2, et ça ne concerne qu'un front livré.
+
+Or en V1 le dev écrit son front, exactement comme pour Échoppe. Prisme V1 n'a donc **pas besoin de
+`prisme-store`** — et a besoin de `prisme-api` et `prisme-admin`, sans quoi il n'existe pas.
+
+```
+apps/
+  echoppe-api  echoppe-admin  echoppe-store
+  prisme-api   prisme-admin                    (V1)
+  prisme-store                                 (V2, cf. ADR-0029)
+```
+
+**Prisme est une cible prioritaire.** Ce que ça change concrètement :
+
+- `prisme-core` cesse d'être hypothétique. Il n'a toujours pas à naître avant son consommateur — un
+  cœur porte une `drizzle.config.ts` et un dossier de migrations, qui dérivent aussitôt s'ils ne
+  migrent rien —, mais ce consommateur est le prochain chantier, pas un lointain.
+- Le dernier couplage du socle, `RESOURCES` dans `echoppe-core/src/constants/resources.ts`, devient
+  bloquant plutôt que gênant : une API Prisme qui monte `@repo/auth` hériterait du vocabulaire
+  e-commerce dans son RBAC (cf. #26).
+- Ce qui manque à Prisme n'est plus du découplage mais de la fonctionnalité : les **entités**
+  ([ADR-0027](./ADR-0027-entites-tables-reelles.md), #27), sans lesquelles Prisme n'est qu'un
+  constructeur de pages.
+
+## Amendement 2026-08-10 — deux écarts de nommage, acquis à l'extraction
+
+L'arborescence liste `auth content assets communication adapters identity shared`. L'extraction (#11)
+en a livré deux de plus et rebaptisé un.
+
+**`content` s'appelle `pages`.** Le nom `content` était déjà pris — par
+`@mrcasquette/content`, le DSL de déclaration, publié et renommé peu avant. Le nom de l'ensemble
+s'étant trouvé dépensé sur une de ses moitiés, l'autre prend un nom qui dit ce qu'elle contient :
+`page`, `section`, et le registre qui décrit comment une section est faite.
+
+**`menus` est un paquet à part.** Un menu n'est pas une page : il POINTE vers des choses, dont des
+pages. Le mettre dans `@repo/pages` aurait donné un nom qui ne couvre pas son contenu.
+
+**`references` est né avec [ADR-0032](./ADR-0032-cibles-referencables.md)** — le registre de cibles
+référençables, dont `pages` et `menus` dépendent tous deux. Ce n'est pas une abstraction par
+anticipation : il avait deux consommateurs le jour de sa création.
+
+État réel de `packages/` après #11 :
+
+```
+packages/
+  echoppe-core                                  (prisme-core naîtra avec prisme-api)
+  client                                        (= @echoppe/client)
+  adapters  assets  auth  communication  db  identity  menus  pages  references  shared
+  content                                       (= @mrcasquette/content, le DSL publié)
+  create-echoppe
+```
