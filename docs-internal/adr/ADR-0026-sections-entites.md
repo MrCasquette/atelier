@@ -51,6 +51,24 @@ coûteuse, et elle est partagée intégralement.
 - Les références (`RefTarget`) sont à câbler des deux côtés, au lieu d'un champ `relation` unique
   qu'un modèle unifié aurait donné. Coût assumé.
 
+## Amendement 2026-08-10 — les entités ont leur propre espace de noms
+
+Question laissée ouverte par cet ADR : « un nom d'entité peut-il coïncider avec un nom de section ?
+(aujourd'hui `content_definition.name` est unique globalement sur sections + components) ». Tranchée
+en écrivant `defineEntity` : **oui**.
+
+Ce qui décide, c'est le stockage, et c'est cet ADR lui-même qui l'a rendu ainsi. Sections et
+components partagent un espace de noms **parce qu'ils partagent une table** — la contrainte
+d'unicité sur `content_definition.name` est la cause, pas une règle de conception. Une entité n'est
+pas stockée là : elle a sa propre table dérivée. Rien n'oblige donc `article` (entité) et `article`
+(section) à s'exclure, et les forcer à s'exclure serait une contrainte inventée — d'autant qu'elles
+répondent à des besoins tout à fait compatibles : une page qui présente les articles, et l'article
+lui-même.
+
+Ce que la distinction ne coûte rien à porter : citée de l'extérieur, une entité est nommée
+`entity:<nom>` (RBAC et cibles référençables, [ADR-0032](./ADR-0032-cibles-referencables.md)), ce
+qui rend la collision impossible **par construction** là où elle aurait compté.
+
 ## Détail
 
 → [lexique-prisme.md](../reference/lexique-prisme.md) — vocabulaire (section, component, entité,

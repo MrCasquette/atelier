@@ -3,8 +3,8 @@
 // sérialise vers le registre de l'API (P2b) et le front INFÈRE ses types depuis la déclaration (P2c,
 // `InferData`/`InferSections`) — pas de codegen, le registre poussé ne sert qu'à l'admin.
 
-export type { ContentConfig, DefinitionConfig } from './define.js';
-export { defineComponent, defineContent, defineSection } from './define.js';
+export type { ContentConfig, DefinitionConfig, EntityConfig } from './define.js';
+export { defineComponent, defineContent, defineEntity, defineSection } from './define.js';
 export type { EnumOption, Field } from './field.js';
 export { field, field as f } from './field.js';
 export { link } from './link.js';
@@ -19,10 +19,12 @@ export type {
   DateField,
   Definition,
   DefinitionRole,
+  Entity,
   EnumField,
   Fields,
   ImageField,
   InferData,
+  InferEntity,
   InferSections,
   ListField,
   NumberField,
@@ -32,6 +34,7 @@ export type {
   RepeaterField,
   RichTextField,
   SerializedDefinition,
+  SerializedEntity,
   SerializedField,
   TextField,
 } from './types.js';

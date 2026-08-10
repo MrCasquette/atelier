@@ -1,7 +1,7 @@
 {
   "name": "@mrcasquette/content",
   "version": "0.2.0",
-  "description": "Déclaration de contenu config-as-code pour Échoppe — components, sections et champs typés, synchronisés vers l'API.",
+  "description": "D\u00e9claration de contenu config-as-code pour \u00c9choppe \u2014 components, sections et champs typ\u00e9s, synchronis\u00e9s vers l'API.",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -23,6 +23,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "test": "bun test src",
     "type-check": "tsc --noEmit"
   },
   "keywords": [
@@ -36,6 +37,7 @@
   "license": "CECILL-2.1",
   "devDependencies": {
     "@types/node": "^22.10.2",
+    "bun-types": "^1.3.14",
     "typescript": "6.0.3"
   }
 }

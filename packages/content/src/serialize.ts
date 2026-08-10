@@ -15,10 +15,12 @@
 import type {
   ContentDefinition,
   Definition,
+  Entity,
   EnumOption,
   FieldValue,
   Registry,
   SerializedDefinition,
+  SerializedEntity,
   SerializedField,
 } from './types.js';
 
@@ -94,7 +96,7 @@ function serializeFields(
 }
 
 function serializeDefinition(
-  def: Definition,
+  def: Definition | Entity,
   registry: Registry,
   registered: Map<string, Definition>,
 ): SerializedDefinition {
@@ -134,6 +136,26 @@ export function serialize(content: ContentDefinition): Registry {
     }
     registered.set(section.name, section);
     registry.sections[section.name] = serializeDefinition(section, registry, registered);
+  }
+
+  // Les entités ont leur PROPRE espace de noms — elles ne partagent pas la table des sections et
+  // components (cf. types.ts). Leur collision se vérifie donc entre elles seules, sur le registre
+  // plutôt que sur `registered`. Leurs champs, en revanche, alimentent la même auto-collecte de
+  // components : un `f.list(card)` dans une entité inscrit `card` comme n'importe où ailleurs.
+  // Clé omise quand il n'y a aucune entité (cf. types.ts) : un dépôt qui n'en déclare pas pousse
+  // le même JSON qu'avant leur existence.
+  if (content.entities.length > 0) {
+    const entities: Record<string, SerializedEntity> = {};
+    for (const entity of content.entities) {
+      if (entities[entity.name]) {
+        throw collision(entity.name);
+      }
+      entities[entity.name] = {
+        ...serializeDefinition(entity, registry, registered),
+        singleton: entity.singleton ?? false,
+      };
+    }
+    registry.entities = entities;
   }
 
   return registry;

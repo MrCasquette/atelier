@@ -140,9 +140,37 @@ export interface Definition<F extends Fields = Fields, Name extends string = str
   fields: F;
 }
 
-export interface ContentDefinition<S extends readonly Definition[] = readonly Definition[]> {
+// ── Entités — de la donnée, pas de la présentation (ADR-0026) ─────────────────────────────────
+// Une section est un contrat avec un composant du front : sortie de lui, sa donnée n'a pas de sens,
+// et le jsonb y est correct. Une entité garde tout son sens sans Prisme — un `Article` est un
+// article — et va donc en VRAIES COLONNES (ADR-0027). C'est pourquoi ce n'est pas une `Definition`
+// de plus : même grammaire de champs, autre nature, autre stockage.
+//
+// `singleton` : au plus une occurrence — CGV, politique de livraison (ADR-0039). Borne HAUTE
+// seulement, aucune ligne n'est créée à la déclaration. Un singleton n'a pas de slug : son identité
+// est son nom.
+// `Single` est capturé littéralement, comme `Name` : c'est lui qui décide la forme rendue —
+// avec ou sans slug — et l'inférence doit pouvoir le lire (cf. `InferEntity`).
+export interface Entity<
+  F extends Fields = Fields,
+  Name extends string = string,
+  Single extends boolean = boolean,
+> {
+  kind: 'entity';
+  name: Name;
+  label?: string;
+  icon?: string;
+  singleton?: Single;
+  fields: F;
+}
+
+export interface ContentDefinition<
+  S extends readonly Definition[] = readonly Definition[],
+  E extends readonly Entity[] = readonly Entity[],
+> {
   kind: 'content';
   sections: S; // uniquement des définitions de rôle 'section'
+  entities: E;
 }
 
 // ── Inférence de types (P2c) ─────────────────────────────────────────────────────────────────
@@ -200,6 +228,20 @@ type InferFields<F extends Fields> = {
 export type InferData<D extends Definition> =
   D extends Definition<infer F> ? Prettify<InferFields<F>> : never;
 
+/**
+ * Forme d'une occurrence d'entité telle que l'API la rend.
+ *
+ * `id` est toujours là ; `slug` seulement pour une entité de liste — un singleton n'en a pas, son
+ * identité est son nom (ADR-0039). C'est ce qui distingue `GET /entities/:name/:slug` de
+ * `GET /entities/:name`.
+ */
+export type InferEntity<E extends Entity> =
+  E extends Entity<infer F, string, infer Single>
+    ? Single extends true
+      ? Prettify<{ id: string } & InferFields<F>>
+      : Prettify<{ id: string; slug: string } & InferFields<F>>
+    : never;
+
 /** Union discriminée `{ id, type, data }` des sections d'un `defineContent`. */
 export type InferSections<C extends ContentDefinition> =
   C extends ContentDefinition<infer S>
@@ -255,8 +297,23 @@ export interface SerializedDefinition {
   fields: Record<string, SerializedField>;
 }
 
+export interface SerializedEntity extends SerializedDefinition {
+  singleton: boolean; // normalisé : l'authoring le laisse optionnel, le registre est explicite
+}
+
+// Trois espaces de noms DISTINCTS, et c'est délibéré (question laissée ouverte par ADR-0026).
+// Sections et components partagent le leur — ils partagent une table, `content_definition.name`
+// y est unique. Une entité, elle, n'est pas stockée là : elle a sa propre table dérivée et son
+// journal d'activation. Rien n'oblige donc `Article` (entité) et `Article` (section) à s'exclure,
+// et les forcer à s'exclure serait une contrainte inventée.
+//
+// `entities` est OMIS quand il n'y en a aucune, et non rendu vide : un dépôt qui n'en déclare pas
+// pousse alors exactement le même JSON qu'avant leur existence. Sans cela, `content:check`
+// comparerait un registre local à un registre déployé d'une autre forme et se dirait désynchronisé
+// à tort, chez tout le monde, sans que rien ait changé.
 export interface Registry {
   version: 1;
   sections: Record<string, SerializedDefinition>;
   components: Record<string, SerializedDefinition>;
+  entities?: Record<string, SerializedEntity>;
 }
