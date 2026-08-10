@@ -9,15 +9,18 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 
-export const contentStatusEnum = pgEnum('content_status', ['draft', 'published']);
-
-// Module « content » — page builder headless (modèle façon Strapi : dynamic zone). Une PAGE
-// possède une liste ordonnée de SECTIONS (blocs embarqués). Une section est un bloc typé dont
-// les champs vivent en `data` (jsonb), validés à la frontière API par une union discriminée
-// (cf. models/content.ts). Le HTML riche (bloc richText) est une chaîne dans `data.html`.
+// Page builder headless (modèle façon Strapi : dynamic zone). Une PAGE possède une liste ordonnée
+// de SECTIONS (blocs embarqués). Une section est un bloc typé dont les champs vivent en `data`
+// (jsonb), validés à la frontière API par un schéma compilé depuis `content_definition`.
 //
 // Blocs EMBARQUÉS : une section appartient à UNE page (pas de partage inter-pages). Un « bloc
 // partagé » = un type-marqueur (ex. CtaShared) rendu par un composant du front du dev.
+//
+// Le MENU n'est pas ici : sa cible énumère encore le vocabulaire commerce (`product`, `collection`,
+// `category`) dans le type de sa colonne jsonb. Il rejoindra son propre paquet quand #8 aura ouvert
+// `RefTarget` en registre d'entités déclarées (ADR-0032) — d'ici là il reste dans le cœur d'Échoppe.
+
+export const contentStatusEnum = pgEnum('content_status', ['draft', 'published']);
 
 // Page éditoriale (home, à propos, CGV…). Son contenu = ses sections ordonnées.
 export const page = pgTable('page', {
@@ -42,36 +45,6 @@ export const contentDefinition = pgTable('content_definition', {
   label: varchar('label', { length: 200 }),
   icon: varchar('icon', { length: 100 }),
   fields: jsonb('fields').notNull(), // dictionnaire { [champ]: SerializedField } — cf. @mrcasquette/content
-  dateUpdated: timestamp('date_updated', { withTimezone: true }).notNull().defaultNow(),
-});
-
-// Lien d'un item de menu (stocké) : une URL, ou l'UUID d'une entité interne résolue au read.
-export interface MenuLink {
-  target: 'url' | 'page' | 'product' | 'collection' | 'category';
-  value: string; // URL (target=url) ou UUID de l'entité ciblée
-  newTab?: boolean;
-}
-
-// Item de menu (stocké), RÉCURSIF : `children` référence le même item (profondeur illimitée). Ce
-// type figé sert à typer la colonne jsonb (parse-au-write, trust-au-read) ; la VALIDATION d'écriture
-// vit côté API (models/menu.ts, schéma TypeBox récursif — le `Static` récursif s'y attache via
-// `t.Unsafe<MenuItem>`).
-export interface MenuItem {
-  label: string;
-  link: MenuLink;
-  children: MenuItem[];
-}
-
-// Menu de navigation (built-in) : arbre ORDONNÉ et RÉCURSIF d'items stocké en un seul jsonb.
-// `handle` = clé stable fetchée par le front (main, footer…). Le lien cible une URL ou une entité
-// interne (page/produit/collection/catégorie), résolue au read storefront. Shape figé par le
-// framework (validation dédiée, cf. models/menu.ts) — hors registre @mrcasquette/content.
-export const menu = pgTable('menu', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  handle: varchar('handle', { length: 100 }).unique().notNull(),
-  label: varchar('label', { length: 200 }).notNull(),
-  items: jsonb('items').$type<MenuItem[]>().notNull().default([]),
-  dateCreated: timestamp('date_created', { withTimezone: true }).notNull().defaultNow(),
   dateUpdated: timestamp('date_updated', { withTimezone: true }).notNull().defaultNow(),
 });
 

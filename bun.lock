@@ -171,6 +171,7 @@
         "@repo/communication": "workspace:*",
         "@repo/db": "workspace:*",
         "@repo/identity": "workspace:*",
+        "@repo/pages": "workspace:*",
         "@repo/shared": "workspace:*",
         "drizzle-orm": "^0.45.2",
         "postgres": "^3.4.9",
@@ -213,6 +214,17 @@
       "version": "0.0.1",
       "dependencies": {
         "@repo/assets": "workspace:*",
+        "drizzle-orm": "^0.45.2",
+      },
+      "devDependencies": {
+        "typescript": "6.0.3",
+      },
+    },
+    "packages/pages": {
+      "name": "@repo/pages",
+      "version": "0.0.1",
+      "dependencies": {
+        "@repo/db": "workspace:*",
         "drizzle-orm": "^0.45.2",
       },
       "devDependencies": {
@@ -642,6 +654,8 @@
     "@repo/db": ["@repo/db@workspace:packages/db"],
 
     "@repo/identity": ["@repo/identity@workspace:packages/identity"],
+
+    "@repo/pages": ["@repo/pages@workspace:packages/pages"],
 
     "@repo/shared": ["@repo/shared@workspace:packages/shared"],
 

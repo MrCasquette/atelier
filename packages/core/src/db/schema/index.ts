@@ -22,12 +22,15 @@ export {
 // Identité et référentiel : @repo/identity (ADR-0040). Le cœur les inclut dans SON barrel,
 // donc dans ses migrations.
 export { country, legalEntity, site } from '@repo/identity';
+// Pages, sections et registre de définitions : @repo/pages (ADR-0033). Le menu, lui, reste dans le
+// cœur — cf. ./menu.ts pour la raison.
+export { contentDefinition, contentStatusEnum, page, section } from '@repo/pages';
 export * from './cart';
 export * from './catalog';
-export * from './content';
 export * from './customer';
 export * from './document';
 export * from './engagement';
+export * from './menu';
 export * from './orders';
 export * from './payment';
 export * from './settings';
