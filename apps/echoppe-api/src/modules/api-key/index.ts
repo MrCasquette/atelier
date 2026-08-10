@@ -1,9 +1,10 @@
 import { apiKey, asc, db, eq } from '@echoppe/core';
 import { undelegatableScopes } from '@repo/auth';
+import { listEntityNames } from '@repo/entities';
 import { Elysia, t } from 'elysia';
 import { successSchema, withCrudErrors } from '../../lib/response';
 import { permissionGuard } from '../auth/rbac';
-import { type ApiKeyScope, generateApiKey, isValidScope } from './service';
+import { type ApiKeyScope, generateApiKey, isValidScopeFor } from './service';
 
 // Gestion des clés d'API machine (P2b). Protégé par RBAC `api_key` (seedé Owner). La clé en clair
 // n'est renvoyée qu'UNE fois, à la création — ensuite seul son hash existe. Voir plugins/apiKey.
@@ -76,7 +77,10 @@ export const apiKeyRoutes = new Elysia({ prefix: '/api-keys', detail: { tags: ['
     '/',
     async ({ body, currentUser, principal, status }) => {
       // Frontière : les scopes sont typés `string[]`, on rejette ici tout scope hors vocabulaire.
-      const invalid = body.scopes.filter((scope) => !isValidScope(scope));
+      // Le vocabulaire inclut les entités DÉCLARÉES : une clé de CI peut légitimement porter
+      // `write:entity:article`, que la liste figée à la compilation ne connaîtra jamais.
+      const entityNames = await listEntityNames();
+      const invalid = body.scopes.filter((scope) => !isValidScopeFor(scope, entityNames));
       if (invalid.length > 0) {
         return status(422, { message: `Portées inconnues : ${invalid.join(', ')}` });
       }

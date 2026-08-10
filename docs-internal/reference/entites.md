@@ -25,6 +25,31 @@ Une seule commande côté dev : `content push` pousse les entités **puis** le r
 définitions. Dans cet ordre, parce qu'une section peut référencer une entité et que le registre
 refuse une cible inconnue.
 
+## Lire et écrire
+
+| Route | Audience | Droit |
+|---|---|---|
+| `GET /entities/:name` | front (contrat figé) | aucun — public |
+| `GET /entities/:name/:slug` | front (contrat figé) | aucun — public |
+| `GET /content/entities/:name/rows` | administration | `entity:<nom>` read |
+| `POST /content/entities/:name/rows` | administration | `entity:<nom>` create |
+| `PUT /content/entities/:name/rows/:id` | administration | `entity:<nom>` update |
+| `DELETE /content/entities/:name/rows/:id` | administration | `entity:<nom>` delete |
+
+La ressource `entity:<nom>` n'est **écrite nulle part** : elle est dérivée du registre à chaque
+requête (ADR-0038). La SSOT, ce sont les fichiers du dev ; la matérialiser créerait une seconde
+source à garder d'accord. Conséquences directes :
+
+- une entité fraîchement poussée est **refusée à tout le monde**, y compris à qui l'a poussée. C'est
+  le bon défaut — l'inverse, visible par défaut, ne se rattrape pas ;
+- masquer une entité, c'est retirer `canRead` à un rôle, pas poser un drapeau global ;
+- une entité supprimée **emporte les droits accordés** sur elle, sans quoi un nom réutilisé
+  hériterait de ceux de son homonyme.
+
+Une clé d'API peut porter `read:entity:<nom>` / `write:entity:<nom>` : le vocabulaire de scopes est
+élargi aux entités déclarées, à l'exécution. La règle de délégation vaut comme partout — on ne
+délègue que ce qu'on détient.
+
 ## Ce qui garde le mécanisme
 
 | Garde | Où | Ce qu'elle refuse |
@@ -48,6 +73,8 @@ jamais à ça.
   singleton. Videz-la d'abord.
 - **Poser des clés étrangères** sur les champs `image` et `ref`. C'est la dette la plus sérieuse du
   mécanisme, cf. tâche #36.
+- **Offrir des écrans d'administration.** L'API est complète, l'admin Vue n'a encore aucun écran
+  d'entités : la matrice de permissions liste ses ressources à la main et ignore `entity:*`.
 - **Contraindre un `enum` en base.** La valeur est déjà validée à la frontière par le schéma compilé
   depuis la même déclaration ; une contrainte nommée serait à faire évoluer à chaque option ajoutée.
 
@@ -71,5 +98,5 @@ tables**. Utilisez `db:generate` puis `db:migrate`, ou repoussez vos entités ap
 |---|---|
 | `packages/content` | `defineEntity`, sérialisation, CLI — temps-dev, publié (`@mrcasquette/content`) |
 | `packages/entities` | journal, dérivation DDL, plan, application — aucune route (ADR-0044) |
-| `apps/echoppe-api/src/modules/content/entity/` | les trois routes et leurs codes HTTP |
+| `apps/echoppe-api/src/modules/content/entity/` | les routes (structure, lecture front, administration) et leurs codes HTTP |
 | `packages/echoppe-core/src/db/schema/index.ts` | inclut le **journal** dans les migrations du cœur (ADR-0025) |

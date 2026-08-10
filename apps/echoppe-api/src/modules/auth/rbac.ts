@@ -1,4 +1,4 @@
-import type { Action, Resource } from '@echoppe/core';
+import type { Action, ProtectedResource } from '@echoppe/core';
 import {
   createPrincipalRegistry,
   getPermissionsForRole,
@@ -188,7 +188,7 @@ export async function getPrincipal(
  */
 export function checkPermission(
   principal: EchoppePrincipal,
-  resource: Resource,
+  resource: ProtectedResource,
   action: Action,
 ): EchoppeIdentity & { allowed: boolean; selfOnly: boolean } {
   if (principal.bypass) {
@@ -211,8 +211,54 @@ export function checkPermission(
  * accordé au storefront) mais que l'endpoint doit rester réservé à l'admin — sinon
  * le bit de permission seul laisserait passer un anonyme.
  */
+/**
+ * Garde d'une ressource d'ENTITÉ, dont le nom n'est connu qu'à la requête.
+ *
+ * `permissionGuard` fige sa ressource à la déclaration de la route, ce qui ne peut pas marcher ici :
+ * la route est générique — une seule pour toutes les entités — et c'est un choix imposé par le
+ * contrat figé (ADR-0027). La ressource est donc dérivée du paramètre `:name`, à chaque requête.
+ *
+ * Rien n'est matérialisé pour autant : `entity:article` n'existe nulle part en base tant qu'aucun
+ * rôle ne le détient. Une entité déclarée est refusée à tout le monde par défaut, ce qui est le bon
+ * défaut — masquer une entité, c'est ne pas accorder `canRead` (ADR-0028, résolu depuis).
+ */
+export function entityPermissionGuard(action: Action) {
+  return new Elysia({ name: `permission-entity-${action}` }).macro({
+    entityPermission: {
+      async resolve({ cookie, headers, params, status }) {
+        const name =
+          params && typeof params === 'object' && 'name' in params ? String(params.name) : '';
+
+        const principal = await getPrincipal(
+          cookie as Record<string, { value?: string }>,
+          headers.authorization,
+        );
+
+        // Écrire dans une entité est un acte d'administration : le rôle Public peut détenir
+        // `canRead` pour servir le front, il ne doit pas pour autant pouvoir écrire.
+        if (!principal.privileged) {
+          return status(403, { message: `Permission refusée: ${action} sur entity:${name}` });
+        }
+
+        const result = checkPermission(principal, `entity:${name}`, action);
+        if (!result.allowed) {
+          return status(403, { message: `Permission refusée: ${action} sur entity:${name}` });
+        }
+
+        return {
+          currentUser: result.currentUser,
+          currentRole: result.currentRole,
+          currentCustomer: result.currentCustomer,
+          selfOnly: result.selfOnly,
+          principal,
+        };
+      },
+    },
+  });
+}
+
 export function permissionGuard(
-  resource: Resource,
+  resource: ProtectedResource,
   action: Action,
   options?: { adminOnly?: boolean },
 ) {

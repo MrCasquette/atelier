@@ -31,6 +31,26 @@ export type ApiKeyScope = `read:${ScopableResource}` | `write:${ScopableResource
 
 export const isValidScope = (scope: string): scope is ApiKeyScope => SCOPES.includes(scope);
 
+/**
+ * Vocabulaire de scopes ÉLARGI aux entités déclarées (ADR-0038).
+ *
+ * `SCOPES` est figé à la compilation, alors qu'une entité est déclarée après : une clé de CI qui
+ * doit écrire des articles a besoin de `write:entity:article`, que la liste statique ne connaîtra
+ * jamais. Les noms viennent du registre — passés en argument plutôt que lus ici, pour que ce
+ * module reste sans opinion sur ce qui existe.
+ */
+export function isValidScopeFor(scope: string, entityNames: string[]): boolean {
+  if (isValidScope(scope)) return true;
+
+  // Découpe sur le PREMIER `:` : la ressource en contient un (`write:entity:article`).
+  const separator = scope.indexOf(':');
+  const action = scope.slice(0, separator);
+  const resource = scope.slice(separator + 1);
+  if (action !== 'read' && action !== 'write') return false;
+
+  return entityNames.some((name) => resource === `entity:${name}`);
+}
+
 // ── Génération / hachage ──────────────────────────────────────────────────────────────────────
 export const hashApiKey = (plaintext: string): string =>
   createHash('sha256').update(plaintext).digest('hex');
@@ -58,7 +78,13 @@ export function permissionsFromScopes(scopes: string[]): Map<string, PermissionS
   };
 
   for (const scope of scopes) {
-    const [action, resource] = scope.split(':');
+    // Découpe sur le PREMIER `:` seulement : une ressource peut en contenir
+    // (`write:entity:article`). Un `split(':')` naïf en ferait `entity`, et la clé obtiendrait des
+    // droits sur une ressource qui n'existe pas — ou pire, sur la mauvaise.
+    const separator = scope.indexOf(':');
+    if (separator < 0) continue;
+    const action = scope.slice(0, separator);
+    const resource = scope.slice(separator + 1);
     if (!resource) continue;
     const perm = ensure(resource);
     if (action === 'read') {

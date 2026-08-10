@@ -14,6 +14,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@repo/auth": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/pages": "workspace:*",
     "drizzle-orm": "^0.45.2",

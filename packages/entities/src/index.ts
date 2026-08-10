@@ -48,3 +48,11 @@ export {
   planEntities,
   pushEntities,
 } from './service';
+export {
+  createEntityRow,
+  deleteEntityRow,
+  type EntityInput,
+  updateEntityRow,
+  validateEntityData,
+  type WriteOutcome,
+} from './write-service';

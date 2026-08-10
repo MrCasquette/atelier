@@ -53,6 +53,19 @@ export const RESOURCES = {
 
 export type Resource = (typeof RESOURCES)[keyof typeof RESOURCES];
 
+/**
+ * Ce qu'une garde sait protéger : le vocabulaire du framework, **plus** les entités déclarées
+ * (ADR-0038).
+ *
+ * `RESOURCES` reste fermé — une faute de frappe sur `product` se voit toujours à la compilation.
+ * Mais une entité est inconnue du framework par nature : c'est le dev qui la déclare, après la
+ * compilation. L'espace `entity:` est ce qui permet de la nommer sans rouvrir tout le reste.
+ *
+ * La ressource d'une entité est **dérivée** du registre, jamais matérialisée : la SSOT, ce sont les
+ * fichiers du dev, et l'écrire quelque part créerait une seconde source à garder d'accord.
+ */
+export type ProtectedResource = Resource | `entity:${string}`;
+
 // Les quatre actions sont définies avec les droits, dans @repo/auth. Réexportées ici parce que
 // `Resource` et `Action` se lisent ensemble partout où on vérifie une permission.
 export type { Action } from '@repo/auth';

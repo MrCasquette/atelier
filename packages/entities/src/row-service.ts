@@ -36,7 +36,7 @@ const IDENTITY_PROJECTION: Record<string, string> = {
   date_updated: 'dateUpdated',
 };
 
-function selectionOf(declaration: EntityDeclaration): string {
+export function selectionOf(declaration: EntityDeclaration): string {
   const columns = [
     'id',
     ...(declaration.singleton ? [] : ['slug']),
@@ -47,7 +47,7 @@ function selectionOf(declaration: EntityDeclaration): string {
   return columns.join(', ');
 }
 
-function project(row: Record<string, unknown>): EntityRow {
+export function projectRow(row: Record<string, unknown>): EntityRow {
   const projected: EntityRow = {};
   for (const [column, value] of Object.entries(row)) {
     projected[IDENTITY_PROJECTION[column] ?? column] = value;
@@ -74,7 +74,7 @@ export async function listEntityRows(
     sql.raw(`select count(*)::int as total from ${table}`),
   );
 
-  return { rows: rows.map(project), total: counted?.total ?? 0 };
+  return { rows: rows.map(projectRow), total: counted?.total ?? 0 };
 }
 
 /** Une occurrence par son slug. `null` si aucune ne porte ce slug. */
@@ -86,7 +86,7 @@ export async function findEntityRowBySlug(
   const rows = await db.execute<Record<string, unknown>>(
     sql`${sql.raw(`select ${selectionOf(declaration)} from ${table}`)} where slug = ${slug} limit 1`,
   );
-  return rows[0] ? project(rows[0]) : null;
+  return rows[0] ? projectRow(rows[0]) : null;
 }
 
 /**
@@ -101,5 +101,5 @@ export async function findSingletonRow(declaration: EntityDeclaration): Promise<
   const rows = await db.execute<Record<string, unknown>>(
     sql.raw(`select ${selectionOf(declaration)} from ${table} limit 1`),
   );
-  return rows[0] ? project(rows[0]) : null;
+  return rows[0] ? projectRow(rows[0]) : null;
 }

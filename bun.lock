@@ -220,6 +220,7 @@
       "name": "@repo/entities",
       "version": "0.0.1",
       "dependencies": {
+        "@repo/auth": "workspace:*",
         "@repo/db": "workspace:*",
         "@repo/pages": "workspace:*",
         "drizzle-orm": "^0.45.2",

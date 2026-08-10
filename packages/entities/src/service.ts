@@ -1,4 +1,5 @@
-import { db, sql } from '@repo/db';
+import { permission } from '@repo/auth';
+import { db, inArray, sql } from '@repo/db';
 import { TypeCompiler } from 'elysia/type-system';
 import {
   addColumnSql,
@@ -6,6 +7,7 @@ import {
   createTableSql,
   dropColumnSql,
   dropTableSql,
+  entityResourceName,
   entityTableName,
   fieldColumns,
   IDENTITY_COLUMNS,
@@ -228,9 +230,22 @@ export async function pushEntities(
     return { outcome: 'destructive', steps: destructive };
   }
 
+  // Une entité qui meurt emporte ses permissions. La RESSOURCE, elle, n'a jamais été écrite —
+  // elle est dérivée du registre — mais les droits ACCORDÉS sont bien des lignes : sans purge, un
+  // nom réutilisé hériterait des droits de son homonyme, silencieusement.
+  const dropped = (await db.select({ name: entityDefinition.name }).from(entityDefinition))
+    .map((row) => row.name)
+    .filter((name) => !registry[name]);
+
   await db.transaction(async (tx) => {
     for (const step of plan.steps) {
       await tx.execute(sql.raw(step.sql));
+    }
+
+    if (dropped.length > 0) {
+      await tx
+        .delete(permission)
+        .where(inArray(permission.resource, dropped.map(entityResourceName)));
     }
 
     // Le journal est remplacé d'un bloc : la déclaration du dev fait foi, la base en est le miroir.

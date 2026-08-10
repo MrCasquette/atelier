@@ -104,6 +104,23 @@ function fieldsToSchema(
 const definitionToSchema = (def: SerializedDefinition, components: Components): TSchema =>
   fieldsToSchema(def.fields, components, new Set());
 
+/**
+ * Compile un dictionnaire de champs en validateur, pour un consommateur hors de ce paquet.
+ *
+ * C'est la même traduction que pour une section — c'est le point qu'ADR-0026 désigne comme partagé
+ * intégralement : « le schema, la liste de champs, et son validateur générique ». Les entités s'en
+ * servent pour valider ce qu'on écrit dans leurs colonnes.
+ *
+ * `components` est passé en argument et non lu ici : un champ `list`/`component` d'une entité
+ * référence un component du registre, que l'appelant seul sait charger.
+ */
+export function compileFields(
+  fields: Record<string, SerializedField>,
+  components: Components,
+): TypeCheck<TSchema> {
+  return TypeCompiler.Compile(fieldsToSchema(fields, components, new Set()));
+}
+
 // ── Cache (registre chargé + validateurs compilés par type de section) ────────────────────────
 type Cache = { registry: Registry; sectionChecks: Map<string, TypeCheck<TSchema>> };
 let cache: Cache | null = null;

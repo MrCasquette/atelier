@@ -14,6 +14,7 @@ export {
 } from './definition-model';
 export {
   assertRegistryCoherent,
+  compileFields,
   invalidateRegistryCache,
   loadRegistry,
   type SyncRegistryOutcome,
