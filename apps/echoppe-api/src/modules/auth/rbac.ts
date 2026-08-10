@@ -1,5 +1,11 @@
 import type { Action, Resource } from '@echoppe/core';
 import { db, eq, permission, role } from '@echoppe/core';
+import {
+  createPrincipalRegistry,
+  type PermissionSet,
+  type Principal,
+  type PrincipalRequest,
+} from '@repo/auth';
 import { Elysia } from 'elysia';
 import { resolveApiKey } from '../api-key/service';
 import {
@@ -7,12 +13,6 @@ import {
   getCustomerSessionFromToken,
   type SessionCustomer,
 } from './customer-session';
-import {
-  createPrincipalRegistry,
-  type PermissionSet,
-  type Principal,
-  type PrincipalRequest,
-} from './principal';
 import { COOKIE_NAME, getSessionFromToken, type SessionRole, type SessionUser } from './session';
 
 export type { PermissionSet };

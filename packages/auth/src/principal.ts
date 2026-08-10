@@ -9,7 +9,7 @@
 // distinguait les variantes devient des PROPRIÉTÉS du principal résolu — `bypass`, `privileged`,
 // `hasSubject` — si bien que la vérification de permission n'a plus une seule branche par type.
 //
-// Ce fichier ne connaît ni cookie, ni table, ni schéma : il partira tel quel dans `packages/auth`.
+// Ce fichier ne connaît ni cookie, ni table, ni schéma — c'est ce qui lui permet de vivre ici.
 
 export type PermissionSet = {
   canCreate: boolean;

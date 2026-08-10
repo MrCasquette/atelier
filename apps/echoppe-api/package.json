@@ -10,12 +10,12 @@
     "start": "bun --env-file=../../.env run dist/index.js",
     "api-key:create": "bun --env-file=../../.env run src/scripts/create-api-key.ts",
     "type-check": "tsc --noEmit",
-    "test": "bun test src",
     "test:smoke": "bun run scripts/smoke.ts",
     "test:integration": "bun run scripts/integration.ts"
   },
   "dependencies": {
     "@echoppe/core": "workspace:*",
+    "@repo/auth": "workspace:*",
     "@repo/shared": "workspace:*",
     "@elysiajs/cors": "^1.4.2",
     "@elysiajs/openapi": "^1.4.15",

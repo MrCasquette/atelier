@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { apiKey, db, eq, RESOURCE_LIST, type Resource } from '@echoppe/core';
-import type { PermissionSet } from '../auth/principal';
+import type { PermissionSet } from '@repo/auth';
 
 // Clés d'API machine (P2b) : auth non-interactive via `Authorization: Bearer eck_…`.
 //
