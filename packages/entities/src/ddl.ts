@@ -24,6 +24,28 @@ export function isValidIdentifier(name: string): boolean {
   return name.length > 0 && name.length <= IDENTIFIER_MAX && IDENTIFIER.test(name);
 }
 
+/**
+ * Même grammaire, budget entier : une table VISÉE par une clé étrangère n'est pas dérivée d'une
+ * entité, elle ne porte donc pas le préfixe `entity_` et dispose des 63 octets de Postgres.
+ *
+ * Ce n'est pas une seconde règle — c'est la même, appliquée à une longueur qui n'a pas la même
+ * contrainte. Le nom vient du schéma Drizzle (ADR-0045) et non d'un fichier du dev, mais il entre
+ * dans du DDL au même titre : on le vérifie sans se demander d'où il vient.
+ */
+const TABLE_MAX = 63;
+
+export function isValidTableName(name: string): boolean {
+  return name.length > 0 && name.length <= TABLE_MAX && IDENTIFIER.test(name);
+}
+
+function assertIdentifier(name: string, role: string): void {
+  if (!isValidIdentifier(name)) {
+    throw new Error(
+      `${role} refusé : « ${name} ». Minuscules, chiffres et « _ », commençant par une lettre.`,
+    );
+  }
+}
+
 /** Nom de la table dérivée. Le préfixe évite toute collision avec une table du cœur. */
 export function entityTableName(name: string): string {
   if (!isValidIdentifier(name)) {
@@ -73,9 +95,9 @@ export function columnType(field: SerializedField): string {
       return field.multiple ? 'text[]' : 'text';
     case 'image':
     case 'ref':
-      // UUID de média ou d'entité référencée. Sans clé étrangère en V1 : la table cible se déduit
-      // du registre de références, qui n'expose pas de nom de table. C'est la garantie qui
-      // justifiait les vraies tables (ADR-0027) — elle reste à câbler, cf. #36.
+      // UUID de média ou d'entité référencée. La clé étrangère, elle, est une contrainte de TABLE
+      // et se dérive à part (`foreignKeys`) : elle a besoin de savoir où vit la cible, ce qu'un
+      // type de colonne n'a pas à connaître.
       return 'uuid';
     case 'component':
     case 'list':
@@ -93,15 +115,96 @@ export function columnType(field: SerializedField): string {
 export function fieldColumns(fields: Record<string, SerializedField>): ColumnSpec[] {
   const columns: ColumnSpec[] = [];
   for (const [name, field] of Object.entries(fields)) {
-    if (!isValidIdentifier(name)) {
-      throw new Error(
-        `Nom de champ refusé : « ${name} ». Minuscules, chiffres et « _ », commençant par une lettre — il devient un nom de colonne.`,
-      );
-    }
+    assertIdentifier(name, 'Nom de champ');
     columns.push({ name, type: columnType(field), notNull: field.required === true });
   }
   return columns;
 }
+
+// ── Clés étrangères (ADR-0045) ────────────────────────────────────────────────────────────────
+
+/**
+ * Ce qu'une suppression de la cible fait à la ligne qui la vise.
+ *
+ * Deux valeurs seulement, et le choix ne se règle pas : il se DÉDUIT de `required`. Une colonne
+ * `NOT NULL` ne peut pas devenir nulle — y déclarer `set null` n'empêcherait pas la suppression
+ * d'échouer, mais sur une violation de contrainte NOT NULL : le bon comportement, dit de la pire
+ * façon. `restrict` énonce l'intention, et c'est ce qui rend possible un « impossible de supprimer,
+ * utilisé par 3 fiches ».
+ */
+export type OnDelete = 'set null' | 'restrict';
+
+export type ForeignKeySpec = {
+  /** Colonne porteuse, donc le nom du champ déclaré. */
+  column: string;
+  /** Table visée. Sa clé primaire est toujours `id` — aucune cible ne s'identifie autrement. */
+  table: string;
+  onDelete: OnDelete;
+};
+
+/**
+ * Où vivent les cibles, vu du mécanisme qui écrit le DDL.
+ *
+ * Passé par l'appelant, jamais lu ici : ce module ne connaît ni `media` ni le registre de
+ * références, et c'est ce qui lui permet de servir les deux produits. Même idiome que
+ * `validateEntityData(…, components)` et `isValidScopeFor(…, entityNames)`.
+ */
+export type ReferenceTables = {
+  /** Table des médias, pour les champs `image`. Absente → pas de clé étrangère. */
+  media?: string;
+  /** Table de chaque cible qui a déclaré son stockage (cf. `storageOf`). */
+  targets: Record<string, string>;
+};
+
+/** Aucune cible connue : tout champ `image`/`ref` reste un `uuid` nu. */
+export const NO_REFERENCE_TABLES: ReferenceTables = { targets: {} };
+
+function targetTable(field: SerializedField, tables: ReferenceTables): string | undefined {
+  if (field.kind === 'image') return tables.media;
+  if (field.kind === 'ref') return tables.targets[field.to];
+  return undefined;
+}
+
+/**
+ * Contraintes de clé étrangère qu'implique une déclaration.
+ *
+ * Une cible qui n'a pas dit où elle vit est simplement absente du résultat — son champ garde un
+ * `uuid` nu, comme avant ADR-0045. Le silence d'une cible est un état normal, pas un refus : ce
+ * qui la rend contraignable est de déclarer son stockage, exactement comme ce qui la rend
+ * référençable est d'avoir une URL (ADR-0032).
+ *
+ * Les champs `component`, `list` et `repeater` restent hors de portée : leur contenu vit dans du
+ * jsonb, qu'aucune clé étrangère ne sait atteindre. Dette nommée dans ADR-0045.
+ */
+export function foreignKeys(
+  fields: Record<string, SerializedField>,
+  tables: ReferenceTables,
+): ForeignKeySpec[] {
+  const keys: ForeignKeySpec[] = [];
+  for (const [name, field] of Object.entries(fields)) {
+    const table = targetTable(field, tables);
+    if (!table) continue;
+
+    assertIdentifier(name, 'Nom de champ');
+    if (!isValidTableName(table)) {
+      throw new Error(`Table de cible refusée : « ${table} », visée par le champ « ${name} ».`);
+    }
+
+    keys.push({ column: name, table, onDelete: field.required === true ? 'restrict' : 'set null' });
+  }
+  return keys;
+}
+
+/**
+ * La contrainte, telle qu'elle s'écrit dans un `create table`.
+ *
+ * Volontairement ANONYME : c'est Postgres qui la nomme. Un nom fabriqué ici — `entity_<nom>_<champ>_fkey`
+ * — dépasserait les 63 octets pour un nom d'entité long, serait tronqué en silence, et la
+ * comparaison au schéma réel porterait alors sur un nom qui ne correspond plus. On compare sur la
+ * colonne, qui elle ne ment pas.
+ */
+export const foreignKeyDdl = (key: ForeignKeySpec): string =>
+  `foreign key (${key.column}) references ${key.table}(id) on delete ${key.onDelete}`;
 
 /**
  * Colonnes que toute entité porte, quelle que soit sa déclaration.
@@ -131,9 +234,17 @@ export function createTableSql(
   name: string,
   singleton: boolean,
   fields: Record<string, SerializedField>,
+  // Requis, sans valeur par défaut : un appelant qui oublierait l'argument produirait une table
+  // sans ses garanties, en silence. Le compilateur l'oblige à dire ce qu'il vise — quitte à dire
+  // `NO_REFERENCE_TABLES`, qui est alors un choix écrit et non un oubli.
+  tables: ReferenceTables,
 ): string {
   const table = entityTableName(name);
-  const lines = [...identityColumns(singleton), ...fieldColumns(fields).map(columnDdl)];
+  const lines = [
+    ...identityColumns(singleton),
+    ...fieldColumns(fields).map(columnDdl),
+    ...foreignKeys(fields, tables).map(foreignKeyDdl),
+  ];
   return `create table ${table} (\n  ${lines.join(',\n  ')}\n);`;
 }
 

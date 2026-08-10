@@ -6,7 +6,10 @@ import {
   entityResourceName,
   entityTableName,
   fieldColumns,
+  foreignKeyDdl,
+  foreignKeys,
   isValidIdentifier,
+  NO_REFERENCE_TABLES,
 } from './ddl';
 
 // Du SQL est généré depuis des noms venus d'un fichier. Leur échappement est une question de
@@ -93,10 +96,15 @@ describe('type de colonne', () => {
 
 describe('création de table', () => {
   test('une entité de liste porte un slug unique, et pas de drapeau de cardinalité', () => {
-    const sql = createTableSql('article', false, {
-      titre: { kind: 'text', maxLength: 200, required: true },
-      vues: { kind: 'number', integer: true },
-    });
+    const sql = createTableSql(
+      'article',
+      false,
+      {
+        titre: { kind: 'text', maxLength: 200, required: true },
+        vues: { kind: 'number', integer: true },
+      },
+      NO_REFERENCE_TABLES,
+    );
 
     expect(sql).toContain('create table entity_article');
     expect(sql).toContain('slug varchar(150) not null unique');
@@ -109,9 +117,105 @@ describe('création de table', () => {
   test('un singleton porte la contrainte de cardinalité, et pas de slug', () => {
     // `boolean NOT NULL DEFAULT true UNIQUE CHECK (singleton)` : au plus UNE ligne, garanti par
     // Postgres (ADR-0039). Borne haute seulement — aucune ligne n'est créée à l'activation.
-    const sql = createTableSql('cgv', true, { corps: { kind: 'richText' } });
+    const sql = createTableSql('cgv', true, { corps: { kind: 'richText' } }, NO_REFERENCE_TABLES);
 
     expect(sql).toContain('singleton boolean not null default true unique check (singleton)');
     expect(sql).not.toContain('slug');
+  });
+});
+
+// Clés étrangères (ADR-0045) — c'est l'argument qui a fait écarter le jsonb : pour un graphe
+// d'entités qui se référencent, les garanties de la base sont l'infrastructure. Une garantie
+// applicative ne protège que de l'intérieur, et un `psql` écrit sans passer par l'API.
+describe('clés étrangères', () => {
+  const tables = { media: 'media', targets: { product: 'product', page: 'page' } };
+
+  test('un champ image vise la table des médias', () => {
+    expect(foreignKeys({ photo: { kind: 'image' } }, tables)).toEqual([
+      { column: 'photo', table: 'media', onDelete: 'set null' },
+    ]);
+  });
+
+  test('un champ ref vise la table déclarée par sa cible', () => {
+    expect(foreignKeys({ vedette: { kind: 'ref', to: 'product' } }, tables)).toEqual([
+      { column: 'vedette', table: 'product', onDelete: 'set null' },
+    ]);
+  });
+
+  // LA règle d'ADR-0045 : la politique ne se règle pas, elle se déduit. Une colonne NOT NULL ne
+  // peut pas devenir nulle — `restrict` énonce ce que `set null` ferait échouer de toute façon.
+  test('un champ obligatoire RETIENT sa cible, un champ optionnel se vide', () => {
+    const derived = foreignKeys(
+      {
+        illustration: { kind: 'image' },
+        couverture: { kind: 'image', required: true },
+        lie: { kind: 'ref', to: 'product' },
+        parent: { kind: 'ref', to: 'page', required: true },
+      },
+      tables,
+    );
+
+    expect(derived.map((key) => [key.column, key.onDelete])).toEqual([
+      ['illustration', 'set null'],
+      ['couverture', 'restrict'],
+      ['lie', 'set null'],
+      ['parent', 'restrict'],
+    ]);
+  });
+
+  test("une cible qui n'a pas dit où elle vit ne produit aucune contrainte", () => {
+    // Le silence est un état NORMAL : une cible adossée à une vue ou à un système externe reste
+    // légitime. Son champ garde un `uuid` nu — le comportement d'avant ADR-0045.
+    expect(foreignKeys({ lien: { kind: 'ref', to: 'externe' } }, tables)).toEqual([]);
+  });
+
+  test("sans table de médias connue, un champ image reste un uuid nu plutôt qu'un refus", () => {
+    expect(foreignKeys({ photo: { kind: 'image' } }, { targets: {} })).toEqual([]);
+  });
+
+  test('les champs qui vivent en jsonb restent hors de portée', () => {
+    // `list`, `repeater`, `component` : aucune clé étrangère ne sait atteindre l'intérieur d'un
+    // jsonb. Dette nommée dans ADR-0045, pas un oubli.
+    const derived = foreignKeys(
+      {
+        blocs: { kind: 'list', of: 'bloc' },
+        galerie: { kind: 'repeater', fields: { image: { kind: 'image' } } },
+      },
+      tables,
+    );
+
+    expect(derived).toEqual([]);
+  });
+
+  test('refuse une table de cible qui ne passe pas la liste blanche', () => {
+    // Le nom vient du schéma Drizzle, pas d'un fichier du dev — mais il entre dans du DDL au même
+    // titre. On ne se demande pas d'où il vient.
+    expect(() =>
+      foreignKeys({ lien: { kind: 'ref', to: 'x' } }, { targets: { x: 'a"; drop' } }),
+    ).toThrow('Table de cible refusée');
+  });
+
+  test('la contrainte est anonyme : c’est Postgres qui la nomme', () => {
+    // Un nom fabriqué ici dépasserait 63 octets pour une entité au nom long, serait tronqué en
+    // silence, et la comparaison au schéma réel porterait sur un nom qui ne correspond plus.
+    expect(foreignKeyDdl({ column: 'photo', table: 'media', onDelete: 'set null' })).toBe(
+      'foreign key (photo) references media(id) on delete set null',
+    );
+  });
+
+  test('la table créée porte ses contraintes', () => {
+    const sql = createTableSql(
+      'article',
+      false,
+      {
+        titre: { kind: 'text', required: true },
+        photo: { kind: 'image' },
+        vedette: { kind: 'ref', to: 'product', required: true },
+      },
+      tables,
+    );
+
+    expect(sql).toContain('foreign key (photo) references media(id) on delete set null');
+    expect(sql).toContain('foreign key (vedette) references product(id) on delete restrict');
   });
 });

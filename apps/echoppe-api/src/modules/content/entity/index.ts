@@ -1,7 +1,16 @@
-import { entityRegistrySchema, loadEntities, planEntities, pushEntities } from '@repo/entities';
+import { getTableName, media } from '@echoppe/core';
+import {
+  entityRegistrySchema,
+  loadEntities,
+  planEntities,
+  pushEntities,
+  type ReferenceTables,
+} from '@repo/entities';
+import { storageOf } from '@repo/references';
 import { Elysia, t } from 'elysia';
 import { withCrudErrors } from '../../../lib/response';
 import { permissionGuard } from '../../auth/rbac';
+import { references } from '../../reference/targets';
 
 // Entités déclarées : `check` montre, `push` applique (ADR-0027). C'est le chemin qui existe déjà
 // pour le registre de définitions, étendu à ce qui devient une vraie table.
@@ -12,6 +21,17 @@ import { permissionGuard } from '../../auth/rbac';
 //
 // Ces routes ne sont pas dans le contrat figé : elles sont gardées, jamais publiques. La surface
 // de LECTURE des entités, elle, y entrera (#34).
+
+// Où vivent les cibles d'un champ `image` ou `ref` (ADR-0045). C'est ICI que ça se sait, et nulle
+// part ailleurs : `@repo/entities` écrit le DDL sans connaître ni `media` ni le registre de
+// références, ce qui est exactement ce qui lui permet de servir les deux produits.
+//
+// Lu une fois : ni la table des médias ni les cibles inscrites ne changent en cours d'exécution —
+// une inscription est un import, pas un acte d'utilisateur.
+const referenceTables: ReferenceTables = {
+  media: getTableName(media),
+  targets: storageOf(references),
+};
 
 const planSchema = t.Object({
   steps: t.Array(
@@ -37,7 +57,7 @@ export const entityRoutes = new Elysia({
 
   // POST /content/entities/check — rend le SQL qui SERAIT appliqué, sans rien écrire. Le verbe est
   // POST parce que la déclaration voyage dans le corps, pas parce que quelque chose est modifié.
-  .post('/check', ({ body }) => planEntities(body.entities), {
+  .post('/check', ({ body }) => planEntities(body.entities, referenceTables), {
     permission: true,
     body: t.Object({ entities: entityRegistrySchema }),
     response: withCrudErrors({ 200: planSchema }),
@@ -49,7 +69,11 @@ export const entityRoutes = new Elysia({
   .put(
     '/',
     async ({ body, status }) => {
-      const result = await pushEntities(body.entities, body.confirmDestructive === true);
+      const result = await pushEntities(
+        body.entities,
+        referenceTables,
+        body.confirmDestructive === true,
+      );
 
       if (result.outcome === 'blocked') {
         return status(422, { message: result.blockers.join(' · ') });

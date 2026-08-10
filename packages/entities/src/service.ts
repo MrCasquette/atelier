@@ -12,6 +12,7 @@ import {
   fieldColumns,
   IDENTITY_COLUMNS,
   isValidIdentifier,
+  type ReferenceTables,
 } from './ddl';
 import { type EntityDeclaration, type EntityRegistry, entityRegistrySchema } from './model';
 import { entityDefinition } from './schema';
@@ -76,17 +77,22 @@ async function readLiveTable(name: string): Promise<LiveTable | null> {
 
 // ── Plan ──────────────────────────────────────────────────────────────────────────────────────
 
-function planCreate(declaration: EntityDeclaration): PlanStep[] {
+function planCreate(declaration: EntityDeclaration, tables: ReferenceTables): PlanStep[] {
   return [
     {
-      sql: createTableSql(declaration.name, declaration.singleton, declaration.fields),
+      sql: createTableSql(declaration.name, declaration.singleton, declaration.fields, tables),
       destructive: false,
       summary: `Créer la table de « ${declaration.name} »`,
     },
   ];
 }
 
-function planAlter(declaration: EntityDeclaration, live: LiveTable, plan: EntityPlan): void {
+function planAlter(
+  declaration: EntityDeclaration,
+  live: LiveTable,
+  plan: EntityPlan,
+  tables: ReferenceTables,
+): void {
   const declared = new Map<string, ColumnSpec>(
     fieldColumns(declaration.fields).map((column) => [column.name, column]),
   );
@@ -110,7 +116,7 @@ function planAlter(declaration: EntityDeclaration, live: LiveTable, plan: Entity
         destructive: true,
         summary: `Refaire la table de « ${declaration.name} » : changement de cardinalité`,
       },
-      ...planCreate(declaration),
+      ...planCreate(declaration, tables),
     );
     return;
   }
@@ -150,7 +156,10 @@ function planAlter(declaration: EntityDeclaration, live: LiveTable, plan: Entity
  * type change se renomme — ajout puis retrait, deux opérations dont la seconde est visiblement
  * destructrice, ce qui est exactement ce qu'elle est.
  */
-export async function planEntities(registry: EntityRegistry): Promise<EntityPlan> {
+export async function planEntities(
+  registry: EntityRegistry,
+  tables: ReferenceTables,
+): Promise<EntityPlan> {
   const plan: EntityPlan = { steps: [], blockers: [] };
 
   for (const [key, declaration] of Object.entries(registry)) {
@@ -168,9 +177,9 @@ export async function planEntities(registry: EntityRegistry): Promise<EntityPlan
     try {
       const live = await readLiveTable(declaration.name);
       if (!live) {
-        plan.steps.push(...planCreate(declaration));
+        plan.steps.push(...planCreate(declaration, tables));
       } else {
-        planAlter(declaration, live, plan);
+        planAlter(declaration, live, plan, tables);
       }
     } catch (error) {
       plan.blockers.push(error instanceof Error ? error.message : String(error));
@@ -218,9 +227,10 @@ export type PushOutcome =
  */
 export async function pushEntities(
   registry: EntityRegistry,
+  tables: ReferenceTables,
   confirmDestructive = false,
 ): Promise<PushOutcome> {
-  const plan = await planEntities(registry);
+  const plan = await planEntities(registry, tables);
   if (plan.blockers.length > 0) {
     return { outcome: 'blocked', blockers: plan.blockers };
   }

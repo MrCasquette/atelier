@@ -18,10 +18,17 @@ export {
   dropTableSql,
   entityResourceName,
   entityTableName,
+  type ForeignKeySpec,
   fieldColumns,
+  foreignKeyDdl,
+  foreignKeys,
   IDENTITY_COLUMNS,
   identityColumns,
   isValidIdentifier,
+  isValidTableName,
+  NO_REFERENCE_TABLES,
+  type OnDelete,
+  type ReferenceTables,
 } from './ddl';
 export {
   type EntityDeclaration,
