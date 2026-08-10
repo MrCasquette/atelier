@@ -28,6 +28,7 @@ export const TAG_NAMESPACE: Record<string, string> = {
   Countries: 'countries',
   Contact: 'contact',
   Pages: 'pages',
+  Entities: 'entities',
   Menus: 'menus',
   'Customer Auth': 'auth',
   'Customer Account': 'account',
@@ -72,6 +73,9 @@ export const METHOD_NAMES: Record<string, string> = {
   // pages (content)
   getPages: 'list',
   'getPagesBy-slugBySlug': 'bySlug',
+  // entités déclarées (ADR-0027)
+  getEntitiesByName: 'list',
+  getEntitiesByNameBySlug: 'bySlug',
   // menus (navigation)
   'getMenusBy-handleByHandle': 'byHandle',
   // identity / taxRates / contact

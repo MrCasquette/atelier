@@ -58,6 +58,10 @@ export function createResources(client: Client<paths>) {
     countries: {
       list: (init?: MaybeOptionalInit<paths['/countries/'], 'get'>) => client.GET('/countries/', init),
     },
+    entities: {
+      bySlug: (init: MaybeOptionalInit<paths['/entities/{name}/{slug}'], 'get'>) => client.GET('/entities/{name}/{slug}', init),
+      list: (init: MaybeOptionalInit<paths['/entities/{name}'], 'get'>) => client.GET('/entities/{name}', init),
+    },
     identity: {
       get: (init?: MaybeOptionalInit<paths['/identity/'], 'get'>) => client.GET('/identity/', init),
     },

@@ -276,6 +276,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/entities/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getEntitiesByName"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/entities/{name}/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getEntitiesByNameBySlug"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/menus/by-handle/{handle}": {
         parameters: {
             query?: never;
@@ -994,6 +1026,18 @@ export interface components {
                 emailVerified: boolean;
                 /** @description Consentement aux communications marketing. */
                 marketingOptin: boolean;
+            };
+        };
+        /** @description Occurrences d'une entité déclarée. La forme de `data` suit sa cardinalité. */
+        EntityResult: {
+            data: unknown;
+            meta?: {
+                total: number;
+                page: number;
+                limit: number;
+                totalPages: number;
+                hasNextPage: boolean;
+                hasPrevPage: boolean;
             };
         };
         Identity: {
@@ -2566,6 +2610,126 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page"];
+                };
+            };
+            /** @description Ressource non trouvée */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Ressource non trouvée */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    getEntitiesByName: {
+        parameters: {
+            query?: {
+                page?: string | number;
+                limit?: string | number;
+            };
+            header?: never;
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Occurrences d'une entité déclarée. La forme de `data` suit sa cardinalité. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityResult"];
+                };
+            };
+            /** @description Ressource non trouvée */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Ressource non trouvée */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Entité non traitable - Règle métier non respectée */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Détail de l'erreur métier */
+                        message: string;
+                    };
+                };
+            };
+            /** @description Erreur serveur interne */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Erreur interne */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    getEntitiesByNameBySlug: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                name: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Occurrences d'une entité déclarée. La forme de `data` suit sa cardinalité. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityResult"];
                 };
             };
             /** @description Ressource non trouvée */

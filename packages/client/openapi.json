@@ -1802,6 +1802,238 @@
         "operationId": "getPagesBy-slugBySlug"
       }
     },
+    "/entities/{name}": {
+      "get": {
+        "tags": [
+          "Entities"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "anyOf": [
+                {
+                  "format": "numeric",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 1,
+                  "default": 1,
+                  "type": "number"
+                }
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "anyOf": [
+                {
+                  "format": "numeric",
+                  "default": 0,
+                  "type": "string"
+                },
+                {
+                  "minimum": 1,
+                  "maximum": 100,
+                  "default": 20,
+                  "type": "number"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Occurrences d'une entité déclarée. La forme de `data` suit sa cardinalité.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ressource non trouvée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Ressource non trouvée",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Ressource non trouvée",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entité non traitable - Règle métier non respectée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Entité non traitable - Règle métier non respectée",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Détail de l'erreur métier",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur interne",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Erreur serveur interne",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Erreur interne",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getEntitiesByName"
+      }
+    },
+    "/entities/{name}/{slug}": {
+      "get": {
+        "tags": [
+          "Entities"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Occurrences d'une entité déclarée. La forme de `data` suit sa cardinalité.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ressource non trouvée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Ressource non trouvée",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Ressource non trouvée",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entité non traitable - Règle métier non respectée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Entité non traitable - Règle métier non respectée",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Détail de l'erreur métier",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur interne",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Erreur serveur interne",
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "description": "Erreur interne",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getEntitiesByNameBySlug"
+      }
+    },
     "/menus/by-handle/{handle}": {
       "get": {
         "tags": [
@@ -6795,6 +7027,48 @@
           }
         },
         "$id": "#/components/schemas/CustomerAuth"
+      },
+      "EntityResult": {
+        "description": "Occurrences d'une entité déclarée. La forme de `data` suit sa cardinalité.",
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {},
+          "meta": {
+            "type": "object",
+            "required": [
+              "total",
+              "page",
+              "limit",
+              "totalPages",
+              "hasNextPage",
+              "hasPrevPage"
+            ],
+            "properties": {
+              "total": {
+                "type": "number"
+              },
+              "page": {
+                "type": "number"
+              },
+              "limit": {
+                "type": "number"
+              },
+              "totalPages": {
+                "type": "number"
+              },
+              "hasNextPage": {
+                "type": "boolean"
+              },
+              "hasPrevPage": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "$id": "#/components/schemas/EntityResult"
       },
       "Identity": {
         "type": "object",

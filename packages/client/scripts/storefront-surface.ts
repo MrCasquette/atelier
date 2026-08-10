@@ -35,6 +35,12 @@ export const STOREFRONT_SURFACE: ReadonlyArray<readonly [HttpMethod, string]> = 
   ['get', '/pages/'],
   ['get', '/pages/by-slug/{slug}'],
 
+  // --- Public : entités déclarées (ADR-0027) ---
+  // Deux routes GÉNÉRIQUES, et c'est ce qui permet à cette liste d'exister : des routes dérivées du
+  // registre rendraient le contrat dépendant de l'installation, et ce SDK ingénérable.
+  ['get', '/entities/{name}'],
+  ['get', '/entities/{name}/{slug}'],
+
   // --- Public : menus de navigation ---
   ['get', '/menus/by-handle/{handle}'],
 

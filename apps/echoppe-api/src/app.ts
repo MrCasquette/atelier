@@ -14,6 +14,7 @@ import { communicationsRoutes } from './modules/communication';
 import { contactRoutes } from './modules/contact';
 import { definitionRoutes } from './modules/content/definition';
 import { entityRoutes } from './modules/content/entity';
+import { entityPublicRoutes } from './modules/content/entity/public';
 import { pageRoutes } from './modules/content/page';
 import { countriesRoutes } from './modules/country';
 import { customerRoutes } from './modules/customer';
@@ -111,6 +112,7 @@ export const app = new Elysia()
   .use(menuRoutes)
   .use(definitionRoutes)
   .use(entityRoutes)
+  .use(entityPublicRoutes)
   .use(referenceRoutes)
   .use(pageRoutes)
   .use(apiKeyRoutes)

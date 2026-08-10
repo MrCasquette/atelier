@@ -4,6 +4,7 @@ import { categoryModels } from './modules/catalog/category/model';
 import { collectionModels } from './modules/catalog/collection/model';
 import { catalogModels } from './modules/catalog/model';
 import { checkoutModels } from './modules/checkout/model';
+import { entityModels } from './modules/content/entity/model';
 import { pageModels } from './modules/content/page/model';
 import { countryModels } from './modules/country/model';
 import { addressModels } from './modules/customer/address/model';
@@ -36,6 +37,7 @@ export const allModels = {
   ...checkoutModels,
   ...orderModels,
   ...pageModels,
+  ...entityModels,
   ...menuModels,
   ...wishlistModels,
 };

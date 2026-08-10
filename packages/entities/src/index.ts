@@ -29,6 +29,15 @@ export {
   entityDeclarationSchema,
   entityRegistrySchema,
 } from './model';
+export {
+  type EntityLookup,
+  type EntityPage,
+  type EntityRow,
+  findDeclaration,
+  findEntityRowBySlug,
+  findSingletonRow,
+  listEntityRows,
+} from './row-service';
 export { entityDefinition } from './schema';
 export {
   type EntityPlan,
