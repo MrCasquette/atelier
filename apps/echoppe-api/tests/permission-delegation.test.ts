@@ -78,14 +78,27 @@ async function createAdminRankSession(): Promise<string> {
 
   await db
     .insert(permission)
-    .values({
-      role: adminRole.id,
-      resource: 'permission',
-      canCreate: false,
-      canRead: true,
-      canUpdate: true,
-      canDelete: false,
-    })
+    .values([
+      {
+        role: adminRole.id,
+        resource: 'permission',
+        canCreate: false,
+        canRead: true,
+        canUpdate: true,
+        canDelete: false,
+      },
+      // Le premier rang détient la structure, comme au seed. C'est ce qui permet de vérifier qu'il
+      // ne peut pas la transmettre pour autant.
+      {
+        role: adminRole.id,
+        resource: 'schema',
+        canCreate: true,
+        canRead: true,
+        canUpdate: true,
+        canDelete: true,
+        locked: true,
+      },
+    ])
     .onConflictDoNothing();
 
   const [adminUser] = await db
@@ -216,6 +229,21 @@ describe('délégation des droits', () => {
     });
 
     expect(res.status).toBe(200);
+  });
+
+  // `schema` tient au RANG et non à la possession (ADR-0038, amendement du 2026-08-10) : le
+  // détenir ne donne pas le droit de le transmettre. Sans ce refus, un administrateur se
+  // fabriquerait un rôle d'éditeur habilité à redéfinir la forme des données.
+  it("un administrateur ne peut pas accorder `schema`, qu'il détient pourtant", async () => {
+    const res = await req('PUT', `/roles/${targetRoleId}/permissions`, {
+      cookie: adminCookie,
+      body: { permissions: [grant('schema', { canRead: true, canUpdate: true })] },
+    });
+
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as { message: string };
+    expect(body.message).toContain('schema');
+    expect(body.message).toContain('rang');
   });
 
   it("l'owner court-circuite la délégation", async () => {

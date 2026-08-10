@@ -307,6 +307,16 @@ async function seed() {
     { resource: 'permission', canRead: true, locked: true }, // Permissions système
     { resource: 'audit_log', canRead: true, locked: true }, // Journal non modifiable
     { resource: 'api_key', canCreate: true, canRead: true, canUpdate: true, canDelete: true }, // Clés machine
+    // Structure : pousser un registre, dériver la table d'une entité. Tient au rang — accordée
+    // ici, jamais transmissible ensuite (ADR-0038).
+    {
+      resource: 'schema',
+      canCreate: true,
+      canRead: true,
+      canUpdate: true,
+      canDelete: true,
+      locked: true,
+    },
 
     // --- Tables compliance (pas de delete) ---
     { resource: 'order', canCreate: true, canRead: true, canUpdate: true }, // Historique obligatoire
@@ -363,6 +373,16 @@ async function seed() {
     { resource: 'address', canCreate: true, canRead: true, canUpdate: true },
     { resource: 'cart', canRead: true },
     { resource: 'content', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
+    // Structure : même droit que le propriétaire — l'administrateur est du premier rang. Verrouillé
+    // et non transmissible : il ne peut pas la recopier sur un rôle sur mesure (ADR-0038).
+    {
+      resource: 'schema',
+      canCreate: true,
+      canRead: true,
+      canUpdate: true,
+      canDelete: true,
+      locked: true,
+    },
     // Clés d'API : chaque admin gère UNIQUEMENT les siennes (selfOnly). L'Owner voit tout (bypass).
     {
       resource: 'api_key',

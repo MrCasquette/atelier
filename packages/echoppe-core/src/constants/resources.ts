@@ -20,6 +20,12 @@ export const RESOURCES = {
   // Contenu (page builder)
   CONTENT: 'content',
 
+  // Structure : pousser un registre de définitions, dériver la table d'une entité. Éditer du
+  // contenu et redéfinir ce qu'EST un contenu sont deux actes distincts — le second peut invalider
+  // des données existantes. Cette ressource tient au RANG (ADR-0038) : le seed l'accorde au premier
+  // rang, et `undelegatableGrants` refuse de la transmettre.
+  SCHEMA: 'schema',
+
   // Commerce
   ORDER: 'order',
   CART: 'cart',

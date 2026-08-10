@@ -8,7 +8,7 @@ import type { ContentDefinition } from './types.js';
 
 export interface PushOptions {
   apiUrl: string; // origine de l'API, ex. http://localhost:7532
-  apiKey: string; // clé machine (scope write:content pour push, read:content pour check), ex. eck_…
+  apiKey: string; // clé machine (scope write:schema pour push, read:content pour check), ex. eck_…
   fetch?: typeof fetch; // injectable (tests)
 }
 

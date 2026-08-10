@@ -147,7 +147,7 @@ CLI  content:push            packages/content/src/cli.ts
    │  serialize() → Registry
    │  pushRegistry({ apiUrl, apiKey })
    ▼
-PUT /content/registry        Authorization: Bearer eck_…   (scope write:content)
+PUT /content/registry        Authorization: Bearer eck_…   (scope write:schema)
    │  assertRegistryCoherent(body)   → 422 si ref manquante / cycle
    │  transaction : delete-all + insert (miroir des fichiers du dev)
    │  invalidateRegistryCache()

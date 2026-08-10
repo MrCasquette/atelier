@@ -29,9 +29,9 @@ COMPOSE_PROJECT_NAME=${projectName}
 PUBLIC_API_URL=${apiUrl}
 
 # ─── Contenu (\`pnpm content:push\`) ──────────────────────────────────────
-# Clé d'API machine (scope write:content) pour synchroniser vos définitions de
+# Clé d'API machine (scope write:schema) pour synchroniser vos définitions de
 # blocs vers l'API. Créez-la dans l'admin (« Clés d'API »), ou via :
-#   docker compose exec api bun run api-key:create --name front --scopes write:content
+#   docker compose exec api bun run api-key:create --name front --scopes write:schema
 # puis collez-la ci-dessous.
 ECHOPPE_API_KEY=
 

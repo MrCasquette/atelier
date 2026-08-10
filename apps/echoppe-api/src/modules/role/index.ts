@@ -276,7 +276,13 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
       // est un acte de gouvernance réservé au premier rang — l'ensemble étant remplacé d'un bloc,
       // une soumission réduite supprime le reste, ce qui permettait de vider un rôle qu'on
       // n'administre pas.
-      const ungrantable = undelegatableGrants(principal, body.permissions);
+      //
+      // La vérification porte sur ce qui sera RÉELLEMENT appliqué, donc hors lignes verrouillées :
+      // celles-ci ne bougent pas, et les resoumettre telles quelles — ce que fait l'écran d'édition
+      // des rôles — ne doit pas passer pour une tentative d'accorder quoi que ce soit.
+      const submitted = body.permissions.filter((p) => !lockedResources.has(p.resource));
+
+      const ungrantable = undelegatableGrants(principal, submitted);
       if (ungrantable.length > 0) {
         return status(403, {
           message: `Droits non détenus, donc non délégables : ${ungrantable.join(', ')}`,
@@ -295,13 +301,10 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
         .delete(permission)
         .where(and(eq(permission.role, params.id), eq(permission.locked, false)));
 
-      // Filtrer les permissions soumises pour exclure celles qui sont verrouillées
-      const newPermissions = body.permissions.filter((p) => !lockedResources.has(p.resource));
-
       // Insérer les nouvelles permissions (non verrouillées uniquement)
-      if (newPermissions.length > 0) {
+      if (submitted.length > 0) {
         await db.insert(permission).values(
-          newPermissions.map((p) => ({
+          submitted.map((p) => ({
             role: params.id,
             resource: p.resource,
             canCreate: p.canCreate,

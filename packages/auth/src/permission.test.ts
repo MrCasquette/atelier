@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { undelegatableScopes } from './permission';
+import { undelegatableGrants, undelegatableScopes } from './permission';
 import type { PermissionSet, Principal } from './principal';
 
 // Une clé d'API est une délégation d'autorité (ADR-0038, amendement du 2026-08-10). La validation
@@ -21,6 +21,48 @@ const holder = (permissions: Record<string, PermissionSet>, bypass = false): Pri
   privileged: true,
   hasSubject: true,
   identity: null,
+});
+
+const grant = (resource: string, over: Partial<PermissionSet> = {}) => ({
+  resource,
+  canCreate: false,
+  canRead: false,
+  canUpdate: false,
+  canDelete: false,
+  ...over,
+});
+
+// `schema` — le droit de redéfinir la forme des données — tient au RANG et non à la possession
+// (ADR-0038, amendement du 2026-08-10). Le détenir ne donne pas le droit de le transmettre.
+describe('ressources de rang', () => {
+  test("un administrateur qui détient `schema` ne peut pas l'accorder", () => {
+    const admin = holder({
+      schema: perm({ canCreate: true, canRead: true, canUpdate: true, canDelete: true }),
+    });
+
+    const refused = undelegatableGrants(admin, [grant('schema', { canUpdate: true })]);
+
+    expect(refused).toHaveLength(1);
+    expect(refused[0]).toContain('schema');
+  });
+
+  test('une ligne `schema` qui n’accorde rien passe — elle ne transmet rien', () => {
+    const admin = holder({ schema: perm({ canUpdate: true }) });
+
+    expect(undelegatableGrants(admin, [grant('schema')])).toEqual([]);
+  });
+
+  test('les autres ressources restent gouvernées par la seule possession', () => {
+    const admin = holder({ product: perm({ canUpdate: true }) });
+
+    expect(undelegatableGrants(admin, [grant('product', { canUpdate: true })])).toEqual([]);
+  });
+
+  test("le propriétaire de l'installation court-circuite : il peut déjà nommer un administrateur", () => {
+    const owner = holder({}, true);
+
+    expect(undelegatableGrants(owner, [grant('schema', { canUpdate: true })])).toEqual([]);
+  });
 });
 
 describe('délégation des scopes de clé', () => {

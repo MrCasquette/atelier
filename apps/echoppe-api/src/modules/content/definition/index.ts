@@ -18,7 +18,12 @@ export const definitionRoutes = new Elysia({ prefix: '/content', detail: { tags:
 
   // PUT /content/registry - Synchronise le registre complet (poussé par la CLI @mrcasquette/content).
   // Remplace-tout : la source d'autorité, ce sont les fichiers du dev ; la DB en est le miroir.
-  .use(permissionGuard('content', 'update'))
+  //
+  // Gardé par `schema` et non `content` : pousser un registre redéfinit ce qu'EST une section et
+  // peut invalider des données existantes. C'est un acte de STRUCTURE, pas d'édition — un éditeur
+  // ne doit pouvoir qu'éditer. Ce droit tient au rang (ADR-0038), donc la clé de la CLI porte
+  // `write:schema`, émissible par le seul premier rang.
+  .use(permissionGuard('schema', 'update'))
   .put(
     '/registry',
     async ({ body, status }) => {

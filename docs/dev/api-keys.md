@@ -29,7 +29,8 @@ ressource RBAC (`product`, `collection`, `content`, `order`, …).
 | `write:<r>` | **créer, modifier et supprimer** la ressource |
 
 `write` est volontairement **composite** (create + update + delete) : les clés machine restent
-simples. Pour de la synchronisation de contenu, la portée utile est `write:content`.
+simples. Pour la synchronisation des définitions de contenu, la portée utile est
+`write:schema` — pousser un registre est un acte de **structure**, pas d'édition.
 
 ::: warning La ressource `api_key` n'est pas scopable
 Une clé ne peut **jamais** gérer d'autres clés (ni elle-même). La gestion des clés est
@@ -53,7 +54,7 @@ Pour provisionner une première clé sans admin :
 ```bash
 docker compose exec api bun run api-key:create \
   --name front \
-  --scopes write:content
+  --scopes write:schema
 ```
 
 La clé en clair est imprimée une fois dans la sortie.

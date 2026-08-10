@@ -10,6 +10,7 @@ export {
   hasPermission,
   isSelfOnly,
   type PermissionGrant,
+  RANK_BOUND_RESOURCES,
   revokedByGrants,
   undelegatableGrants,
   undelegatableScopes,

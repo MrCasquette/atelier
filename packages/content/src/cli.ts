@@ -39,7 +39,8 @@ function readEnv(): { apiUrl: string; apiKey: string } {
   return { apiUrl, apiKey };
 }
 
-// `push` : sérialise + pousse le registre (remplace-tout). Scope requis : write:content.
+// `push` : sérialise + pousse le registre (remplace-tout). Scope requis : write:schema —
+// redéfinir ce qu'EST une section est un acte de structure, pas d'édition (ADR-0038).
 async function runPush(): Promise<never> {
   const { apiUrl, apiKey } = readEnv();
   const content = await loadContent();

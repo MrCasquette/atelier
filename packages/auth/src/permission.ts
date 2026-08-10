@@ -47,6 +47,18 @@ export type PermissionGrant = {
   selfOnly?: boolean;
 };
 
+/**
+ * Ressources qui tiennent au RANG et non à la possession (ADR-0038, amendement du 2026-08-10) :
+ * jamais transmises par délégation, même par quelqu'un qui les détient. Le seed les accorde au
+ * premier rang, et rien d'autre ne peut les accorder.
+ *
+ * C'est le seul endroit où le socle nomme une ressource, et c'est délibéré. `schema` — le droit de
+ * redéfinir la forme des données — n'est pas du vocabulaire produit : il existe dans tout produit
+ * bâti sur ce socle, et c'est une garantie de sécurité. La passer en argument la rendrait
+ * OUBLIABLE par omission, c'est-à-dire exactement la faille qu'elle ferme.
+ */
+export const RANK_BOUND_RESOURCES: ReadonlySet<string> = new Set(['schema']);
+
 const GRANTABLE_ACTIONS = [
   ['create', 'canCreate'],
   ['read', 'canRead'],
@@ -76,6 +88,20 @@ export function undelegatableGrants(
 
   for (const grant of grants) {
     const held = principal.permissions.get(grant.resource);
+    const grantsAnything = GRANTABLE_ACTIONS.some(([, flag]) => grant[flag]);
+
+    // Une ressource de rang ne se transmet pas, même par qui la détient — sans quoi « tient au
+    // rang » ne veut rien dire : un administrateur la recopierait sur un rôle sur mesure et la
+    // possession redeviendrait le critère.
+    //
+    // Le propriétaire de l'installation, lui, court-circuite en amont, comme partout ailleurs.
+    // Ce n'est pas une brèche : il peut déjà nommer quelqu'un administrateur, donc lui donner ce
+    // droit ne lui ouvre aucune capacité nouvelle. La règle vise l'ÉLÉVATION — obtenir plus que ce
+    // qu'on a —, pas le don venu du sommet.
+    if (grantsAnything && RANK_BOUND_RESOURCES.has(grant.resource)) {
+      refused.push(`${grant.resource} (tient au rang, non délégable)`);
+      continue;
+    }
 
     for (const [action, flag] of GRANTABLE_ACTIONS) {
       if (grant[flag] && !held?.[flag]) {
@@ -86,7 +112,6 @@ export function undelegatableGrants(
     // `selfOnly` borne un droit aux lignes dont on est le sujet. L'accorder SANS cette borne quand
     // on ne le détient qu'avec, c'est accorder plus large que ce qu'on a — même interdit, autre
     // dimension. L'ADR ne l'explicitait pas ; c'est la lecture fidèle de la règle.
-    const grantsAnything = GRANTABLE_ACTIONS.some(([, flag]) => grant[flag]);
     if (grantsAnything && held?.selfOnly && grant.selfOnly !== true) {
       refused.push(`${grant.resource}:selfOnly`);
     }
