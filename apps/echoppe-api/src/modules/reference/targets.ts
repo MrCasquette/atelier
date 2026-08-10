@@ -1,4 +1,4 @@
-import { category, collection, db, ilike, inArray, product } from '@echoppe/core';
+import { category, collection, db, getTableName, ilike, inArray, product } from '@echoppe/core';
 import { pageReferenceTarget } from '@repo/pages';
 import { createReferenceRegistry, type EntityProjection } from '@repo/references';
 
@@ -17,9 +17,10 @@ import { createReferenceRegistry, type EntityProjection } from '@repo/references
 // qu'elles restent vraies. Un lien cassé est un 404, pas une corruption (ADR-0032).
 //
 // `storage` est l'autre moitié : la route dit où lire la cible côté front, la table dit où elle vit
-// en base — de quoi qu'un champ `ref` qui la vise porte une vraie clé étrangère (ADR-0045). Ces
-// quatre tables sont des tables du cœur, stables ; une cible qui n'en aurait pas de si simple se
-// tait, et son champ garde un `uuid` nu.
+// en base — de quoi permettre à un champ `ref` qui la vise de porter une vraie clé étrangère
+// (ADR-0045). Le nom est LU sur la table Drizzle, jamais recopié : le schéma reste la seule source,
+// et un renommage ne peut pas laisser un littéral périmé derrière lui. Une cible dont le stockage
+// ne se nomme pas si simplement se tait, et son champ garde un `uuid` nu.
 
 const SEARCH_LIMIT_MAX = 100;
 
@@ -31,7 +32,7 @@ references.register({
   name: 'product',
   label: 'Produit',
   link: { mode: 'route', route: '/produits/:slug' },
-  storage: { table: 'product' },
+  storage: { table: getTableName(product) },
   async project(ids) {
     return db
       .select({ id: product.id, slug: product.slug, name: product.name })
@@ -50,7 +51,7 @@ references.register({
   name: 'collection',
   label: 'Collection',
   link: { mode: 'route', route: '/collections/:slug' },
-  storage: { table: 'collection' },
+  storage: { table: getTableName(collection) },
   async project(ids) {
     return db
       .select({ id: collection.id, slug: collection.slug, name: collection.name })
@@ -69,7 +70,7 @@ references.register({
   name: 'category',
   label: 'Catégorie',
   link: { mode: 'route', route: '/categories/:slug' },
-  storage: { table: 'category' },
+  storage: { table: getTableName(category) },
   async project(ids) {
     return db
       .select({ id: category.id, slug: category.slug, name: category.name })

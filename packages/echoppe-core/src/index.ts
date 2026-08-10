@@ -56,6 +56,7 @@ export {
   db,
   desc,
   eq,
+  getTableName,
   gt,
   gte,
   ilike,

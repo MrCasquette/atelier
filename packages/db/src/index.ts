@@ -6,6 +6,10 @@
 
 // Vocabulaire de requête — réexporté ici pour qu'un paquet partagé n'ait pas à déclarer
 // drizzle-orm en dépendance directe juste pour écrire un `eq`.
+//
+// `getTableName` en fait partie : ce qui écrit du DDL visant une table — une clé étrangère dérivée
+// d'une entité (ADR-0045) — lit son nom sur la table elle-même plutôt que de recopier une chaîne.
+// Le schéma reste la seule source, et un renommage ne peut pas laisser un littéral périmé derrière.
 export type { Column, SQL } from 'drizzle-orm';
 export {
   and,
@@ -13,6 +17,7 @@ export {
   count,
   desc,
   eq,
+  getTableName,
   gt,
   gte,
   ilike,

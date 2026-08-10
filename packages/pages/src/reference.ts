@@ -1,4 +1,4 @@
-import { db, ilike, inArray } from '@repo/db';
+import { db, getTableName, ilike, inArray } from '@repo/db';
 import type { ReferenceTarget } from '@repo/references';
 import { page } from './schema';
 
@@ -24,8 +24,9 @@ export function pageReferenceTarget(options: PageReferenceOptions = {}): Referen
     label: options.label ?? 'Page',
     link: { mode: 'route', route: options.route ?? '/:slug' },
     // Déclaré ici pour la même raison que le reste du descripteur : la table vit dans ce paquet.
-    // Un champ `ref('page')` d'entité peut donc porter une vraie clé étrangère (ADR-0045).
-    storage: { table: 'page' },
+    // Un champ `ref('page')` d'entité peut donc porter une vraie clé étrangère (ADR-0045). Le nom
+    // est LU sur la table, pas recopié : le schéma reste la seule source.
+    storage: { table: getTableName(page) },
 
     async project(ids) {
       return db
