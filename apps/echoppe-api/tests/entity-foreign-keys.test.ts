@@ -102,3 +102,115 @@ describe('la table dérivée porte de vraies contraintes', () => {
     expect(await constraintsOf('entity_note_libre')).toEqual([]);
   });
 });
+
+// L'existant. Une installation antérieure à ADR-0045 porte des colonnes `uuid` NUES : sans cet
+// alignement, elle les garderait indéfiniment et seules les entités créées ensuite auraient leurs
+// garanties. La table est fabriquée ici telle que l'ancien mécanisme la produisait.
+describe('une table déjà poussée se met à niveau', () => {
+  const ancienne = entity('archive', {
+    titre: { kind: 'text', required: true },
+    visuel: { kind: 'image' },
+  });
+
+  const asBeforeAdr0045 = () =>
+    db.execute(sql`
+      drop table if exists entity_archive;
+      create table entity_archive (
+        id uuid primary key default gen_random_uuid(),
+        slug varchar(150) not null unique,
+        date_created timestamptz not null default now(),
+        date_updated timestamptz not null default now(),
+        titre text not null,
+        visuel uuid
+      );
+    `);
+
+  it('propose la contrainte manquante, sans la compter comme destructrice', async () => {
+    await asBeforeAdr0045();
+    // Le journal doit connaître l'entité, sinon le plan proposerait de créer la table.
+    await push([dossier, ancienne]);
+    await asBeforeAdr0045();
+
+    const planned = await req('POST', '/content/entities/check', {
+      cookie: ownerCookie,
+      body: { entities: { dossier, archive: ancienne } },
+    });
+    const plan = (await planned.json()) as {
+      steps: Array<{ sql: string; destructive: boolean }>;
+      blockers: string[];
+    };
+
+    expect(plan.blockers).toEqual([]);
+    const step = plan.steps.find((s) => s.sql.includes('entity_archive'));
+    expect(step?.sql).toContain('add foreign key (visuel) references media(id)');
+    // Poser une garantie ne détruit rien : ça passe sans confirmation.
+    expect(step?.destructive).toBe(false);
+  });
+
+  it('applique la contrainte, qui protège ensuite pour de bon', async () => {
+    const res = await push([dossier, ancienne]);
+    expect(res.status).toBe(200);
+
+    expect(await constraintsOf('entity_archive')).toEqual([
+      { column_name: 'visuel', foreign_table: 'media', delete_rule: 'SET NULL' },
+    ]);
+  });
+
+  it('refuse de poser la contrainte sur des valeurs pendantes, et dit combien', async () => {
+    await asBeforeAdr0045();
+    // Donnée DÉJÀ cassée, que l'absence de contrainte laissait passer. On ne l'efface pas d'office :
+    // ce serait exactement la destruction implicite que le mécanisme refuse partout (ADR-0028).
+    await db.execute(
+      sql`insert into entity_archive (slug, titre, visuel) values ('orpheline', 'X', ${crypto.randomUUID()})`,
+    );
+
+    const res = await push([dossier, ancienne]);
+
+    expect(res.status).toBe(422);
+    const body = (await res.json()) as { message: string };
+    expect(body.message).toContain('archive');
+    expect(body.message).toContain('visuel');
+    expect(body.message).toContain('1 valeur');
+    // Rien n'a été touché : la ligne fautive est toujours là, à corriger.
+    const rows = await db.execute<{ total: number }>(
+      sql`select count(*)::int as total from entity_archive`,
+    );
+    expect(rows[0].total).toBe(1);
+
+    // Une fois le constat fait, on rend la base à l'état où on l'a trouvée : ces fichiers partagent
+    // une seule base, et une table laissée pleine bloquerait la suppression pour le suivant.
+    await db.execute(sql`delete from entity_archive`);
+  });
+});
+
+// Une table VISÉE par une clé étrangère ne se supprime pas. Les entités ne sont pas encore des
+// cibles référençables (#29), mais la contrainte peut venir d'ailleurs — d'un `psql`, d'une table
+// applicative — et c'est justement le scénario que la souveraineté des données rend normal.
+describe("une entité que l'on référence ne se supprime pas", () => {
+  const citee = entity('citee', { titre: { kind: 'text' } });
+
+  it('refuse la suppression en NOMMANT ce qui retient, plutôt que de casser', async () => {
+    const created = await push([dossier, citee]);
+    expect(created.status).toBe(200);
+
+    await db.execute(sql`
+      drop table if exists lecteur_externe;
+      create table lecteur_externe (
+        id uuid primary key default gen_random_uuid(),
+        cible uuid references entity_citee(id)
+      );
+    `);
+
+    // `citee` disparaît de la déclaration : le plan voudrait supprimer sa table.
+    const res = await push([dossier]);
+
+    expect(res.status).toBe(422);
+    const body = (await res.json()) as { message: string };
+    // Le refus doit dire QUI retient — sans quoi la seule issue trouvable serait la cascade.
+    expect(body.message).toContain('lecteur_externe');
+    expect(body.message).toContain('cible');
+    expect(body.message).toContain('jamais de cascade');
+
+    await db.execute(sql`drop table lecteur_externe`);
+  });
+});

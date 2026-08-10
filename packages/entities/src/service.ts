@@ -10,8 +10,11 @@ import {
   entityResourceName,
   entityTableName,
   fieldColumns,
+  foreignKeyDdl,
+  foreignKeys,
   IDENTITY_COLUMNS,
   isValidIdentifier,
+  type OnDelete,
   type ReferenceTables,
 } from './ddl';
 import { type EntityDeclaration, type EntityRegistry, entityRegistrySchema } from './model';
@@ -43,7 +46,63 @@ export type EntityPlan = {
 
 // ── Lecture du schéma RÉEL ────────────────────────────────────────────────────────────────────
 
-type LiveTable = { columns: Map<string, string>; rows: number; singleton: boolean };
+/** Une clé étrangère telle qu'elle EXISTE, avec le nom que Postgres lui a donné. */
+type LiveForeignKey = { constraint: string; table: string; onDelete: OnDelete };
+
+type LiveTable = {
+  columns: Map<string, string>;
+  /** Contraintes réelles, par colonne porteuse. */
+  foreignKeys: Map<string, LiveForeignKey>;
+  rows: number;
+  singleton: boolean;
+};
+
+/**
+ * Clés étrangères réellement portées par une table.
+ *
+ * On les lit par COLONNE et non par nom : le nom est celui que Postgres a fabriqué, il peut avoir
+ * été tronqué à 63 octets, et rien ne garantit qu'une contrainte posée à la main s'appelle comme
+ * la nôtre. La colonne, elle, ne ment pas (ADR-0045).
+ */
+async function readForeignKeys(table: string): Promise<Map<string, LiveForeignKey>> {
+  const rows = await db.execute<{
+    constraint_name: string;
+    column_name: string;
+    foreign_table: string;
+    delete_rule: string;
+  }>(sql`
+    select
+      tc.constraint_name,
+      kcu.column_name,
+      ccu.table_name as foreign_table,
+      rc.delete_rule
+    from information_schema.table_constraints tc
+    join information_schema.key_column_usage kcu
+      on kcu.constraint_name = tc.constraint_name
+    join information_schema.constraint_column_usage ccu
+      on ccu.constraint_name = tc.constraint_name
+    join information_schema.referential_constraints rc
+      on rc.constraint_name = tc.constraint_name
+    where tc.table_schema = 'public'
+      and tc.table_name = ${table}
+      and tc.constraint_type = 'FOREIGN KEY'
+  `);
+
+  return new Map(
+    rows.map((row) => [
+      row.column_name,
+      {
+        constraint: row.constraint_name,
+        table: row.foreign_table,
+        // Postgres rend la règle en majuscules et sans souligné (`SET NULL`), notre vocabulaire est
+        // celui du DDL. Tout ce qui n'est pas `SET NULL` est traité comme un refus de supprimer :
+        // c'est le sens de `NO ACTION` comme de `RESTRICT`, et confondre les deux ici n'aurait pour
+        // effet que de proposer un remplacement inutile.
+        onDelete: row.delete_rule === 'SET NULL' ? 'set null' : 'restrict',
+      },
+    ]),
+  );
+}
 
 /**
  * État réel des tables d'entités, lu dans `information_schema`.
@@ -70,6 +129,7 @@ async function readLiveTable(name: string): Promise<LiveTable | null> {
 
   return {
     columns: new Map(columns.map((column) => [column.column_name, column.data_type])),
+    foreignKeys: await readForeignKeys(table),
     rows: counted?.total ?? 0,
     singleton: columns.some((column) => column.column_name === 'singleton'),
   };
@@ -87,12 +147,121 @@ function planCreate(declaration: EntityDeclaration, tables: ReferenceTables): Pl
   ];
 }
 
-function planAlter(
+/**
+ * Lignes dont la valeur ne désigne plus rien dans la table visée.
+ *
+ * Ce n'est pas une précaution : c'est de la donnée DÉJÀ cassée, que l'absence de clé étrangère
+ * laissait passer. La compter avant l'`ALTER` permet de le refuser en disant combien et où, plutôt
+ * que de laisser Postgres échouer sur un message qui ne dit ni l'un ni l'autre.
+ *
+ * Tous les identifiants viennent de la liste blanche — c'est ce qui autorise `sql.raw`.
+ */
+async function danglingRows(table: string, column: string, target: string): Promise<number> {
+  const [counted] = await db.execute<{ total: number }>(
+    sql.raw(`
+      select count(*)::int as total
+      from ${table} source
+      where source.${column} is not null
+        and not exists (select 1 from ${target} cible where cible.id = source.${column})
+    `),
+  );
+  return counted?.total ?? 0;
+}
+
+/**
+ * Ce qui référence la table d'une entité, en clair.
+ *
+ * Nommer ce qui retient est tout l'intérêt : un refus qui dit seulement « impossible » laisse
+ * l'utilisateur chercher, et la seule issue qu'il trouverait serait la cascade.
+ */
+async function incomingReferences(name: string): Promise<string[]> {
+  const table = entityTableName(name);
+  const rows = await db.execute<{ source: string; column_name: string }>(sql`
+    select tc.table_name as source, kcu.column_name
+    from information_schema.table_constraints tc
+    join information_schema.key_column_usage kcu
+      on kcu.constraint_name = tc.constraint_name
+    join information_schema.constraint_column_usage ccu
+      on ccu.constraint_name = tc.constraint_name
+    where tc.constraint_type = 'FOREIGN KEY'
+      and ccu.table_name = ${table}
+      and tc.table_name <> ${table}
+  `);
+  return rows.map((row) => `« ${row.source} ».${row.column_name}`);
+}
+
+/**
+ * Aligne les contraintes réelles sur celles qu'implique la déclaration (ADR-0045).
+ *
+ * Sans ça, seules les entités créées APRÈS ADR-0045 auraient leurs garanties : les tables déjà
+ * poussées garderaient des colonnes `uuid` nues, indéfiniment.
+ *
+ * Ajouter ou retirer une contrainte ne détruit aucune donnée — ces opérations passent donc sans
+ * confirmation. Ce qu'elles peuvent faire, c'est ÉCHOUER sur de la donnée pendante, et c'est
+ * exactement ce que le refus doit dire.
+ */
+async function planForeignKeys(
   declaration: EntityDeclaration,
   live: LiveTable,
   plan: EntityPlan,
   tables: ReferenceTables,
-): void {
+  /** Colonnes que ce même plan vient d'ajouter : vides par construction, rien à vérifier. */
+  added: Set<string>,
+): Promise<void> {
+  const table = entityTableName(declaration.name);
+  const declared = new Map(foreignKeys(declaration.fields, tables).map((key) => [key.column, key]));
+
+  for (const [column, key] of declared) {
+    const existing = live.foreignKeys.get(column);
+    if (existing && existing.table === key.table && existing.onDelete === key.onDelete) continue;
+
+    if (!added.has(column)) {
+      const pending = await danglingRows(table, column, key.table);
+      if (pending > 0) {
+        plan.blockers.push(
+          `« ${declaration.name} ».${column} porte ${pending} valeur(s) qui ne désignent plus rien dans « ${key.table} ». Corrigez-les avant de poser la contrainte : les effacer d'office serait une destruction implicite.`,
+        );
+        continue;
+      }
+    }
+
+    // Une contrainte existante qui ne dit plus la bonne chose — la cible a changé, ou `required` a
+    // changé la politique — est remplacée. Retirer une garantie pour la reposer aussitôt ne perd
+    // aucune donnée ; c'est le seul moyen de la corriger, Postgres ne sachant pas l'altérer.
+    if (existing) {
+      plan.steps.push({
+        sql: `alter table ${table} drop constraint ${existing.constraint};`,
+        destructive: false,
+        summary: `Remplacer la contrainte de « ${column} » sur « ${declaration.name} »`,
+      });
+    }
+
+    plan.steps.push({
+      sql: `alter table ${table} add ${foreignKeyDdl(key)};`,
+      destructive: false,
+      summary: `Contraindre « ${column} » de « ${declaration.name} » à ${key.table} (${key.onDelete})`,
+    });
+  }
+
+  // Contraintes que la déclaration ne demande plus : la cible s'est tue, ou le champ a changé de
+  // nature. On les retire — laisser une garantie que la déclaration ne dit plus ferait diverger la
+  // base des fichiers, qui font foi.
+  for (const [column, existing] of live.foreignKeys) {
+    if (declared.has(column)) continue;
+    plan.steps.push({
+      sql: `alter table ${table} drop constraint ${existing.constraint};`,
+      destructive: false,
+      summary: `Retirer la contrainte de « ${column} » sur « ${declaration.name} » — la déclaration ne la demande plus`,
+    });
+  }
+}
+
+async function planAlter(
+  declaration: EntityDeclaration,
+  live: LiveTable,
+  plan: EntityPlan,
+  tables: ReferenceTables,
+): Promise<void> {
   const declared = new Map<string, ColumnSpec>(
     fieldColumns(declaration.fields).map((column) => [column.name, column]),
   );
@@ -121,9 +290,11 @@ function planAlter(
     return;
   }
 
+  const added = new Set<string>();
   for (const [name, column] of declared) {
     const liveType = live.columns.get(name);
     if (!liveType) {
+      added.add(name);
       plan.steps.push({
         sql: addColumnSql(declaration.name, column),
         destructive: false,
@@ -146,6 +317,9 @@ function planAlter(
       summary: `Supprimer « ${name} » de « ${declaration.name} » — et les données de cette colonne`,
     });
   }
+
+  // En dernier : une contrainte se pose sur une colonne qui existe, donc après les ajouts.
+  await planForeignKeys(declaration, live, plan, tables, added);
 }
 
 /**
@@ -179,7 +353,7 @@ export async function planEntities(
       if (!live) {
         plan.steps.push(...planCreate(declaration, tables));
       } else {
-        planAlter(declaration, live, plan, tables);
+        await planAlter(declaration, live, plan, tables);
       }
     } catch (error) {
       plan.blockers.push(error instanceof Error ? error.message : String(error));
@@ -199,6 +373,19 @@ export async function planEntities(
       );
       continue;
     }
+
+    // Second motif de refus, celui qu'ADR-0045 ajoute : une table visée par une clé étrangère ne
+    // se supprime pas. Postgres le refuserait de toute façon, mais sur une erreur qui ne dit pas
+    // QUI retient — et la seule façon de passer outre serait une cascade, que le mécanisme refuse
+    // partout (ADR-0028).
+    const holders = await incomingReferences(known.name);
+    if (holders.length > 0) {
+      plan.blockers.push(
+        `« ${known.name} » n'est plus déclarée mais ${holders.join(', ')} la référence(nt) encore. Retirez ces champs avant de la supprimer : jamais de cascade.`,
+      );
+      continue;
+    }
+
     plan.steps.push({
       sql: dropTableSql(known.name),
       destructive: true,

@@ -64,6 +64,17 @@ l'interface, et qui aurait rendu toute entité invisible.
 | Confirmation explicite | `pushEntities(registry, confirmDestructive)` | toute perte de données non voulue : **409**, avec ce qu'elle aurait détruit |
 | Table non vide | `planEntities` | la suppression d'une entité qui contient encore quelque chose. Jamais de cascade |
 | `unique check (singleton)` | la table elle-même | la seconde ligne d'un singleton — c'est Postgres qui refuse, pas le code |
+| Clés étrangères | la table elle-même | un `image`/`ref` qui ne désigne rien, la suppression d'une cible qu'un champ obligatoire retient, et celle d'une entité que l'on référence (ADR-0045) |
+
+Les clés étrangères ne sont pas seulement posées à la création : `check` propose celles qui manquent
+aux tables déjà poussées, et l'opération n'est pas destructrice — poser une garantie ne perd rien.
+Elle peut en revanche **échouer sur de la donnée pendante**, un uuid qui ne désigne plus rien. C'est
+de la donnée déjà cassée que l'absence de contrainte laissait passer : le plan la refuse en disant
+combien de lignes et sur quelle colonne. Jamais de nettoyage d'office.
+
+Où vit une cible se déclare sur elle, dans `storage` (ADR-0045) — `page` dans `@repo/pages`, les
+cibles commerce dans le registre d'Échoppe, et le nom est lu sur la table Drizzle, jamais recopié.
+Une cible qui se tait laisse le champ en `uuid` nu : le silence est un état normal.
 
 On **refuse** un identifiant plutôt que de l'échapper. Échapper une chaîne libre, c'est accepter
 n'importe quoi et espérer que le doublage des guillemets suffise ; une liste blanche ne s'en remet
@@ -76,8 +87,10 @@ jamais à ça.
   puis retrait, dont le second est visiblement destructeur — ce qu'il est.
 - **Changer la cardinalité d'une table non vide.** Le slug d'une liste n'a pas d'équivalent sur un
   singleton. Videz-la d'abord.
-- **Poser des clés étrangères** sur les champs `image` et `ref`. C'est la dette la plus sérieuse du
-  mécanisme, cf. tâche #36.
+- **Contraindre l'intérieur d'un `jsonb`.** Un `image` ou un `ref` imbriqué dans un `component`, une
+  `list` ou un `repeater` ne porte pas de clé étrangère : les atteindre demanderait une table fille
+  par champ, hors de ce que le DSL sait dire. Les champs de premier niveau, eux, sont contraints
+  (ADR-0045).
 - **Offrir des écrans d'administration.** L'API est complète et une entité est désormais
   **accordable** depuis l'écran des rôles — la matrice tient sa liste de `GET /roles/resources`, où
   les entités déclarées figurent au même titre que le reste. Mais il n'existe encore aucun écran
