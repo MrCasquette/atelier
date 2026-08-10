@@ -5,6 +5,7 @@ export type {
   RoleWithPermissions,
   RoleFormData,
   PermissionFormData,
+  ProtectableResource,
   ResourceGroup,
 } from './types';
-export { RESOURCE_GROUPS, RESOURCE_LABELS } from './types';
+export { groupResources, RESOURCE_LABELS, resourceLabel } from './types';

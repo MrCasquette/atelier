@@ -26,7 +26,11 @@ export const SCOPES: string[] = RESOURCE_LIST.filter((resource) => resource !== 
 // literal — le pendant compile-time de `SCOPES`. `RESOURCE_LIST` étant un `string[]` runtime, un
 // `t.Union` de littéraux s'effondrerait en `never` ; on attache donc CE type au schéma via
 // `t.Unsafe<ApiKeyScope>` (cf. api-keys.ts) pour un contrat client précis, sans drift.
-type ScopableResource = Exclude<Resource, 'api_key'>;
+// L'espace `entity:` est ouvert ici comme il l'est sur `ProtectedResource` (ADR-0038) : une entité
+// est déclarée APRÈS la compilation, donc aucune union fermée ne peut la nommer. Le contrôle reste
+// entier — `isValidScopeFor` n'accepte que les entités RÉELLEMENT déclarées, et une faute de frappe
+// sur une ressource du framework ne ressemble à rien de cet espace.
+type ScopableResource = Exclude<Resource, 'api_key'> | `entity:${string}`;
 export type ApiKeyScope = `read:${ScopableResource}` | `write:${ScopableResource}`;
 
 export const isValidScope = (scope: string): scope is ApiKeyScope => SCOPES.includes(scope);

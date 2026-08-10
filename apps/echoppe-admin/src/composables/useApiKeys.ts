@@ -41,10 +41,11 @@ export function useApiKeys() {
     const { data } = await api.roles.resources.get();
     if (!data) return;
     known.clear();
-    // `api_key` exclu : une clé ne peut jamais être scopée sur les clés (cf. plugin apiKey).
+    // `api_key` exclu : une clé ne peut jamais être scopée sur les clés (cf. plugin apiKey). Les
+    // entités déclarées, elles, sont scopables — la liste vient du serveur, entités comprises.
     const derived = data.resources
-      .filter((resource) => resource !== 'api_key')
-      .flatMap((resource) => [`read:${resource}`, `write:${resource}`]);
+      .filter((resource) => resource.name !== 'api_key')
+      .flatMap((resource) => [`read:${resource.name}`, `write:${resource.name}`]);
     for (const scope of derived) known.add(scope);
     scopes.value = derived.filter(isScope);
   }

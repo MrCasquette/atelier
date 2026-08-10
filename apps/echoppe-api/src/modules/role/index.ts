@@ -1,5 +1,6 @@
 import { and, db, eq, permission, RESOURCES, role, sql, user } from '@echoppe/core';
 import { invalidatePermissionCache, revokedByGrants, undelegatableGrants } from '@repo/auth';
+import { entityResourceName, loadEntities } from '@repo/entities';
 import { Elysia, t } from 'elysia';
 import { errorSchema, successSchema, withAuthErrors } from '../../lib/response';
 import { getClientIp, logAudit } from '../audit/service';
@@ -64,17 +65,34 @@ const permissionsUpdateBody = t.Object({
   permissions: t.Array(permissionBody),
 });
 
+// Une ressource protégeable, telle que l'écran des rôles doit pouvoir la proposer. Le `label` n'est
+// renseigné que là où le serveur est SEUL à le connaître : une entité porte le libellé que le dev
+// lui a déclaré, alors que le vocabulaire du framework est traduit par l'administration.
 const resourcesSchema = t.Object({
-  resources: t.Array(t.String()),
+  resources: t.Array(
+    t.Object({
+      name: t.String(),
+      label: t.Nullable(t.String()),
+    }),
+  ),
 });
 
 export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Roles'] } })
-  // GET /roles/resources - List available resources (protected by role:read)
+  // GET /roles/resources — tout ce qui est protégeable, framework ET entités déclarées.
+  //
+  // C'est la SEULE liste : l'écran des rôles ne tient pas la sienne, sans quoi une ressource née
+  // après lui resterait muette — c'est ce qui est arrivé à `content`, `api_key` et `schema`. Les
+  // entités s'y ajoutent au même titre, dérivées du journal comme partout ailleurs (ADR-0038).
   .use(permissionGuard('role', 'read'))
   .get(
     '/resources',
-    () => {
-      return { resources: Object.values(RESOURCES) };
+    async () => {
+      const entities = Object.values(await loadEntities()).map((declaration) => ({
+        name: entityResourceName(declaration.name),
+        label: declaration.label ?? null,
+      }));
+      const framework = Object.values(RESOURCES).map((name) => ({ name, label: null }));
+      return { resources: [...framework, ...entities] };
     },
     {
       permission: true,

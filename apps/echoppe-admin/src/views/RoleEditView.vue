@@ -16,6 +16,8 @@ const router = useRouter();
 const toast = useToast();
 const {
   saving,
+  resources,
+  loadResources,
   loadRoleWithPermissions,
   createRole,
   updateRole,
@@ -40,6 +42,10 @@ const pageTitle = computed(() => {
 });
 
 onMounted(async () => {
+  // Les ressources protégeables viennent du serveur : le vocabulaire du socle ET les entités
+  // déclarées, qu'aucun code d'interface ne peut connaître à l'avance.
+  await loadResources();
+
   if (!isNew.value) {
     const id = route.params.id as string;
     const data = await loadRoleWithPermissions(id);
@@ -71,16 +77,22 @@ onMounted(async () => {
 async function save() {
   if (isNew.value) {
     const created = await createRole(form.value);
-    if (created) {
-      // Sauvegarder les permissions
-      if (permissions.value.length > 0) {
-        await updatePermissions(created.id, permissions.value);
-      }
-      toast.success('Role cree');
-      router.push({ name: 'roles' });
-    } else {
+    if (!created) {
       toast.error('Erreur lors de la creation');
+      return;
     }
+
+    // Le rôle existe ; ses droits peuvent être refusés séparément — on ne prétend pas le contraire.
+    if (permissions.value.length > 0) {
+      const granted = await updatePermissions(created.id, permissions.value);
+      if (!granted.ok) {
+        toast.error(granted.message ?? 'Erreur lors de la mise a jour des permissions');
+        router.push({ name: 'roles' });
+        return;
+      }
+    }
+    toast.success('Role cree');
+    router.push({ name: 'roles' });
   } else {
     const id = route.params.id as string;
 
@@ -94,13 +106,16 @@ async function save() {
     }
 
     // Mettre a jour les permissions
-    const permSuccess = await updatePermissions(id, permissions.value);
-    if (permSuccess) {
-      toast.success('Role mis a jour');
-      router.push({ name: 'roles' });
-    } else {
-      toast.error('Erreur lors de la mise a jour des permissions');
+    // Le serveur nomme ses refus — droit non détenu donc non délégable, `schema` qui tient au rang,
+    // retrait réservé au premier rang. On les affiche tels quels, et on RESTE sur l'écran : la
+    // sélection de l'utilisateur est encore là, il peut la corriger.
+    const granted = await updatePermissions(id, permissions.value);
+    if (!granted.ok) {
+      toast.error(granted.message ?? 'Erreur lors de la mise a jour des permissions');
+      return;
     }
+    toast.success('Role mis a jour');
+    router.push({ name: 'roles' });
   }
 }
 
@@ -199,6 +214,7 @@ function cancel() {
         </h3>
         <PermissionMatrix
           :permissions="permissions"
+          :resources="resources"
           :show-self-only="form.scope === 'public'"
           @update:permissions="permissions = $event"
         />

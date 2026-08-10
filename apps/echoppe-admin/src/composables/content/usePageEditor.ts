@@ -3,6 +3,7 @@
 // fine par bloc est faite côté serveur (registre P2b) → on remonte le message 422 tel quel.
 import { ref } from 'vue';
 import { api } from '@/lib/api';
+import { errorMessage, type SaveResult } from '@/lib/apiError';
 import { pruneFields } from './registry';
 import type { BlockData, EditorBlock, PageDetail, PageSection, PageStatus, Registry } from './types';
 
@@ -12,11 +13,6 @@ interface PageMeta {
   seoTitle: string;
   seoDescription: string;
   status: PageStatus;
-}
-
-export interface SaveResult {
-  ok: boolean;
-  message?: string;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -37,13 +33,6 @@ function toEditorBlock(section: PageSection): EditorBlock {
     type: section.type,
     data: toBlockData(section.data),
   };
-}
-
-// Message d'erreur Eden (422 registre, 409 slug, …) : `error.value` porte `{ message }`.
-function errorMessage(error: { value: unknown }, fallback: string): string {
-  const value = error.value;
-  if (isRecord(value) && typeof value.message === 'string') return value.message;
-  return fallback;
 }
 
 export function usePageEditor() {

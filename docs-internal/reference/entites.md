@@ -50,6 +50,11 @@ Une clé d'API peut porter `read:entity:<nom>` / `write:entity:<nom>` : le vocab
 élargi aux entités déclarées, à l'exécution. La règle de délégation vaut comme partout — on ne
 délègue que ce qu'on détient.
 
+`GET /roles/resources` est la seule liste de ce qui est protégeable : le vocabulaire du socle, plus
+les `entity:<nom>` du journal, chacun avec le libellé que le dev lui a déclaré. L'administration ne
+tient plus la sienne — c'est ce qui rendait `content`, `api_key` et `schema` inaccordables depuis
+l'interface, et qui aurait rendu toute entité invisible.
+
 ## Ce qui garde le mécanisme
 
 | Garde | Où | Ce qu'elle refuse |
@@ -73,8 +78,10 @@ jamais à ça.
   singleton. Videz-la d'abord.
 - **Poser des clés étrangères** sur les champs `image` et `ref`. C'est la dette la plus sérieuse du
   mécanisme, cf. tâche #36.
-- **Offrir des écrans d'administration.** L'API est complète, l'admin Vue n'a encore aucun écran
-  d'entités : la matrice de permissions liste ses ressources à la main et ignore `entity:*`.
+- **Offrir des écrans d'administration.** L'API est complète et une entité est désormais
+  **accordable** depuis l'écran des rôles — la matrice tient sa liste de `GET /roles/resources`, où
+  les entités déclarées figurent au même titre que le reste. Mais il n'existe encore aucun écran
+  pour **éditer** leurs occurrences, ni d'entrée dans la navigation (tâche #37, points 1 et 2).
 - **Contraindre un `enum` en base.** La valeur est déjà validée à la frontière par le schéma compilé
   depuis la même déclaration ; une contrainte nommée serait à faire évoluer à chaque option ajoutée.
 

@@ -2,22 +2,8 @@
 // est faite côté serveur (menuItemsSchema) → message d'erreur remonté tel quel.
 import { ref } from 'vue';
 import { api } from '@/lib/api';
+import { errorMessage, type SaveResult } from '@/lib/apiError';
 import type { MenuDetail, MenuItem } from './menuTypes';
-
-export interface SaveResult {
-  ok: boolean;
-  message?: string;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function errorMessage(error: { value: unknown }, fallback: string): string {
-  const value = error.value;
-  if (isRecord(value) && typeof value.message === 'string') return value.message;
-  return fallback;
-}
 
 export function useMenuEditor() {
   const menu = ref<MenuDetail | null>(null);

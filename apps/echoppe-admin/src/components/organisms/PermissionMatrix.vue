@@ -1,16 +1,23 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import {
-  RESOURCE_GROUPS,
-  RESOURCE_LABELS,
+  groupResources,
+  resourceLabel,
   type PermissionFormData,
+  type ProtectableResource,
 } from '@/composables/roles';
 
+// Cet écran ne décide plus de ce qui EXISTE — il reçoit la liste du serveur et n'en décide que la
+// présentation. La tenir à la main rendait muette toute ressource née après lui : `content`,
+// `api_key` et `schema` l'étaient déjà, les entités le seraient devenues.
 const props = defineProps<{
   permissions: PermissionFormData[];
+  resources: ProtectableResource[];
   readonly?: boolean;
   showSelfOnly?: boolean;
 }>();
+
+const groups = computed(() => groupResources(props.resources));
 
 const emit = defineEmits<{
   (e: 'update:permissions', permissions: PermissionFormData[]): void;
@@ -25,10 +32,10 @@ const permissionMap = computed(() => {
   return map;
 });
 
-function getPermission(resource: string): PermissionFormData {
+function getPermission({ name }: ProtectableResource): PermissionFormData {
   return (
-    permissionMap.value.get(resource) || {
-      resource,
+    permissionMap.value.get(name) || {
+      resource: name,
       canCreate: false,
       canRead: false,
       canUpdate: false,
@@ -39,22 +46,22 @@ function getPermission(resource: string): PermissionFormData {
   );
 }
 
-function isLocked(resource: string): boolean {
+function isLocked(resource: ProtectableResource): boolean {
   return getPermission(resource).locked;
 }
 
-function togglePermission(resource: string, action: keyof PermissionFormData) {
+function togglePermission(resource: ProtectableResource, action: keyof PermissionFormData) {
   if (props.readonly || isLocked(resource)) return;
   if (action === 'resource' || action === 'locked') return;
 
   const current = getPermission(resource);
   const updated: PermissionFormData = {
     ...current,
-    resource,
+    resource: resource.name,
     [action]: !current[action],
   };
 
-  const newPermissions = props.permissions.filter((p) => p.resource !== resource);
+  const newPermissions = props.permissions.filter((p) => p.resource !== resource.name);
 
   // N'ajouter que si au moins une permission est true
   if (updated.canCreate || updated.canRead || updated.canUpdate || updated.canDelete) {
@@ -64,14 +71,14 @@ function togglePermission(resource: string, action: keyof PermissionFormData) {
   emit('update:permissions', newPermissions);
 }
 
-function toggleAll(resource: string, value: boolean) {
+function toggleAll(resource: ProtectableResource, value: boolean) {
   if (props.readonly || isLocked(resource)) return;
 
-  const newPermissions = props.permissions.filter((p) => p.resource !== resource);
+  const newPermissions = props.permissions.filter((p) => p.resource !== resource.name);
 
   if (value) {
     newPermissions.push({
-      resource,
+      resource: resource.name,
       canCreate: true,
       canRead: true,
       canUpdate: true,
@@ -84,7 +91,7 @@ function toggleAll(resource: string, value: boolean) {
   emit('update:permissions', newPermissions);
 }
 
-function hasAllPermissions(resource: string): boolean {
+function hasAllPermissions(resource: ProtectableResource): boolean {
   const p = getPermission(resource);
   return p.canCreate && p.canRead && p.canUpdate && p.canDelete;
 }
@@ -93,7 +100,7 @@ function hasAllPermissions(resource: string): boolean {
 <template>
   <div class="space-y-6">
     <div
-      v-for="group in RESOURCE_GROUPS"
+      v-for="group in groups"
       :key="group.name"
       class="bg-white rounded-lg shadow p-4"
     >
@@ -134,12 +141,12 @@ function hasAllPermissions(resource: string): boolean {
           <tbody>
             <tr
               v-for="resource in group.resources"
-              :key="resource"
+              :key="resource.name"
               class="border-b border-gray-100"
               :class="isLocked(resource) ? 'bg-gray-50' : 'hover:bg-gray-50'"
             >
               <td class="py-2 px-3 text-sm text-gray-900 flex items-center gap-2">
-                {{ RESOURCE_LABELS[resource] || resource }}
+                {{ resourceLabel(resource) }}
                 <svg
                   v-if="isLocked(resource)"
                   class="w-3.5 h-3.5 text-gray-400"

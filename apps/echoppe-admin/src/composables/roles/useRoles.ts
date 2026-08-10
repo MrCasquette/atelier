@@ -1,13 +1,20 @@
 import { ref } from 'vue';
 import { api } from '@/lib/api';
-import type { Role, RoleWithPermissions, PermissionFormData, RoleFormData } from './types';
+import { errorMessage, type SaveResult } from '@/lib/apiError';
+import type {
+  PermissionFormData,
+  ProtectableResource,
+  Role,
+  RoleFormData,
+  RoleWithPermissions,
+} from './types';
 
 export function useRoles() {
   // ---------------------------------------------------------------------------
   // STATE
   // ---------------------------------------------------------------------------
   const roles = ref<Role[]>([]);
-  const resources = ref<string[]>([]);
+  const resources = ref<ProtectableResource[]>([]);
   const loading = ref(true);
   const saving = ref(false);
 
@@ -76,7 +83,14 @@ export function useRoles() {
   // ---------------------------------------------------------------------------
   // API - PERMISSIONS
   // ---------------------------------------------------------------------------
-  async function updatePermissions(roleId: string, permissions: PermissionFormData[]): Promise<boolean> {
+  // Le serveur refuse pour des raisons qu'il NOMME : un droit qu'on ne détient pas et qu'on ne peut
+  // donc pas déléguer, `schema` qui tient au rang, un retrait réservé au premier rang (ADR-0038).
+  // Ces messages remontent tels quels — les remplacer par « erreur » retirerait à l'utilisateur la
+  // seule chose qui lui dit quoi faire.
+  async function updatePermissions(
+    roleId: string,
+    permissions: PermissionFormData[],
+  ): Promise<SaveResult> {
     saving.value = true;
     const { error } = await api.roles({ id: roleId }).permissions.put({
       permissions: permissions.map((p) => ({
@@ -89,7 +103,9 @@ export function useRoles() {
       })),
     });
     saving.value = false;
-    return !error;
+
+    if (!error) return { ok: true };
+    return { ok: false, message: errorMessage(error, 'Erreur lors de la mise à jour des droits') };
   }
 
   // ---------------------------------------------------------------------------
