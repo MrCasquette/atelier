@@ -1,3 +1,9 @@
+import {
+  authenticateAdmin,
+  destroyAdminSession,
+  readAdminSession,
+  SESSION_DURATION_DAYS,
+} from '@repo/auth';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
 import { authRateLimitOptions } from '../../lib/rate-limit';
@@ -8,12 +14,6 @@ import {
   unauthorizedResponse,
 } from '../../lib/response';
 import { getClientIp, logAudit } from '../audit/service';
-import {
-  authenticateAdmin,
-  destroyAdminSession,
-  readAdminSession,
-  SESSION_DURATION_DAYS,
-} from './service';
 import { COOKIE_NAME, cookieSchema } from './session';
 
 // Schema pour /auth/me (réponse)

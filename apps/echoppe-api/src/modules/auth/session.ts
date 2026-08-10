@@ -1,5 +1,8 @@
-import { and, db, eq, gt, role, session, user } from '@echoppe/core';
+import { getSessionFromToken } from '@repo/auth';
 import { Elysia, t } from 'elysia';
+
+// Ce qui reste du transport : le nom du cookie, son schéma, et la macro qui refuse en 401. La
+// lecture de session vit dans `@repo/auth` (ADR-0044).
 
 export const COOKIE_NAME = 'echoppe_admin_session';
 
@@ -7,93 +10,6 @@ export const COOKIE_NAME = 'echoppe_admin_session';
 export const cookieSchema = t.Cookie({
   [COOKIE_NAME]: t.Optional(t.String()),
 });
-
-export type SessionUser = {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  isOwner: boolean;
-  isActive: boolean;
-};
-
-export type SessionRole = {
-  id: string;
-  // Clé immuable des rôles système (`owner`, `admin`, `customer`, `public`), `null` pour un rôle
-  // créé depuis l'administration. C'est elle qui porte le RANG, jamais `name` qui est de
-  // l'affichage — cf. ADR-0038.
-  key: string | null;
-  name: string;
-  scope: 'admin' | 'public';
-};
-
-export type AuthContext = {
-  currentUser: SessionUser | null;
-  currentRole: SessionRole | null;
-  isAuthenticated: boolean;
-};
-
-type SessionWithMeta = AuthContext & {
-  storedUserAgent: string | null;
-  storedIpAddress: string | null;
-};
-
-// Fonction réutilisable pour vérifier la session
-export async function getSessionFromToken(token: string | undefined): Promise<SessionWithMeta> {
-  if (!token) {
-    return {
-      currentUser: null,
-      currentRole: null,
-      isAuthenticated: false,
-      storedUserAgent: null,
-      storedIpAddress: null,
-    };
-  }
-
-  const [sessionData] = await db
-    .select({
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        isOwner: user.isOwner,
-        isActive: user.isActive,
-      },
-      role: {
-        id: role.id,
-        key: role.key,
-        name: role.name,
-        scope: role.scope,
-      },
-      session: {
-        userAgent: session.userAgent,
-        ipAddress: session.ipAddress,
-      },
-    })
-    .from(session)
-    .innerJoin(user, eq(session.user, user.id))
-    .innerJoin(role, eq(user.role, role.id))
-    .where(and(eq(session.token, token), gt(session.expiresAt, new Date())));
-
-  if (!sessionData?.user.isActive) {
-    return {
-      currentUser: null,
-      currentRole: null,
-      isAuthenticated: false,
-      storedUserAgent: null,
-      storedIpAddress: null,
-    };
-  }
-
-  return {
-    currentUser: sessionData.user as SessionUser,
-    currentRole: sessionData.role as SessionRole,
-    isAuthenticated: true,
-    storedUserAgent: sessionData.session.userAgent,
-    storedIpAddress: sessionData.session.ipAddress,
-  };
-}
 
 // Plugin singleton avec macro pour l'authentification
 // Usage:

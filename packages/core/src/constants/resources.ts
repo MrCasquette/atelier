@@ -47,7 +47,9 @@ export const RESOURCES = {
 
 export type Resource = (typeof RESOURCES)[keyof typeof RESOURCES];
 
-export type Action = 'create' | 'read' | 'update' | 'delete';
+// Les quatre actions sont définies avec les droits, dans @repo/auth. Réexportées ici parce que
+// `Resource` et `Action` se lisent ensemble partout où on vérifie une permission.
+export type { Action } from '@repo/auth';
 
 /**
  * Liste des ressources pour itération

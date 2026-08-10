@@ -5,6 +5,18 @@
 // Elysia — les gardes (`authPlugin`, `permissionGuard`) sont du produit, parce qu'elles traduisent
 // en codes HTTP (ADR-0044).
 export {
+  type Action,
+  getPermissionsForRole,
+  getPermissionsForRoleKey,
+  hasPermission,
+  invalidatePermissionCache,
+  invalidateSystemRoleCache,
+  isSelfOnly,
+  type PermissionGrant,
+  revokedByGrants,
+  undelegatableGrants,
+} from './permission';
+export {
   createPrincipalRegistry,
   type FallbackPrincipalResolver,
   type PermissionSet,
@@ -22,3 +34,18 @@ export {
   session,
   user,
 } from './schema';
+export {
+  type AdminLoginOutcome,
+  type AdminSessionRead,
+  type AuthContext,
+  type AuthenticatedUser,
+  authenticateAdmin,
+  destroyAdminSession,
+  getSessionFromToken,
+  readAdminSession,
+  SESSION_DURATION_DAYS,
+  type SessionOwnerRole,
+  type SessionRole,
+  type SessionUser,
+  type SessionWithMeta,
+} from './service';
