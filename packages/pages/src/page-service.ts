@@ -1,5 +1,6 @@
-import { and, asc, db, eq, page, section } from '@echoppe/core';
-import { validateSectionData } from '../definition/service';
+import { and, asc, db, eq } from '@repo/db';
+import { validateSectionData } from './definition-service';
+import { page, section } from './schema';
 
 // Logique du page builder — lecture storefront et administration —, sans rien savoir du transport.
 // Les absences sont des `null`, les refus des issues typées (ADR-0044).

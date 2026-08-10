@@ -4,16 +4,21 @@
 // service en dérive, à l'exécution, un validateur par type de section : chaque définition est
 // TRADUITE en schéma TypeBox (récursif pour `list`/`repeater`/`component`), puis COMPILÉE une
 // fois et mise en cache. C'est le pendant dynamique de l'ancienne union statique de
-// `modules/content/page/model.ts`.
+// `page/model.ts` côté produit.
 //
 // On n'importe QUE depuis Elysia (`t`) et son type-system (`TypeCompiler`, `FormatRegistry`) :
 // même instance TypeBox que tout le reste de l'API → aucune version à maintenir, aucun drift.
 
-import { contentDefinition, db } from '@echoppe/core';
+import { db } from '@repo/db';
 import { type TSchema, t } from 'elysia';
 import { FormatRegistry, type TypeCheck, TypeCompiler } from 'elysia/type-system';
-import type { Registry, SerializedDefinition, SerializedField } from './model';
-import { registrySchema } from './model';
+import {
+  type Registry,
+  registrySchema,
+  type SerializedDefinition,
+  type SerializedField,
+} from './definition-model';
+import { contentDefinition } from './schema';
 
 // ── Formats (branchés une fois sur l'instance TypeBox d'Elysia) ───────────────────────────────
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

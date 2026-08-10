@@ -4,7 +4,7 @@ import { t } from 'elysia';
 //
 // Deux rôles : le CONTRAT de lecture storefront (page + section générique) et le corps d'écriture
 // des sections côté admin. La forme d'un bloc n'est PAS codée ici — elle vit dans le registre de
-// définitions (./../definition/model.ts) et la validation fine de `data` se fait à l'exécution
+// définitions (`@repo/pages`) et la validation fine de `data` se fait à l'exécution
 // contre lui, pas par une union statique.
 //
 // Vocabulaire : voir docs-internal/reference/lexique-prisme.md, ratifié par ADR-0043.

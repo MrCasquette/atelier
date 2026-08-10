@@ -1,7 +1,7 @@
+import { findPublishedPageBySlug, listPublishedPages } from '@repo/pages';
 import { Elysia, t } from 'elysia';
 import { withNotFound, withReadErrors } from '../../../lib/response';
 import { models } from '../../../model';
-import { findPublishedPageBySlug, listPublishedPages } from './service';
 
 // Lecture storefront du module content (page builder). Public : seules les pages `published`
 // sont visibles. Une page renvoie ses sections (blocs) ordonnées et résolues.

@@ -1,7 +1,3 @@
-import { Elysia, t } from 'elysia';
-import { conflictResponse, successSchema, withCrudErrors } from '../../../lib/response';
-import { permissionGuard } from '../../auth/rbac';
-import { sectionInputSchema } from './model';
 import {
   createPage,
   deletePage,
@@ -9,7 +5,11 @@ import {
   listPages,
   replaceSections,
   updatePage,
-} from './service';
+} from '@repo/pages';
+import { Elysia, t } from 'elysia';
+import { conflictResponse, successSchema, withCrudErrors } from '../../../lib/response';
+import { permissionGuard } from '../../auth/rbac';
+import { sectionInputSchema } from './model';
 
 // Administration du page builder. Protégé par RBAC `content`. Les sections d'une page sont
 // remplacées d'un bloc via PUT (façon « save de la dynamic zone ») : plus simple et atomique que

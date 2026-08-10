@@ -1,9 +1,8 @@
+import { loadRegistry, registrySchema, syncRegistry } from '@repo/pages';
 import { Elysia } from 'elysia';
 import { successSchema, withCrudErrors } from '../../../lib/response';
 import { permissionGuard } from '../../auth/rbac';
 import { references } from '../../reference/targets';
-import { registrySchema } from './model';
-import { loadRegistry, syncRegistry } from './service';
 
 // Registre des définitions (ADR-0043). La source d'autorité, ce sont les fichiers du dev
 // (`@mrcasquette/content`) ; la base n'en est que le miroir, remplacé d'un bloc par la CLI.

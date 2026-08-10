@@ -244,6 +244,7 @@
         "@repo/db": "workspace:*",
         "@repo/references": "workspace:*",
         "drizzle-orm": "^0.45.2",
+        "elysia": "^1.4.29",
       },
       "devDependencies": {
         "bun-types": "^1.3.14",
