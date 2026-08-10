@@ -38,6 +38,18 @@ export type LinkMode =
   | { mode: 'anchor'; parent: string };
 
 /**
+ * Où vit la ligne d'une cible. Le pendant de `link` : `link` dit comment fabriquer une URL,
+ * `storage` dit où trouver la donnée — de quoi écrire un `REFERENCES` (ADR-0045).
+ *
+ * La colonne visée est toujours la clé primaire ; aucune cible connue ne s'identifie autrement, et
+ * l'inventer d'avance serait de l'abstraction par anticipation.
+ */
+export type StorageLocation = {
+  /** Nom de la table, tel qu'il entre dans du DDL. */
+  table: string;
+};
+
+/**
  * Une cible référençable. `project` sert la résolution au read (un menu rendu au front),
  * `search` le sélecteur de l'administration — deux besoins réels, aucun réductible à l'autre :
  * l'un part d'identifiants connus, l'autre d'un terme saisi.
@@ -48,6 +60,15 @@ export type ReferenceTarget = {
   /** Libellé affiché dans l'administration. */
   label: string;
   link: LinkMode;
+  /**
+   * Table de la cible, pour qu'un champ `ref` qui la vise puisse porter une clé étrangère.
+   *
+   * **Optionnel, et le silence n'est pas une faute** — même forme que le registre lui-même, où ce
+   * qui rend une entité référençable est d'avoir une URL, pas d'être déclarée (ADR-0032). Une cible
+   * adossée à une vue, à plusieurs tables ou à un système externe se tait : le champ qui la vise
+   * garde un `uuid` nu, exactement le comportement d'avant ADR-0045.
+   */
+  storage?: StorageLocation;
   /** Projette des identifiants connus. L'ordre du retour n'a pas d'importance ; les absents (entité supprimée) sont simplement omis. */
   project(ids: string[]): Promise<EntityProjection[]>;
   /** Cherche par terme libre, borné par `limit`. Terme vide = les premières entités. */
@@ -103,4 +124,22 @@ export function createReferenceRegistry(): ReferenceRegistry {
 export function linkUrl(target: ReferenceTarget, entity: EntityProjection): string | null {
   if (target.link.mode !== 'route') return null;
   return target.link.route.replace(':slug', entity.slug);
+}
+
+/**
+ * Correspondance cible → table, pour les seules cibles qui l'ont déclarée.
+ *
+ * Ce que consomme la dérivation DDL d'une entité (ADR-0045). Elle reçoit cette carte plutôt que le
+ * registre : un mécanisme qui écrit du SQL n'a rien à faire d'un `search()` ni d'une route, et le
+ * lui passer l'attacherait à un contrat qui ne le concerne pas.
+ *
+ * Les cibles silencieuses sont simplement absentes — l'appelant n'a pas à distinguer « pas de
+ * stockage déclaré » de « cible inconnue » : dans les deux cas il n'écrit pas de clé étrangère.
+ */
+export function storageOf(registry: ReferenceRegistry): Record<string, string> {
+  const tables: Record<string, string> = {};
+  for (const target of registry.list()) {
+    if (target.storage) tables[target.name] = target.storage.table;
+  }
+  return tables;
 }

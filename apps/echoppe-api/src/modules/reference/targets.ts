@@ -15,6 +15,11 @@ import { createReferenceRegistry, type EntityProjection } from '@repo/references
 // Les routes déclarées sont celles du storefront livré (`/produits/:slug`). **La déclaration fait
 // foi** : si le dev remplace le rendu par ses propres pages, rien ne garantit techniquement
 // qu'elles restent vraies. Un lien cassé est un 404, pas une corruption (ADR-0032).
+//
+// `storage` est l'autre moitié : la route dit où lire la cible côté front, la table dit où elle vit
+// en base — de quoi qu'un champ `ref` qui la vise porte une vraie clé étrangère (ADR-0045). Ces
+// quatre tables sont des tables du cœur, stables ; une cible qui n'en aurait pas de si simple se
+// tait, et son champ garde un `uuid` nu.
 
 const SEARCH_LIMIT_MAX = 100;
 
@@ -26,6 +31,7 @@ references.register({
   name: 'product',
   label: 'Produit',
   link: { mode: 'route', route: '/produits/:slug' },
+  storage: { table: 'product' },
   async project(ids) {
     return db
       .select({ id: product.id, slug: product.slug, name: product.name })
@@ -44,6 +50,7 @@ references.register({
   name: 'collection',
   label: 'Collection',
   link: { mode: 'route', route: '/collections/:slug' },
+  storage: { table: 'collection' },
   async project(ids) {
     return db
       .select({ id: collection.id, slug: collection.slug, name: collection.name })
@@ -62,6 +69,7 @@ references.register({
   name: 'category',
   label: 'Catégorie',
   link: { mode: 'route', route: '/categories/:slug' },
+  storage: { table: 'category' },
   async project(ids) {
     return db
       .select({ id: category.id, slug: category.slug, name: category.name })

@@ -6,4 +6,6 @@ export {
   linkUrl,
   type ReferenceRegistry,
   type ReferenceTarget,
+  type StorageLocation,
+  storageOf,
 } from './registry';

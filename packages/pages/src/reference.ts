@@ -23,6 +23,9 @@ export function pageReferenceTarget(options: PageReferenceOptions = {}): Referen
     name: 'page',
     label: options.label ?? 'Page',
     link: { mode: 'route', route: options.route ?? '/:slug' },
+    // Déclaré ici pour la même raison que le reste du descripteur : la table vit dans ce paquet.
+    // Un champ `ref('page')` d'entité peut donc porter une vraie clé étrangère (ADR-0045).
+    storage: { table: 'page' },
 
     async project(ids) {
       return db
