@@ -14,7 +14,7 @@ const port = process.env.API_PORT ?? 7532;
 if (process.env.RUN_MIGRATIONS) {
   const migrationsFolder =
     process.env.MIGRATIONS_DIR ??
-    fileURLToPath(new URL('../../../packages/core/drizzle', import.meta.url));
+    fileURLToPath(new URL('../../../packages/echoppe-core/drizzle', import.meta.url));
   await runMigrations(migrationsFolder);
   console.log('[Migrate] Schéma à jour');
 }

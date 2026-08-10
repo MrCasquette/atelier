@@ -71,7 +71,7 @@ type Product = NonNullable<Awaited<ReturnType<typeof api.products.get>>['data']>
 
 ## Base de données (Drizzle)
 
-- Schema : `packages/core/src/db/schema/` (un fichier par domaine)
+- Schema : `packages/echoppe-core/src/db/schema/` (un fichier par domaine)
 - Imports : `import { db, eq } from '@echoppe/core'`
 - Tables : `import { product } from '@echoppe/core/schema'`
 

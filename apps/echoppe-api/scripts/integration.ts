@@ -191,7 +191,7 @@ async function seedDemo(): Promise<void> {
   console.log('→ seed démo (produits couleur)…');
   // db:seed lit ../../.env (base de DEV). On force DATABASE_URL vers la base d'intégration :
   // Bun n'écrase pas une variable déjà définie par un .env → l'URL explicite gagne.
-  const { code, out } = await sh('bun', ['run', '--cwd', 'packages/core', 'db:seed'], {
+  const { code, out } = await sh('bun', ['run', '--cwd', 'packages/echoppe-core', 'db:seed'], {
     env: { ...process.env, DATABASE_URL: hostDbUrl },
   });
   if (code !== 0) {

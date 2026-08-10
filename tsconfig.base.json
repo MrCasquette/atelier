@@ -19,8 +19,8 @@
     "paths": {
       "@repo/shared": ["./packages/shared/src"],
       "@repo/shared/*": ["./packages/shared/src/*"],
-      "@echoppe/core": ["./packages/core/src"],
-      "@echoppe/core/*": ["./packages/core/src/*"]
+      "@echoppe/core": ["./packages/echoppe-core/src"],
+      "@echoppe/core/*": ["./packages/echoppe-core/src/*"]
     }
   }
 }

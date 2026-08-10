@@ -12,7 +12,7 @@ one-move) : [`pipeline-release.md`](./pipeline-release.md). Le « comment » pas
 
 Corollaire : `db:push` est du prototypage local. Il ne produit pas de migration donc
 ne prouve **rien** sur ce que l'image embarque. La seule vérité de prod = le dossier
-`packages/core/drizzle/` appliqué au boot.
+`packages/echoppe-core/drizzle/` appliqué au boot.
 
 ## Post-mortem — 0.4.0 (2026-07-17)
 
@@ -42,7 +42,7 @@ dérive de l'OpenAPI, juste en avance sur les migrations).
 Tous implémentés. T1 aurait attrapé l'incident directement.
 
 - **T1 — Garde anti-dérive (`ci.yml`, job `quality`).** Après `db:generate`,
-  `git diff --exit-code` sur `packages/core/drizzle/` doit être propre → échoue si
+  `git diff --exit-code` sur `packages/echoppe-core/drizzle/` doit être propre → échoue si
   `schéma ≠ migrations committées`. La CI n'utilise jamais `db:push`.
 - **T2 — Smoke « base vierge depuis l'image » (`apps/echoppe-api/scripts/integration.ts`).**
   Postgres jetable → image `api` buildée (migrate au boot) → seed démo (produit `color`)

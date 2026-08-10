@@ -19,7 +19,7 @@ scaffolding. La boutique réelle vit **hors** du monorepo (consommateur, pas mor
 | `apps/echoppe-api` | Elysia (Bun) | API REST + OpenAPI, auth, RBAC, paiement, migrations au boot | image Docker |
 | `apps/echoppe-admin` | Vue 3 | Dashboard admin (Eden Treaty, co-versionné) | image Docker |
 | `apps/echoppe-store` | Astro + îlots Vue | **Exemple** storefront dogfooding le SDK | non distribué |
-| `packages/core` | Drizzle | Schéma DB (SSOT), migrations, adapters | interne |
+| `packages/echoppe-core` | Drizzle | Schéma DB (SSOT), migrations, adapters | interne |
 | `packages/client` | openapi-typescript/fetch | **SDK** storefront figé sur `openapi.json` | npm |
 | `packages/create-echoppe` | @clack/prompts | CLI de scaffolding boutique | npm |
 | `packages/shared` | — | utilitaires transverses | interne |

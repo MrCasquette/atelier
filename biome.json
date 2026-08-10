@@ -14,7 +14,7 @@
       "!packages/client/src/models.ts",
       "!packages/client/src/facade.ts",
       "!packages/client/openapi.json",
-      "!packages/core/drizzle",
+      "!packages/echoppe-core/drizzle",
       "!packages/create-echoppe/template"
     ]
   },

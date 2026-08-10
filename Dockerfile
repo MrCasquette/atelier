@@ -23,7 +23,7 @@ WORKDIR /app
 # ==============================================================================
 FROM base AS deps
 COPY package.json bun.lock ./
-COPY packages/core/package.json ./packages/core/
+COPY packages/echoppe-core/package.json ./packages/echoppe-core/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/assets/package.json ./packages/assets/
 COPY packages/auth/package.json ./packages/auth/
@@ -48,7 +48,7 @@ RUN bun install --frozen-lockfile
 # ==============================================================================
 FROM base AS source
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages/core/node_modules ./packages/core/node_modules
+COPY --from=deps /app/packages/echoppe-core/node_modules ./packages/echoppe-core/node_modules
 COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY --from=deps /app/packages/assets/node_modules ./packages/assets/node_modules
 COPY --from=deps /app/packages/auth/node_modules ./packages/auth/node_modules
@@ -92,7 +92,7 @@ RUN addgroup -g 1001 -S echoppe && \
     adduser -S echoppe -u 1001
 
 COPY --from=api-builder --chown=echoppe:echoppe /app/apps/echoppe-api/api ./api
-COPY --chown=echoppe:echoppe packages/core/drizzle ./drizzle
+COPY --chown=echoppe:echoppe packages/echoppe-core/drizzle ./drizzle
 
 RUN mkdir -p /app/uploads && chown -R echoppe:echoppe /app/uploads
 

@@ -63,7 +63,7 @@ plusieurs natures. Pas d'arborescence posée d'avance (philosophy §4 appliquée
 
 ## Structure des packages
 
-### `packages/core` — slicing horizontal assumé (pour l'instant)
+### `packages/echoppe-core` — slicing horizontal assumé (pour l'instant)
 
 `core` est organisé par **couche technique** : `db/schema/*`, `adapters/<famille>/*`, `services/*`,
 `utils/*` — **pas** en `domain/<concept>/` (slicing vertical DDD). C'est un **écart conscient** vs

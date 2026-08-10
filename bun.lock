@@ -163,30 +163,6 @@
         "typescript": "6.0.3",
       },
     },
-    "packages/core": {
-      "name": "@echoppe/core",
-      "version": "0.0.1",
-      "dependencies": {
-        "@paypal/checkout-server-sdk": "^1.0.3",
-        "@repo/adapters": "workspace:*",
-        "@repo/assets": "workspace:*",
-        "@repo/auth": "workspace:*",
-        "@repo/communication": "workspace:*",
-        "@repo/db": "workspace:*",
-        "@repo/identity": "workspace:*",
-        "@repo/menus": "workspace:*",
-        "@repo/pages": "workspace:*",
-        "@repo/shared": "workspace:*",
-        "drizzle-orm": "^0.45.2",
-        "postgres": "^3.4.9",
-        "stripe": "22",
-      },
-      "devDependencies": {
-        "bun-types": "^1.3.14",
-        "drizzle-kit": "^0.31.10",
-        "typescript": "6.0.3",
-      },
-    },
     "packages/create-echoppe": {
       "name": "create-echoppe",
       "version": "0.1.2",
@@ -210,6 +186,30 @@
       },
       "devDependencies": {
         "bun-types": "^1.3.14",
+        "typescript": "6.0.3",
+      },
+    },
+    "packages/echoppe-core": {
+      "name": "@echoppe/core",
+      "version": "0.0.1",
+      "dependencies": {
+        "@paypal/checkout-server-sdk": "^1.0.3",
+        "@repo/adapters": "workspace:*",
+        "@repo/assets": "workspace:*",
+        "@repo/auth": "workspace:*",
+        "@repo/communication": "workspace:*",
+        "@repo/db": "workspace:*",
+        "@repo/identity": "workspace:*",
+        "@repo/menus": "workspace:*",
+        "@repo/pages": "workspace:*",
+        "@repo/shared": "workspace:*",
+        "drizzle-orm": "^0.45.2",
+        "postgres": "^3.4.9",
+        "stripe": "22",
+      },
+      "devDependencies": {
+        "bun-types": "^1.3.14",
+        "drizzle-kit": "^0.31.10",
         "typescript": "6.0.3",
       },
     },
@@ -453,7 +453,7 @@
 
     "@echoppe/client": ["@echoppe/client@workspace:packages/client"],
 
-    "@echoppe/core": ["@echoppe/core@workspace:packages/core"],
+    "@echoppe/core": ["@echoppe/core@workspace:packages/echoppe-core"],
 
     "@echoppe/docs": ["@echoppe/docs@workspace:docs"],
 

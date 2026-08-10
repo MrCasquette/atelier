@@ -59,11 +59,11 @@ jobs:
         env:
           DATABASE_URL: postgres://placeholder:placeholder@localhost:5432/placeholder
         run: |
-          bun run --cwd packages/core db:generate --name=drift_guard
-          if ! git diff --quiet --exit-code packages/core/drizzle || [ -n "$(git ls-files --others --exclude-standard packages/core/drizzle)" ]; then
+          bun run --cwd packages/echoppe-core db:generate --name=drift_guard
+          if ! git diff --quiet --exit-code packages/echoppe-core/drizzle || [ -n "$(git ls-files --others --exclude-standard packages/echoppe-core/drizzle)" ]; then
             echo "::error::Dérive schéma ↔ migrations : le schéma Drizzle a changé sans migration générée."
             echo "Lancer 'bun run db:generate' puis committer le .sql + meta/*_snapshot.json."
-            git status --short packages/core/drizzle
+            git status --short packages/echoppe-core/drizzle
             exit 1
           fi
           echo "✓ Schéma == migrations, aucune dérive."

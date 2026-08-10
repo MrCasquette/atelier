@@ -18,11 +18,11 @@ l'image publiée, répond `200` sur les routes clés.** Ce qui marche en dev via
 ## Invariant migrations (à ne jamais enfreindre)
 
 En dev, `db:push` applique le schéma **sans produire de fichier de migration**.
-L'image de prod, elle, n'embarque que les **migrations versionnées** (`packages/core/drizzle/`)
+L'image de prod, elle, n'embarque que les **migrations versionnées** (`packages/echoppe-core/drizzle/`)
 et les applique au boot. Un schéma modifié en dev par `push` seul est donc **absent
 de l'image** → 500 au runtime pour toute boutique.
 
-**Après tout changement de `packages/core/src/db/schema/` :**
+**Après tout changement de `packages/echoppe-core/src/db/schema/` :**
 
 ```bash
 bun run db:generate   # produit la migration DDL manquante
@@ -61,7 +61,7 @@ Boucle serrée pré-commit (sans stack complet) : un Postgres jetable + migrate.
 docker run -d --name mig-check -e POSTGRES_USER=echoppe -e POSTGRES_PASSWORD=echoppe \
   -e POSTGRES_DB=echoppe -p 5433:5432 postgres:17-alpine
 DATABASE_URL="postgresql://echoppe:echoppe@localhost:5433/echoppe" \
-  bun run --cwd packages/core db:migrate       # 0000→N sans erreur
+  bun run --cwd packages/echoppe-core db:migrate       # 0000→N sans erreur
 docker rm -f mig-check
 ```
 

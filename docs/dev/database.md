@@ -4,7 +4,7 @@
 
 ## Schéma
 
-Le schéma complet est défini dans `packages/core/src/db/schema/`.
+Le schéma complet est défini dans `packages/echoppe-core/src/db/schema/`.
 
 ### Tables principales
 
@@ -131,7 +131,7 @@ bun run db:generate
 bun run db:migrate
 ```
 
-Les fichiers de migration sont dans `packages/core/drizzle/`.
+Les fichiers de migration sont dans `packages/echoppe-core/drizzle/`.
 
 ::: danger `db:push` ≠ `db:generate` — piège de dérive
 `db:push` applique le schéma en dev **sans créer de fichier de migration**. L'image

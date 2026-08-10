@@ -28,9 +28,11 @@ export function requireSmokeDb(): void {
   }
 }
 
-const migrationsFolder = fileURLToPath(new URL('../../../packages/core/drizzle', import.meta.url));
+const migrationsFolder = fileURLToPath(
+  new URL('../../../packages/echoppe-core/drizzle', import.meta.url),
+);
 
-/** Migre la base jetable depuis `packages/core/drizzle` (idempotent : no-op si déjà à jour). */
+/** Migre la base jetable depuis `packages/echoppe-core/drizzle` (idempotent : no-op si déjà à jour). */
 export const migrate = (): Promise<void> => runMigrations(migrationsFolder);
 
 export interface ReqOptions {
