@@ -77,3 +77,23 @@ Refus plutôt que perte, conformément à la règle de `prisme:check`
 **Que renvoie l'API pour un singleton non renseigné ?** Un 404 dit « rien ici », ce qui est exact ;
 un 200 avec un corps vide simplifie le front, qui rend une page dans les deux cas. À trancher avec la
 surface storefront, encore non arrêtée.
+
+## Amendement 2026-08-10 — un singleton non renseigné rend 200, pas 404
+
+La question ouverte de cet ADR — « un 404 dit rien ici, ce qui est exact ; un 200 avec un corps vide
+simplifie le front » — est tranchée en faveur du 200.
+
+Le raisonnement n'est pas le confort du front, c'est qu'il y a **deux situations distinctes** et
+qu'un 404 les confond :
+
+| Situation | Réponse | Ce que ça veut dire |
+|---|---|---|
+| Singleton déclaré, jamais renseigné | `200 { data: null }` | une tâche à faire |
+| Singleton non déclaré | `404` | une erreur de code |
+
+La première est un état normal du produit : le dev a déclaré `ParametresSite`, personne ne l'a encore
+rempli. La seconde est un bug — le front demande une entité qui n'existe pas au registre. Les
+confondre oblige le front à deviner laquelle des deux il a sous les yeux, et il ne peut pas.
+
+Un singleton EXISTE dès qu'il est déclaré : c'est la déclaration qui le fait exister, pas sa
+première écriture. Le 200 dit exactement ça.

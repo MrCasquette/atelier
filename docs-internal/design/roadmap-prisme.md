@@ -80,16 +80,34 @@ un utilisateur qui sait déployer — c'est-à-dire pas celui qu'elle vise.
 
 ## Non tranché
 
+Relevé du 2026-08-10, après la session d'instruction de #27.
+
 | Sujet | Où |
 |---|---|
-| Permission de modifier le schéma — Owner / Admin / dev, à traiter dans le RBAC **avant** l'implémentation | [0027](../adr/ADR-0027-entites-tables-reelles.md) |
 | GUI de conception d'entités, ultérieurement — purement additif | [0027](../adr/ADR-0027-entites-tables-reelles.md) |
 | Granularité de remplacement du rendu : par `kind`, par entité, ou les deux | [0029](../adr/ADR-0029-rendu-generique.md) |
 | Où vit la liste des langues ; le statut est-il localisé | [0031](../adr/ADR-0031-i18n-champs-localises.md) |
 | Prévisualisation d'un brouillon — un jeton côté front, distinct du versionnement | [0036](../adr/ADR-0036-cycle-de-vie-contenu.md) |
 | Scope npm du SDK Prisme | [0033](../adr/ADR-0033-organisation-monorepo.md) |
-| Nom du package d'identité — `@repo/identity` proposé | [0034](../adr/ADR-0034-identite-referentiel-reglages.md) |
-| Surface storefront — endpoint générique vs dédiés | [systeme-contenu-leger.md](./systeme-contenu-leger.md) |
-| Réponse d'un singleton non renseigné — 404 ou 200 vide | [0039](../adr/ADR-0039-entites-singleton.md) |
 | i18n de l'interface admin — sans effet sur le modèle, peut attendre | [0031](../adr/ADR-0031-i18n-champs-localises.md) |
-| Lexique — provisoire, à ratifier | [lexique-prisme.md](../reference/lexique-prisme.md) |
+| Injection de dépendance pour `db` — touche des signatures, pas le modèle | #24 |
+
+Aucun de ces sujets ne bloque #27. Le jeton d'aperçu attend un front livré : en V1 le dev écrit le
+sien, une lecture authentifiée suffit.
+
+## Tranché le 2026-08-10 — l'instruction préalable à #27
+
+| Sujet | Décision | Où |
+|---|---|---|
+| Permission de modifier le schéma | `schema` tient au RANG, non délégable ; la délégation vaut aussi pour les scopes d'une clé (→ #30) | [0038](../adr/ADR-0038-ressources-ouvertes-delegation.md), amendements |
+| Surface front d'une entité | route générique `/entities/:name[/:slug]` — le contrat figé décide | [0027](../adr/ADR-0027-entites-tables-reelles.md), amendement |
+| Singleton non renseigné | `200 { data: null }` ; le `404` reste pour le non-déclaré | [0039](../adr/ADR-0039-entites-singleton.md), amendement |
+| Nom d'une entité hors de sa table | `entity:<nom>`, partout — RBAC et cibles référençables | [0032](../adr/ADR-0032-cibles-referencables.md), amendement |
+| Ressource RBAC d'une entité | dérivée du registre, jamais matérialisée | [0038](../adr/ADR-0038-ressources-ouvertes-delegation.md), amendement (2) |
+
+Tranchés antérieurement, que ce tableau listait encore à tort :
+
+- **Nom du package d'identité** — `@repo/identity` existe depuis #15.
+- **Lexique** — ratifié par [ADR-0043](../adr/ADR-0043-lexique-contenu.md).
+- **Surface storefront** — la question elle-même portait un mot d'Échoppe ; on dit « front » dans
+  tout ce qui est partagé (cf. [lexique](../reference/lexique-prisme.md)).

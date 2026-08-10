@@ -97,3 +97,26 @@ l'infrastructure.
   dans ce sujet, **avant** l'implémentation de ce mécanisme.
 - **Un GUI de conception d'entités**, ultérieurement. Il est purement additif : il écrirait les
   fichiers de déclaration, et le chemin `check` / `push` resterait inchangé.
+
+## Amendement 2026-08-10 — la lecture d'une entité passe par une route générique
+
+Question laissée ouverte par [`systeme-contenu-leger.md`](../design/systeme-contenu-leger.md) :
+endpoint générique ou endpoints dédiés par entité. Tranchée avant d'implémenter, parce qu'elle
+décide de la forme du contrat.
+
+```
+GET /entities/:name          → liste
+GET /entities/:name/:slug    → une instance
+```
+
+**Ce qui décide, c'est le contrat figé.** `contracts:check` fige l'OpenAPI de la surface publique, et
+`@echoppe/client` est publié depuis ce contrat. Des routes dérivées du registre rendraient l'OpenAPI
+**dépendant de l'installation** : deux boutiques n'exposeraient plus les mêmes routes, le SDK ne
+serait plus générable depuis un contrat unique, et le drift guard routes↔SDK perdrait son objet.
+
+L'argument des routes dédiées — un contrat riche et auto-documenté — vise le bon besoin mais au
+mauvais endroit : le typage fin d'une entité vient du **type-gen depuis les fichiers du dev**, comme
+pour les sections (P2c), pas de l'OpenAPI. Le dev a déjà sa déclaration ; l'API n'a pas à la lui
+renvoyer sous forme de schéma.
+
+Coût assumé : une URL moins jolie. `+2` routes au contrat, une fois pour toutes.

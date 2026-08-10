@@ -195,3 +195,29 @@ que par un premier rang. Le pendant de `undelegatableGrants`, appliqué aux scop
 
 `api_key` reste exclu du vocabulaire de scopes : une clé ne peut jamais en engendrer d'autres. Cette
 garantie-là tenait déjà par construction.
+
+## Amendement 2026-08-10 (2) — la ressource d'une entité est dérivée, jamais matérialisée
+
+Cet ADR ouvre l'espace des ressources à `entity:${string}` sans dire ce qui, concrètement, fait
+exister `entity:article` au moment où l'entité naît. Deux lectures tenaient : écrire des lignes
+`permission` à la poussée, ou dériver la liste du registre à la volée.
+
+**Dérivée.** L'ensemble des ressources protégeables est `RESOURCES ∪ registre d'entités`, calculé à
+la lecture. La poussée n'écrit rien de plus que ce qu'elle écrit déjà.
+
+Le motif est celui de tout cet ADR, et celui d'[ADR-0027](./ADR-0027-entites-tables-reelles.md) : la
+SSOT, ce sont les fichiers du dev. Matérialiser la ressource en créerait une seconde, qu'il faudrait
+garder d'accord avec la première — et qui mentirait le jour où elles divergent.
+
+Ça règle aussi, sans code, le troisième trou recensé dans #26 : une entité supprimée ne laisse pas de
+ressource orpheline derrière elle, puisqu'aucune n'avait été écrite. Un `entity:ancien-nom` réutilisé
+ne récupère rien.
+
+**Ce que ça ne règle pas, et qu'il faut écrire.** Les droits ACCORDÉS, eux, sont bien des lignes
+`permission` — c'est leur nature. Supprimer une entité doit donc purger les lignes qui la nomment,
+sans quoi un nom réutilisé hériterait des droits de son homonyme. La différence avec la
+matérialisation : ici on ne nettoie que ce qu'un humain a explicitement accordé, pas un état que le
+système s'était fabriqué à lui-même.
+
+Conséquence pour la surface : ce qui énumère les ressources — l'écran d'édition des rôles, la
+validation d'un scope de clé — lit le registre en plus de `RESOURCE_LIST`.

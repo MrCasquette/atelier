@@ -83,3 +83,27 @@ inspecte le projet du dev — contraire au modèle « front hors framework »
   [ADR-0029](./ADR-0029-rendu-generique.md) qui en dérivera la page à produire. Une seule
   information, donc pas de divergence possible entre ce que l'admin croit et ce que le front sert.
 - `menu-resolve.ts` est réécrit comme résolveur générique piloté par le registre.
+
+## Amendement 2026-08-10 — une entité se nomme `entity:<nom>`, partout
+
+Le registre de cibles est implémenté (#8) et ne connaît aujourd'hui que des cibles natives, nommées
+nûment : `page`, `product`, `collection`, `category`. Les entités ([ADR-0027](./ADR-0027-entites-tables-reelles.md))
+vont s'y inscrire. Sous quel nom ?
+
+**Le même préfixe que pour le RBAC** : [ADR-0038](./ADR-0038-ressources-ouvertes-delegation.md) pose
+déjà `entity:${string}` pour l'espace des ressources. L'étendre aux cibles donne un vocabulaire
+unique — un nom, un préfixe, valable des permissions aux liens.
+
+| | Natif (framework) | Entité (dev) |
+|---|---|---|
+| Ressource RBAC | `content`, `media` | `entity:article` |
+| Cible référençable | `page`, `product` | `entity:article` |
+| Table | `page` | `article` |
+
+**Ce qui décide, c'est la collision.** Sans préfixe, un dev qui nomme son entité `page` écrase la
+cible native du même nom. `createReferenceRegistry` refuse déjà un doublon — mais il le refuse **au
+démarrage**, donc après que la poussée a été acceptée : l'installation redémarre en erreur sur un
+registre que l'API avait validé. Le préfixe rend la collision impossible par construction, sans garde
+supplémentaire à écrire ni à maintenir.
+
+Bénéfice second : un lecteur voit d'un coup d'œil si un nom vient du framework ou du dev.
