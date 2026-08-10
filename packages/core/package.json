@@ -27,6 +27,7 @@
     "@repo/communication": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/identity": "workspace:*",
+    "@repo/menus": "workspace:*",
     "@repo/pages": "workspace:*",
     "@repo/shared": "workspace:*",
     "drizzle-orm": "^0.45.2",

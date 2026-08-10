@@ -1,8 +1,9 @@
 import { db, eq, menu } from '@echoppe/core';
+import { resolveMenuItems } from '@repo/menus';
 import { Elysia, t } from 'elysia';
 import { withNotFound } from '../../lib/response';
 import { models } from '../../model';
-import { resolveMenuItems } from './service';
+import { references } from '../reference/targets';
 
 // Lecture storefront des menus de navigation. Public. Un menu est fetché par son `handle` stable
 // (main, footer…) ; ses refs internes sont résolues en projection { id, slug, name }.
@@ -19,7 +20,11 @@ export const menusRoutes = new Elysia({ prefix: '/menus', detail: { tags: ['Menu
         return status(404, { message: 'Menu introuvable' });
       }
       // `row.items` est typé MenuItem[] (colonne $type) : validé à l'écriture, trusté en lecture.
-      return { handle: row.handle, label: row.label, items: await resolveMenuItems(row.items) };
+      return {
+        handle: row.handle,
+        label: row.label,
+        items: await resolveMenuItems(row.items, references),
+      };
     },
     {
       params: t.Object({ handle: t.String() }),

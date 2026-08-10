@@ -1,8 +1,11 @@
 import { jsonb, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
-// Le menu attend son paquet — `@repo/menus`, pas `@repo/pages` : un menu n'est pas une page. Il ne
-// reste ici que parce que le déplacement n'a pas encore été fait ; plus rien dans ce fichier ne
-// nomme le vocabulaire commerce depuis qu'ADR-0032 a ouvert la cible en registre.
+// La navigation (ADR-0033). Un menu n'est pas une page : il POINTE vers des choses, dont des pages
+// — d'où son propre paquet plutôt qu'un coin de `@repo/pages`.
+//
+// Ce paquet a attendu ADR-0032. Tant que la cible d'un lien énumérait `product`, `collection`,
+// `category`, la colonne `items` faisait entrer le vocabulaire commerce dans tout socle qui
+// l'aurait accueillie. La cible est désormais un nom, et le registre dit lesquels existent.
 
 /**
  * Lien d'un item de menu (stocké) : une URL, ou l'identifiant d'une entité résolue au read.
@@ -19,8 +22,7 @@ export interface MenuLink {
 
 // Item de menu (stocké), RÉCURSIF : `children` référence le même item (profondeur illimitée). Ce
 // type figé sert à typer la colonne jsonb (parse-au-write, trust-au-read) ; la VALIDATION d'écriture
-// vit côté API (modules/menu/model.ts, schéma TypeBox récursif — le `Static` récursif s'y attache
-// via `t.Unsafe<MenuItem>`).
+// vit dans `model.ts`, avec le schéma TypeBox récursif.
 export interface MenuItem {
   label: string;
   link: MenuLink;
@@ -28,9 +30,8 @@ export interface MenuItem {
 }
 
 // Menu de navigation (built-in) : arbre ORDONNÉ et RÉCURSIF d'items stocké en un seul jsonb.
-// `handle` = clé stable fetchée par le front (main, footer…). Le lien cible une URL ou une entité
-// inscrite au registre de références, résolue au read storefront. Shape figé par le framework
-// (validation dédiée, cf. modules/menu/model.ts) — hors registre @mrcasquette/content.
+// `handle` = clé stable fetchée par le front (main, footer…). Shape figé par le framework —
+// hors registre @mrcasquette/content, qui décrit les blocs de page, pas la navigation.
 export const menu = pgTable('menu', {
   id: uuid('id').primaryKey().defaultRandom(),
   handle: varchar('handle', { length: 100 }).unique().notNull(),

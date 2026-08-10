@@ -1,63 +1,8 @@
-import type { MenuItem } from '@echoppe/core';
-import type { EntityProjection } from '@repo/references';
+import type { ResolvedMenuItem } from '@repo/menus';
 import { type Static, t } from 'elysia';
 
-// Modèles du menu de navigation (built-in, hors registre @mrcasquette/content). Un menu = arbre
-// ORDONNÉ et RÉCURSIF d'items ; `children` référence le même item (récursivité illimitée via
-// `t.Recursive`). Deux mondes :
-//   - STOCKAGE / écriture : le lien porte une URL ou un UUID d'entité brut.
-//   - LECTURE storefront : les refs internes sont RÉSOLUES en projection { id, slug, name }.
-//
-// Piège récursion : le `Static` d'un `t.Recursive` s'effondre (`children: never[]`). On attache
-// donc le type TS correct via `t.Unsafe<T>` (même remède que le vocabulaire de scopes api-key) :
-// le runtime valide l'arbre récursif, le contrat client/handler porte le vrai type. `MenuItem` est
-// la SSOT du shape (défini en core, sert aussi à typer la colonne jsonb).
-
-// ── Stockage / écriture ───────────────────────────────────────────────────────────────────────
-// `target` est un NOM de cible et non une union fermée (ADR-0032) : `'url'`, ou le nom d'une cible
-// inscrite au registre de références. Le contrat ne peut pas l'énumérer — il ne les connaît pas.
-// L'existence de la cible se vérifie à l'ÉCRITURE, contre le registre (cf. admin.ts) : le contrat
-// dit la forme, le registre dit ce qui existe.
-const menuLink = t.Object({
-  target: t.String({
-    minLength: 1,
-    description: '`url`, ou nom d’une cible référençable inscrite.',
-  }),
-  value: t.String({
-    minLength: 1,
-    description: 'URL (target=url) ou UUID de l’entité ciblée (cibles internes).',
-  }),
-  newTab: t.Optional(t.Boolean()),
-});
-
-// Item récursif : `Self` = référence à CE même item (thunk), pas une copie inline.
-const menuItem = t.Recursive((Self) =>
-  t.Object({
-    label: t.String({ minLength: 1, maxLength: 200 }),
-    link: menuLink,
-    children: t.Array(Self),
-  }),
-);
-
-// Runtime = validateur récursif ; Static = MenuItem[] (récursion préservée, cf. piège ci-dessus).
-export const menuItemsSchema = t.Unsafe<MenuItem[]>(t.Array(menuItem));
-export type MenuItemInput = MenuItem;
-
-// ── Lecture storefront (refs résolues) ────────────────────────────────────────────────────────
-export type ResolvedMenuLink =
-  | { target: 'url'; url: string; newTab?: boolean }
-  | {
-      target: string;
-      // null si la ref est dangling : entité supprimée, ou cible retirée du registre.
-      entity: EntityProjection | null;
-      newTab?: boolean;
-    };
-
-export interface ResolvedMenuItem {
-  label: string;
-  link: ResolvedMenuLink;
-  children: ResolvedMenuItem[];
-}
+// CONTRAT de lecture storefront d'un menu : ce qu'une route rend, pas ce qu'une donnée est. À ce
+// titre il appartient au produit (ADR-0044) — la forme STOCKÉE, elle, vit dans `@repo/menus`.
 
 const entityProjection = t.Object({ id: t.String(), slug: t.String(), name: t.String() });
 

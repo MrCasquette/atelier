@@ -1,16 +1,16 @@
 import { asc, db, eq, menu } from '@echoppe/core';
+import { menuItemsSchema, unknownTargets } from '@repo/menus';
 import { Elysia, t } from 'elysia';
 import { conflictResponse, successSchema, withCrudErrors } from '../../lib/response';
 import { permissionGuard } from '../auth/rbac';
-import { menuItemsSchema } from './model';
-import { unknownTargets } from './service';
+import { references } from '../reference/targets';
 
 // Administration des menus. Protégé par RBAC `content` — le menu n'est pas du contenu (ADR-0043,
 // sa forme est figée par le framework, hors registre) mais il partage son écran d'administration,
 // donc sa ressource de permission.
 //
 // Items BRUTS : les références internes ne sont pas résolues ici (la résolution est un service de
-// lecture storefront, cf. ./service.ts).
+// lecture storefront, cf. @repo/menus).
 
 const uuidParam = t.Object({ id: t.String({ format: 'uuid' }) });
 
@@ -109,7 +109,7 @@ export const menuAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: 
 
       // Le contrat ne peut plus énumérer les cibles (ADR-0032) : leur existence se vérifie ici,
       // contre le registre.
-      const unknown = body.items ? unknownTargets(body.items) : [];
+      const unknown = body.items ? unknownTargets(body.items, references) : [];
       if (unknown.length > 0) {
         return status(422, { message: `Cibles référençables inconnues : ${unknown.join(', ')}` });
       }
