@@ -148,3 +148,50 @@ depuis une session humaine.
   résout ici : **masquer, c'est retirer `canRead` à un rôle**. Le mécanisme existait déjà ; il lui
   manquait de pouvoir nommer une ressource inconnue à la compilation.
 - `SCHEMA` devient une entrée de `RESOURCES`, accordée à Owner et Admin.
+
+## Amendement 2026-08-10 — `schema` tient au rang, et la délégation vaut aussi pour les clés
+
+Instruit avant d'implémenter #27 : `push` altère la structure de la base, il faut savoir qui peut
+l'appeler avant d'écrire la route. Deux trous sont apparus.
+
+### `schema` n'est pas une ligne de permission
+
+La décision d'origine fait de `SCHEMA` « une entrée de `RESOURCES`, accordée à Owner et Admin ». Mais
+une ressource ordinaire est **délégable** : par la règle « on ne peut accorder que ce qu'on détient »,
+un Admin détient `schema`, donc un Admin peut l'accorder à un Editor. « Réservé à l'Owner et aux
+admins » ne tenait alors que tant qu'aucun admin n'était généreux.
+
+L'ADR répondait à demi — « un admin privé du schéma ne perd rien en V1, pousser suppose des fichiers
+et la CLI ». C'est un argument d'ergonomie, pas de sécurité : la route accepte un cookie de session,
+un `curl` suffit.
+
+**Un éditeur ne doit pouvoir qu'éditer. Créer est d'une autre nature.** `schema` est donc attaché au
+RANG, pas à la possession :
+
+- le détenir découle d'être de premier rang — Owner par `bypass`, Admin par la clé de rôle système ;
+- `undelegatableGrants` refuse toute ligne `schema:*` soumise, quel que soit le demandeur. Personne
+  ne l'accorde, donc personne ne l'obtient.
+
+C'est la même mécanique que la révocation, déjà gouvernée par le rang et non par la portée : retirer
+un droit est un acte de gouvernance. Créer une table en est un aussi.
+
+Coût assumé : une exception au modèle uniforme des ressources. Elle est justifiée par la nature de ce
+qui est protégé — un droit dont l'objet est « seulement les deux premiers rangs » n'est pas une ligne
+de permission, et en faire une garantit qu'il fuit.
+
+### La délégation vaut aussi pour les scopes d'une clé d'API
+
+`POST /api-keys` valide les scopes soumis contre le **vocabulaire** (`isValidScope`), jamais contre
+ce que l'appelant détient. Une clé est pourtant une délégation d'autorité : la règle de la décision
+d'origine doit s'y appliquer telle quelle.
+
+Sans ça, `api_key:create` est un droit universel déguisé — qui le détient se forge une clé portant
+n'importe quel scope. Non exploitable au seed, où seuls Owner et Admin reçoivent `api_key:create` ;
+ouvert dès qu'un rôle sur mesure le reçoit, ce que la délégation autorise ; grave le jour où
+`write:schema` existe, puisqu'il contournerait la règle de rang ci-dessus.
+
+**Une clé ne peut porter que des scopes que son émetteur détient**, et `write:schema` n'est émissible
+que par un premier rang. Le pendant de `undelegatableGrants`, appliqué aux scopes.
+
+`api_key` reste exclu du vocabulaire de scopes : une clé ne peut jamais en engendrer d'autres. Cette
+garantie-là tenait déjà par construction.
