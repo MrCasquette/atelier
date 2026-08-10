@@ -1,10 +1,16 @@
-import { category, collection, db, ilike, inArray, page, product } from '@echoppe/core';
+import { category, collection, db, ilike, inArray, product } from '@echoppe/core';
+import { pageReferenceTarget } from '@repo/pages';
 import { createReferenceRegistry, type EntityProjection } from '@repo/references';
 
-// Les cibles référençables d'ÉCHOPPE (ADR-0032). Ce fichier est le seul endroit du dépôt où le
-// vocabulaire commerce rencontre le mécanisme de lien — c'est exactement ce que l'ADR voulait :
-// le socle sait qu'il existe des cibles, Échoppe dit lesquelles. Prisme aura son pendant, et
-// n'inscrira pas `product`.
+// Le registre de cibles référençables d'ÉCHOPPE (ADR-0032) : le socle sait qu'il existe des cibles,
+// c'est ici qu'on dit lesquelles. Prisme aura son pendant, et n'inscrira pas `product`.
+//
+// Deux natures d'inscription, et la frontière entre elles est la même que partout :
+//   - `page` est GÉNÉRIQUE — son descripteur est livré par `@repo/pages`, le paquet qui livre la
+//     table. On l'inscrit, on ne le réécrit pas. Un paquet ne s'inscrit jamais tout seul : le
+//     produit décide de ce que son registre contient.
+//   - le reste est propre à Échoppe, et déclaré ici. C'est le seul endroit du dépôt où le
+//     vocabulaire COMMERCE rencontre le mécanisme de lien.
 //
 // Les routes déclarées sont celles du storefront livré (`/produits/:slug`). **La déclaration fait
 // foi** : si le dev remplace le rendu par ses propres pages, rien ne garantit techniquement
@@ -14,21 +20,7 @@ const SEARCH_LIMIT_MAX = 100;
 
 export const references = createReferenceRegistry();
 
-references.register({
-  name: 'page',
-  label: 'Page',
-  link: { mode: 'route', route: '/:slug' },
-  async project(ids) {
-    return db
-      .select({ id: page.id, slug: page.slug, name: page.title })
-      .from(page)
-      .where(inArray(page.id, ids));
-  },
-  async search(term, limit) {
-    const rows = db.select({ id: page.id, slug: page.slug, name: page.title }).from(page);
-    return term ? rows.where(ilike(page.title, `%${term}%`)).limit(limit) : rows.limit(limit);
-  },
-});
+references.register(pageReferenceTarget());
 
 references.register({
   name: 'product',
