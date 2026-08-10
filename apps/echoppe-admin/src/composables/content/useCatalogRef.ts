@@ -1,74 +1,52 @@
-// Accès catalogue pour un champ de référence : recherche d'entités et résolution d'un libellé
-// depuis un UUID. Normalise les surfaces API en `RefOption`. Cibles : produit/collection/catégorie
-// (champ `ref` du registre P3) + page (liens de menu).
-import { ref } from 'vue';
+// Accès à une cible référençable pour un champ de référence : recherche d'entités et résolution
+// d'un libellé depuis un UUID.
+//
+// Ce composable énumérait les quatre cibles d'Échoppe et appelait un endpoint catalogue différent
+// pour chacune — huit appels codés en dur, la contrepartie admin du couplage d'ADR-0032. Il passe
+// désormais par le registre : deux endpoints génériques, aucune entité nommée ici.
+import { computed, ref } from 'vue';
 import { api } from '@/lib/api';
-import type { RefTarget } from './types';
+import type { ApiItem } from '@/types/api';
+import { useReferenceTargets } from './useReferenceTargets';
 
-// Cible élargie : les refs du registre (RefTarget) + `page` pour les liens de menu.
-export type CatalogTarget = RefTarget | 'page';
+export type RefOption = ApiItem<
+  ReturnType<ReturnType<typeof api.content['reference-targets']>['options']['get']>
+>;
 
-export interface RefOption {
-  id: string;
-  name: string;
-}
+const SEARCH_LIMIT = 20;
 
-const TARGET_LABELS: Record<CatalogTarget, string> = {
-  product: 'produit',
-  collection: 'collection',
-  category: 'catégorie',
-  page: 'page',
-};
-
-function filterByName(items: RefOption[], term: string): RefOption[] {
-  if (!term) return items;
-  const needle = term.toLowerCase();
-  return items.filter((item) => item.name.toLowerCase().includes(needle));
-}
-
-export function useCatalogRef(target: CatalogTarget) {
+export function useCatalogRef(target: string) {
+  const { load, labelOf } = useReferenceTargets();
   const options = ref<RefOption[]>([]);
   const loading = ref(false);
 
+  void load();
+
   async function search(term: string) {
     loading.value = true;
-    if (target === 'product') {
-      // Recherche serveur (catalogue potentiellement volumineux).
-      const { data } = await api.products.get({ query: { search: term || undefined, limit: 20 } });
-      options.value = data && 'data' in data ? data.data.map((p) => ({ id: p.id, name: p.name })) : [];
-    } else if (target === 'collection') {
-      const { data } = await api.collections.get({ query: { limit: 100 } });
-      const items = data && 'data' in data ? data.data.map((c) => ({ id: c.id, name: c.name })) : [];
-      options.value = filterByName(items, term);
-    } else if (target === 'category') {
-      const { data } = await api.categories.get();
-      const items = data ? data.map((c) => ({ id: c.id, name: c.name })) : [];
-      options.value = filterByName(items, term);
-    } else {
-      const { data } = await api.content.pages.get();
-      const items = data ? data.map((p) => ({ id: p.id, name: p.title })) : [];
-      options.value = filterByName(items, term);
+    try {
+      const { data } = await api.content['reference-targets']({ name: target }).options.get({
+        query: { search: term || undefined, limit: SEARCH_LIMIT },
+      });
+      options.value = data ?? [];
+    } finally {
+      loading.value = false;
     }
-    loading.value = false;
   }
 
-  // Libellé d'une référence déjà sélectionnée (affichage du chip).
+  /** Libellé d'une référence déjà sélectionnée (affichage du chip). */
   async function resolveLabel(id: string): Promise<string | null> {
-    if (target === 'product') {
-      const { data } = await api.products({ id }).get();
-      return data && 'name' in data ? data.name : null;
-    }
-    if (target === 'collection') {
-      const { data } = await api.collections({ id }).get();
-      return data && 'name' in data ? data.name : null;
-    }
-    if (target === 'category') {
-      const { data } = await api.categories({ id }).get();
-      return data && 'name' in data ? data.name : null;
-    }
-    const { data } = await api.content.pages({ id }).get();
-    return data && 'title' in data ? data.title : null;
+    const { data } = await api.content['reference-targets']({ name: target }).entities.get({
+      query: { ids: id },
+    });
+    return data?.[0]?.name ?? null;
   }
 
-  return { options, loading, search, resolveLabel, targetLabel: TARGET_LABELS[target] };
+  return {
+    options,
+    loading,
+    search,
+    resolveLabel,
+    targetLabel: computed(() => labelOf(target)),
+  };
 }

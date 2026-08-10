@@ -1,6 +1,7 @@
 import { Elysia } from 'elysia';
 import { successSchema, withCrudErrors } from '../../../lib/response';
 import { permissionGuard } from '../../auth/rbac';
+import { references } from '../../reference/targets';
 import { registrySchema } from './model';
 import { loadRegistry, syncRegistry } from './service';
 
@@ -22,7 +23,7 @@ export const definitionRoutes = new Elysia({ prefix: '/content', detail: { tags:
   .put(
     '/registry',
     async ({ body, status }) => {
-      const result = await syncRegistry(body);
+      const result = await syncRegistry(body, references.names());
 
       return result.outcome === 'incoherent'
         ? status(422, { message: result.message })

@@ -21,6 +21,7 @@ import { mediaRoutes } from './modules/media';
 import { menuRoutes } from './modules/menu';
 import { orderRoutes } from './modules/order';
 import { paymentsRoutes } from './modules/payment';
+import { referenceRoutes } from './modules/reference';
 import { rolesRoutes } from './modules/role';
 import { shippingRoutes } from './modules/shipping';
 import { stockRoutes } from './modules/stock';
@@ -108,6 +109,7 @@ export const app = new Elysia()
   .use(optionsRoutes)
   .use(menuRoutes)
   .use(definitionRoutes)
+  .use(referenceRoutes)
   .use(pageRoutes)
   .use(apiKeyRoutes)
   .use(mediaRoutes)

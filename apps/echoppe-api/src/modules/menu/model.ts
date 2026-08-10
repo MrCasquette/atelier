@@ -1,4 +1,5 @@
 import type { MenuItem } from '@echoppe/core';
+import type { EntityProjection } from '@repo/references';
 import { type Static, t } from 'elysia';
 
 // Modèles du menu de navigation (built-in, hors registre @mrcasquette/content). Un menu = arbre
@@ -13,14 +14,15 @@ import { type Static, t } from 'elysia';
 // la SSOT du shape (défini en core, sert aussi à typer la colonne jsonb).
 
 // ── Stockage / écriture ───────────────────────────────────────────────────────────────────────
+// `target` est un NOM de cible et non une union fermée (ADR-0032) : `'url'`, ou le nom d'une cible
+// inscrite au registre de références. Le contrat ne peut pas l'énumérer — il ne les connaît pas.
+// L'existence de la cible se vérifie à l'ÉCRITURE, contre le registre (cf. admin.ts) : le contrat
+// dit la forme, le registre dit ce qui existe.
 const menuLink = t.Object({
-  target: t.Union([
-    t.Literal('url'),
-    t.Literal('page'),
-    t.Literal('product'),
-    t.Literal('collection'),
-    t.Literal('category'),
-  ]),
+  target: t.String({
+    minLength: 1,
+    description: '`url`, ou nom d’une cible référençable inscrite.',
+  }),
   value: t.String({
     minLength: 1,
     description: 'URL (target=url) ou UUID de l’entité ciblée (cibles internes).',
@@ -42,17 +44,12 @@ export const menuItemsSchema = t.Unsafe<MenuItem[]>(t.Array(menuItem));
 export type MenuItemInput = MenuItem;
 
 // ── Lecture storefront (refs résolues) ────────────────────────────────────────────────────────
-export interface EntityProjection {
-  id: string;
-  slug: string;
-  name: string;
-}
-
 export type ResolvedMenuLink =
   | { target: 'url'; url: string; newTab?: boolean }
   | {
-      target: 'page' | 'product' | 'collection' | 'category';
-      entity: EntityProjection | null; // null si la ref est dangling (entité supprimée)
+      target: string;
+      // null si la ref est dangling : entité supprimée, ou cible retirée du registre.
+      entity: EntityProjection | null;
       newTab?: boolean;
     };
 
@@ -64,15 +61,13 @@ export interface ResolvedMenuItem {
 
 const entityProjection = t.Object({ id: t.String(), slug: t.String(), name: t.String() });
 
+// Les deux branches restent discriminables sans énumérer les cibles : un lien en clair porte `url`
+// et pas `entity`, un lien d'entité l'inverse. C'est la PRÉSENCE du champ qui tranche, pas la
+// valeur de `target`.
 const resolvedLink = t.Union([
   t.Object({ target: t.Literal('url'), url: t.String(), newTab: t.Optional(t.Boolean()) }),
   t.Object({
-    target: t.Union([
-      t.Literal('page'),
-      t.Literal('product'),
-      t.Literal('collection'),
-      t.Literal('category'),
-    ]),
+    target: t.String(),
     entity: t.Nullable(entityProjection),
     newTab: t.Optional(t.Boolean()),
   }),

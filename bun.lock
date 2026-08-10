@@ -60,6 +60,7 @@
         "@elysiajs/cors": "^1.4.2",
         "@elysiajs/openapi": "^1.4.15",
         "@repo/auth": "workspace:*",
+        "@repo/references": "workspace:*",
         "@repo/shared": "workspace:*",
         "elysia": "^1.4.29",
         "elysia-rate-limit": "^4.6.2",
@@ -228,6 +229,14 @@
         "drizzle-orm": "^0.45.2",
       },
       "devDependencies": {
+        "typescript": "6.0.3",
+      },
+    },
+    "packages/references": {
+      "name": "@repo/references",
+      "version": "0.0.1",
+      "devDependencies": {
+        "bun-types": "^1.3.14",
         "typescript": "6.0.3",
       },
     },
@@ -656,6 +665,8 @@
     "@repo/identity": ["@repo/identity@workspace:packages/identity"],
 
     "@repo/pages": ["@repo/pages@workspace:packages/pages"],
+
+    "@repo/references": ["@repo/references@workspace:packages/references"],
 
     "@repo/shared": ["@repo/shared@workspace:packages/shared"],
 

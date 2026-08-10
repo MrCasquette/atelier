@@ -17,7 +17,10 @@ const fieldMeta = {
   required: t.Optional(t.Boolean()),
 };
 
-const refTarget = t.Union([t.Literal('product'), t.Literal('collection'), t.Literal('category')]);
+// Cible d'un champ `ref` : un NOM de cible inscrite au registre de références, pas une union
+// fermée (ADR-0032). Le socle ne connaît pas les entités du produit ; l'existence de la cible se
+// vérifie à la synchronisation du registre, pas dans la grammaire (cf. definition/service.ts).
+const refTarget = t.String({ minLength: 1 });
 
 // Un champ du registre. Récursif : `repeater` contient lui-même un dictionnaire de champs.
 const serializedFieldSchema = t.Recursive((self) =>

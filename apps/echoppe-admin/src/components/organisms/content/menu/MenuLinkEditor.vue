@@ -1,12 +1,17 @@
 <script setup lang="ts">
+import { computed, onMounted } from 'vue';
 import Input from '@/components/atoms/Input.vue';
 import Select from '@/components/atoms/Select.vue';
 import Toggle from '@/components/atoms/Toggle.vue';
 import CatalogRefPicker from '../CatalogRefPicker.vue';
-import type { MenuLink, MenuLinkTarget } from '@/composables/content/menuTypes';
+import type { MenuLink } from '@/composables/content/menuTypes';
+import { useReferenceTargets } from '@/composables/content/useReferenceTargets';
 
-// Éditeur du lien d'un item de menu : cible (URL externe ou entité interne) + valeur + nouvel
+// Éditeur du lien d'un item de menu : cible (URL externe ou entité référençable) + valeur + nouvel
 // onglet. Changer de cible réinitialise la valeur (URL string vs UUID d'entité).
+//
+// Les cibles ne sont plus écrites ici : elles viennent du registre (ADR-0032). `url` reste en tête
+// parce que ce n'est pas une entité — c'est le lien en clair, que le socle connaît toujours.
 const props = defineProps<{
   modelValue: MenuLink;
 }>();
@@ -15,19 +20,16 @@ const emit = defineEmits<{
   'update:modelValue': [value: MenuLink];
 }>();
 
-const targetOptions = [
-  { value: 'url', label: 'URL externe' },
-  { value: 'page', label: 'Page' },
-  { value: 'product', label: 'Produit' },
-  { value: 'collection', label: 'Collection' },
-  { value: 'category', label: 'Catégorie' },
-];
+const { targets, load } = useReferenceTargets();
+onMounted(load);
 
-const TARGETS: readonly string[] = ['url', 'page', 'product', 'collection', 'category'];
-const isTarget = (value: string): value is MenuLinkTarget => TARGETS.includes(value);
+const targetOptions = computed(() => [
+  { value: 'url', label: 'URL externe' },
+  ...targets.value.map((target) => ({ value: target.name, label: target.label })),
+]);
 
 function setTarget(value: string) {
-  if (!isTarget(value) || value === props.modelValue.target) return;
+  if (value === props.modelValue.target) return;
   // Reset de la valeur : une URL et un UUID ne sont pas interchangeables.
   emit('update:modelValue', { ...props.modelValue, target: value, value: '' });
 }

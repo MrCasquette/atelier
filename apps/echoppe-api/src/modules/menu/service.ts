@@ -1,64 +1,71 @@
-import { category, collection, db, inArray, page, product } from '@echoppe/core';
-import type { EntityProjection, MenuItemInput, ResolvedMenuItem } from './model';
+import type { EntityProjection } from '@repo/references';
+import { references } from '../reference/targets';
+import type { MenuItemInput, ResolvedMenuItem } from './model';
 
-// Résolution des refs internes d'un menu au read storefront : chaque lien vers une entité
-// (page/produit/collection/catégorie) est remplacé par sa projection { id, slug, name } (null si
-// dangling). Les liens URL passent tels quels. Une requête groupée par table (menus = petit
-// volume), puis reconstruction de l'arbre. Le front reste maître de l'URL finale (on renvoie
-// slug/name, pas un chemin en dur → agnosticisme front).
+// Résolution des refs internes d'un menu au read storefront : chaque lien vers une entité est
+// remplacé par sa projection { id, slug, name } (null si dangling). Les liens URL passent tels
+// quels.
+//
+// Ce résolveur ne connaît AUCUNE entité (ADR-0032). Il groupe les identifiants par cible, demande
+// au registre de les projeter — une requête par cible présente, comme avant —, puis reconstruit
+// l'arbre. Une cible non inscrite ne fait pas échouer la lecture : son lien est rendu dangling,
+// exactement comme une entité supprimée. Un menu écrit avant qu'une entité soit retirée du
+// registre reste lisible.
+//
+// Le front reste maître de l'URL finale : on renvoie slug/name, pas un chemin en dur.
 
-type InternalTarget = 'page' | 'product' | 'collection' | 'category';
+/** Le lien d'un item désigne-t-il une entité, ou porte-t-il une URL en clair ? */
+const isEntityLink = (target: string): boolean => target !== 'url';
 
-function collectIds(items: MenuItemInput[], acc: Record<InternalTarget, Set<string>>): void {
+/**
+ * Cibles citées par un arbre d'items que le registre ne connaît pas.
+ *
+ * Le contrat ne peut plus les énumérer — c'était le point d'ADR-0032 —, donc la validation
+ * d'existence se fait ICI, à l'écriture. Sans elle, ouvrir `target` en `string` échangerait un
+ * couplage contre une régression : n'importe quelle faute de frappe entrerait en base pour ne se
+ * voir qu'au read, en lien dangling silencieux.
+ *
+ * Rend les noms fautifs, dédupliqués — pour pouvoir dire à l'appelant CE QUI est refusé.
+ */
+export function unknownTargets(items: MenuItemInput[]): string[] {
+  const unknown = new Set<string>();
+
+  const walk = (nodes: MenuItemInput[]): void => {
+    for (const item of nodes) {
+      if (isEntityLink(item.link.target) && !references.has(item.link.target)) {
+        unknown.add(item.link.target);
+      }
+      walk(item.children);
+    }
+  };
+  walk(items);
+
+  return [...unknown];
+}
+
+function collectIds(items: MenuItemInput[], acc: Map<string, Set<string>>): void {
   for (const item of items) {
-    if (item.link.target !== 'url') acc[item.link.target].add(item.link.value);
+    if (isEntityLink(item.link.target)) {
+      const ids = acc.get(item.link.target) ?? new Set<string>();
+      ids.add(item.link.value);
+      acc.set(item.link.target, ids);
+    }
     collectIds(item.children, acc);
   }
 }
 
 export async function resolveMenuItems(items: MenuItemInput[]): Promise<ResolvedMenuItem[]> {
-  const ids: Record<InternalTarget, Set<string>> = {
-    page: new Set(),
-    product: new Set(),
-    collection: new Set(),
-    category: new Set(),
-  };
-  collectIds(items, ids);
+  const idsByTarget = new Map<string, Set<string>>();
+  collectIds(items, idsByTarget);
 
-  const maps: Record<InternalTarget, Map<string, EntityProjection>> = {
-    page: new Map(),
-    product: new Map(),
-    collection: new Map(),
-    category: new Map(),
-  };
+  const projections = new Map<string, Map<string, EntityProjection>>();
 
-  if (ids.page.size > 0) {
-    const rows = await db
-      .select({ id: page.id, slug: page.slug, name: page.title })
-      .from(page)
-      .where(inArray(page.id, [...ids.page]));
-    for (const row of rows) maps.page.set(row.id, row);
-  }
-  if (ids.product.size > 0) {
-    const rows = await db
-      .select({ id: product.id, slug: product.slug, name: product.name })
-      .from(product)
-      .where(inArray(product.id, [...ids.product]));
-    for (const row of rows) maps.product.set(row.id, row);
-  }
-  if (ids.collection.size > 0) {
-    const rows = await db
-      .select({ id: collection.id, slug: collection.slug, name: collection.name })
-      .from(collection)
-      .where(inArray(collection.id, [...ids.collection]));
-    for (const row of rows) maps.collection.set(row.id, row);
-  }
-  if (ids.category.size > 0) {
-    const rows = await db
-      .select({ id: category.id, slug: category.slug, name: category.name })
-      .from(category)
-      .where(inArray(category.id, [...ids.category]));
-    for (const row of rows) maps.category.set(row.id, row);
+  for (const [name, ids] of idsByTarget) {
+    const target = references.get(name);
+    if (!target) continue; // cible retirée du registre → liens rendus dangling, pas d'échec
+
+    const rows = await target.project([...ids]);
+    projections.set(name, new Map(rows.map((row) => [row.id, row])));
   }
 
   const resolve = (nodes: MenuItemInput[]): ResolvedMenuItem[] =>
@@ -66,14 +73,13 @@ export async function resolveMenuItems(items: MenuItemInput[]): Promise<Resolved
       const { link } = item;
       return {
         label: item.label,
-        link:
-          link.target === 'url'
-            ? { target: 'url', url: link.value, newTab: link.newTab }
-            : {
-                target: link.target,
-                entity: maps[link.target].get(link.value) ?? null,
-                newTab: link.newTab,
-              },
+        link: isEntityLink(link.target)
+          ? {
+              target: link.target,
+              entity: projections.get(link.target)?.get(link.value) ?? null,
+              newTab: link.newTab,
+            }
+          : { target: 'url', url: link.value, newTab: link.newTab },
         children: resolve(item.children),
       };
     });

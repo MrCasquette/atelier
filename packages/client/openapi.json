@@ -7247,24 +7247,7 @@
                       ],
                       "properties": {
                         "target": {
-                          "anyOf": [
-                            {
-                              "const": "page",
-                              "type": "string"
-                            },
-                            {
-                              "const": "product",
-                              "type": "string"
-                            },
-                            {
-                              "const": "collection",
-                              "type": "string"
-                            },
-                            {
-                              "const": "category",
-                              "type": "string"
-                            }
-                          ]
+                          "type": "string"
                         },
                         "entity": {
                           "nullable": true,
@@ -9845,24 +9828,7 @@
                 ],
                 "properties": {
                   "target": {
-                    "anyOf": [
-                      {
-                        "const": "page",
-                        "type": "string"
-                      },
-                      {
-                        "const": "product",
-                        "type": "string"
-                      },
-                      {
-                        "const": "collection",
-                        "type": "string"
-                      },
-                      {
-                        "const": "category",
-                        "type": "string"
-                      }
-                    ]
+                    "type": "string"
                   },
                   "entity": {
                     "nullable": true,

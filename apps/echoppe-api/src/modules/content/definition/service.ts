@@ -174,22 +174,65 @@ function registryToRows(registry: Registry): (typeof contentDefinition.$inferIns
   ];
 }
 
+/**
+ * Cibles de champs `ref` que le registre cite sans qu'elles soient inscrites (ADR-0032).
+ *
+ * `RefField.to` n'est plus une union fermée : la grammaire ne peut donc plus refuser une cible
+ * inexistante, et c'est ici que ça se joue. `knownTargets` vient de l'appelant — le socle ne
+ * connaît pas les entités du produit, il ne fait que comparer des noms.
+ *
+ * Rend les noms fautifs, dédupliqués, chacun avec le champ qui le cite : un dev qui pousse un
+ * registre fautif doit savoir OÙ corriger.
+ */
+export function unknownRefTargets(registry: Registry, knownTargets: string[]): string[] {
+  const known = new Set(knownTargets);
+  const faults = new Set<string>();
+
+  const walkFields = (owner: string, fields: Record<string, SerializedField>): void => {
+    for (const [key, field] of Object.entries(fields)) {
+      if (field.kind === 'ref' && !known.has(field.to)) {
+        faults.add(`${owner}.${key} → « ${field.to} »`);
+      }
+      if (field.kind === 'repeater') walkFields(`${owner}.${key}`, field.fields);
+    }
+  };
+
+  for (const [name, def] of Object.entries(registry.sections)) walkFields(name, def.fields);
+  for (const [name, def] of Object.entries(registry.components)) walkFields(name, def.fields);
+
+  return [...faults];
+}
+
 export type SyncRegistryOutcome =
   | { outcome: 'synced' }
-  /** Référence de component introuvable ou cycle : refusé AVANT de persister quoi que ce soit. */
+  /** Référence de component introuvable, cycle, ou cible de `ref` non inscrite : refusé AVANT de persister quoi que ce soit. */
   | { outcome: 'incoherent'; message: string };
 
 /**
  * Remplace le registre stocké d'un bloc. La source d'autorité, ce sont les fichiers du dev ; la
  * base n'en est que le miroir. L'incohérence est une issue métier, pas une exception qui remonte.
+ *
+ * `knownTargets` : les cibles référençables que le produit a inscrites. Passées en argument plutôt
+ * que lues ici — ce service ne doit pas connaître le registre d'Échoppe.
  */
-export async function syncRegistry(registry: Registry): Promise<SyncRegistryOutcome> {
+export async function syncRegistry(
+  registry: Registry,
+  knownTargets: string[],
+): Promise<SyncRegistryOutcome> {
   try {
     assertRegistryCoherent(registry);
   } catch (error) {
     return {
       outcome: 'incoherent',
       message: error instanceof Error ? error.message : 'Registre de contenu invalide',
+    };
+  }
+
+  const faults = unknownRefTargets(registry, knownTargets);
+  if (faults.length > 0) {
+    return {
+      outcome: 'incoherent',
+      message: `Cibles référençables inconnues : ${faults.join(', ')}`,
     };
   }
 

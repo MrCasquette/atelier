@@ -71,7 +71,18 @@ export interface EnumField extends FieldMeta {
 }
 
 // ── Champs fonctionnels ──────────────────────────────────────────────────────────────────────
-export type RefTarget = 'product' | 'collection' | 'category';
+/**
+ * Cible d'un champ `ref` : le NOM d'une entité référençable inscrite côté API (ADR-0032).
+ *
+ * C'était `'product' | 'collection' | 'category'` — le vocabulaire de l'e-commerce écrit dans un
+ * paquet que tout produit consomme. Un CMS n'a pas de produits ; un dev qui référence ses propres
+ * entités n'avait aucun moyen de le dire.
+ *
+ * Le nom est libre ici et vérifié à la synchronisation : `pushRegistry` refuse une cible que l'API
+ * ne connaît pas, en nommant le champ fautif. Un nom inconnu est donc une erreur de push, pas un
+ * échec au type-check.
+ */
+export type RefTarget = string;
 
 export interface ImageField extends FieldMeta {
   kind: 'image'; // UUID de média, résolu au read côté API (brut en V1)

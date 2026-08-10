@@ -1,18 +1,18 @@
 import { jsonb, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
-// Le menu reste dans le cœur d'Échoppe tant que sa CIBLE énumère le vocabulaire commerce. Ce n'est
-// pas un choix de découpage : `MenuLink.target` type la colonne `items`, donc déplacer cette table
-// dans un paquet partagé y ferait entrer `product`, `collection` et `category` — ce qu'ADR-0032
-// interdit.
-//
-// #8 ouvre `RefTarget` en registre : la cible devient un nom d'entité déclarée, Échoppe inscrit les
-// siennes au démarrage (comme elle inscrit ses gabarits d'e-mail depuis #7) et Prisme n'inscrit que
-// `page`. La table devient alors générique et part dans son propre paquet, `@repo/menus` — pas dans
-// `@repo/pages`, un menu n'est pas une page.
+// Le menu attend son paquet — `@repo/menus`, pas `@repo/pages` : un menu n'est pas une page. Il ne
+// reste ici que parce que le déplacement n'a pas encore été fait ; plus rien dans ce fichier ne
+// nomme le vocabulaire commerce depuis qu'ADR-0032 a ouvert la cible en registre.
 
-// Lien d'un item de menu (stocké) : une URL, ou l'UUID d'une entité interne résolue au read.
+/**
+ * Lien d'un item de menu (stocké) : une URL, ou l'identifiant d'une entité résolue au read.
+ *
+ * `target` est un NOM de cible, pas une union fermée (ADR-0032) : `'url'` pour un lien en clair,
+ * sinon le nom d'une cible inscrite au registre de références. Le socle ne sait pas lesquelles —
+ * Échoppe inscrit `page`, `product`, `collection`, `category` ; Prisme inscrira les siennes.
+ */
 export interface MenuLink {
-  target: 'url' | 'page' | 'product' | 'collection' | 'category';
+  target: string;
   value: string; // URL (target=url) ou UUID de l'entité ciblée
   newTab?: boolean;
 }
@@ -29,8 +29,8 @@ export interface MenuItem {
 
 // Menu de navigation (built-in) : arbre ORDONNÉ et RÉCURSIF d'items stocké en un seul jsonb.
 // `handle` = clé stable fetchée par le front (main, footer…). Le lien cible une URL ou une entité
-// interne (page/produit/collection/catégorie), résolue au read storefront. Shape figé par le
-// framework (validation dédiée, cf. modules/menu/model.ts) — hors registre @mrcasquette/content.
+// inscrite au registre de références, résolue au read storefront. Shape figé par le framework
+// (validation dédiée, cf. modules/menu/model.ts) — hors registre @mrcasquette/content.
 export const menu = pgTable('menu', {
   id: uuid('id').primaryKey().defaultRandom(),
   handle: varchar('handle', { length: 100 }).unique().notNull(),

@@ -2,13 +2,15 @@
 import { onMounted, ref, watch } from 'vue';
 import Input from '@/components/atoms/Input.vue';
 import Modal from '@/components/atoms/Modal.vue';
-import { type CatalogTarget, type RefOption, useCatalogRef } from '@/composables/content/useCatalogRef';
+import { type RefOption, useCatalogRef } from '@/composables/content/useCatalogRef';
 
-// Widget de sélection d'une entité catalogue (produit/collection/catégorie/page) : stocke son UUID,
-// affiche le libellé résolu. Utilisé par le champ `ref` de P3 et par les liens de menu.
+// Widget de sélection d'une entité référençable : stocke son UUID, affiche le libellé résolu.
+// Utilisé par le champ `ref` du registre et par les liens de menu. `to` est un NOM de cible, pas
+// une union fermée — le widget ne sait pas quelles entités existent, le registre le lui dit
+// (ADR-0032).
 const props = defineProps<{
   modelValue: string | null;
-  to: CatalogTarget;
+  to: string;
 }>();
 
 const emit = defineEmits<{

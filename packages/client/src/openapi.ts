@@ -1072,7 +1072,7 @@ export interface components {
                     url: string;
                     newTab?: boolean;
                 } | {
-                    target: "page" | "product" | "collection" | "category";
+                    target: string;
                     entity: ({
                         id: string;
                         slug: string;
@@ -1731,7 +1731,7 @@ export interface components {
                 url: string;
                 newTab?: boolean;
             } | {
-                target: "page" | "product" | "collection" | "category";
+                target: string;
                 entity: ({
                     id: string;
                     slug: string;
