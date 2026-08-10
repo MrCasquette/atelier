@@ -13,6 +13,7 @@ import { checkoutRoutes } from './modules/checkout';
 import { communicationsRoutes } from './modules/communication';
 import { contactRoutes } from './modules/contact';
 import { definitionRoutes } from './modules/content/definition';
+import { entityRoutes } from './modules/content/entity';
 import { pageRoutes } from './modules/content/page';
 import { countriesRoutes } from './modules/country';
 import { customerRoutes } from './modules/customer';
@@ -109,6 +110,7 @@ export const app = new Elysia()
   .use(optionsRoutes)
   .use(menuRoutes)
   .use(definitionRoutes)
+  .use(entityRoutes)
   .use(referenceRoutes)
   .use(pageRoutes)
   .use(apiKeyRoutes)

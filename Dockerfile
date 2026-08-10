@@ -30,6 +30,7 @@ COPY packages/auth/package.json ./packages/auth/
 COPY packages/db/package.json ./packages/db/
 COPY packages/adapters/package.json ./packages/adapters/
 COPY packages/identity/package.json ./packages/identity/
+COPY packages/entities/package.json ./packages/entities/
 COPY packages/pages/package.json ./packages/pages/
 COPY packages/menus/package.json ./packages/menus/
 COPY packages/references/package.json ./packages/references/
@@ -55,6 +56,7 @@ COPY --from=deps /app/packages/auth/node_modules ./packages/auth/node_modules
 COPY --from=deps /app/packages/db/node_modules ./packages/db/node_modules
 COPY --from=deps /app/packages/adapters/node_modules ./packages/adapters/node_modules
 COPY --from=deps /app/packages/identity/node_modules ./packages/identity/node_modules
+COPY --from=deps /app/packages/entities/node_modules ./packages/entities/node_modules
 COPY --from=deps /app/packages/pages/node_modules ./packages/pages/node_modules
 COPY --from=deps /app/packages/menus/node_modules ./packages/menus/node_modules
 COPY --from=deps /app/packages/references/node_modules ./packages/references/node_modules

@@ -15,13 +15,14 @@
   },
   "dependencies": {
     "@echoppe/core": "workspace:*",
+    "@elysiajs/cors": "^1.4.2",
+    "@elysiajs/openapi": "^1.4.15",
     "@repo/auth": "workspace:*",
+    "@repo/entities": "workspace:*",
     "@repo/menus": "workspace:*",
     "@repo/pages": "workspace:*",
     "@repo/references": "workspace:*",
     "@repo/shared": "workspace:*",
-    "@elysiajs/cors": "^1.4.2",
-    "@elysiajs/openapi": "^1.4.15",
     "elysia": "^1.4.29",
     "elysia-rate-limit": "^4.6.2",
     "ioredis": "^5.11.1"

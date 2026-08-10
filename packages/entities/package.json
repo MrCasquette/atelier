@@ -1,0 +1,26 @@
+{
+  "name": "@repo/entities",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema.ts"
+  },
+  "scripts": {
+    "test": "bun test src",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@repo/db": "workspace:*",
+    "@repo/pages": "workspace:*",
+    "drizzle-orm": "^0.45.2",
+    "elysia": "^1.4.29"
+  },
+  "devDependencies": {
+    "bun-types": "^1.3.14",
+    "typescript": "6.0.3"
+  }
+}

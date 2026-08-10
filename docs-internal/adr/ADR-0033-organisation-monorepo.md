@@ -152,3 +152,30 @@ packages/
   content                                       (= @mrcasquette/content, le DSL publié)
   create-echoppe
 ```
+
+## Amendement 2026-08-10 (2) — `entities`, cinquième paquet non listé
+
+L'implémentation d'[ADR-0027](./ADR-0027-entites-tables-reelles.md) (#33) fait naître
+`@repo/entities` : le journal des entités déclarées, la traduction déclaration → DDL, la comparaison
+au schéma réel, l'application. Il ne porte aucune route — les codes HTTP sont du produit
+([ADR-0044](./ADR-0044-surface-http-paquets-partages.md)).
+
+Pourquoi un paquet à part plutôt qu'un dossier de `@repo/pages` : une entité **n'est pas une page**,
+et pas davantage une section. C'est la distinction que pose [ADR-0026](./ADR-0026-sections-entites.md)
+— une section est de la présentation, une entité est de la donnée — et elle se voit au stockage :
+l'une va en jsonb, l'autre en vraies colonnes. Deux mécaniques, deux paquets.
+
+Ce paquet dépend aujourd'hui de `@repo/pages` pour la seule **grammaire des champs**
+(`serializedFieldSchema`). La flèche se lit à l'envers du bon sens et c'est un héritage de l'ordre
+d'extraction, pas une intention : la grammaire des champs est ce qu'ADR-0026 désigne comme partagé
+intégralement, elle n'appartient ni aux pages ni aux entités. Redressement en tâche #35, quand le
+deuxième consommateur du validateur générique aura dicté la forme du paquet.
+
+```
+packages/
+  echoppe-core                                  (prisme-core naîtra avec prisme-api)
+  client                                        (= @echoppe/client)
+  adapters  assets  auth  communication  db  entities  identity  menus  pages  references  shared
+  content                                       (= @mrcasquette/content, le DSL publié)
+  create-echoppe
+```

@@ -19,6 +19,9 @@ export {
   communicationProviderConfig,
   communicationProviderEnum,
 } from '@repo/communication';
+// Journal des entités déclarées : @repo/entities (ADR-0027, ADR-0028). Seul le JOURNAL entre dans
+// les migrations — les tables d'entités, elles, sont dérivées au push et n'y sont jamais.
+export { entityDefinition } from '@repo/entities';
 // Identité et référentiel : @repo/identity (ADR-0040). Le cœur les inclut dans SON barrel,
 // donc dans ses migrations.
 export { country, legalEntity, site } from '@repo/identity';

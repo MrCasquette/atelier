@@ -1,0 +1,30 @@
+import { boolean, jsonb, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core';
+
+// Journal des entités activées (ADR-0028, conséquence n°2) — l'équivalent de
+// `__drizzle_migrations` pour les entités : quelles entités existent, et sous quelle déclaration.
+// Sans lui, on ne sait pas répondre à « cette entité a-t-elle déjà sa table ».
+//
+// La table d'une entité, elle, n'est PAS décrite ici : elle est dérivée de `fields` et créée en
+// SQL au push (ADR-0027). Le schéma d'une installation n'est donc plus entièrement déterminé par
+// les fichiers de migration, et c'est assumé — le cœur est le framework, les entités sont le
+// contenu de l'utilisateur. On ne garde pas sous CI ce qui varie par installation.
+//
+// ⚠️ `bun run db:push` compare le schéma Drizzle à la base VIVE : il proposerait de supprimer les
+// tables d'entités, qu'il ne connaît pas. `db:generate` + `db:migrate`, qui ne lisent que les
+// fichiers, n'ont pas ce défaut. Cf. docs-internal/reference/entites.md.
+export const entityDefinition = pgTable('entity_definition', {
+  // Nom déclaré par le dev (`article`), sans le préfixe `entity:` sous lequel il est cité de
+  // l'extérieur. Borné à `[a-z][a-z0-9_]*` : il devient un identifiant SQL.
+  name: varchar('name', { length: 48 }).primaryKey(),
+  label: varchar('label', { length: 200 }),
+  icon: varchar('icon', { length: 100 }),
+  // Au plus une occurrence (ADR-0039). Pilote l'UI, la forme de la route, et la contrainte posée
+  // sur la table dérivée.
+  singleton: boolean('singleton').notNull().default(false),
+  // Dictionnaire { [champ]: SerializedField } — la déclaration elle-même, telle que poussée. C'est
+  // ce qui sert de point de comparaison au prochain `check` : pas besoin d'une version à part, la
+  // déclaration EST la version.
+  fields: jsonb('fields').notNull(),
+  dateCreated: timestamp('date_created', { withTimezone: true }).notNull().defaultNow(),
+  dateUpdated: timestamp('date_updated', { withTimezone: true }).notNull().defaultNow(),
+});

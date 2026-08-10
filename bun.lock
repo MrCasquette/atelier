@@ -60,6 +60,7 @@
         "@elysiajs/cors": "^1.4.2",
         "@elysiajs/openapi": "^1.4.15",
         "@repo/auth": "workspace:*",
+        "@repo/entities": "workspace:*",
         "@repo/menus": "workspace:*",
         "@repo/pages": "workspace:*",
         "@repo/references": "workspace:*",
@@ -200,6 +201,7 @@
         "@repo/auth": "workspace:*",
         "@repo/communication": "workspace:*",
         "@repo/db": "workspace:*",
+        "@repo/entities": "workspace:*",
         "@repo/identity": "workspace:*",
         "@repo/menus": "workspace:*",
         "@repo/pages": "workspace:*",
@@ -211,6 +213,20 @@
       "devDependencies": {
         "bun-types": "^1.3.14",
         "drizzle-kit": "^0.31.10",
+        "typescript": "6.0.3",
+      },
+    },
+    "packages/entities": {
+      "name": "@repo/entities",
+      "version": "0.0.1",
+      "dependencies": {
+        "@repo/db": "workspace:*",
+        "@repo/pages": "workspace:*",
+        "drizzle-orm": "^0.45.2",
+        "elysia": "^1.4.29",
+      },
+      "devDependencies": {
+        "bun-types": "^1.3.14",
         "typescript": "6.0.3",
       },
     },
@@ -681,6 +697,8 @@
     "@repo/communication": ["@repo/communication@workspace:packages/communication"],
 
     "@repo/db": ["@repo/db@workspace:packages/db"],
+
+    "@repo/entities": ["@repo/entities@workspace:packages/entities"],
 
     "@repo/identity": ["@repo/identity@workspace:packages/identity"],
 

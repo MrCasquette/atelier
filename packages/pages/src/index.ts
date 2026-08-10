@@ -10,6 +10,7 @@ export {
   registrySchema,
   type SerializedDefinition,
   type SerializedField,
+  serializedFieldSchema,
 } from './definition-model';
 export {
   assertRegistryCoherent,

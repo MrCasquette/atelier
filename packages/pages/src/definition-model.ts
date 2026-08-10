@@ -23,7 +23,7 @@ const fieldMeta = {
 const refTarget = t.String({ minLength: 1 });
 
 // Un champ du registre. Récursif : `repeater` contient lui-même un dictionnaire de champs.
-const serializedFieldSchema = t.Recursive((self) =>
+export const serializedFieldSchema = t.Recursive((self) =>
   t.Union([
     t.Object({
       ...fieldMeta,

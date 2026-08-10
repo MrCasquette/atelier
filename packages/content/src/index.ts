@@ -11,7 +11,7 @@ export { link } from './link.js';
 export type { RawSection } from './narrow.js';
 export { asSections } from './narrow.js';
 export { serialize } from './serialize.js';
-export type { CheckResult, PushOptions, PushResult } from './sync.js';
+export type { CheckResult, PlanStep, PushOptions, PushResult } from './sync.js';
 export { checkRegistry, pushRegistry } from './sync.js';
 export type {
   BooleanField,
