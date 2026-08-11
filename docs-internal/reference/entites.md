@@ -50,6 +50,28 @@ Une clé d'API peut porter `read:entity:<nom>` / `write:entity:<nom>` : le vocab
 élargi aux entités déclarées, à l'exécution. La règle de délégation vaut comme partout — on ne
 délègue que ce qu'on détient.
 
+## Se faire citer
+
+Une entité devient référençable — dans un menu, dans un champ `ref` — en déclarant **un lien**, et
+rien d'autre (ADR-0046) :
+
+```ts
+defineEntity('article', { fields: { … }, link: { mode: 'route', route: '/blog/:slug' } });
+```
+
+| Mode | Ce qu'il dit | URL |
+|---|---|---|
+| `route` | l'entité EST une page | `:slug` substitué, le front peut la construire |
+| `href` | le champ nommé PORTE l'URL | lue dans la ligne, rendue par l'API |
+| `anchor` | le champ `ref` nommé désigne la parente | route de la parente + `#slug` |
+
+`link` est **optionnel** : ce qui rend une entité citable est d'avoir une URL, pas d'être déclarée.
+Sans lui, elle n'entre pas au registre et n'apparaît dans aucun sélecteur.
+
+L'inscription se fait sous `entity:<nom>`, à la poussée et au démarrage de l'API — le registre est un
+miroir du journal, jamais une source. Elle emporte le `storage`, donc un `ref` vers une entité porte
+une **vraie clé étrangère** et sa suppression est refusée tant qu'on la référence.
+
 `GET /roles/resources` est la seule liste de ce qui est protégeable : le vocabulaire du socle, plus
 les `entity:<nom>` du journal, chacun avec le libellé que le dev lui a déclaré. L'administration ne
 tient plus la sienne — c'est ce qui rendait `content`, `api_key` et `schema` inaccordables depuis

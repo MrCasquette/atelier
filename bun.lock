@@ -223,6 +223,7 @@
         "@repo/auth": "workspace:*",
         "@repo/db": "workspace:*",
         "@repo/pages": "workspace:*",
+        "@repo/references": "workspace:*",
         "drizzle-orm": "^0.45.2",
         "elysia": "^1.4.29",
       },

@@ -4,6 +4,7 @@ import { runMigrations } from '@echoppe/core';
 import { app } from './app';
 import { cleanupExpiredOrders } from './jobs/cleanup-expired-orders';
 import { initAdmin } from './modules/auth/init-admin';
+import { syncEntityReferences } from './modules/reference/sync';
 
 export type { App } from './app';
 
@@ -18,6 +19,11 @@ if (process.env.RUN_MIGRATIONS) {
   await runMigrations(migrationsFolder);
   console.log('[Migrate] Schéma à jour');
 }
+
+// Cibles référençables des entités déclarées (ADR-0046). Avant le `listen` : une entité déclarée
+// avant le dernier redémarrage doit rester citable dès la première requête, et non à partir du
+// prochain push.
+await syncEntityReferences();
 
 app.listen({ port: Number(port), hostname: '0.0.0.0' });
 

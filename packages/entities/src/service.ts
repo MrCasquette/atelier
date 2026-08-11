@@ -331,10 +331,31 @@ async function planAlter(
  * type change se renomme — ajout puis retrait, deux opérations dont la seconde est visiblement
  * destructrice, ce qui est exactement ce qu'elle est.
  */
+/**
+ * Tables cibles connues, ÉLARGIES aux entités du registre soumis.
+ *
+ * Sans ça, deux entités poussées ensemble ne pourraient pas se référencer : la cible ne s'inscrit
+ * au registre qu'APRÈS le push, donc la première passe ne verrait rien où pointer et la clé
+ * étrangère manquerait — silencieusement, jusqu'au push suivant. L'ordre de déclaration deviendrait
+ * signifiant, ce qu'aucune déclaration ne dit.
+ *
+ * Seules les entités qui déclarent un lien sont ajoutées : c'est ce qui les rend citables, donc
+ * référençables (ADR-0032). Une entité muette n'est la cible de personne.
+ */
+function withDeclaredEntities(registry: EntityRegistry, tables: ReferenceTables): ReferenceTables {
+  const targets = { ...tables.targets };
+  for (const declaration of Object.values(registry)) {
+    if (!declaration.link || !isValidIdentifier(declaration.name)) continue;
+    targets[entityResourceName(declaration.name)] = entityTableName(declaration.name);
+  }
+  return { ...tables, targets };
+}
+
 export async function planEntities(
   registry: EntityRegistry,
-  tables: ReferenceTables,
+  declaredTables: ReferenceTables,
 ): Promise<EntityPlan> {
+  const tables = withDeclaredEntities(registry, declaredTables);
   const plan: EntityPlan = { steps: [], blockers: [] };
 
   // Un lien qui cite un champ inexistant ne se résoudra jamais. Le DSL le refuse déjà au dev, mais

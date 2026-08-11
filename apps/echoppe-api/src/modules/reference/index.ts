@@ -23,6 +23,10 @@ const entitySchema = t.Object({
   id: t.String({ format: 'uuid' }),
   slug: t.String(),
   name: t.String(),
+  // Rendue pour les cibles dont l'URL ne se dérive pas de la seule route déclarée (ADR-0046) : une
+  // entité qui porte son URL, ou dont le lien est une ancre. Sans ce champ, Elysia l'élaguerait à
+  // la réponse et le sélecteur ne saurait pas où mène ce qu'il propose.
+  url: t.Optional(t.Nullable(t.String())),
 });
 
 export const referenceRoutes = new Elysia({

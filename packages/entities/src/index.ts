@@ -39,6 +39,7 @@ export {
   entityLinkSchema,
   entityRegistrySchema,
 } from './model';
+export { entityReferenceTarget, syncEntityTargets } from './reference';
 export {
   type EntityLookup,
   type EntityPage,

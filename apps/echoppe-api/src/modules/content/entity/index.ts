@@ -10,6 +10,7 @@ import { storageOf } from '@repo/references';
 import { Elysia, t } from 'elysia';
 import { withCrudErrors } from '../../../lib/response';
 import { permissionGuard } from '../../auth/rbac';
+import { syncEntityReferences } from '../../reference/sync';
 import { references } from '../../reference/targets';
 
 // Entités déclarées : `check` montre, `push` applique (ADR-0027). C'est le chemin qui existe déjà
@@ -26,12 +27,13 @@ import { references } from '../../reference/targets';
 // part ailleurs : `@repo/entities` écrit le DDL sans connaître ni `media` ni le registre de
 // références, ce qui est exactement ce qui lui permet de servir les deux produits.
 //
-// Lu une fois : ni la table des médias ni les cibles inscrites ne changent en cours d'exécution —
-// une inscription est un import, pas un acte d'utilisateur.
-const referenceTables: ReferenceTables = {
+// Lu à CHAQUE appel, et non une fois à l'import : depuis ADR-0046, une entité déclarée s'inscrit au
+// registre à la poussée. Une photo de son état à l'import ne connaîtrait jamais les entités, et un
+// `ref` vers l'une d'elles resterait un `uuid` nu — silencieusement.
+const referenceTables = (): ReferenceTables => ({
   media: getTableName(media),
   targets: storageOf(references),
-};
+});
 
 const planSchema = t.Object({
   steps: t.Array(
@@ -57,7 +59,7 @@ export const entityRoutes = new Elysia({
 
   // POST /content/entities/check — rend le SQL qui SERAIT appliqué, sans rien écrire. Le verbe est
   // POST parce que la déclaration voyage dans le corps, pas parce que quelque chose est modifié.
-  .post('/check', ({ body }) => planEntities(body.entities, referenceTables), {
+  .post('/check', ({ body }) => planEntities(body.entities, referenceTables()), {
     permission: true,
     body: t.Object({ entities: entityRegistrySchema }),
     response: withCrudErrors({ 200: planSchema }),
@@ -71,7 +73,7 @@ export const entityRoutes = new Elysia({
     async ({ body, status }) => {
       const result = await pushEntities(
         body.entities,
-        referenceTables,
+        referenceTables(),
         body.confirmDestructive === true,
       );
 
@@ -87,6 +89,11 @@ export const entityRoutes = new Elysia({
             .join(' · ')}. Relancez avec confirmation si c'est voulu.`,
         });
       }
+      // La déclaration vient de changer : le registre de cibles en est le miroir, il se réaligne
+      // ici. Même événement que celui qui fait naître la ressource RBAC d'une entité (ADR-0038) —
+      // et pour la même raison, ce sont les fichiers du dev qui font foi.
+      await syncEntityReferences();
+
       return { applied: result.steps.map((step) => step.summary) };
     },
     {
