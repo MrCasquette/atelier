@@ -1,5 +1,6 @@
-import type { Action, ProtectedResource } from '@echoppe/core';
+import { type Action, type ProtectedResource, RESOURCES } from '@echoppe/core';
 import {
+  type Authority,
   createPrincipalRegistry,
   getPermissionsForRole,
   getPermissionsForRoleKey,
@@ -41,6 +42,46 @@ const ANONYMOUS: EchoppeIdentity = {
   currentCustomer: null,
 };
 
+// Rangs qui gouvernent, par clé de rôle système. Le propriétaire n'y figure pas : il est reconnu
+// par son autorité `total`, qui ne dépend d'aucun rôle. `key` est immuable et porté par le code
+// (ADR-0038) ; `name` est de l'affichage et ne doit jamais servir ici.
+const FIRST_RANK_ROLE_KEYS = new Set(['admin']);
+
+/**
+ * Ce que l'Administrateur NE détient pas (ADR-0047).
+ *
+ * Trois listes courtes contre une trentaine de lignes de seed — et surtout, **ce qui s'énumère est
+ * ce qu'on retire**. Toute ressource future lui revient donc par défaut, ce qui est exactement
+ * l'écart qui a produit cette décision : `entity:<nom>` naît après le seed, et aucune liste écrite
+ * avant ne pouvait le contenir.
+ *
+ * Vocabulaire du PRODUIT, donc écrit ici et non dans le socle : `payment_config` est du commerce,
+ * `communication_config` de l'envoi. Prisme aura les siennes, et `@repo/auth` n'a pas à les
+ * connaître — il ne nomme que `schema`, et pour une raison qui lui est propre.
+ */
+const ADMINISTRATOR: Authority = {
+  kind: 'except',
+  // Des credentials : les lire, c'est les avoir. Ils restent au propriétaire.
+  reserved: new Set<ProtectedResource>([RESOURCES.PAYMENT_CONFIG, RESOURCES.COMMUNICATION_CONFIG]),
+  // Un journal d'audit qui se modifie ne vaut rien.
+  readOnly: new Set<ProtectedResource>([RESOURCES.AUDIT_LOG]),
+  // Chaque administrateur gère SES clés, pas celles des autres.
+  ownRowsOnly: new Set<ProtectedResource>([RESOURCES.API_KEY]),
+};
+
+/**
+ * L'autorité d'une session d'administration.
+ *
+ * Le propriétaire détient tout. Le premier rang détient tout **moins** ce qui est nommé ci-dessus.
+ * Tout autre rôle — y compris `owner` porté par quelqu'un qui n'est pas le propriétaire — n'a que
+ * ce que ses lignes accordent.
+ */
+async function sessionAuthority(user: SessionUser, role: SessionRole): Promise<Authority> {
+  if (user.isOwner) return { kind: 'total' };
+  if (role.key !== null && FIRST_RANK_ROLE_KEYS.has(role.key)) return ADMINISTRATOR;
+  return granted(await getPermissionsForRole(role.id));
+}
+
 // ── Principaux d'Échoppe ──────────────────────────────────────────────────────────────────────
 // L'ordre d'enregistrement est l'ordre d'essai : la clé machine d'abord (en-tête explicite), puis
 // les sessions, l'anonyme en dernier recours. Prisme enregistrera les mêmes moins `customer`.
@@ -78,9 +119,7 @@ principals.register({
 
     return {
       type: 'admin',
-      authority: session.currentUser.isOwner
-        ? { kind: 'total' }
-        : granted(await getPermissionsForRole(session.currentRole.id)),
+      authority: await sessionAuthority(session.currentUser, session.currentRole),
       privileged: true,
       hasSubject: true,
       identity: {
@@ -127,11 +166,6 @@ principals.registerFallback({
     };
   },
 });
-
-// Rangs qui gouvernent, par clé de rôle système. Le propriétaire n'y figure pas : il est reconnu
-// par son `bypass`, qui ne dépend d'aucun rôle. `key` est immuable et porté par le code (ADR-0038) ;
-// `name` est de l'affichage et ne doit jamais servir ici.
-const FIRST_RANK_ROLE_KEYS = new Set(['admin']);
 
 /**
  * Le premier rang : propriétaire et administrateur.
@@ -216,8 +250,9 @@ export function checkPermission(
  * contrat figé (ADR-0027). La ressource est donc dérivée du paramètre `:name`, à chaque requête.
  *
  * Rien n'est matérialisé pour autant : `entity:article` n'existe nulle part en base tant qu'aucun
- * rôle ne le détient. Une entité déclarée est refusée à tout le monde par défaut, ce qui est le bon
- * défaut — masquer une entité, c'est ne pas accorder `canRead` (ADR-0028, résolu depuis).
+ * rôle ne le détient. Une entité déclarée est refusée à tout rôle ORDINAIRE par défaut — masquer
+ * une entité, c'est ne pas accorder `canRead` (ADR-0028, résolu depuis). Le premier rang, lui, la
+ * détient sans qu'aucune ligne ne le dise : son autorité est une règle (ADR-0047).
  */
 export function entityPermissionGuard(action: Action) {
   return new Elysia({ name: `permission-entity-${action}` }).macro({

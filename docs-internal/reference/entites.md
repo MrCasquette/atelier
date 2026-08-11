@@ -41,8 +41,9 @@ La ressource `entity:<nom>` n'est **écrite nulle part** : elle est dérivée du
 requête (ADR-0038). La SSOT, ce sont les fichiers du dev ; la matérialiser créerait une seconde
 source à garder d'accord. Conséquences directes :
 
-- une entité fraîchement poussée est **refusée à tout le monde**, y compris à qui l'a poussée. C'est
-  le bon défaut — l'inverse, visible par défaut, ne se rattrape pas ;
+- une entité fraîchement poussée est **refusée à tout rôle ordinaire**. C'est le bon défaut —
+  l'inverse, visible par défaut, ne se rattrape pas. Le premier rang, lui, la détient sans qu'aucune
+  ligne ne le dise : son autorité est une règle et non une carte (ADR-0047) ;
 - masquer une entité, c'est retirer `canRead` à un rôle, pas poser un drapeau global ;
 - une entité supprimée **emporte les droits accordés** sur elle, sans quoi un nom réutilisé
   hériterait de ceux de son homonyme.

@@ -17,9 +17,13 @@ import { entityPermissionGuard } from '../../auth/rbac';
 // on édite du contenu, et le droit est celui de l'entité elle-même — `entity:<nom>`, dérivé du
 // registre à la volée (ADR-0038).
 //
-// Une entité déclarée est donc refusée à TOUT LE MONDE tant qu'aucun rôle ne la détient, y compris
-// à celui qui vient de la pousser. C'est le bon défaut : masquer une entité, c'est ne pas accorder
-// `canRead` (ADR-0028, résolu par ADR-0038), et l'inverse — visible par défaut — ne se rattrape pas.
+// Une entité déclarée est donc refusée à tout rôle ORDINAIRE tant qu'aucune ligne ne la lui
+// accorde. C'est le bon défaut : masquer une entité, c'est ne pas accorder `canRead` (ADR-0028,
+// résolu par ADR-0038), et l'inverse — visible par défaut — ne se rattrape pas.
+//
+// Le premier rang fait exception, et ce n'est pas un passe-droit : il détient tout ce qui n'est pas
+// nommé réservé, donc les entités aussi (ADR-0047). Pouvoir dériver une table sans pouvoir lire ce
+// qu'on vient de créer n'aurait aucun sens.
 
 const nameParam = t.Object({ name: t.String() });
 const rowParam = t.Object({ name: t.String(), id: t.String({ format: 'uuid' }) });

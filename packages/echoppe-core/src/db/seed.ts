@@ -341,58 +341,25 @@ async function seed() {
   // =============================================
   // ADMINISTRATEUR
   // =============================================
-  // - Pas d'accès aux credentials (payment, communication)
-  // - Pas de gestion des users
-  // - Gestion catalogue, commandes, clients
-  await setPermissions('admin', [
-    // --- Tables système (lecture seule ou aucun accès) ---
-    { resource: 'identity', canRead: true, locked: true },
-    { resource: 'country', canRead: true, locked: true },
-    { resource: 'tax_rate', canRead: true, locked: true },
-    { resource: 'shipping_provider', canRead: true, locked: true },
-    { resource: 'role', canRead: true, locked: true },
-    { resource: 'permission', canRead: true, locked: true },
-    { resource: 'audit_log', canRead: true, locked: true },
-    // payment_config: aucun accès
-    // communication_config: aucun accès
-
-    // --- Tables compliance (pas de delete) ---
-    { resource: 'order', canCreate: true, canRead: true, canUpdate: true },
-    { resource: 'invoice', canCreate: true, canRead: true },
-    { resource: 'customer', canCreate: true, canRead: true, canUpdate: true },
-    // user: aucun accès
-
-    // --- Tables business ---
-    { resource: 'product', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'category', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'collection', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'variant', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'option', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'media', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'stock', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'address', canCreate: true, canRead: true, canUpdate: true },
-    { resource: 'cart', canRead: true },
-    { resource: 'content', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    // Structure : même droit que le propriétaire — l'administrateur est du premier rang. Verrouillé
-    // et non transmissible : il ne peut pas la recopier sur un rôle sur mesure (ADR-0038).
-    {
-      resource: 'schema',
-      canCreate: true,
-      canRead: true,
-      canUpdate: true,
-      canDelete: true,
-      locked: true,
-    },
-    // Clés d'API : chaque admin gère UNIQUEMENT les siennes (selfOnly). L'Owner voit tout (bypass).
-    {
-      resource: 'api_key',
-      canCreate: true,
-      canRead: true,
-      canUpdate: true,
-      canDelete: true,
-      selfOnly: true,
-    },
-  ]);
+  // Aucune ligne : son autorité est une RÈGLE, pas une carte (ADR-0047).
+  //
+  // Il détient tout, moins ce que `rbac.ts` réserve — les credentials, l'écriture du journal
+  // d'audit, les clés d'API des autres. Énumérer ici ce qu'il détient produirait une seconde source
+  // à garder d'accord, et surtout une liste qui ne peut pas contenir ce qui n'existe pas encore :
+  // c'est précisément ce qui laissait une entité fraîchement déclarée hors de sa portée.
+  //
+  // Conséquence assumée : ajuster ce que détient un administrateur demande un déploiement, pas un
+  // clic. Un rang n'est pas de la configuration — qui veut un autre dosage crée un rôle sur mesure,
+  // et celui-là reste entièrement dynamique.
+  //
+  // On efface en revanche ce qu'un seed antérieur a écrit : `setPermissions` fait un upsert, jamais
+  // une suppression, donc une installation existante garderait des lignes que plus personne ne lit.
+  // Une donnée morte que l'API rend encore est une seconde source, et elle finirait par contredire
+  // la règle.
+  const administratorRoleId = roleByKey.get('admin');
+  if (administratorRoleId) {
+    await db.delete(permission).where(eq(permission.role, administratorRoleId));
+  }
 
   // =============================================
   // CLIENT

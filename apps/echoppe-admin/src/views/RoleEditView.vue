@@ -36,6 +36,14 @@ const form = ref<RoleFormData>({
 
 const isNew = computed(() => !route.params.id);
 const isSystem = computed(() => role.value?.isSystem ?? false);
+
+// Le rang n'est pas de la configuration (ADR-0047) : l'Administrateur détient tout, moins ce que le
+// serveur réserve, et aucune ligne de permission ne décide plus rien pour lui. Afficher une matrice
+// éditable ici serait un mensonge — les cases n'auraient aucun effet.
+//
+// `key` est l'identifiant immuable porté par le code (ADR-0038) ; `name` est renommable, il ne doit
+// jamais servir à reconnaître un rôle.
+const isRankBound = computed(() => role.value?.key === 'admin');
 const pageTitle = computed(() => {
   if (isNew.value) return 'Nouveau role';
   return role.value?.name || 'Role';
@@ -109,10 +117,12 @@ async function save() {
     // Le serveur nomme ses refus — droit non détenu donc non délégable, `schema` qui tient au rang,
     // retrait réservé au premier rang. On les affiche tels quels, et on RESTE sur l'écran : la
     // sélection de l'utilisateur est encore là, il peut la corriger.
-    const granted = await updatePermissions(id, permissions.value);
-    if (!granted.ok) {
-      toast.error(granted.message ?? 'Erreur lors de la mise a jour des permissions');
-      return;
+    if (!isRankBound.value) {
+      const granted = await updatePermissions(id, permissions.value);
+      if (!granted.ok) {
+        toast.error(granted.message ?? 'Erreur lors de la mise a jour des permissions');
+        return;
+      }
     }
     toast.success('Role mis a jour');
     router.push({ name: 'roles' });
@@ -204,7 +214,14 @@ function cancel() {
           v-if="isSystem"
           class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800"
         >
-          Les roles systeme ne peuvent pas etre renommes ou supprimes. Vous pouvez uniquement modifier leurs permissions.
+          <template v-if="isRankBound">
+            Ce role systeme ne peut etre ni renomme, ni supprime, ni ajuste : sa portee est une regle
+            du serveur.
+          </template>
+          <template v-else>
+            Les roles systeme ne peuvent pas etre renommes ou supprimes. Vous pouvez uniquement
+            modifier leurs permissions.
+          </template>
         </div>
       </div>
 
@@ -212,7 +229,25 @@ function cancel() {
         <h3 class="text-lg font-semibold mb-4">
           Permissions
         </h3>
+        <div
+          v-if="isRankBound"
+          class="rounded-lg border border-dashed border-gray-300 p-6 text-sm text-gray-600"
+        >
+          <p class="font-medium text-gray-800">
+            Ce role detient tout, hors gouvernance sensible.
+          </p>
+          <p class="mt-2 max-w-2xl">
+            Sa portee est definie par le code, pas par des cases : il obtient donc aussi ce qui
+            n'existe pas encore, comme une entite declaree apres coup. Ce qui lui est retire — les
+            identifiants de paiement et d'envoi, l'ecriture du journal d'audit, les cles d'API des
+            autres — se change par un deploiement.
+          </p>
+          <p class="mt-2 max-w-2xl">
+            Pour un dosage sur mesure, creez un role : celui-la reste entierement configurable ici.
+          </p>
+        </div>
         <PermissionMatrix
+          v-else
           :permissions="permissions"
           :resources="resources"
           :show-self-only="form.scope === 'public'"
