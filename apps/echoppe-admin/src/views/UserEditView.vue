@@ -212,7 +212,7 @@ function cancel() {
             v-if="isOwner"
             variant="warning"
           >
-            Owner
+            Propriétaire
           </Badge>
         </div>
 

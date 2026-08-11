@@ -16,16 +16,17 @@ export async function initAdmin() {
       return;
     }
 
-    // Get or create owner role
-    let [ownerRole] = await db.select().from(role).where(eq(role.key, 'owner'));
+    // Le premier compte porte le rôle `admin` et le drapeau : il n'y a pas de rôle « propriétaire »
+    // (ADR-0047). Ce qui fait le propriétaire est `isOwner`, et rien d'autre.
+    let [administratorRole] = await db.select().from(role).where(eq(role.key, 'admin'));
 
-    if (!ownerRole) {
-      [ownerRole] = await db
+    if (!administratorRole) {
+      [administratorRole] = await db
         .insert(role)
         .values({
-          key: 'owner',
-          name: 'Propriétaire',
-          description: 'Propriétaire de la boutique - accès total',
+          key: 'admin',
+          name: 'Administrateur',
+          description: 'Administrateur — tout, hors gouvernance sensible',
           scope: 'admin',
           isSystem: true,
         })
@@ -44,7 +45,7 @@ export async function initAdmin() {
       passwordHash,
       firstName: 'Admin',
       lastName: 'Échoppe',
-      role: ownerRole.id,
+      role: administratorRole.id,
       isOwner: true,
       isActive: true,
     });

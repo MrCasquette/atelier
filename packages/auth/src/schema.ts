@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import {
   boolean,
   index,
@@ -7,6 +8,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
@@ -55,20 +57,30 @@ export const permission = pgTable(
   (table) => [unique().on(table.role, table.resource)],
 );
 
-export const user = pgTable('user', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  email: varchar('email', { length: 255 }).unique().notNull(),
-  passwordHash: varchar('password_hash', { length: 255 }).notNull(),
-  firstName: varchar('first_name', { length: 100 }).notNull(),
-  lastName: varchar('last_name', { length: 100 }).notNull(),
-  role: uuid('role')
-    .notNull()
-    .references(() => role.id),
-  isOwner: boolean('is_owner').notNull().default(false), // Only one, transferable
-  isActive: boolean('is_active').notNull().default(true),
-  dateCreated: timestamp('date_created', { withTimezone: true }).notNull().defaultNow(),
-  lastLogin: timestamp('last_login', { withTimezone: true }),
-});
+export const user = pgTable(
+  'user',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    email: varchar('email', { length: 255 }).unique().notNull(),
+    passwordHash: varchar('password_hash', { length: 255 }).notNull(),
+    firstName: varchar('first_name', { length: 100 }).notNull(),
+    lastName: varchar('last_name', { length: 100 }).notNull(),
+    role: uuid('role')
+      .notNull()
+      .references(() => role.id),
+    // Le propriétaire de l'installation, et la SEULE façon de l'être (ADR-0047) : il n'y a pas de
+    // rôle « propriétaire ». Un rôle est une description de fonction, qu'on attribue en série ; la
+    // propriété est une propriété d'une PERSONNE, transmise par un acte délibéré.
+    isOwner: boolean('is_owner').notNull().default(false),
+    isActive: boolean('is_active').notNull().default(true),
+    dateCreated: timestamp('date_created', { withTimezone: true }).notNull().defaultNow(),
+    lastLogin: timestamp('last_login', { withTimezone: true }),
+  },
+  // Un seul propriétaire — et c'est Postgres qui le tient, pas une intention en commentaire. Index
+  // PARTIEL : la contrainte ne porte que sur les lignes vraies, sans quoi elle interdirait le
+  // second utilisateur non-propriétaire.
+  (table) => [uniqueIndex('user_single_owner').on(table.isOwner).where(sql`${table.isOwner}`)],
+);
 
 export const session = pgTable(
   'session',

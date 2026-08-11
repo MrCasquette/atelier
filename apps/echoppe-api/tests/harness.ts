@@ -63,27 +63,38 @@ export async function getJson<T>(path: string, opts: ReqOptions = {}): Promise<T
 }
 
 /**
- * Injecte en base une session admin OWNER (bypass RBAC : l'owner franchit toute permission) et
- * renvoie le cookie associé. Pas de `/auth/login` → aucune dépendance Redis/rate-limit. Les noms
- * sont uniques par appel → aucune collision entre fichiers dans un même run smoke.
+ * Injecte en base une session du PROPRIÉTAIRE (autorité totale : il franchit toute vérification) et
+ * renvoie le cookie associé. Pas de `/auth/login` → aucune dépendance Redis/rate-limit.
+ *
+ * Le propriétaire est RÉUTILISÉ s'il existe déjà : depuis ADR-0047 un index unique partiel garantit
+ * qu'il n'y en a qu'un, et tous les fichiers d'un même run partagent la base. En créer un par
+ * fichier violerait la contrainte — ce qui est le comportement voulu, pas un obstacle à contourner.
  */
 export async function createAdminSession(): Promise<string> {
   const suffix = crypto.randomUUID().slice(0, 8);
-  const [adminRole] = await db
-    .insert(role)
-    .values({ name: `Test Admin ${suffix}`, scope: 'admin' })
-    .returning();
-  const [adminUser] = await db
-    .insert(user)
-    .values({
-      email: `admin-${suffix}@echoppe.test`,
-      passwordHash: 'x',
-      firstName: 'Test',
-      lastName: 'Admin',
-      role: adminRole.id,
-      isOwner: true,
-    })
-    .returning();
+  const [existingOwner] = await db.select().from(user).where(eq(user.isOwner, true)).limit(1);
+
+  const adminUser =
+    existingOwner ??
+    (await (async () => {
+      const [adminRole] = await db
+        .insert(role)
+        .values({ name: `Test Admin ${suffix}`, scope: 'admin' })
+        .returning();
+      const [created] = await db
+        .insert(user)
+        .values({
+          email: `admin-${suffix}@echoppe.test`,
+          passwordHash: 'x',
+          firstName: 'Test',
+          lastName: 'Admin',
+          role: adminRole.id,
+          isOwner: true,
+        })
+        .returning();
+      return created;
+    })());
+
   const token = crypto.randomUUID().replace(/-/g, '');
   await db
     .insert(session)

@@ -107,11 +107,10 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
       // Ordre métier fixe des rôles système, désignés par leur `key` immuable : les renommer
       // depuis l'administration ne doit pas les renvoyer au fond de la liste.
       const systemOrder = sql`CASE ${role.key}
-        WHEN 'owner' THEN 0
-        WHEN 'admin' THEN 1
-        WHEN 'customer' THEN 2
-        WHEN 'public' THEN 3
-        ELSE 4 END`;
+        WHEN 'admin' THEN 0
+        WHEN 'customer' THEN 1
+        WHEN 'public' THEN 2
+        ELSE 3 END`;
       return db.select().from(role).orderBy(systemOrder, role.name);
     },
     {

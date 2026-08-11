@@ -198,18 +198,15 @@ async function seed() {
 
   // === ROLES ===
   console.log('  → Roles...');
+  // Pas de rôle « propriétaire » : la propriété est le drapeau `user.isOwner`, et rien d'autre
+  // (ADR-0047). Un rôle est une description de fonction, qu'on attribue en série ; la propriété est
+  // une propriété d'une PERSONNE. Les confondre rendait « qui possède l'installation » aussi facile
+  // à changer que « qui édite le catalogue ».
   const defaultRoles = [
-    {
-      key: 'owner',
-      name: 'Propriétaire',
-      description: 'Propriétaire de la boutique - accès total',
-      scope: 'admin' as const,
-      isSystem: true,
-    },
     {
       key: 'admin',
       name: 'Administrateur',
-      description: 'Administrateur - accès complet sauf rôles/permissions',
+      description: 'Administrateur — tout, hors gouvernance sensible',
       scope: 'admin' as const,
       isSystem: true,
     },
@@ -292,51 +289,12 @@ async function seed() {
   // =============================================
   // PROPRIÉTAIRE
   // =============================================
-  // - Tables système (natif Échoppe): lecture/update, pas de delete, LOCKED
-  // - Tables compliance (RGPD): pas de delete
-  // - Tables business: CRUD normal, modifiable
-  await setPermissions('owner', [
-    // --- Tables système (LOCKED) ---
-    { resource: 'identity', canRead: true, canUpdate: true, locked: true }, // Config boutique unique
-    { resource: 'country', canRead: true, locked: true }, // Référentiel fixe
-    { resource: 'tax_rate', canRead: true, canUpdate: true, locked: true }, // Taux légaux
-    { resource: 'payment_config', canRead: true, canUpdate: true, locked: true }, // Credentials paiement
-    { resource: 'shipping_provider', canRead: true, canUpdate: true, locked: true }, // Config transporteurs
-    { resource: 'communication_config', canRead: true, canUpdate: true, locked: true }, // Credentials email
-    { resource: 'role', canRead: true, locked: true }, // Rôles système
-    { resource: 'permission', canRead: true, locked: true }, // Permissions système
-    { resource: 'audit_log', canRead: true, locked: true }, // Journal non modifiable
-    { resource: 'api_key', canCreate: true, canRead: true, canUpdate: true, canDelete: true }, // Clés machine
-    // Structure : pousser un registre, dériver la table d'une entité. Tient au rang — accordée
-    // ici, jamais transmissible ensuite (ADR-0038).
-    {
-      resource: 'schema',
-      canCreate: true,
-      canRead: true,
-      canUpdate: true,
-      canDelete: true,
-      locked: true,
-    },
-
-    // --- Tables compliance (pas de delete) ---
-    { resource: 'order', canCreate: true, canRead: true, canUpdate: true }, // Historique obligatoire
-    { resource: 'invoice', canCreate: true, canRead: true }, // Documents comptables
-    { resource: 'user', canCreate: true, canRead: true, canUpdate: true }, // Traçabilité
-    { resource: 'customer', canCreate: true, canRead: true, canUpdate: true }, // RGPD (anonymisation)
-
-    // --- Tables business (CRUD, modifiable) ---
-    { resource: 'product', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'category', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'collection', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'variant', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'option', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'media', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'stock', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'address', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'cart', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-    { resource: 'wishlist', canRead: true },
-    { resource: 'content', canCreate: true, canRead: true, canUpdate: true, canDelete: true },
-  ]);
+  // Aucune ligne, et aucun rôle : la propriété est le drapeau `user.isOwner` (ADR-0047, amendement).
+  //
+  // Le rôle `owner` a existé, avec ses permissions. Elles ne s'appliquaient JAMAIS au vrai
+  // propriétaire — son autorité totale court-circuite avant qu'on les lise — donc elles ne pouvaient
+  // prendre effet que sur quelqu'un qui n'en était pas un. Un administrateur pouvait s'en servir
+  // pour atteindre les credentials qui lui sont réservés.
 
   // =============================================
   // ADMINISTRATEUR
@@ -1883,9 +1841,10 @@ async function seed() {
   // === DEFAULT ADMIN USER ===
   console.log('  → Default admin user...');
 
-  const [ownerRole] = await db.select().from(role).where(eq(role.key, 'owner'));
+  // Le rôle `admin` et le drapeau : c'est le drapeau qui fait le propriétaire, pas le rôle.
+  const [administratorRole] = await db.select().from(role).where(eq(role.key, 'admin'));
 
-  if (ownerRole) {
+  if (administratorRole) {
     const [existingAdmin] = await db.select().from(user).where(eq(user.email, 'admin@echoppe.dev'));
 
     if (!existingAdmin) {
@@ -1900,7 +1859,7 @@ async function seed() {
         passwordHash,
         firstName: 'Admin',
         lastName: 'Échoppe',
-        role: ownerRole.id,
+        role: administratorRole.id,
         isOwner: true,
         isActive: true,
       });

@@ -1,5 +1,7 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { db, entityDefinition, eq, role, session, user } from '@echoppe/core';
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { db, entityDefinition, eq, role, session, sql, user } from '@echoppe/core';
 import { invalidatePermissionCache, invalidateSystemRoleCache } from '@repo/auth';
 import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
 
@@ -15,6 +17,7 @@ requireSmokeDb();
 
 let ownerCookie: string;
 let adminCookie: string;
+let administratorRoleId: string;
 
 /**
  * Une session portant le rôle système `admin` — celui que `key` désigne, pas celui que `name`
@@ -31,6 +34,7 @@ async function createAdministratorSession(): Promise<string> {
         .values({ key: 'admin', name: 'Administrateur', scope: 'admin', isSystem: true })
         .returning()
     )[0];
+  administratorRoleId = adminRole.id;
   invalidateSystemRoleCache();
   invalidatePermissionCache();
 
@@ -202,5 +206,76 @@ describe('ce qu’il peut déléguer, et ce qu’il ne peut pas', () => {
     });
 
     expect(res.status).toBe(403);
+  });
+});
+
+describe('la propriété est un drapeau, et il n’y en a qu’un', () => {
+  it('refuse un second propriétaire — c’est Postgres qui tient la promesse', async () => {
+    // Le commentaire du schéma disait « Only one » depuis toujours ; rien ne le tenait. Un index
+    // unique PARTIEL le tient maintenant, sans interdire le second utilisateur ordinaire.
+    const second = async () => {
+      await db.insert(user).values({
+        email: `second-proprietaire-${crypto.randomUUID().slice(0, 8)}@echoppe.test`,
+        passwordHash: 'x',
+        firstName: 'Second',
+        lastName: 'Propriétaire',
+        role: administratorRoleId,
+        isOwner: true,
+      });
+    };
+
+    await expect(second()).rejects.toThrow();
+  });
+
+  it('laisse passer autant d’utilisateurs ORDINAIRES qu’on veut', async () => {
+    const ordinary = () =>
+      db.insert(user).values({
+        email: `ordinaire-${crypto.randomUUID().slice(0, 8)}@echoppe.test`,
+        passwordHash: 'x',
+        firstName: 'Ordinaire',
+        lastName: 'Test',
+        role: administratorRoleId,
+        isOwner: false,
+      });
+
+    await ordinary();
+    await ordinary();
+  });
+});
+
+describe('la migration qui supprime le rôle `owner`', () => {
+  it('réassigne ses porteurs vers `admin`, puis le supprime', async () => {
+    // On rejoue les instructions du FICHIER de migration, pas une copie : sur la base de test le
+    // rôle `owner` n'existe pas, donc la migration y a été un no-op et n'a rien prouvé.
+    const path = fileURLToPath(
+      new URL('../../../packages/echoppe-core/drizzle/0015_flaky_fixer.sql', import.meta.url),
+    );
+    const statements = (await readFile(path, 'utf8'))
+      .split('--> statement-breakpoint')
+      .filter((statement) => !statement.includes('CREATE UNIQUE INDEX'));
+
+    const [legacyRole] = await db
+      .insert(role)
+      .values({ key: 'owner', name: 'Propriétaire', scope: 'admin', isSystem: true })
+      .returning();
+    const [carrier] = await db
+      .insert(user)
+      .values({
+        email: `porteur-${crypto.randomUUID().slice(0, 8)}@echoppe.test`,
+        passwordHash: 'x',
+        firstName: 'Porteur',
+        lastName: 'Legacy',
+        role: legacyRole.id,
+        isOwner: false,
+      })
+      .returning();
+
+    for (const statement of statements) {
+      await db.execute(sql.raw(statement));
+    }
+
+    const [migrated] = await db.select().from(user).where(eq(user.id, carrier.id));
+    expect(migrated.role).toBe(administratorRoleId);
+    expect(await db.select().from(role).where(eq(role.key, 'owner'))).toEqual([]);
   });
 });

@@ -369,7 +369,7 @@ const userColumns = computed<DataTableColumn<User>[]>(() => [
               `${row.original.firstName} ${row.original.lastName}`,
             ),
             row.original.isOwner
-              ? h(Badge, { variant: 'warning', size: 'sm' }, () => 'Owner')
+              ? h(Badge, { variant: 'warning', size: 'sm' }, () => 'Propriétaire')
               : null,
           ]),
           h('p', { class: 'text-sm text-gray-500' }, row.original.email),
