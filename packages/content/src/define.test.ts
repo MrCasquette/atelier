@@ -103,6 +103,88 @@ describe('sérialisation des entités', () => {
   });
 });
 
+// Le lien d'une entité (ADR-0046). Ce qui se vérifie ici, ce sont les REFUS : un lien qui cite un
+// champ inexistant ne se résoudra jamais, et rien ne le dirait avant la mise en ligne.
+describe('déclarer le lien dune entité', () => {
+  const article = (link?: Parameters<typeof defineEntity>[1]['link']) =>
+    defineEntity('article', {
+      link,
+      fields: { titre: f.text(), url: f.text(), page: f.ref({ to: 'page' }) },
+    });
+
+  test('inscrit le lien déclaré dans le registre poussé', () => {
+    const registry = serialize(
+      defineContent({
+        sections: [defineSection('hero', { fields: { titre: f.text() } })],
+        entities: [article({ mode: 'route', route: '/blog/:slug' })],
+      }),
+    );
+
+    expect(registry.entities?.article.link).toEqual({ mode: 'route', route: '/blog/:slug' });
+  });
+
+  test("omet la clé quand l'entité ne se cite pas — le JSON d'avant ADR-0046", () => {
+    // Sinon `content:check` se dirait désynchronisé chez tout le monde, sans qu'un fichier change.
+    const registry = serialize(
+      defineContent({
+        sections: [defineSection('hero', { fields: { titre: f.text() } })],
+        entities: [article()],
+      }),
+    );
+
+    expect(registry.entities?.article).not.toHaveProperty('link');
+  });
+
+  test('refuse une route de liste sans slug — toutes les occurrences auraient la même URL', () => {
+    expect(() => article({ mode: 'route', route: '/blog' })).toThrow(/:slug/);
+  });
+
+  test("refuse un slug sur un singleton, qui n'en a pas", () => {
+    // ADR-0039 : l'identité d'un singleton est son nom.
+    expect(() =>
+      defineEntity('cgv', {
+        singleton: true,
+        link: { mode: 'route', route: '/cgv/:slug' },
+        fields: { corps: f.richText() },
+      }),
+    ).toThrow(/singleton/);
+  });
+
+  test('accepte une route sans slug sur un singleton', () => {
+    const cgv = defineEntity('cgv', {
+      singleton: true,
+      link: { mode: 'route', route: '/conditions-generales' },
+      fields: { corps: f.richText() },
+    });
+
+    expect(cgv.link).toEqual({ mode: 'route', route: '/conditions-generales' });
+  });
+
+  test('refuse un href qui cite un champ non déclaré', () => {
+    expect(() => article({ mode: 'href', field: 'lien' })).toThrow(/non déclaré|pas déclaré/);
+  });
+
+  test('refuse un href qui cite un champ incapable de porter une URL', () => {
+    expect(() =>
+      defineEntity('reseau', {
+        link: { mode: 'href', field: 'visuel' },
+        fields: { visuel: f.image() },
+      }),
+    ).toThrow(/texte/);
+  });
+
+  test("refuse une ancre dont le parent n'est pas un ref", () => {
+    expect(() => article({ mode: 'anchor', parent: 'titre' })).toThrow(/ref/);
+  });
+
+  test('accepte une ancre vers un champ ref', () => {
+    expect(article({ mode: 'anchor', parent: 'page' }).link).toEqual({
+      mode: 'anchor',
+      parent: 'page',
+    });
+  });
+});
+
 describe('inférence de la forme rendue', () => {
   test('une entité de liste porte un slug, un singleton non', () => {
     const article = defineEntity('article', {

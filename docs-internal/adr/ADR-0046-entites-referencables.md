@@ -37,7 +37,7 @@ defineEntity('reseau_social', {
 });
 
 defineEntity('tarif', {
-  fields: { titre: f.text(), page: f.ref('page') },
+  fields: { titre: f.text(), page: f.ref({ to: 'page' }) },
   link: { mode: 'anchor', parent: 'page' },
 });
 ```

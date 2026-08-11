@@ -150,9 +150,13 @@ export function serialize(content: ContentDefinition): Registry {
       if (entities[entity.name]) {
         throw collision(entity.name);
       }
+      // `link` n'est posé que s'il est déclaré : une entité qui ne se cite pas doit pousser
+      // exactement le JSON qu'elle poussait avant ADR-0046, sinon `content:check` se dirait
+      // désynchronisé sans qu'un seul fichier ait changé.
       entities[entity.name] = {
         ...serializeDefinition(entity, registry, registered),
         singleton: entity.singleton ?? false,
+        ...(entity.link ? { link: entity.link } : {}),
       };
     }
     registry.entities = entities;

@@ -17,6 +17,7 @@ import {
   type OnDelete,
   type ReferenceTables,
 } from './ddl';
+import { incoherentLinks } from './link';
 import { type EntityDeclaration, type EntityRegistry, entityRegistrySchema } from './model';
 import { entityDefinition } from './schema';
 
@@ -336,6 +337,10 @@ export async function planEntities(
 ): Promise<EntityPlan> {
   const plan: EntityPlan = { steps: [], blockers: [] };
 
+  // Un lien qui cite un champ inexistant ne se résoudra jamais. Le DSL le refuse déjà au dev, mais
+  // rien ne garantit qu'un registre poussé soit passé par ce chemin (ADR-0046).
+  plan.blockers.push(...incoherentLinks(registry));
+
   for (const [key, declaration] of Object.entries(registry)) {
     if (key !== declaration.name) {
       plan.blockers.push(`Entité « ${key} » déclarée sous le nom « ${declaration.name} ».`);
@@ -452,6 +457,7 @@ export async function pushEntities(
       label: declaration.label ?? null,
       icon: declaration.icon ?? null,
       singleton: declaration.singleton,
+      link: declaration.link ?? null,
       fields: declaration.fields,
     }));
     if (rows.length > 0) {
@@ -480,6 +486,9 @@ export async function loadEntities(): Promise<EntityRegistry> {
         label: row.label ?? undefined,
         icon: row.icon ?? undefined,
         singleton: row.singleton,
+        // `?? undefined` et non `?? null` : le schéma déclare `link` optionnel, pas nullable — une
+        // entité qui ne se cite pas n'a pas de lien, elle n'en a pas un qui vaut « rien ».
+        link: row.link ?? undefined,
         fields: row.fields,
       },
     ]),

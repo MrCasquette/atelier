@@ -151,6 +151,22 @@ export interface Definition<F extends Fields = Fields, Name extends string = str
 // est son nom.
 // `Single` est capturé littéralement, comme `Name` : c'est lui qui décide la forme rendue —
 // avec ou sans slug — et l'inférence doit pouvoir le lire (cf. `InferEntity`).
+/**
+ * Comment une entité produit son lien (ADR-0032, résolu par ADR-0046).
+ *
+ * Les trois modes ne sont pas réductibles l'un à l'autre : un article EST une page, un lien de
+ * réseau social PORTE une URL, une section de page n'a de lien que par sa parente. `href` et
+ * `anchor` nomment un CHAMP de l'entité — nommer un concept obligerait à deviner par où
+ * l'atteindre, et une entité peut parfaitement référencer deux pages.
+ */
+export type EntityLink =
+  /** Route interne, `:slug` substitué à la résolution. Le cas courant. */
+  | { mode: 'route'; route: string }
+  /** Le champ nommé porte l'URL, en clair. L'entité n'est pas une page. */
+  | { mode: 'href'; field: string }
+  /** Le champ nommé est un `ref` vers l'entité parente : sa route, puis `#slug`. */
+  | { mode: 'anchor'; parent: string };
+
 export interface Entity<
   F extends Fields = Fields,
   Name extends string = string,
@@ -161,6 +177,15 @@ export interface Entity<
   label?: string;
   icon?: string;
   singleton?: Single;
+  /**
+   * Rend l'entité citable — dans un menu, dans un champ `ref`.
+   *
+   * **Optionnel, et le silence n'est pas une faute** : ce qui rend une entité référençable n'est
+   * pas d'être déclarée, c'est d'avoir une URL (ADR-0032). Sans `link`, elle n'entre pas au
+   * registre et n'apparaît dans aucun sélecteur — ce qui est le bon défaut pour une entité qui ne
+   * se visite pas.
+   */
+  link?: EntityLink;
   fields: F;
 }
 
@@ -299,6 +324,9 @@ export interface SerializedDefinition {
 
 export interface SerializedEntity extends SerializedDefinition {
   singleton: boolean; // normalisé : l'authoring le laisse optionnel, le registre est explicite
+  // OMIS quand l'entité n'en déclare pas — même raison que `Registry.entities` plus bas : une
+  // entité existante doit pousser exactement le JSON qu'elle poussait avant ADR-0046.
+  link?: EntityLink;
 }
 
 // Trois espaces de noms DISTINCTS, et c'est délibéré (question laissée ouverte par ADR-0026).

@@ -1,0 +1,1 @@
+ALTER TABLE "entity_definition" ADD COLUMN "link" jsonb;

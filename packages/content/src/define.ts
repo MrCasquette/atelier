@@ -9,7 +9,14 @@
 // le nom `Name` (littéral), `defineContent` capture les tuples `S` et `E`. Cette préservation
 // alimente l'inférence de types côté front (`InferData` / `InferSections` / `InferEntity`).
 
-import type { ContentDefinition, Definition, Entity, Fields } from './types.js';
+import type {
+  ContentDefinition,
+  Definition,
+  Entity,
+  EntityLink,
+  Fields,
+  FieldValue,
+} from './types.js';
 
 export interface DefinitionConfig<F extends Fields> {
   label?: string;
@@ -48,6 +55,13 @@ export interface EntityConfig<F extends Fields, Single extends boolean = false>
   extends DefinitionConfig<F> {
   /** Au plus une occurrence (CGV, politique de livraison). Aucune n'est créée d'office (ADR-0039). */
   singleton?: Single;
+  /**
+   * Rend l'entité citable dans un menu et dans un champ `ref` (ADR-0046).
+   *
+   * Une ligne suffit : `{ mode: 'route', route: '/blog/:slug' }`. Sans elle, l'entité existe et
+   * s'édite, mais ne se cite pas — ce qui est le bon défaut pour ce qui ne se visite pas.
+   */
+  link?: EntityLink;
 }
 
 /**
@@ -61,6 +75,65 @@ export interface EntityConfig<F extends Fields, Single extends boolean = false>
  */
 const ENTITY_NAME = /^[a-z][a-z0-9_]*$/;
 
+/**
+ * Cohérence d'un `link` avec les champs qu'il nomme (ADR-0046).
+ *
+ * Un `href` qui cite un champ inexistant, un `anchor` qui cite un champ qui n'est pas un `ref` :
+ * ce sont des liens qui ne se résoudront jamais, et rien ne le dirait au moment de l'écriture. Ils
+ * se refusent ici, où le dev tient encore sa déclaration sous les yeux.
+ *
+ * La cardinalité entre aussi en jeu : un singleton n'a **pas de slug** (ADR-0039). Ni `:slug` dans
+ * sa route, ni ancre à dériver de lui.
+ */
+function assertLink<F extends Fields>(name: string, config: EntityConfig<F, boolean>): void {
+  const link = config.link;
+  if (!link) return;
+
+  const refuse = (why: string): never => {
+    throw new Error(`defineEntity « ${name} » : ${why}`);
+  };
+  const singleton = config.singleton === true;
+  const field = (key: string): FieldValue | undefined => config.fields[key];
+
+  if (link.mode === 'route') {
+    const hasSlug = link.route.includes(':slug');
+    if (singleton && hasSlug) {
+      refuse(
+        `la route « ${link.route} » attend un slug, mais un singleton n'en a pas — son identité est son nom (ADR-0039).`,
+      );
+    }
+    if (!singleton && !hasSlug) {
+      refuse(
+        `la route « ${link.route} » ne contient pas « :slug » : toutes les occurrences porteraient la même URL.`,
+      );
+    }
+    return;
+  }
+
+  if (link.mode === 'href') {
+    const carrier = field(link.field);
+    if (!carrier) refuse(`le lien cite le champ « ${link.field} », qui n'est pas déclaré.`);
+    if (!isFieldOfKind(carrier, 'text')) {
+      refuse(`le champ « ${link.field} » doit être un champ texte pour porter une URL.`);
+    }
+    return;
+  }
+
+  if (singleton) {
+    refuse("une ancre se dérive du slug de l'occurrence, et un singleton n'en a pas (ADR-0039).");
+  }
+  const parent = field(link.parent);
+  if (!parent) refuse(`le lien cite le champ « ${link.parent} », qui n'est pas déclaré.`);
+  if (!isFieldOfKind(parent, 'ref')) {
+    refuse(`le champ « ${link.parent} » doit être un « ref » pour désigner l'entité parente.`);
+  }
+}
+
+/** Un champ imbriqué par référence est une `Definition`, pas un descripteur : elle n'a pas de `kind` de champ. */
+function isFieldOfKind(value: FieldValue | undefined, kind: 'text' | 'ref'): boolean {
+  return value !== undefined && 'kind' in value && value.kind === kind;
+}
+
 export function defineEntity<
   const F extends Fields,
   Name extends string,
@@ -71,12 +144,15 @@ export function defineEntity<
       `defineEntity : « ${name} » n'est pas un nom d'entité valide. Minuscules, chiffres et « _ », commençant par une lettre — son nom devient celui d'une table.`,
     );
   }
+  assertLink(name, config);
+
   return {
     kind: 'entity',
     name,
     label: config.label,
     icon: config.icon,
     singleton: config.singleton,
+    link: config.link,
     fields: config.fields,
   };
 }

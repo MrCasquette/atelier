@@ -25,6 +25,10 @@ export const entityDefinition = pgTable('entity_definition', {
   // ce qui sert de point de comparaison au prochain `check` : pas besoin d'une version à part, la
   // déclaration EST la version.
   fields: jsonb('fields').notNull(),
+  // Comment l'entité produit son lien (ADR-0046) — `null` quand elle ne se cite pas, ce qui est un
+  // état normal : ce qui rend une entité référençable est d'avoir une URL, pas d'être déclarée.
+  // C'est cette colonne qui permet de réinscrire les cibles au démarrage, sans rejouer un push.
+  link: jsonb('link'),
   dateCreated: timestamp('date_created', { withTimezone: true }).notNull().defaultNow(),
   dateUpdated: timestamp('date_updated', { withTimezone: true }).notNull().defaultNow(),
 });

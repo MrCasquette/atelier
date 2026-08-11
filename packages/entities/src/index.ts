@@ -30,10 +30,13 @@ export {
   type OnDelete,
   type ReferenceTables,
 } from './ddl';
+export { incoherentLinks, type LinkDeclaration } from './link';
 export {
   type EntityDeclaration,
+  type EntityLink,
   type EntityRegistry,
   entityDeclarationSchema,
+  entityLinkSchema,
   entityRegistrySchema,
 } from './model';
 export {

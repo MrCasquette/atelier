@@ -262,6 +262,69 @@ describe('cardinalité', () => {
   });
 });
 
+// Le lien déclaré (ADR-0046). Le DSL refuse déjà ces déclarations au dev, mais une clé d'API pousse
+// ce qu'elle veut : c'est la frontière qui tranche, et un lien qui cite un champ inexistant ne se
+// résoudrait jamais — il se verrait en production, pas avant.
+describe('le lien déclaré par une entité', () => {
+  const withLink = (fields: Fields, link: unknown, singleton = false) => ({
+    ...entity('lien_test', fields, singleton),
+    link,
+  });
+
+  // Ce bloc pousse un registre qui ne cite que son entité, donc demande la suppression de celles
+  // que les cas précédents ont laissées — et une table non vide n'est jamais supprimée (ADR-0028).
+  // On les vide, plutôt que de nommer en dur celle du cas d'avant.
+  beforeAll(async () => {
+    for (const { name } of await db.select().from(entityDefinition)) {
+      await db.execute(sql.raw(`delete from entity_${name}`));
+    }
+  });
+
+  it('accepte et journalise un lien cohérent', async () => {
+    // `true` : ce registre ne cite que son entité, donc supprime les tables (vides) des cas
+    // précédents — une suppression reste une suppression, elle se confirme.
+    const res = await push(
+      [
+        withLink(
+          { titre: { kind: 'text' } },
+          { mode: 'route', route: '/blog/:slug' },
+        ) as Declaration,
+      ],
+      true,
+    );
+
+    expect(res.status).toBe(200);
+    const read = await req('GET', '/content/entities', { cookie: ownerCookie });
+    const journal = (await read.json()) as Record<string, { link?: unknown }>;
+    expect(journal.lien_test.link).toEqual({ mode: 'route', route: '/blog/:slug' });
+  });
+
+  it('refuse un href qui cite un champ non déclaré, et dit lequel', async () => {
+    const res = await push([
+      withLink({ titre: { kind: 'text' } }, { mode: 'href', field: 'url' }) as Declaration,
+    ]);
+
+    expect(res.status).toBe(422);
+    expect((await res.json()) as { message: string }).toMatchObject({
+      message: expect.stringContaining('url'),
+    });
+  });
+
+  it("refuse une ancre dont le parent n'est pas un ref", async () => {
+    const res = await push([
+      withLink({ titre: { kind: 'text' } }, { mode: 'anchor', parent: 'titre' }) as Declaration,
+    ]);
+
+    expect(res.status).toBe(422);
+  });
+
+  it('laisse passer une entité sans lien — ne pas se citer est un état normal', async () => {
+    const res = await push([entity('lien_test', { titre: { kind: 'text' } })], true);
+
+    expect(res.status).toBe(200);
+  });
+});
+
 describe('qui peut pousser', () => {
   it('refuse un éditeur : dériver une table est un acte de structure', async () => {
     const res = await req('PUT', '/content/entities', {
