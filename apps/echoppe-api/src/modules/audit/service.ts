@@ -29,6 +29,9 @@ export type AuditAction =
   | 'user.delete'
   | 'user.login'
   | 'user.logout'
+  // Sans retour pour celui qui le fait, et seul le nouveau propriétaire peut le rendre : c'est
+  // exactement ce qu'un journal d'audit existe pour retenir (ADR-0047, décision 6).
+  | 'user.ownership_transfer'
   // Roles & Permissions
   | 'role.create'
   | 'role.update'

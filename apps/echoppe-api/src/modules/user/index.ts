@@ -480,4 +480,61 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
       params: uuidParam,
       response: withCrudErrors({ 200: successSchema }),
     },
+  )
+
+  // POST /users/:id/ownership - Transférer la propriété de l'installation
+  //
+  // Sous `user:update` pour obtenir le principal, mais ce n'est pas ce droit qui décide : le
+  // transfert est réservé au PROPRIÉTAIRE (ADR-0047, décision 6). Un administrateur le détient et
+  // sera refusé quand même — la propriété ne se prend pas, elle se donne.
+  .post(
+    '/:id/ownership',
+    async ({ params, status, currentUser, request, principal }) => {
+      if (!isTheOwner(principal)) {
+        return status(403, { message: 'Seul le propriétaire peut transférer la propriété' });
+      }
+
+      const [target] = await db
+        .select({ id: user.id, isOwner: user.isOwner, isActive: user.isActive, email: user.email })
+        .from(user)
+        .where(eq(user.id, params.id));
+
+      if (!target) {
+        return status(404, { message: 'Utilisateur introuvable' });
+      }
+      if (target.isOwner) {
+        return status(400, { message: 'Cet utilisateur est déjà le propriétaire' });
+      }
+      // Transférer vers un compte qui ne peut pas se connecter perdrait l'installation — et le
+      // transfert est sans retour, donc définitivement.
+      if (!target.isActive) {
+        return status(400, { message: 'Impossible de transférer vers un compte désactivé' });
+      }
+
+      // Atomique, et dans cet ORDRE : l'index unique partiel n'admet qu'un propriétaire, donc le
+      // drapeau se retire avant de se poser. Jamais deux, jamais zéro.
+      await db.transaction(async (tx) => {
+        await tx.update(user).set({ isOwner: false }).where(eq(user.isOwner, true));
+        await tx.update(user).set({ isOwner: true }).where(eq(user.id, params.id));
+      });
+
+      // Rien à invalider : l'autorité se recalcule à chaque requête depuis la session, et le cache
+      // des droits est indexé par RÔLE — or aucun rôle ne change ici. L'ancien propriétaire garde
+      // le sien, et redevient ce qu'il décrit.
+      logAudit({
+        userId: currentUser?.id,
+        action: 'user.ownership_transfer',
+        entityType: 'user',
+        entityId: params.id,
+        data: { to: target.email },
+        ipAddress: getClientIp(request.headers),
+      });
+
+      return { success: true };
+    },
+    {
+      permission: true,
+      params: uuidParam,
+      response: withCrudErrors({ 200: successSchema, 400: badRequestResponse }),
+    },
   );

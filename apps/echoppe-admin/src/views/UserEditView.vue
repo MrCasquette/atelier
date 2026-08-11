@@ -6,6 +6,7 @@ import { useAuth } from '@/composables/useAuth';
 import { useToast } from '@/composables/useToast';
 import Button from '@/components/atoms/Button.vue';
 import Badge from '@/components/atoms/Badge.vue';
+import ConfirmModal from '@/components/atoms/ConfirmModal.vue';
 import type { ApiData } from '@/types/api';
 
 // Types inférés depuis Eden
@@ -26,7 +27,7 @@ interface UserForm {
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
-const { user: currentUser } = useAuth();
+const { user: currentUser, isOwner: viewerIsOwner, checkAuth } = useAuth();
 
 const loading = ref(true);
 const saving = ref(false);
@@ -46,6 +47,34 @@ const isOwner = computed(() => user.value?.isOwner ?? false);
 // L'owner peut se modifier lui-même ; seul un AUTRE utilisateur est verrouillé (cf. users.ts).
 const isSelf = computed(() => !!currentUser.value && currentUser.value.id === user.value?.id);
 const isLocked = computed(() => isOwner.value && !isSelf.value);
+
+// Transférer la propriété : seul le propriétaire le peut, et seulement vers quelqu'un d'autre, qui
+// peut se connecter (ADR-0047, décision 6).
+const canTransfer = computed(
+  () => viewerIsOwner.value && !isNew.value && !isOwner.value && (user.value?.isActive ?? false),
+);
+const transferOpen = ref(false);
+const transferring = ref(false);
+
+async function confirmTransfer() {
+  const id = user.value?.id;
+  if (!id) return;
+
+  transferring.value = true;
+  const { error } = await api.users({ id }).ownership.post({});
+  transferring.value = false;
+  transferOpen.value = false;
+
+  if (error) {
+    toast.error('Le transfert a échoué');
+    return;
+  }
+
+  toast.success('Propriété transférée');
+  // L'appelant vient de perdre son autorité : le contexte local mentirait jusqu'au rechargement.
+  await checkAuth();
+  router.push('/utilisateurs');
+}
 const pageTitle = computed(() => {
   if (isNew.value) return 'Nouvel utilisateur';
   return user.value ? `${user.value.firstName} ${user.value.lastName}` : 'Utilisateur';
@@ -335,6 +364,40 @@ function cancel() {
           </div>
         </form>
       </div>
+
+      <div
+        v-if="canTransfer"
+        class="bg-white rounded-lg shadow p-6 border border-red-200"
+      >
+        <h3 class="text-base font-semibold text-gray-900">
+          Transférer la propriété
+        </h3>
+        <p class="mt-2 max-w-2xl text-sm text-gray-600">
+          {{ user?.firstName }} deviendra le propriétaire de l'installation, et vous redeviendrez un
+          administrateur ordinaire — vous perdrez l'accès aux identifiants de paiement et d'envoi.
+        </p>
+        <p class="mt-2 max-w-2xl text-sm font-medium text-red-700">
+          Vous ne pourrez pas reprendre la propriété vous-même. Seul le nouveau propriétaire pourra
+          vous la rendre.
+        </p>
+        <Button
+          class="mt-4"
+          variant="danger"
+          :loading="transferring"
+          @click="transferOpen = true"
+        >
+          Transférer la propriété
+        </Button>
+      </div>
     </div>
+
+    <ConfirmModal
+      :open="transferOpen"
+      title="Transférer la propriété"
+      :message="`Transférer la propriété de l'installation à ${user?.firstName} ${user?.lastName} ? Vous ne pourrez pas la reprendre : seul le nouveau propriétaire pourra vous la rendre.`"
+      confirm-label="Transférer"
+      @confirm="confirmTransfer"
+      @cancel="transferOpen = false"
+    />
   </div>
 </template>
