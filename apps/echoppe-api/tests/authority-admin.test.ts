@@ -283,6 +283,7 @@ describe('la migration qui supprime le rôle `owner`', () => {
 describe('toucher au premier rang est un acte du propriétaire', () => {
   let secondAdminId: string;
   let ordinaryId: string;
+  let ordinaryRoleId: string;
 
   beforeAll(async () => {
     // Un second administrateur, créé par le PROPRIÉTAIRE — c'est le seul chemin désormais.
@@ -302,6 +303,7 @@ describe('toucher au premier rang est un acte du propriétaire', () => {
       .insert(role)
       .values({ name: `Ordinaire ${crypto.randomUUID().slice(0, 8)}`, scope: 'admin' })
       .returning();
+    ordinaryRoleId = ordinaryRole.id;
     const ordinary = await req('POST', '/users', {
       cookie: adminCookie,
       body: {
@@ -341,31 +343,33 @@ describe('toucher au premier rang est un acte du propriétaire', () => {
     expect(res.status).toBe(403);
   });
 
-  it('refuse de CONFÉRER le rang — sans quoi la garde ne garde rien', async () => {
-    // Sans cette borne, un administrateur en créerait un second avec un mot de passe qu'il choisit,
-    // s'y connecterait, et supprimerait par procuration celui qu'il ne peut pas toucher.
+  it('laisse un administrateur en admettre un autre — un pair est un pair', async () => {
+    // Créer un pair ne donne aucune prise sur lui : c'est latéral. La borne porte sur ce qu'on fait
+    // AUX gens du rang, pas sur le fait d'en admettre de nouveaux.
     const res = await req('POST', '/users', {
       cookie: adminCookie,
       body: {
-        email: `procuration-${crypto.randomUUID().slice(0, 8)}@echoppe.test`,
+        email: `pair-${crypto.randomUUID().slice(0, 8)}@echoppe.test`,
         password: 'motdepasse',
-        firstName: 'Par',
-        lastName: 'Procuration',
+        firstName: 'Un',
+        lastName: 'Pair',
         role: administratorRoleId,
       },
     });
 
-    expect(res.status).toBe(403);
-    expect(((await res.json()) as { message: string }).message).toContain('Conférer');
+    expect(res.status).toBe(200);
   });
 
-  it('refuse de promouvoir un utilisateur ordinaire au rang', async () => {
+  it('laisse promouvoir un utilisateur ordinaire au rang', async () => {
     const res = await req('PATCH', `/users/${ordinaryId}`, {
       cookie: adminCookie,
       body: { role: administratorRoleId },
     });
 
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(200);
+
+    // Remis comme il était : la suite du fichier le traite comme un utilisateur ordinaire.
+    await db.update(user).set({ role: ordinaryRoleId }).where(eq(user.id, ordinaryId));
   });
 
   it('laisse un administrateur gérer les utilisateurs ORDINAIRES', async () => {

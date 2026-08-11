@@ -12,10 +12,14 @@ import { type EchoppePrincipal, isFirstRankRoleKey, permissionGuard } from '../a
 // un droit est un acte de gouvernance, pas un acte de domaine ». Supprimer, désactiver ou dégrader
 // un utilisateur du rang est le même acte.
 //
-// Conférer le rang en fait partie, et ce n'est pas une précaution de plus : sans elle la garde ne
-// garde rien. Un administrateur créerait un second administrateur avec un mot de passe qu'il
-// choisit, s'y connecterait, et supprimerait par procuration celui qu'il ne peut pas toucher
-// lui-même.
+// CONFÉRER le rang, en revanche, reste ouvert à l'administrateur : un pair est un pair, et le créer
+// ne donne aucune prise sur lui. La borne porte sur ce qu'on fait AUX gens du rang, pas sur le fait
+// d'en admettre de nouveaux.
+//
+// Une réserve, qui n'est pas de la théorie : tant que le créateur pose le mot de passe de qui il
+// crée — et qu'il peut réinitialiser celui de n'importe quel compte ordinaire — cette garde est une
+// POLITIQUE, pas une frontière. La fermer demande un flux d'invitation, où le destinataire pose son
+// mot de passe et où le créateur ne le connaît jamais.
 
 /** L'appelant est-il le propriétaire de l'installation ? Lui seul touche au rang. */
 const isTheOwner = (principal: EchoppePrincipal): boolean => principal.authority.kind === 'total';
@@ -31,17 +35,8 @@ async function targetIsFirstRank(userId: string): Promise<boolean> {
   return found ? found.isOwner || isFirstRankRoleKey(found.roleKey) : false;
 }
 
-/** Ce rôle, s'il était attribué, conférerait-il le premier rang ? */
-async function roleConfersRank(roleId: string): Promise<boolean> {
-  const [found] = await db.select({ key: role.key }).from(role).where(eq(role.id, roleId));
-  return found ? isFirstRankRoleKey(found.key) : false;
-}
-
 const RANK_REFUSAL = {
   message: 'Toucher au premier rang est réservé au propriétaire de l’installation',
-};
-const CONFER_REFUSAL = {
-  message: 'Conférer le premier rang est réservé au propriétaire de l’installation',
 };
 
 // Query schemas
@@ -245,7 +240,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
   // POST /users - Créer utilisateur
   .post(
     '/',
-    async ({ body, status, currentUser, request, principal }) => {
+    async ({ body, status, currentUser, request }) => {
       // Check if email already exists
       const [existing] = await db
         .select({ id: user.id })
@@ -264,10 +259,6 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
 
       if (!roleExists) {
         return status(400, { message: 'Rôle introuvable' });
-      }
-
-      if (!isTheOwner(principal) && (await roleConfersRank(body.role))) {
-        return status(403, CONFER_REFUSAL);
       }
 
       // Hash password
@@ -354,10 +345,6 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
 
         if (!roleExists) {
           return status(400, { message: 'Rôle introuvable' });
-        }
-
-        if (!isTheOwner(principal) && (await roleConfersRank(body.role))) {
-          return status(403, CONFER_REFUSAL);
         }
       }
 

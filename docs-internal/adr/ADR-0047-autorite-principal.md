@@ -107,9 +107,19 @@ acte de domaine ». Supprimer un utilisateur du premier rang est le même acte.
 Le propriétaire reste ce que son nom dit : un Administrateur ne peut pas le supprimer, ni supprimer
 un autre Administrateur.
 
-Et **conférer** le rang en fait partie — sans quoi la règle ne garde rien : il suffirait de créer un
-pair avec un mot de passe qu'on choisit, de s'y connecter, et de supprimer par procuration. La garde
-porte donc sur l'ACTE, pas sur le verbe HTTP : supprimer, désactiver, dégrader, promouvoir.
+La garde porte sur l'**acte**, pas sur le verbe HTTP : supprimer, désactiver et dégrader produisent
+le même résultat — plus personne derrière ce compte. Se modifier soi-même reste permis, sans quoi un
+administrateur ne pourrait plus changer son propre mot de passe.
+
+**Conférer** le rang, en revanche, reste ouvert à l'Administrateur. Un pair est un pair : l'admettre
+ne donne aucune prise sur lui, et le geste normal est d'inviter, pas de fabriquer un compte dont on
+détient les clés.
+
+Une réserve à assumer, qui n'est pas théorique : tant que le créateur pose le mot de passe de qui il
+crée — et qu'il peut réinitialiser celui de tout compte ordinaire — cette règle est une
+**politique**, pas une frontière. La rendre étanche demande un flux d'invitation, où le destinataire
+pose son mot de passe. Directus tranche dans l'autre sens pour la même raison : sans envoi de
+courriel, un flux d'invitation bloque l'installation.
 
 ### 5. La propriété est un DRAPEAU, pas un rôle
 
@@ -245,14 +255,10 @@ par un acte délibéré ; un rôle est une **description de fonction**, qu'on at
 | Transfert | route dédiée, réservée au propriétaire (décision 6). Le drapeau n'était dans aucun corps de requête : il n'était pas « sûr », il était bloqué |
 | Interface | « Propriétaire » devient un badge sur l'utilisateur, plus une ligne dans la liste des rôles |
 
-### Une correction, découverte en écrivant la décision 4
+### Ce que ça ne change pas
 
-La première rédaction de cet amendement affirmait qu'un Administrateur pouvait toujours créer un
-second Administrateur — « latéral, pas ascendant ». **C'est faux, et ça vidait la décision 4 de son
-contenu** : il lui suffisait de créer ce second Administrateur avec un mot de passe qu'il choisit,
-de s'y connecter, et de supprimer par procuration celui qu'il ne peut pas toucher lui-même.
+Un Administrateur peut toujours admettre un second Administrateur. C'est **latéral, pas ascendant** :
+il ne fabrique rien qu'il ne soit déjà, et créer un pair ne donne aucune prise sur lui.
 
-**Conférer le premier rang est donc un acte du propriétaire**, au même titre qu'y toucher — à la
-création d'un utilisateur comme au changement de son rôle. Ce qui reste vrai, et suffit à l'usage
-courant : un Administrateur crée autant de rôles sur mesure qu'il veut, avec ses propres droits.
-Ce qu'il ne peut pas faire, c'est fabriquer un pair.
+Ce qu'il ne peut pas créer, c'est un **propriétaire** — et ce n'a jamais demandé de garde :
+`isOwner` n'est dans aucun corps de requête, et depuis cet amendement aucun rôle ne le confère.
