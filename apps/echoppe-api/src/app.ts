@@ -15,6 +15,7 @@ import { contactRoutes } from './modules/contact';
 import { definitionRoutes } from './modules/content/definition';
 import { entityRoutes } from './modules/content/entity';
 import { entityAdminRoutes } from './modules/content/entity/admin';
+import { entityMineRoutes } from './modules/content/entity/mine';
 import { entityPublicRoutes } from './modules/content/entity/public';
 import { pageRoutes } from './modules/content/page';
 import { countriesRoutes } from './modules/country';
@@ -113,6 +114,7 @@ export const app = new Elysia()
   .use(menuRoutes)
   .use(definitionRoutes)
   .use(entityRoutes)
+  .use(entityMineRoutes)
   .use(entityAdminRoutes)
   .use(entityPublicRoutes)
   .use(referenceRoutes)

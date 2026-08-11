@@ -60,6 +60,23 @@ const router = createRouter({
           name: 'content-menu-edit',
           component: () => import('../views/MenuEditView.vue'),
         },
+        // Entités déclarées : une seule paire d'écrans pour toutes. Ce qu'elles ont de propre —
+        // champs, cardinalité, libellé — vient de leur déclaration, jamais d'une route dédiée.
+        {
+          path: 'entites/:name',
+          name: 'entity',
+          component: () => import('../views/EntityView.vue'),
+        },
+        {
+          path: 'entites/:name/nouveau',
+          name: 'entity-row-new',
+          component: () => import('../views/EntityRowEditView.vue'),
+        },
+        {
+          path: 'entites/:name/:id',
+          name: 'entity-row-edit',
+          component: () => import('../views/EntityRowEditView.vue'),
+        },
         {
           path: 'stock',
           name: 'stock',

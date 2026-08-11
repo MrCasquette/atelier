@@ -31,6 +31,7 @@ refuse une cible inconnue.
 |---|---|---|
 | `GET /entities/:name` | front (contrat figé) | aucun — public |
 | `GET /entities/:name/:slug` | front (contrat figé) | aucun — public |
+| `GET /content/entities/mine` | administration | session privilégiée seule |
 | `GET /content/entities/:name/rows` | administration | `entity:<nom>` read |
 | `POST /content/entities/:name/rows` | administration | `entity:<nom>` create |
 | `PUT /content/entities/:name/rows/:id` | administration | `entity:<nom>` update |
@@ -49,6 +50,31 @@ source à garder d'accord. Conséquences directes :
 Une clé d'API peut porter `read:entity:<nom>` / `write:entity:<nom>` : le vocabulaire de scopes est
 élargi aux entités déclarées, à l'exécution. La règle de délégation vaut comme partout — on ne
 délègue que ce qu'on détient.
+
+## Se faire administrer
+
+Une entité déclarée obtient ses écrans sans qu'aucun code ne soit écrit pour elle : une seule paire
+de routes front (`/entites/:name`, `/entites/:name/:id`) sert toutes les entités, et ce qu'elles ont
+de propre — champs, cardinalité, libellé, icône — vient de leur déclaration.
+
+Le formulaire n'est pas écrit non plus : c'est **le générateur des sections**, sans une ligne de
+plus. Une entité et une section décrivent leurs champs de la même façon (ADR-0026), donc
+`DynamicForm` sait déjà les rendre, `component` et `list` compris.
+
+La **cardinalité décide de la forme de l'écran** (ADR-0039) : une entité de liste ouvre un tableau
+d'occurrences, un singleton ouvre son formulaire directement — il n'a rien à lister, et pas de slug
+à saisir.
+
+`GET /content/entities/mine` répond à une question distincte de celle du journal : non pas *quelles
+entités existent* — c'est de la structure, et ça tient à `schema:read` — mais **ce que l'appelant
+peut administrer**. Sans elle, un rédacteur à qui l'on vient d'accorder `entity:article` n'aurait
+aucun chemin vers son propre écran, faute de détenir `schema`. Elle rend donc les déclarations qu'il
+détient en lecture, chacune avec les actions qu'il détient : la navigation ne propose que
+l'accordé, et l'écran n'offre pas un bouton qui sera refusé.
+
+Une entité qui n'est accordée à personne n'apparaît nulle part, et son écran le **dit** — « cette
+entité ne vous est pas accordée », avec le chemin vers l'écran des rôles. Un 403 brut laisserait
+l'utilisateur devant une panne là où il n'y a qu'un droit à demander.
 
 ## Se faire citer
 
@@ -113,10 +139,11 @@ jamais à ça.
   `list` ou un `repeater` ne porte pas de clé étrangère : les atteindre demanderait une table fille
   par champ, hors de ce que le DSL sait dire. Les champs de premier niveau, eux, sont contraints
   (ADR-0045).
-- **Offrir des écrans d'administration.** L'API est complète et une entité est désormais
-  **accordable** depuis l'écran des rôles — la matrice tient sa liste de `GET /roles/resources`, où
-  les entités déclarées figurent au même titre que le reste. Mais il n'existe encore aucun écran
-  pour **éditer** leurs occurrences, ni d'entrée dans la navigation (tâche #37, points 1 et 2).
+- **Respecter l'ordre dans lequel le dev a déclaré ses champs.** Le journal stocke la déclaration en
+  `jsonb`, qui réordonne les clés : le formulaire généré n'affiche pas les champs dans l'ordre du
+  fichier. Ce n'est pas propre aux entités — les sections l'ont depuis toujours (tâche #46).
+- **Trier, filtrer ou paginer la liste des occurrences.** L'écran rend ce que la route rend, les
+  plus récentes d'abord. Une entité qui grossit demandera mieux.
 - **Contraindre un `enum` en base.** La valeur est déjà validée à la frontière par le schéma compilé
   depuis la même déclaration ; une contrainte nommée serait à faire évoluer à chaque option ajoutée.
 
@@ -141,4 +168,5 @@ tables**. Utilisez `db:generate` puis `db:migrate`, ou repoussez vos entités ap
 | `packages/content` | `defineEntity`, sérialisation, CLI — temps-dev, publié (`@mrcasquette/content`) |
 | `packages/entities` | journal, dérivation DDL, plan, application — aucune route (ADR-0044) |
 | `apps/echoppe-api/src/modules/content/entity/` | les routes (structure, lecture front, administration) et leurs codes HTTP |
+| `apps/echoppe-admin/src/views/Entity*.vue` | les deux écrans, génériques — un seul jeu pour toutes les entités |
 | `packages/echoppe-core/src/db/schema/index.ts` | inclut le **journal** dans les migrations du cœur (ADR-0025) |

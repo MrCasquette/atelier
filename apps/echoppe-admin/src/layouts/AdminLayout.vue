@@ -2,8 +2,9 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
+import { useEntities } from '@/composables/entities/useEntities';
 import { api } from '@/lib/api';
-import type { NavigationConfig } from '@/types/navigation';
+import type { NavigationConfig, NavSection } from '@/types/navigation';
 import SidebarNav from '@/components/organisms/SidebarNav.vue';
 import SidebarUserMenu from '@/components/molecules/SidebarUserMenu.vue';
 import type { ApiData } from '@/types/api';
@@ -21,9 +22,12 @@ const logoUrl = computed(() =>
   identity.value?.site?.logo ? `${API_URL}/assets/${identity.value.site.logo}` : null,
 );
 
+const { entities, load: loadEntities } = useEntities();
+
 onMounted(async () => {
   const { data } = await api.identity.get();
   if (data) identity.value = data;
+  await loadEntities();
 });
 
 async function handleLogout() {
@@ -31,7 +35,7 @@ async function handleLogout() {
   router.push('/login');
 }
 
-const navigationConfig: NavigationConfig = [
+const staticNavigation: NavigationConfig = [
   {
     title: '',
     items: [
@@ -120,6 +124,37 @@ const navigationConfig: NavigationConfig = [
     ],
   },
 ];
+
+// Les entités déclarées entrent dans la navigation avec le libellé et l'icône que le dev leur a
+// donnés. Rien n'est codé ici : la section n'apparaît que si l'installation en déclare, et n'y
+// figure que ce que l'utilisateur détient — la liste vient de `/content/entities/mine`.
+const DEFAULT_ENTITY_ICON =
+  'M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4';
+
+const entitiesSection = computed<NavSection[]>(() => {
+  if (entities.value.length === 0) return [];
+  return [
+    {
+      title: 'ENTITÉS',
+      items: entities.value.map((entity) => ({
+        name: entity.label ?? entity.name,
+        path: `/entites/${entity.name}`,
+        icon: entity.icon ?? DEFAULT_ENTITY_ICON,
+      })),
+    },
+  ];
+});
+
+// Les entités se rangent après le contenu, avant la configuration : ce sont du contenu, et la
+// configuration doit rester en bas.
+const navigationConfig = computed<NavigationConfig>(() => {
+  const configuration = staticNavigation.at(-1);
+  return [
+    ...staticNavigation.slice(0, -1),
+    ...entitiesSection.value,
+    ...(configuration ? [configuration] : []),
+  ];
+});
 
 const badgeCounts = ref<Record<string, number>>({
   outOfStock: 0,
