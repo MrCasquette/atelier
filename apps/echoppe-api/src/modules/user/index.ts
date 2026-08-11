@@ -3,7 +3,46 @@ import { Elysia, t } from 'elysia';
 import { buildListResponse, listResponse, parseListQuery } from '../../lib/pagination';
 import { badRequestResponse, successSchema, withCrudErrors } from '../../lib/response';
 import { getClientIp, logAudit } from '../audit/service';
-import { permissionGuard } from '../auth/rbac';
+import { type EchoppePrincipal, isFirstRankRoleKey, permissionGuard } from '../auth/rbac';
+
+// Toucher au premier rang est un acte du PROPRIÉTAIRE (ADR-0047, décision 4).
+//
+// Ce n'est pas une ressource — c'est une règle de LIGNE, que le modèle (ressource × action ×
+// `selfOnly`) ne sait pas exprimer. Elle vit donc ici, sur le précédent d'`isFirstRank` : « retirer
+// un droit est un acte de gouvernance, pas un acte de domaine ». Supprimer, désactiver ou dégrader
+// un utilisateur du rang est le même acte.
+//
+// Conférer le rang en fait partie, et ce n'est pas une précaution de plus : sans elle la garde ne
+// garde rien. Un administrateur créerait un second administrateur avec un mot de passe qu'il
+// choisit, s'y connecterait, et supprimerait par procuration celui qu'il ne peut pas toucher
+// lui-même.
+
+/** L'appelant est-il le propriétaire de l'installation ? Lui seul touche au rang. */
+const isTheOwner = (principal: EchoppePrincipal): boolean => principal.authority.kind === 'total';
+
+/** Cet utilisateur appartient-il au premier rang — par le drapeau, ou par la clé de son rôle ? */
+async function targetIsFirstRank(userId: string): Promise<boolean> {
+  const [found] = await db
+    .select({ isOwner: user.isOwner, roleKey: role.key })
+    .from(user)
+    .innerJoin(role, eq(user.role, role.id))
+    .where(eq(user.id, userId));
+
+  return found ? found.isOwner || isFirstRankRoleKey(found.roleKey) : false;
+}
+
+/** Ce rôle, s'il était attribué, conférerait-il le premier rang ? */
+async function roleConfersRank(roleId: string): Promise<boolean> {
+  const [found] = await db.select({ key: role.key }).from(role).where(eq(role.id, roleId));
+  return found ? isFirstRankRoleKey(found.key) : false;
+}
+
+const RANK_REFUSAL = {
+  message: 'Toucher au premier rang est réservé au propriétaire de l’installation',
+};
+const CONFER_REFUSAL = {
+  message: 'Conférer le premier rang est réservé au propriétaire de l’installation',
+};
 
 // Query schemas
 const userSearchQuery = t.Object({
@@ -206,7 +245,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
   // POST /users - Créer utilisateur
   .post(
     '/',
-    async ({ body, status, currentUser, request }) => {
+    async ({ body, status, currentUser, request, principal }) => {
       // Check if email already exists
       const [existing] = await db
         .select({ id: user.id })
@@ -225,6 +264,10 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
 
       if (!roleExists) {
         return status(400, { message: 'Rôle introuvable' });
+      }
+
+      if (!isTheOwner(principal) && (await roleConfersRank(body.role))) {
+        return status(403, CONFER_REFUSAL);
       }
 
       // Hash password
@@ -268,7 +311,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
   // PATCH /users/:id - Modifier utilisateur
   .patch(
     '/:id',
-    async ({ params, body, status, currentUser, request }) => {
+    async ({ params, body, status, currentUser, request, principal }) => {
       const [existing] = await db
         .select({ id: user.id, isOwner: user.isOwner })
         .from(user)
@@ -281,6 +324,13 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
       // Cannot modify owner (except owner themselves)
       if (existing.isOwner && currentUser?.id !== params.id) {
         return status(403, { message: 'Impossible de modifier le propriétaire' });
+      }
+
+      // Modifier quelqu'un du rang : réservé au propriétaire. Se modifier SOI reste permis — un
+      // administrateur doit pouvoir changer son propre nom ou son mot de passe.
+      const isSelf = currentUser?.id === params.id;
+      if (!isTheOwner(principal) && !isSelf && (await targetIsFirstRank(params.id))) {
+        return status(403, RANK_REFUSAL);
       }
 
       // Check if email already exists (if changing)
@@ -304,6 +354,10 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
 
         if (!roleExists) {
           return status(400, { message: 'Rôle introuvable' });
+        }
+
+        if (!isTheOwner(principal) && (await roleConfersRank(body.role))) {
+          return status(403, CONFER_REFUSAL);
         }
       }
 
@@ -345,7 +399,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
   // PATCH /users/:id/status - Activer/Désactiver
   .patch(
     '/:id/status',
-    async ({ params, body, status, currentUser }) => {
+    async ({ params, body, status, currentUser, principal }) => {
       const [existing] = await db
         .select({ id: user.id, isOwner: user.isOwner })
         .from(user)
@@ -358,6 +412,12 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
       // Cannot deactivate owner
       if (existing.isOwner) {
         return status(403, { message: 'Impossible de désactiver le propriétaire' });
+      }
+
+      // Désactiver produit le même effet qu'une suppression : la garde porte sur l'ACTE, pas sur
+      // le verbe HTTP.
+      if (!isTheOwner(principal) && (await targetIsFirstRank(params.id))) {
+        return status(403, RANK_REFUSAL);
       }
 
       // Cannot deactivate yourself
@@ -388,7 +448,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
   // DELETE /users/:id - Supprimer utilisateur
   .delete(
     '/:id',
-    async ({ params, status, currentUser, request }) => {
+    async ({ params, status, currentUser, request, principal }) => {
       const [existing] = await db
         .select({ id: user.id, isOwner: user.isOwner })
         .from(user)
@@ -401,6 +461,10 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
       // Cannot delete owner
       if (existing.isOwner) {
         return status(403, { message: 'Impossible de supprimer le propriétaire' });
+      }
+
+      if (!isTheOwner(principal) && (await targetIsFirstRank(params.id))) {
+        return status(403, RANK_REFUSAL);
       }
 
       // Cannot delete yourself

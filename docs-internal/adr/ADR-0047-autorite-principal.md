@@ -107,6 +107,10 @@ acte de domaine ». Supprimer un utilisateur du premier rang est le même acte.
 Le propriétaire reste ce que son nom dit : un Administrateur ne peut pas le supprimer, ni supprimer
 un autre Administrateur.
 
+Et **conférer** le rang en fait partie — sans quoi la règle ne garde rien : il suffirait de créer un
+pair avec un mot de passe qu'on choisit, de s'y connecter, et de supprimer par procuration. La garde
+porte donc sur l'ACTE, pas sur le verbe HTTP : supprimer, désactiver, dégrader, promouvoir.
+
 ### 5. La propriété est un DRAPEAU, pas un rôle
 
 > *Réécrite le 2026-08-11 — voir « Amendement » en fin de document. La rédaction initiale livrait
@@ -150,10 +154,13 @@ transmet, et sort réellement.
 
 ### Deux conséquences assumées
 
-**Un Administrateur peut recopier son propre pouvoir.** Détenant `permission`, il peut fabriquer un
-rôle sur mesure portant `permission:update` — donc un second administrateur. Ce n'est pas une
-élévation : il l'a déjà, et c'est le sens ordinaire de « l'admin gère le RBAC ». Mais il n'y a plus
-de plafond au nombre d'administrateurs de fait, et seul le propriétaire peut défaire ça.
+**Un Administrateur peut recopier ses DROITS, jamais son RANG.** Détenant `permission`, il fabrique
+un rôle sur mesure portant les mêmes droits que lui, `permission:update` compris. Ce n'est pas une
+élévation : il les a déjà, et c'est le sens ordinaire de « l'admin gère le RBAC ».
+
+Mais ce rôle n'est **pas** du premier rang — `key` reste `null`, et le rang tient à `key`. Son
+porteur ne peut donc ni révoquer, ni toucher à un utilisateur du rang. La différence n'est pas
+cosmétique : voir la décision 4.
 
 **Un Administrateur peut retirer les droits non verrouillés du rôle `owner`.** Retirer est réservé
 au premier rang, dont il fait partie. La portée est faible : la puissance du propriétaire vient de
@@ -238,7 +245,14 @@ par un acte délibéré ; un rôle est une **description de fonction**, qu'on at
 | Transfert | route dédiée, réservée au propriétaire (décision 6). Le drapeau n'était dans aucun corps de requête : il n'était pas « sûr », il était bloqué |
 | Interface | « Propriétaire » devient un badge sur l'utilisateur, plus une ligne dans la liste des rôles |
 
-### Ce que ça ne change pas
+### Une correction, découverte en écrivant la décision 4
 
-Un Administrateur peut toujours créer un second Administrateur — la décision 2 l'assume déjà. C'est
-**latéral, pas ascendant** : il ne fabrique rien qu'il ne soit déjà.
+La première rédaction de cet amendement affirmait qu'un Administrateur pouvait toujours créer un
+second Administrateur — « latéral, pas ascendant ». **C'est faux, et ça vidait la décision 4 de son
+contenu** : il lui suffisait de créer ce second Administrateur avec un mot de passe qu'il choisit,
+de s'y connecter, et de supprimer par procuration celui qu'il ne peut pas toucher lui-même.
+
+**Conférer le premier rang est donc un acte du propriétaire**, au même titre qu'y toucher — à la
+création d'un utilisateur comme au changement de son rôle. Ce qui reste vrai, et suffit à l'usage
+courant : un Administrateur crée autant de rôles sur mesure qu'il veut, avec ses propres droits.
+Ce qu'il ne peut pas faire, c'est fabriquer un pair.

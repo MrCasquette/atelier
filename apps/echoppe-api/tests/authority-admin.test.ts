@@ -279,3 +279,109 @@ describe('la migration qui supprime le rôle `owner`', () => {
     expect(await db.select().from(role).where(eq(role.key, 'owner'))).toEqual([]);
   });
 });
+
+describe('toucher au premier rang est un acte du propriétaire', () => {
+  let secondAdminId: string;
+  let ordinaryId: string;
+
+  beforeAll(async () => {
+    // Un second administrateur, créé par le PROPRIÉTAIRE — c'est le seul chemin désormais.
+    const created = await req('POST', '/users', {
+      cookie: ownerCookie,
+      body: {
+        email: `second-admin-${crypto.randomUUID().slice(0, 8)}@echoppe.test`,
+        password: 'motdepasse',
+        firstName: 'Second',
+        lastName: 'Admin',
+        role: administratorRoleId,
+      },
+    });
+    secondAdminId = ((await created.json()) as { id: string }).id;
+
+    const [ordinaryRole] = await db
+      .insert(role)
+      .values({ name: `Ordinaire ${crypto.randomUUID().slice(0, 8)}`, scope: 'admin' })
+      .returning();
+    const ordinary = await req('POST', '/users', {
+      cookie: adminCookie,
+      body: {
+        email: `ordinaire-user-${crypto.randomUUID().slice(0, 8)}@echoppe.test`,
+        password: 'motdepasse',
+        firstName: 'Utilisateur',
+        lastName: 'Ordinaire',
+        role: ordinaryRole.id,
+      },
+    });
+    ordinaryId = ((await ordinary.json()) as { id: string }).id;
+  });
+
+  it('refuse à un administrateur d’en supprimer un autre', async () => {
+    const res = await req('DELETE', `/users/${secondAdminId}`, { cookie: adminCookie });
+
+    expect(res.status).toBe(403);
+    expect(((await res.json()) as { message: string }).message).toContain('premier rang');
+  });
+
+  it('refuse aussi de le DÉSACTIVER — la garde porte sur l’acte, pas sur le verbe', async () => {
+    // Désactiver produit le même effet qu'une suppression : plus personne derrière ce compte.
+    const res = await req('PATCH', `/users/${secondAdminId}/status`, {
+      cookie: adminCookie,
+      body: { isActive: false },
+    });
+
+    expect(res.status).toBe(403);
+  });
+
+  it('refuse de le dégrader en changeant son rôle', async () => {
+    const res = await req('PATCH', `/users/${secondAdminId}`, {
+      cookie: adminCookie,
+      body: { firstName: 'Dégradé' },
+    });
+
+    expect(res.status).toBe(403);
+  });
+
+  it('refuse de CONFÉRER le rang — sans quoi la garde ne garde rien', async () => {
+    // Sans cette borne, un administrateur en créerait un second avec un mot de passe qu'il choisit,
+    // s'y connecterait, et supprimerait par procuration celui qu'il ne peut pas toucher.
+    const res = await req('POST', '/users', {
+      cookie: adminCookie,
+      body: {
+        email: `procuration-${crypto.randomUUID().slice(0, 8)}@echoppe.test`,
+        password: 'motdepasse',
+        firstName: 'Par',
+        lastName: 'Procuration',
+        role: administratorRoleId,
+      },
+    });
+
+    expect(res.status).toBe(403);
+    expect(((await res.json()) as { message: string }).message).toContain('Conférer');
+  });
+
+  it('refuse de promouvoir un utilisateur ordinaire au rang', async () => {
+    const res = await req('PATCH', `/users/${ordinaryId}`, {
+      cookie: adminCookie,
+      body: { role: administratorRoleId },
+    });
+
+    expect(res.status).toBe(403);
+  });
+
+  it('laisse un administrateur gérer les utilisateurs ORDINAIRES', async () => {
+    const renamed = await req('PATCH', `/users/${ordinaryId}`, {
+      cookie: adminCookie,
+      body: { firstName: 'Renommé' },
+    });
+    expect(renamed.status).toBe(200);
+
+    const removed = await req('DELETE', `/users/${ordinaryId}`, { cookie: adminCookie });
+    expect(removed.status).toBe(200);
+  });
+
+  it('laisse le propriétaire faire ce qu’un administrateur ne peut pas', async () => {
+    const res = await req('DELETE', `/users/${secondAdminId}`, { cookie: ownerCookie });
+
+    expect(res.status).toBe(200);
+  });
+});

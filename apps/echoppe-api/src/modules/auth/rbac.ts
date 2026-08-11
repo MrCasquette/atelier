@@ -48,6 +48,18 @@ const ANONYMOUS: EchoppeIdentity = {
 const FIRST_RANK_ROLE_KEYS = new Set(['admin']);
 
 /**
+ * Ce rôle confère-t-il le premier rang ?
+ *
+ * Le rang ne se déduit PAS des permissions : un rôle sur mesure peut porter exactement les mêmes
+ * droits qu'un administrateur sans être du premier rang, et c'est voulu — révoquer, et toucher à un
+ * utilisateur du rang, restent hors de sa portée (ADR-0047, décision 4). Le rang tient à `key`,
+ * immuable et portée par le code.
+ */
+export function isFirstRankRoleKey(key: string | null): boolean {
+  return key !== null && FIRST_RANK_ROLE_KEYS.has(key);
+}
+
+/**
  * Ce que l'Administrateur NE détient pas (ADR-0047).
  *
  * Trois listes courtes contre une trentaine de lignes de seed — et surtout, **ce qui s'énumère est
