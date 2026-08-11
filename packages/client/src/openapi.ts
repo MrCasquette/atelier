@@ -1121,6 +1121,7 @@ export interface components {
                         id: string;
                         slug: string;
                         name: string;
+                        url?: (string | null) | null;
                     } | null) | null;
                     newTab?: boolean;
                 };
@@ -1780,6 +1781,7 @@ export interface components {
                     id: string;
                     slug: string;
                     name: string;
+                    url?: (string | null) | null;
                 } | null) | null;
                 newTab?: boolean;
             };

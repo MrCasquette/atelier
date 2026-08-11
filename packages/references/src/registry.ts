@@ -20,20 +20,34 @@ export type EntityProjection = {
   id: string;
   slug: string;
   name: string;
+  /**
+   * URL déjà calculée, pour les modes que la déclaration seule ne suffit pas à résoudre (ADR-0046).
+   *
+   * `route` n'en a pas besoin — le slug suffit. `href` et `anchor`, si : le premier lit un champ de
+   * la ligne, le second joint l'entité parente. C'est la CIBLE qui la calcule, dans `project()` /
+   * `search()`, parce que c'est elle qui sait interroger la base et que le socle n'a pas à savoir
+   * joindre une table parente.
+   */
+  url?: string | null;
 };
 
 /**
- * Comment une cible produit son lien. Les deux premiers modes ne sont pas réductibles l'un à
- * l'autre : un article EST une page, un lien de réseau social PORTE une URL.
+ * Comment une cible produit son lien. Les trois modes ne sont pas réductibles les uns aux autres :
+ * un article EST une page, un lien de réseau social PORTE une URL, une section de page n'a de lien
+ * que par sa parente.
+ *
+ * `href` et `anchor` nomment un CHAMP de l'entité (ADR-0046) — ce qu'ADR-0032 laissait ambigu.
+ * Nommer un concept obligerait à deviner par où l'atteindre, et une entité peut parfaitement
+ * référencer deux pages.
  */
 export type LinkMode =
   /** Route interne, avec `:slug` substitué à la résolution. Le cas courant. */
   | { mode: 'route'; route: string }
-  /** L'entité contient l'URL dans un de ses champs — elle n'est pas une page. */
+  /** Le champ nommé porte l'URL, en clair — l'entité n'est pas une page. */
   | { mode: 'href'; field: string }
   /**
-   * Ancre : l'entité n'a pas de route à elle, son lien se dérive de sa page parente
-   * (`/a-propos#tarifs`). Seul mode asymétrique.
+   * Ancre : l'entité n'a pas de route à elle, son lien se dérive de son entité parente
+   * (`/a-propos#tarifs`). `parent` nomme le champ `ref` qui la désigne. Seul mode asymétrique.
    */
   | { mode: 'anchor'; parent: string };
 
@@ -77,6 +91,15 @@ export type ReferenceTarget = {
 
 export interface ReferenceRegistry {
   register(target: ReferenceTarget): void;
+  /**
+   * Retire une cible. Rend `true` si elle était inscrite.
+   *
+   * N'existait pas : une inscription venait toujours d'un import, donc était définitive. Les
+   * entités changent ça — elles s'inscrivent depuis le journal, et un push peut en retirer une
+   * (ADR-0046). Le retrait est donc borné à ce que la synchronisation gère, jamais un moyen de
+   * défaire ce que le produit a inscrit au démarrage.
+   */
+  unregister(name: string): boolean;
   get(name: string): ReferenceTarget | undefined;
   /** Les cibles inscrites, dans l'ordre d'inscription — c'est celui du sélecteur. */
   list(): ReferenceTarget[];
@@ -93,6 +116,10 @@ export function createReferenceRegistry(): ReferenceRegistry {
         throw new Error(`Cible référençable déjà inscrite : ${target.name}`);
       }
       targets.set(target.name, target);
+    },
+
+    unregister(name) {
+      return targets.delete(name);
     },
 
     get(name) {
@@ -122,8 +149,13 @@ export function createReferenceRegistry(): ReferenceRegistry {
  * existe encore dans le front du dev. Un lien cassé est un 404, pas une corruption.
  */
 export function linkUrl(target: ReferenceTarget, entity: EntityProjection): string | null {
-  if (target.link.mode !== 'route') return null;
-  return target.link.route.replace(':slug', entity.slug);
+  // `route` se dérive de la seule déclaration : c'est ce qui en fait le cas courant.
+  if (target.link.mode === 'route') return target.link.route.replace(':slug', entity.slug);
+
+  // `href` et `anchor` demandent de la DONNÉE — la valeur d'un champ, le slug d'un parent. La cible
+  // l'a calculée en projetant ; ici, on ne fait que la rendre. `null` ne dit plus « mode non
+  // implémenté » mais « cette occurrence n'a pas d'URL » : champ vide, parent supprimé.
+  return entity.url ?? null;
 }
 
 /**

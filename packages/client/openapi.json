@@ -7542,6 +7542,17 @@
                                 },
                                 "name": {
                                   "type": "string"
+                                },
+                                "url": {
+                                  "nullable": true,
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
                                 }
                               }
                             },
@@ -10123,6 +10134,17 @@
                           },
                           "name": {
                             "type": "string"
+                          },
+                          "url": {
+                            "nullable": true,
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         }
                       },

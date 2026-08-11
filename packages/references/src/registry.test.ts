@@ -44,13 +44,47 @@ describe('registre de cibles référençables', () => {
     );
   });
 
-  test("ne produit pas d'URL pour les modes qui ne se dérivent pas d'une projection seule", () => {
+  // `href` et `anchor` (ADR-0046) : la cible a calculé l'URL en projetant, `linkUrl` la rend. Le
+  // socle n'a pas à savoir lire un champ ni joindre une table parente — `project()` est déjà
+  // l'endroit où l'on interroge la base.
+  test("rend l'URL que la cible a projetée, pour les modes qui demandent de la donnée", () => {
     const social = target('social', { mode: 'href', field: 'url' });
     const anchor = target('section', { mode: 'anchor', parent: 'page' });
-    const entity = { id: 'x', slug: 's', name: 'n' };
 
-    expect(linkUrl(social, entity)).toBeNull();
-    expect(linkUrl(anchor, entity)).toBeNull();
+    expect(linkUrl(social, { id: 'x', slug: 's', name: 'n', url: 'https://exemple.fr' })).toBe(
+      'https://exemple.fr',
+    );
+    expect(linkUrl(anchor, { id: 'x', slug: 'tarifs', name: 'n', url: '/a-propos#tarifs' })).toBe(
+      '/a-propos#tarifs',
+    );
+  });
+
+  test("rend null quand l'occurrence n'a pas d'URL — champ vide, parent supprimé", () => {
+    // `null` ne dit plus « mode non implémenté » : il dit que CETTE occurrence n'est pas liable.
+    const social = target('social', { mode: 'href', field: 'url' });
+
+    expect(linkUrl(social, { id: 'x', slug: 's', name: 'n' })).toBeNull();
+    expect(linkUrl(social, { id: 'x', slug: 's', name: 'n', url: null })).toBeNull();
+  });
+
+  test("ignore l'URL projetée en mode route : la déclaration suffit", () => {
+    // Une cible `route` n'a aucune raison d'en calculer une, et si elle le faisait, c'est la route
+    // déclarée qui fait foi — sans quoi deux sources diraient l'URL d'une même entité.
+    const product = target('product', route('/produits/:slug'));
+
+    expect(linkUrl(product, { id: 'x', slug: 'mug', name: 'Mug', url: '/ailleurs' })).toBe(
+      '/produits/mug',
+    );
+  });
+
+  test('retire une cible inscrite, et le dit', () => {
+    // Les entités s'inscrivent depuis le journal : un push peut en retirer une (ADR-0046).
+    const registry = createReferenceRegistry();
+    registry.register(target('entity:article', route('/blog/:slug')));
+
+    expect(registry.unregister('entity:article')).toBe(true);
+    expect(registry.has('entity:article')).toBe(false);
+    expect(registry.unregister('entity:article')).toBe(false);
   });
 });
 
