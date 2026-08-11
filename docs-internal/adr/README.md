@@ -54,7 +54,7 @@ Portée : socle | <package> | échoppe | prisme
 | [0014](./ADR-0014-cles-api-machine.md) | Authentification machine (clés d'API) | accepté | [api-keys.md](../reference/api-keys.md) |
 | [0037](./ADR-0037-principaux-surfaces.md) | Principaux, surfaces et sessions : un registre plutôt qu'une union fermée | accepté | — |
 | [0038](./ADR-0038-ressources-ouvertes-delegation.md) | Ressources ouvertes, délégation des droits, rôles système | accepté · amendé par 0047 | — |
-| [0047](./ADR-0047-autorite-principal.md) | Autorité d'un principal : un prédicat unique, l'administrateur défini par soustraction | accepté | — |
+| [0047](./ADR-0047-autorite-principal.md) | Autorité d'un principal : un prédicat unique, l'administrateur par soustraction, la propriété comme drapeau | accepté · amendé le 2026-08-11 | — |
 
 ## Index — `content` · Page-builder, entités, texte riche
 

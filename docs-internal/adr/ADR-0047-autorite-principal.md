@@ -107,13 +107,30 @@ acte de domaine ». Supprimer un utilisateur du premier rang est le même acte.
 Le propriétaire reste ce que son nom dit : un Administrateur ne peut pas le supprimer, ni supprimer
 un autre Administrateur.
 
-### 5. Le framework ne livre que les rôles du premier rang
+### 5. La propriété est un DRAPEAU, pas un rôle
 
-`owner` et `admin`. **Aucun rédacteur livré** — qui a un besoin précis crée son rôle, et la
-délégation le borne.
+> *Réécrite le 2026-08-11 — voir « Amendement » en fin de document. La rédaction initiale livrait
+> `owner` et `admin` comme deux rôles du premier rang.*
+
+Le framework livre **un seul** rôle d'administration : `admin`. Le propriétaire, c'est
+`user.isOwner` — et rien d'autre.
 
 `public` (et `customer`, côté Échoppe seulement — c'est du vocabulaire commerce) ne sont pas des
 rôles d'administration : ce sont les principaux non authentifié et client. Ils restent.
+
+**Aucun rédacteur livré** — qui a un besoin précis crée son rôle, et la délégation le borne.
+
+### 6. La propriété se transfère, dans un seul sens à la fois
+
+Seul le propriétaire transfère sa propriété. L'acte est **atomique** : le drapeau passe d'une
+personne à l'autre, et l'ancien propriétaire redevient un Administrateur ordinaire.
+
+**Il ne peut pas la reprendre.** Seul le nouveau propriétaire peut la lui rendre. Un transfert qu'on
+pourrait annuler unilatéralement ne serait pas un transfert, ce serait un prêt — et le sortant
+garderait de fait l'autorité qu'il est censé avoir cédée.
+
+C'est ce qui permet à une installation de **survivre à une personne** : celui qui quitte l'entité
+transmet, et sort réellement.
 
 ## Conséquences
 
@@ -174,3 +191,54 @@ n'hérite de rien.
 
 **Garder l'énumération et l'étoffer.** C'est le statu quo, et il est faux par construction : une
 liste écrite aujourd'hui ne peut pas contenir ce qui existera demain.
+
+---
+
+## Amendement du 2026-08-11 — le drapeau est la vérité
+
+La rédaction initiale gardait deux représentations du propriétaire : le rôle système `owner` et le
+drapeau `user.isOwner`. Constaté juste après : **les permissions du rôle `owner` ne s'appliquent
+jamais au vrai propriétaire** — son autorité `total` court-circuite avant qu'on les lise. Elles ne
+peuvent donc prendre effet que sur quelqu'un qui n'est *pas* le propriétaire. Un rôle dont les
+droits n'existent que pour qui ne devrait pas l'avoir.
+
+Ce n'était pas seulement inélégant. La décision 2 venait de donner `user` à l'Administrateur, et
+`POST /users` accepte un rôle arbitraire avec un mot de passe choisi par l'appelant : un
+Administrateur pouvait créer un compte portant le rôle `owner`, s'y connecter, et récupérer ses
+lignes — dont `payment_config` et `communication_config` en lecture et en écriture. Précisément ce
+que la décision 2 lui réserve. Le drapeau `locked` n'y changeait rien : il empêche de modifier ces
+lignes, pas de les recevoir en changeant de peau.
+
+### Pourquoi le drapeau plutôt que le rôle
+
+L'alternative était de faire du **rôle** la vérité (`key === 'owner'` → `total`). Écartée :
+
+- « Qui est propriétaire » deviendrait une donnée assignable par une route ordinaire. L'élévation
+  ci-dessus ne serait plus un défaut à corriger, elle serait la **structure**.
+- « Un seul propriétaire » deviendrait inapplicable : un rôle se porte à plusieurs, par nature.
+- Et on n'y gagnerait même pas « les droits au même endroit » : l'autorité du rôle serait `total`,
+  donc ses lignes ne décideraient plus rien — exactement la situation de `admin` depuis la
+  décision 2.
+
+Le drapeau, lui, rend l'invariant **gratuit** : personne d'autre ne peut porter `total`, donc les
+ressources réservées ne sont atteignables par aucun chemin. Pas « protégées par une garde » —
+inatteignables. La décision ne bouche pas un trou, elle supprime la classe de trous.
+
+Et elle remet chaque chose à sa place : la propriété est une **propriété d'une personne**, transmise
+par un acte délibéré ; un rôle est une **description de fonction**, qu'on attribue en série.
+
+### Ce que ça change
+
+| | |
+|---|---|
+| Rôles livrés | `admin` seul (plus `public`, et `customer` côté Échoppe) |
+| Rôle `owner` | supprimé — migration : ses porteurs passent à `admin` |
+| `init-admin` | crée le premier compte en `admin` + `isOwner` |
+| « Un seul » | index unique partiel sur `is_owner` — le commentaire du schéma le promettait, rien ne le tenait |
+| Transfert | route dédiée, réservée au propriétaire (décision 6). Le drapeau n'était dans aucun corps de requête : il n'était pas « sûr », il était bloqué |
+| Interface | « Propriétaire » devient un badge sur l'utilisateur, plus une ligne dans la liste des rôles |
+
+### Ce que ça ne change pas
+
+Un Administrateur peut toujours créer un second Administrateur — la décision 2 l'assume déjà. C'est
+**latéral, pas ascendant** : il ne fabrique rien qu'il ne soit déjà.
