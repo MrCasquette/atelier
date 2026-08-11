@@ -1,6 +1,6 @@
 # Design — Signal low-stock public (B10)
 
-Détail de la tâche **Signal low-stock public** du [backlog](../../BACKLOG.md). Décision **pré-tranchée**,
+Détail de la tâche **Signal low-stock public** du [backlog Échoppe](../backlog/echoppe.md). Décision **pré-tranchée**,
 à confirmer à la reprise ; impl simple une fois confirmée.
 
 ## Contrainte

@@ -1,4 +1,4 @@
-import type { PermissionSet, Principal } from './principal';
+import type { Authority, Principal } from './principal';
 
 // Les RÈGLES de droits : qui peut quoi, qui peut déléguer quoi. Pures — aucune base, aucun
 // transport. La lecture des droits en base et son cache vivent dans `permission-cache.ts` : les
@@ -9,32 +9,51 @@ import type { PermissionSet, Principal } from './principal';
 
 export type Action = 'create' | 'read' | 'update' | 'delete';
 
-// `resource` est une chaîne et non une union fermée : l'espace des ressources s'ouvre aux entités
-// déclarées (ADR-0038). C'est le produit qui garde une union à SA frontière — `permissionGuard`
-// prend un `Resource` — pendant que le socle raisonne sur des noms.
-export function hasPermission(
-  permissions: Map<string, PermissionSet>,
-  resource: string,
-  action: Action,
-): boolean {
-  const perm = permissions.get(resource);
-  if (!perm) return false;
+const FLAG_OF: Record<Action, 'canCreate' | 'canRead' | 'canUpdate' | 'canDelete'> = {
+  create: 'canCreate',
+  read: 'canRead',
+  update: 'canUpdate',
+  delete: 'canDelete',
+};
 
-  switch (action) {
-    case 'create':
-      return perm.canCreate;
-    case 'read':
-      return perm.canRead;
-    case 'update':
-      return perm.canUpdate;
-    case 'delete':
-      return perm.canDelete;
+/**
+ * **Le** prédicat d'autorité (ADR-0047) : ce principal détient-il cette action sur cette ressource ?
+ *
+ * Posé aux deux endroits qui se le demandaient séparément — le garde (« as-tu le droit ? ») et la
+ * délégation (« peux-tu le donner ? »). Ils lisaient tous les deux la carte de droits directement,
+ * et court-circuitaient le propriétaire chacun de leur côté.
+ *
+ * `resource` est une chaîne et non une union fermée : l'espace des ressources s'ouvre aux entités
+ * déclarées (ADR-0038). C'est le produit qui garde une union à SA frontière — `permissionGuard`
+ * prend un `Resource` — pendant que le socle raisonne sur des noms.
+ */
+export function holds(authority: Authority, resource: string, action: Action): boolean {
+  switch (authority.kind) {
+    case 'total':
+      return true;
+    case 'except':
+      if (authority.reserved.has(resource)) return false;
+      if (authority.readOnly.has(resource)) return action === 'read';
+      return true;
+    case 'granted':
+      return authority.permissions.get(resource)?.[FLAG_OF[action]] ?? false;
   }
 }
 
-export function isSelfOnly(permissions: Map<string, PermissionSet>, resource: string): boolean {
-  const perm = permissions.get(resource);
-  return perm?.selfOnly ?? false;
+/**
+ * Ce droit est-il borné aux lignes dont on est le sujet ?
+ *
+ * Jamais pour `total` : le propriétaire n'est borné par rien.
+ */
+export function isSelfOnly(authority: Authority, resource: string): boolean {
+  switch (authority.kind) {
+    case 'total':
+      return false;
+    case 'except':
+      return authority.ownRowsOnly.has(resource);
+    case 'granted':
+      return authority.permissions.get(resource)?.selfOnly ?? false;
+  }
 }
 
 // Un droit tel qu'on demande à l'accorder à un rôle.
@@ -81,13 +100,13 @@ export function undelegatableGrants(
   principal: Principal<unknown>,
   grants: PermissionGrant[],
 ): string[] {
-  // Le propriétaire de l'installation court-circuite, comme partout ailleurs.
-  if (principal.bypass) return [];
+  // Le propriétaire court-circuite ICI, et pour une seule raison : la règle de rang ci-dessous, qui
+  // refuse une ressource même à qui la détient. `holds` suffirait pour tout le reste.
+  if (principal.authority.kind === 'total') return [];
 
   const refused: string[] = [];
 
   for (const grant of grants) {
-    const held = principal.permissions.get(grant.resource);
     const grantsAnything = GRANTABLE_ACTIONS.some(([, flag]) => grant[flag]);
 
     // Une ressource de rang ne se transmet pas, même par qui la détient — sans quoi « tient au
@@ -104,7 +123,7 @@ export function undelegatableGrants(
     }
 
     for (const [action, flag] of GRANTABLE_ACTIONS) {
-      if (grant[flag] && !held?.[flag]) {
+      if (grant[flag] && !holds(principal.authority, grant.resource, action)) {
         refused.push(`${grant.resource}:${action}`);
       }
     }
@@ -112,7 +131,11 @@ export function undelegatableGrants(
     // `selfOnly` borne un droit aux lignes dont on est le sujet. L'accorder SANS cette borne quand
     // on ne le détient qu'avec, c'est accorder plus large que ce qu'on a — même interdit, autre
     // dimension. L'ADR ne l'explicitait pas ; c'est la lecture fidèle de la règle.
-    if (grantsAnything && held?.selfOnly && grant.selfOnly !== true) {
+    if (
+      grantsAnything &&
+      isSelfOnly(principal.authority, grant.resource) &&
+      grant.selfOnly !== true
+    ) {
       refused.push(`${grant.resource}:selfOnly`);
     }
   }
@@ -122,7 +145,7 @@ export function undelegatableGrants(
 
 // Ce qu'un scope de clé d'API recouvre. `write` est COMPOSITE, façon GitHub : create + update +
 // delete. Le détail granulaire reste au RBAC des rôles humains ; les clés machine restent simples.
-const SCOPE_WRITE_FLAGS = ['canCreate', 'canUpdate', 'canDelete'] as const;
+const SCOPE_WRITE_ACTIONS = ['create', 'update', 'delete'] as const satisfies readonly Action[];
 
 /**
  * Une clé d'API est une DÉLÉGATION D'AUTORITÉ : la règle d'`undelegatableGrants` s'y applique
@@ -136,7 +159,7 @@ const SCOPE_WRITE_FLAGS = ['canCreate', 'canUpdate', 'canDelete'] as const;
  */
 export function undelegatableScopes(principal: Principal<unknown>, scopes: string[]): string[] {
   // Le propriétaire de l'installation court-circuite, comme partout ailleurs.
-  if (principal.bypass) return [];
+  if (principal.authority.kind === 'total') return [];
 
   const refused: string[] = [];
 
@@ -145,15 +168,11 @@ export function undelegatableScopes(principal: Principal<unknown>, scopes: strin
     const separator = scope.indexOf(':');
     const action = scope.slice(0, separator);
     const resource = scope.slice(separator + 1);
-    const held = principal.permissions.get(resource);
-
-    if (!held) {
-      refused.push(scope);
-      continue;
-    }
 
     const covered =
-      action === 'read' ? held.canRead : SCOPE_WRITE_FLAGS.every((flag) => held[flag]);
+      action === 'read'
+        ? holds(principal.authority, resource, 'read')
+        : SCOPE_WRITE_ACTIONS.every((write) => holds(principal.authority, resource, write));
     if (!covered) {
       refused.push(scope);
       continue;
@@ -163,7 +182,7 @@ export function undelegatableScopes(principal: Principal<unknown>, scopes: strin
     // (`hasSubject: false`), donc elle ne PEUT PAS porter cette borne : lui déléguer un droit qu'on
     // ne détient que borné le rendrait illimité entre ses mains. Refusé, faute de pouvoir le
     // restreindre.
-    if (held.selfOnly) {
+    if (isSelfOnly(principal.authority, resource)) {
       refused.push(scope);
     }
   }

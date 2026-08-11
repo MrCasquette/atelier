@@ -1,6 +1,6 @@
 # Design — Facettes catalogue (endpoints scopés)
 
-Détail de la tâche **Facettes catalogue** du [backlog](../../BACKLOG.md). Note de travail (pas encore
+Détail de la tâche **Facettes catalogue** du [backlog Échoppe](../backlog/echoppe.md). Note de travail (pas encore
 une décision actée : pas d'ADR tant que le périmètre V1 n'est pas tranché).
 
 ## État

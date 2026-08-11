@@ -4,7 +4,8 @@ import {
   getPermissionsForRole,
   getPermissionsForRoleKey,
   getSessionFromToken,
-  hasPermission,
+  granted,
+  holds,
   isSelfOnly,
   type PermissionSet,
   type Principal,
@@ -53,10 +54,9 @@ principals.register({
     if (!apiKeyPrincipal) return null;
     return {
       type: 'apikey',
-      permissions: apiKeyPrincipal.permissions,
-      // Jamais de bypass owner : ce n'est pas un humain. Et pas de « soi » à filtrer — les
+      // Jamais d'autorité totale : ce n'est pas un humain. Et pas de « soi » à filtrer — les
       // permissions viennent des scopes de la clé, pas d'un compte.
-      bypass: false,
+      authority: granted(apiKeyPrincipal.permissions),
       privileged: true,
       hasSubject: false,
       identity: ANONYMOUS,
@@ -78,8 +78,9 @@ principals.register({
 
     return {
       type: 'admin',
-      permissions: await getPermissionsForRole(session.currentRole.id),
-      bypass: session.currentUser.isOwner,
+      authority: session.currentUser.isOwner
+        ? { kind: 'total' }
+        : granted(await getPermissionsForRole(session.currentRole.id)),
       privileged: true,
       hasSubject: true,
       identity: {
@@ -102,8 +103,7 @@ principals.register({
 
     return {
       type: 'customer',
-      permissions: await getPermissionsForRoleKey('customer'),
-      bypass: false,
+      authority: granted(await getPermissionsForRoleKey('customer')),
       privileged: false,
       hasSubject: true,
       identity: {
@@ -120,8 +120,7 @@ principals.registerFallback({
   async resolve() {
     return {
       type: 'public',
-      permissions: await getPermissionsForRoleKey('public'),
-      bypass: false,
+      authority: granted(await getPermissionsForRoleKey('public')),
       privileged: false,
       hasSubject: false,
       identity: ANONYMOUS,
@@ -151,7 +150,7 @@ const FIRST_RANK_ROLE_KEYS = new Set(['admin']);
  */
 export function isFirstRank(principal: EchoppePrincipal): boolean {
   // Propriétaire de l'installation.
-  if (principal.bypass) return true;
+  if (principal.authority.kind === 'total') return true;
 
   const key = principal.identity.currentRole?.key;
   return key !== null && key !== undefined && FIRST_RANK_ROLE_KEYS.has(key);
@@ -184,20 +183,18 @@ export async function getPrincipal(
 
 /**
  * Vérifie si le principal a la permission demandée.
- * Le propriétaire bypasse toutes les vérifications.
+ *
+ * Aucune branche par type de principal, et depuis ADR-0047 aucune dérogation pour le propriétaire
+ * non plus : son autorité `total` répond `true` comme les autres répondent ce qu'elles savent.
  */
 export function checkPermission(
   principal: EchoppePrincipal,
   resource: ProtectedResource,
   action: Action,
 ): EchoppeIdentity & { allowed: boolean; selfOnly: boolean } {
-  if (principal.bypass) {
-    return { allowed: true, selfOnly: false, ...principal.identity };
-  }
-
   return {
-    allowed: hasPermission(principal.permissions, resource, action),
-    selfOnly: principal.hasSubject && isSelfOnly(principal.permissions, resource),
+    allowed: holds(principal.authority, resource, action),
+    selfOnly: principal.hasSubject && isSelfOnly(principal.authority, resource),
     ...principal.identity,
   };
 }

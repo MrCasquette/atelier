@@ -1,6 +1,6 @@
 # Design — Système de contenu léger (B9 + B11)
 
-Détail des tâches **Système de contenu léger** du [backlog](../../BACKLOG.md).
+Détail des tâches **Système de contenu léger** du [backlog shared](../backlog/shared.md).
 
 > **Superseded 2026-08-01.** Les questions ouvertes de ce document ont été tranchées dans le cadre de
 > **Prisme**, où ce système cesse d'être une fonctionnalité annexe pour devenir le produit :

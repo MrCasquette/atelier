@@ -1,12 +1,16 @@
 import { describe, expect, test } from 'bun:test';
-import { createPrincipalRegistry, type Principal, type PrincipalRequest } from './principal';
+import {
+  createPrincipalRegistry,
+  granted,
+  type Principal,
+  type PrincipalRequest,
+} from './principal';
 
 type Identity = { who: string | null };
 
 const principal = (type: string, who: string | null): Principal<Identity> => ({
   type,
-  permissions: new Map(),
-  bypass: false,
+  authority: granted(new Map()),
   privileged: false,
   hasSubject: false,
   identity: { who },
@@ -60,7 +64,10 @@ describe('registre de principaux', () => {
     const registry = createPrincipalRegistry<Identity>();
     registry.register({
       type: 'customer',
-      resolve: async () => ({ ...principal('customer', 'mallory'), bypass: true }),
+      resolve: async () => ({
+        ...principal('customer', 'mallory'),
+        authority: { kind: 'total' as const },
+      }),
     });
     registry.registerFallback({ type: 'public', resolve: async () => principal('public', null) });
 
@@ -72,18 +79,24 @@ describe('registre de principaux', () => {
     registry.register({
       type: 'admin',
       mayBypass: true,
-      resolve: async () => ({ ...principal('admin', 'alice'), bypass: true }),
+      resolve: async () => ({
+        ...principal('admin', 'alice'),
+        authority: { kind: 'total' as const },
+      }),
     });
     registry.registerFallback({ type: 'public', resolve: async () => principal('public', null) });
 
-    expect((await registry.resolve(anonymous)).bypass).toBe(true);
+    expect((await registry.resolve(anonymous)).authority.kind).toBe('total');
   });
 
   test('refuse un bypass venu du dernier recours', async () => {
     const registry = createPrincipalRegistry<Identity>();
     registry.registerFallback({
       type: 'public',
-      resolve: async () => ({ ...principal('public', null), bypass: true }),
+      resolve: async () => ({
+        ...principal('public', null),
+        authority: { kind: 'total' as const },
+      }),
     });
 
     expect(registry.resolve(anonymous)).rejects.toThrow(

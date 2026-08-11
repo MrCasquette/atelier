@@ -3,7 +3,7 @@
 > **Statut (2026-07-20) — largement implémenté.** Le **journal d'audit** est livré (route
 > `audit-logs.ts`, vue `AuditLogsView.vue`, helper `logAudit()` câblé dans les routes). Ce qui
 > **reste ouvert** = la **partie 3** (nettoyage matrice RBAC par scope admin/store, guards PATCH
-> explicites) → suivie dans [`BACKLOG.md`](../../BACKLOG.md). Document conservé comme détail de ce
+> explicites) → suivie dans le [backlog Échoppe](../backlog/echoppe.md). Document conservé comme détail de ce
 > reste et trace de conception.
 
 ## Contexte

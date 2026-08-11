@@ -7,7 +7,7 @@
 
 export {
   type Action,
-  hasPermission,
+  holds,
   isSelfOnly,
   type PermissionGrant,
   RANK_BOUND_RESOURCES,
@@ -22,8 +22,10 @@ export {
   invalidateSystemRoleCache,
 } from './permission-cache';
 export {
+  type Authority,
   createPrincipalRegistry,
   type FallbackPrincipalResolver,
+  granted,
   type PermissionSet,
   type Principal,
   type PrincipalRegistry,

@@ -134,7 +134,8 @@ Routes admin **au sein de groupes mixtes** :
   (changement connecté, révoque les autres sessions), `POST /customer/auth/password/forgot`
   + `/reset` (mot de passe oublié : jeton hashé usage unique TTL 1h, email via
   `sendResetPasswordEmail`, lien `STORE_URL/reset-password`). **Reste** : changement d'email
-  (flux vérifié dédié) + suppression de compte RGPD (feature à part, cf. `BACKLOG.md`).
+  (flux vérifié dédié) + suppression de compte RGPD (feature à part, cf.
+  [`backlog Échoppe`](../../../docs-internal/backlog/echoppe.md)).
 - **Frais de port / suivi côté client** : `POST /shipping/rates` et
   `GET /shipping/tracking/:n` sont admin. À exposer au storefront via des routes dédiées
   (frais = public pour estimer ; suivi = `customerAuth`), ou garder le calcul interne au

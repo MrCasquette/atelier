@@ -1,8 +1,9 @@
 # Roadmap Prisme
 
 > Ce que Prisme est, par jalon, et ce qui reste ouvert. Les décisions vivent dans les
-> [ADR](../adr/README.md) ; les travaux concrets vivent dans la liste de tâches. Ce document fait le
-> lien.
+> [ADR](../adr/README.md) ; les travaux concrets vivent dans le
+> [backlog Prisme](../backlog/prisme.md), et les briques communes dans le
+> [backlog shared](../backlog/shared.md). Ce document fait le lien.
 >
 > Périmètre mesuré : [perimetre-prisme.md](./perimetre-prisme.md).
 
