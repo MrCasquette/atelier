@@ -106,8 +106,10 @@ l'interface, et qui aurait rendu toute entité invisible.
 
 Elle est **bornée à ce que le demandeur peut accorder**, action par action (`actions`) : une entité
 qu'il ne détient pas n'y figure pas, et `schema` n'y figure jamais pour personne d'autre que le
-propriétaire, puisqu'il tient au rang. La borne ne retire rien — retirer un droit n'est pas
-l'accorder, et l'écran resoumet intactes les lignes qu'il n'affiche pas.
+propriétaire, puisqu'il tient au rang. `selfOnlyRequired` porte l'autre dimension : qui ne détient
+un droit que sur ses propres lignes ne peut l'accorder que borné — c'est le cas d'un administrateur
+sur `api_key`. La borne ne retire rien — retirer un droit n'est pas l'accorder, et l'écran resoumet
+intactes les lignes qu'il n'affiche pas.
 
 ## Ce qui garde le mécanisme
 

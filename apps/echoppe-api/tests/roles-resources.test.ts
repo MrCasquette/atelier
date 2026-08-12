@@ -15,8 +15,14 @@ requireSmokeDb();
 
 let ownerCookie: string;
 let limitedCookie: string;
+let administratorCookie: string;
 
-type Resource = { name: string; label: string | null; actions: string[] };
+type Resource = {
+  name: string;
+  label: string | null;
+  actions: string[];
+  selfOnlyRequired: boolean;
+};
 
 async function resources(cookie: string = ownerCookie): Promise<Resource[]> {
   const res = await req('GET', '/roles/resources', { cookie });
@@ -26,6 +32,38 @@ async function resources(cookie: string = ownerCookie): Promise<Resource[]> {
 
 const named = (list: Resource[], name: string): Resource | undefined =>
   list.find((resource) => resource.name === name);
+
+/** Une session pour un utilisateur donné, sans passer par `/auth/login`. */
+async function sessionFor(userId: string): Promise<string> {
+  const token = crypto.randomUUID().replace(/-/g, '');
+  await db
+    .insert(session)
+    .values({ token, user: userId, expiresAt: new Date(Date.now() + 60 * 60 * 1000) });
+  return `echoppe_admin_session=${token}`;
+}
+
+/**
+ * Un ADMINISTRATEUR — le rôle `admin`, sans le drapeau de propriété. Son autorité est définie par
+ * soustraction (ADR-0047), et elle est bornée à ses propres lignes sur `api_key`. C'est le seul
+ * principal du socle qui détient un droit sans le détenir entièrement.
+ */
+async function administratorSession(): Promise<string> {
+  const [administrator] = await db.select().from(role).where(eq(role.key, 'admin'));
+
+  const [created] = await db
+    .insert(user)
+    .values({
+      email: `admin-${crypto.randomUUID().slice(0, 8)}@echoppe.test`,
+      passwordHash: 'x',
+      firstName: 'Admin',
+      lastName: 'Second',
+      role: administrator.id,
+      isOwner: false,
+    })
+    .returning();
+
+  return sessionFor(created.id);
+}
 
 /**
  * Un rôle sur mesure, avec des droits ÉTROITS, et une session dessus. Il faut `role:read` pour
@@ -61,12 +99,7 @@ async function limitedSession(): Promise<string> {
     })
     .returning();
 
-  const token = crypto.randomUUID().replace(/-/g, '');
-  await db
-    .insert(session)
-    .values({ token, user: limited.id, expiresAt: new Date(Date.now() + 60 * 60 * 1000) });
-
-  return `echoppe_admin_session=${token}`;
+  return sessionFor(limited.id);
 }
 
 beforeAll(async () => {
@@ -92,6 +125,7 @@ beforeAll(async () => {
   if (pushed.status !== 200) throw new Error(`Préparation impossible : push ${pushed.status}`);
 
   limitedCookie = await limitedSession();
+  administratorCookie = await administratorSession();
   invalidateSystemRoleCache();
   invalidatePermissionCache();
 });
@@ -172,31 +206,99 @@ describe('la liste est bornée à ce que le demandeur peut accorder', () => {
     expect(visible.map((resource) => resource.name)).toContain('role');
   });
 
-  it("ne propose que ce que l'enregistrement accepte — les deux règles restent d'accord", async () => {
-    const [custom] = await db
+  // L'AUTRE dimension de la même règle. Un droit peut être borné aux lignes dont on est le sujet,
+  // et cette borne se délègue avec lui. La liste l'ignorait : l'écran offrait la ressource sans la
+  // borne, l'enregistrement la refusait — et la colonne « Self only » ne sortant que pour les rôles
+  // publics, un administrateur n'avait aucune case à cocher pour s'y conformer. Impasse.
+  describe('la borne aux propres lignes voyage avec le droit', () => {
+    it("annonce la borne que l'administrateur porte sur ses clés d'API", async () => {
+      const apiKey = named(await resources(administratorCookie), 'api_key');
+
+      expect(apiKey?.selfOnlyRequired).toBe(true);
+    });
+
+    it("ne l'annonce pas là où le droit est entier", async () => {
+      const product = named(await resources(administratorCookie), 'product');
+
+      expect(product?.selfOnlyRequired).toBe(false);
+    });
+
+    it("ne l'annonce à personne pour le propriétaire, que rien ne borne", async () => {
+      const apiKey = named(await resources(), 'api_key');
+
+      expect(apiKey?.selfOnlyRequired).toBe(false);
+    });
+
+    it('et le serveur refuse bien de la perdre en chemin', async () => {
+      const [target] = await db
+        .insert(role)
+        .values({ name: `Borne ${crypto.randomUUID().slice(0, 8)}`, scope: 'admin' })
+        .returning();
+
+      const grant = (selfOnly: boolean) =>
+        req('PUT', `/roles/${target.id}/permissions`, {
+          cookie: administratorCookie,
+          body: {
+            permissions: [
+              {
+                resource: 'api_key',
+                canCreate: false,
+                canRead: true,
+                canUpdate: false,
+                canDelete: false,
+                selfOnly,
+              },
+            ],
+          },
+        });
+
+      // Sans la borne : accorder plus large que ce qu'on détient.
+      expect((await grant(false)).status).toBe(403);
+      // Avec : c'est exactement ce que la liste annonçait.
+      expect((await grant(true)).status).toBe(200);
+
+      await db.delete(permission).where(eq(permission.role, target.id));
+      await db.delete(role).where(eq(role.id, target.id));
+    });
+  });
+
+  /**
+   * LE verrou : tout ce que la route offre, l'enregistrement l'accepte. `delegatableActions` et
+   * `undelegatableGrants` lisent la même règle et doivent rendre le même verdict — sur les actions
+   * comme sur la borne aux propres lignes. On resoumet EXACTEMENT ce qui a été offert.
+   */
+  async function offeredIsAccepted(cookie: string): Promise<number> {
+    const [target] = await db
       .insert(role)
       .values({ name: `Cible ${crypto.randomUUID().slice(0, 8)}`, scope: 'admin' })
       .returning();
 
-    const offered = await resources(limitedCookie);
-    const submitted = offered.map((resource) => ({
+    const submitted = (await resources(cookie)).map((resource) => ({
       resource: resource.name,
       canCreate: resource.actions.includes('create'),
       canRead: resource.actions.includes('read'),
       canUpdate: resource.actions.includes('update'),
       canDelete: resource.actions.includes('delete'),
+      selfOnly: resource.selfOnlyRequired,
     }));
 
-    const res = await req('PUT', `/roles/${custom.id}/permissions`, {
-      cookie: limitedCookie,
+    const res = await req('PUT', `/roles/${target.id}/permissions`, {
+      cookie,
       body: { permissions: submitted },
     });
 
-    // Tout ce qui était offert passe. C'est le verrou : `delegatableActions` et
-    // `undelegatableGrants` lisent la même règle, et doivent donc rendre le même verdict.
-    expect(res.status).toBe(200);
+    await db.delete(permission).where(eq(permission.role, target.id));
+    await db.delete(role).where(eq(role.id, target.id));
+    return res.status;
+  }
 
-    await db.delete(permission).where(eq(permission.role, custom.id));
-    await db.delete(role).where(eq(role.id, custom.id));
+  it("ne propose à un rôle étroit que ce que l'enregistrement lui accepte", async () => {
+    expect(await offeredIsAccepted(limitedCookie)).toBe(200);
+  });
+
+  it("ne propose à un administrateur que ce que l'enregistrement lui accepte", async () => {
+    // Celui-ci passe par les deux dimensions : des actions retirées (`audit_log`) et une borne
+    // exigée (`api_key`).
+    expect(await offeredIsAccepted(administratorCookie)).toBe(200);
   });
 });

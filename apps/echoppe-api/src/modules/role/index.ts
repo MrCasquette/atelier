@@ -2,6 +2,7 @@ import { and, db, eq, permission, RESOURCES, role, sql, user } from '@echoppe/co
 import {
   delegatableActions,
   invalidatePermissionCache,
+  isSelfOnly,
   revokedByGrants,
   undelegatableGrants,
 } from '@repo/auth';
@@ -75,6 +76,11 @@ const permissionsUpdateBody = t.Object({
 // lui a déclaré, alors que le vocabulaire du framework est traduit par l'administration.
 //
 // `actions` dit ce que LE DEMANDEUR peut en accorder — pas ce que la ressource permet dans l'absolu.
+//
+// `selfOnlyRequired` est l'AUTRE dimension de la même règle : qui ne détient un droit que borné à
+// ses propres lignes ne peut l'accorder que borné. Sans ce drapeau, l'écran offrait la ressource
+// sans la borne, et l'enregistrement la refusait — pire, la colonne « Self only » ne s'affichant
+// que pour les rôles publics, il n'y avait aucune case à cocher pour s'y conformer.
 const actionSchema = t.Union([
   t.Literal('create'),
   t.Literal('read'),
@@ -88,6 +94,7 @@ const resourcesSchema = t.Object({
       name: t.String(),
       label: t.Nullable(t.String()),
       actions: t.Array(actionSchema),
+      selfOnlyRequired: t.Boolean(),
     }),
   ),
 });
@@ -119,7 +126,11 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
 
       const resources = [...framework, ...entities].flatMap(({ name, label }) => {
         const actions = delegatableActions(principal, name);
-        return actions.length > 0 ? [{ name, label, actions }] : [];
+        if (actions.length === 0) return [];
+
+        // Même prédicat que la règle de délégation (`undelegatableGrants`), pas une reformulation.
+        const selfOnlyRequired = isSelfOnly(principal.authority, name);
+        return [{ name, label, actions, selfOnlyRequired }];
       });
 
       return { resources };

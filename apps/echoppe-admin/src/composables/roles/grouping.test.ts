@@ -13,6 +13,7 @@ const res = (name: string, label: string | null = null): ProtectableResource => 
   name,
   label,
   actions: ['create', 'read', 'update', 'delete'],
+  selfOnlyRequired: false,
 });
 
 describe('groupResources', () => {

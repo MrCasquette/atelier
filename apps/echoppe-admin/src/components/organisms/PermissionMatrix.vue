@@ -19,6 +19,14 @@ const props = defineProps<{
 
 const groups = computed(() => groupResources(props.resources));
 
+// La colonne « Self only » ne dépend pas que de la surface du rôle : dès qu'une ressource EXIGE la
+// borne, il faut la montrer, sinon le serveur réclame une borne que l'écran ne propose pas. C'était
+// une impasse pour un administrateur accordant `api_key` — sa propre détention est bornée à ses
+// lignes, et la colonne ne sortait que pour les rôles publics.
+const showSelfOnlyColumn = computed(
+  () => props.showSelfOnly || props.resources.some((resource) => resource.selfOnlyRequired),
+);
+
 const emit = defineEmits<{
   (e: 'update:permissions', permissions: PermissionFormData[]): void;
 }>();
@@ -79,12 +87,19 @@ function togglePermission(resource: ProtectableResource, action: keyof Permissio
   const granted = ALL_ACTIONS.find((candidate) => FLAG_OF[candidate] === action);
   if (granted && !grantable(resource, granted)) return;
 
+  // Une borne exigée ne se décoche pas : la retirer, c'est accorder plus large que ce qu'on détient.
+  if (action === 'selfOnly' && resource.selfOnlyRequired) return;
+
   const current = getPermission(resource);
   const updated: PermissionFormData = {
     ...current,
     resource: resource.name,
     [action]: !current[action],
+    selfOnly: resource.selfOnlyRequired ? true : current.selfOnly,
   };
+
+  // La bascule demandée reste prioritaire sur la valeur reportée ci-dessus.
+  if (action === 'selfOnly') updated.selfOnly = !current.selfOnly;
 
   const newPermissions = props.permissions.filter((p) => p.resource !== resource.name);
 
@@ -108,7 +123,7 @@ function toggleAll(resource: ProtectableResource, value: boolean) {
       canRead: true,
       canUpdate: true,
       canDelete: true,
-      selfOnly: getPermission(resource).selfOnly,
+      selfOnly: resource.selfOnlyRequired || getPermission(resource).selfOnly,
       locked: false,
     });
   }
@@ -156,7 +171,7 @@ function hasAllPermissions(resource: ProtectableResource): boolean {
                 Supprimer
               </th>
               <th
-                v-if="showSelfOnly"
+                v-if="showSelfOnlyColumn"
                 class="text-center py-2 px-3 text-sm font-medium text-gray-500 w-20"
               >
                 Self only
@@ -299,7 +314,7 @@ function hasAllPermissions(resource: ProtectableResource): boolean {
                   >-</span>
                 </td>
                 <td
-                  v-if="showSelfOnly"
+                  v-if="showSelfOnlyColumn"
                   class="py-2 px-3 text-center"
                 >
                   <span
@@ -373,13 +388,18 @@ function hasAllPermissions(resource: ProtectableResource): boolean {
                   />
                 </td>
                 <td
-                  v-if="showSelfOnly"
+                  v-if="showSelfOnlyColumn"
                   class="py-2 px-3 text-center"
                 >
                   <input
                     type="checkbox"
-                    :checked="getPermission(resource).selfOnly"
-                    :disabled="readonly"
+                    :checked="getPermission(resource).selfOnly || resource.selfOnlyRequired"
+                    :disabled="readonly || resource.selfOnlyRequired"
+                    :title="
+                      resource.selfOnlyRequired
+                        ? 'Vous ne détenez ce droit que sur vos propres lignes : vous ne pouvez l’accorder que borné.'
+                        : undefined
+                    "
                     class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
                     @change="togglePermission(resource, 'selfOnly')"
                   />
