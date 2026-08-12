@@ -243,16 +243,21 @@ describe('la propriété est un drapeau, et il n’y en a qu’un', () => {
   });
 });
 
+/** Les instructions de DONNÉE de la migration 0015, lues dans le fichier lui-même. */
+async function migrationStatements(): Promise<string[]> {
+  const path = fileURLToPath(
+    new URL('../../../packages/echoppe-core/drizzle/0015_flaky_fixer.sql', import.meta.url),
+  );
+  return (await readFile(path, 'utf8'))
+    .split('--> statement-breakpoint')
+    .filter((statement) => !statement.includes('CREATE UNIQUE INDEX'));
+}
+
 describe('la migration qui supprime le rôle `owner`', () => {
   it('réassigne ses porteurs vers `admin`, puis le supprime', async () => {
     // On rejoue les instructions du FICHIER de migration, pas une copie : sur la base de test le
     // rôle `owner` n'existe pas, donc la migration y a été un no-op et n'a rien prouvé.
-    const path = fileURLToPath(
-      new URL('../../../packages/echoppe-core/drizzle/0015_flaky_fixer.sql', import.meta.url),
-    );
-    const statements = (await readFile(path, 'utf8'))
-      .split('--> statement-breakpoint')
-      .filter((statement) => !statement.includes('CREATE UNIQUE INDEX'));
+    const statements = await migrationStatements();
 
     const [legacyRole] = await db
       .insert(role)
@@ -277,6 +282,68 @@ describe('la migration qui supprime le rôle `owner`', () => {
     const [migrated] = await db.select().from(user).where(eq(user.id, carrier.id));
     expect(migrated.role).toBe(administratorRoleId);
     expect(await db.select().from(role).where(eq(role.key, 'owner'))).toEqual([]);
+  });
+
+  it('crée `admin` s’il manque, au lieu de se dégrader en silence', async () => {
+    // Le cas trouvé sur l'instance de démonstration : le seed n'y avait jamais tourné, elle n'avait
+    // que le rôle « Propriétaire ». Sans garantie de la cible, la réassignation aurait été un no-op
+    // et l'unique utilisateur serait resté sur un rôle vidé de ses permissions.
+    //
+    // Joué dans une transaction ANNULÉE : la base est partagée par tous les fichiers du run, on ne
+    // lui laisse rien. Les constats sont ramassés dedans, vérifiés dehors.
+    const statements = await migrationStatements();
+    const observed: { carrierRoleKey: string | null; ownerRoleGone: boolean } = {
+      carrierRoleKey: null,
+      ownerRoleGone: false,
+    };
+    const rollback = new Error('rollback voulu');
+
+    await db
+      .transaction(async (tx) => {
+        // On met le rôle `admin` de côté : plus aucun rôle ne porte cette clé.
+        await tx.update(role).set({ key: 'admin_parked' }).where(eq(role.key, 'admin'));
+
+        const [legacyRole] = await tx
+          .insert(role)
+          .values({ key: 'owner', name: 'Propriétaire', scope: 'admin', isSystem: true })
+          .returning();
+        const [carrier] = await tx
+          .insert(user)
+          .values({
+            email: `sans-admin-${crypto.randomUUID().slice(0, 8)}@echoppe.test`,
+            passwordHash: 'x',
+            firstName: 'Seul',
+            lastName: 'Utilisateur',
+            role: legacyRole.id,
+            isOwner: false,
+          })
+          .returning();
+
+        for (const statement of statements) {
+          await tx.execute(sql.raw(statement));
+        }
+
+        const [moved] = await tx
+          .select({ key: role.key })
+          .from(user)
+          .innerJoin(role, eq(user.role, role.id))
+          .where(eq(user.id, carrier.id));
+        observed.carrierRoleKey = moved?.key ?? null;
+        observed.ownerRoleGone =
+          (await tx.select().from(role).where(eq(role.key, 'owner'))).length === 0;
+
+        throw rollback;
+      })
+      .catch((error) => {
+        if (error !== rollback) throw error;
+      });
+
+    expect(observed.carrierRoleKey).toBe('admin');
+    expect(observed.ownerRoleGone).toBe(true);
+
+    // La transaction est annulée : le rôle `admin` d'origine n'a jamais bougé.
+    const [untouched] = await db.select().from(role).where(eq(role.key, 'admin'));
+    expect(untouched).toBeDefined();
   });
 });
 
