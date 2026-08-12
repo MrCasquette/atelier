@@ -147,9 +147,11 @@ jamais à ça.
   `list` ou un `repeater` ne porte pas de clé étrangère : les atteindre demanderait une table fille
   par champ, hors de ce que le DSL sait dire. Les champs de premier niveau, eux, sont contraints
   (ADR-0045).
-- **Respecter l'ordre dans lequel le dev a déclaré ses champs.** Le journal stocke la déclaration en
-  `jsonb`, qui réordonne les clés : le formulaire généré n'affiche pas les champs dans l'ordre du
-  fichier. Ce n'est pas propre aux entités — les sections l'ont depuis toujours (tâche #46).
+
+  Le stockage, lui, **respecte l'ordre déclaré** : `content_definition.fields` et
+  `entity_definition.fields` sont en `json` et non `jsonb`, précisément pour ça (#46). `jsonb`
+  normalise les clés — par longueur puis octet — et le formulaire généré affichait les champs dans
+  un ordre que personne n'avait choisi.
 - **Trier, filtrer ou paginer la liste des occurrences.** L'écran rend ce que la route rend, les
   plus récentes d'abord. Une entité qui grossit demandera mieux.
 - **Contraindre un `enum` en base.** La valeur est déjà validée à la frontière par le schéma compilé

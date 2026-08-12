@@ -62,6 +62,45 @@ beforeAll(async () => {
   editorCookie = await createEditorSession();
 });
 
+// #46 — l'autre moitié du défaut. Les sections l'avaient depuis toujours : `content_definition.fields`
+// était en `jsonb`, qui réordonne les clés, donc le formulaire d'édition affichait les champs dans
+// un ordre que le dev n'avait pas choisi.
+describe('l’ordre des champs déclarés survit au stockage', () => {
+  it('rend les champs d’une section dans l’ordre où le dev les a écrits', async () => {
+    const declared = ['titre', 'sous_titre', 'corps', 'a'];
+
+    const pushed = await req('PUT', '/content/registry', {
+      cookie: ownerCookie,
+      body: {
+        version: 1,
+        components: {},
+        sections: {
+          heros: {
+            name: 'heros',
+            label: 'Héros',
+            fields: {
+              // Choisis pour tomber : `jsonb` trie par longueur puis octet, donc il rendrait
+              // `a, corps, titre, sous_titre` — un ordre que personne n'a demandé.
+              titre: { kind: 'text', required: true },
+              sous_titre: { kind: 'text' },
+              corps: { kind: 'richText' },
+              a: { kind: 'text' },
+            },
+          },
+        },
+      },
+    });
+    expect(pushed.status).toBe(200);
+
+    const res = await req('GET', '/content/registry', { cookie: ownerCookie });
+    const registry = (await res.json()) as {
+      sections: Record<string, { fields: Record<string, unknown> }>;
+    };
+
+    expect(Object.keys(registry.sections.heros.fields)).toEqual(declared);
+  });
+});
+
 describe('pousser un registre est un acte de structure', () => {
   it('refuse un éditeur qui détient pourtant `content` en entier', async () => {
     const res = await pushRegistry(editorCookie);

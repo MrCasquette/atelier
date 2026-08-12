@@ -156,10 +156,10 @@ describe('la réponse porte de quoi générer un écran', () => {
       icon: 'M4 6h16',
       singleton: false,
     });
-    // Trié : le journal stocke la déclaration en `jsonb`, qui réordonne les clés. L'ordre dans
-    // lequel le dev a écrit ses champs ne survit donc pas au stockage — c'est vrai des sections
-    // depuis toujours, et ça se voit sur le formulaire généré.
-    expect(Object.keys(depeche?.fields ?? {}).sort()).toEqual(['corps', 'titre']);
+    // DANS L'ORDRE DÉCLARÉ (#46). Le journal stockait en `jsonb`, qui réordonne les clés — par
+    // longueur puis octet —, donc `{ titre, corps }` ressortait `{ corps, titre }` et le formulaire
+    // généré affichait les champs dans le désordre. En `json`, le texte source survit.
+    expect(Object.keys(depeche?.fields ?? {})).toEqual(['titre', 'corps']);
   });
 
   it('dit la cardinalité, qui décide de la forme de l’écran', async () => {

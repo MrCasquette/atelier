@@ -1,5 +1,6 @@
 import {
   integer,
+  json,
   jsonb,
   pgEnum,
   pgTable,
@@ -44,7 +45,10 @@ export const contentDefinition = pgTable('content_definition', {
   role: varchar('role', { length: 20 }).notNull(), // 'section' (insérable en page) | 'component'
   label: varchar('label', { length: 200 }),
   icon: varchar('icon', { length: 100 }),
-  fields: jsonb('fields').notNull(), // dictionnaire { [champ]: SerializedField } — cf. @mrcasquette/content
+  // `json` et non `jsonb` : DÉLIBÉRÉ (#46). `jsonb` réordonne les clés, donc l'ordre dans lequel le
+  // dev déclare ses champs se perdait, et le formulaire généré les affichait dans le désordre.
+  // Dictionnaire { [champ]: SerializedField } — cf. @mrcasquette/content.
+  fields: json('fields').notNull(),
   dateUpdated: timestamp('date_updated', { withTimezone: true }).notNull().defaultNow(),
 });
 

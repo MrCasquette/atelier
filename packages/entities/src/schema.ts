@@ -1,4 +1,4 @@
-import { boolean, jsonb, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { boolean, json, jsonb, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core';
 
 // Journal des entités activées (ADR-0028, conséquence n°2) — l'équivalent de
 // `__drizzle_migrations` pour les entités : quelles entités existent, et sous quelle déclaration.
@@ -24,7 +24,14 @@ export const entityDefinition = pgTable('entity_definition', {
   // Dictionnaire { [champ]: SerializedField } — la déclaration elle-même, telle que poussée. C'est
   // ce qui sert de point de comparaison au prochain `check` : pas besoin d'une version à part, la
   // déclaration EST la version.
-  fields: jsonb('fields').notNull(),
+  // `json` et non `jsonb` : DÉLIBÉRÉ (#46). `jsonb` normalise et réordonne les clés — par longueur
+  // puis octet —, donc l'ordre dans lequel le dev a écrit ses champs se perdait au stockage, et le
+  // formulaire généré les affichait dans le désordre. `json` garde le texte source tel quel.
+  //
+  // On y perd les opérateurs d'indexation et les requêtes sur le contenu : personne n'en fait sur
+  // cette colonne, et le jour où quelqu'un en aura besoin, c'est la grammaire qu'il faudra changer
+  // (un tableau ordonné), pas le type de la colonne.
+  fields: json('fields').notNull(),
   // Comment l'entité produit son lien (ADR-0046) — `null` quand elle ne se cite pas, ce qui est un
   // état normal : ce qui rend une entité référençable est d'avoir une URL, pas d'être déclarée.
   // C'est cette colonne qui permet de réinscrire les cibles au démarrage, sans rejouer un push.
