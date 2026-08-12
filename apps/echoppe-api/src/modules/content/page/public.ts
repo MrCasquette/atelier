@@ -2,6 +2,7 @@ import { findPublishedPageBySlug, listPublishedPages } from '@repo/pages';
 import { Elysia, t } from 'elysia';
 import { withNotFound, withReadErrors } from '../../../lib/response';
 import { models } from '../../../model';
+import { interpolateSections } from '../interpolation';
 
 // Lecture storefront du module content (page builder). Public : seules les pages `published`
 // sont visibles. Une page renvoie ses sections (blocs) ordonnées et résolues.
@@ -20,7 +21,10 @@ export const pagesRoutes = new Elysia({ prefix: '/pages', detail: { tags: ['Page
       const found = await findPublishedPageBySlug(params.slug);
       if (!found) return status(404, { message: 'Page introuvable' });
 
-      return found;
+      // Substitution À LA LECTURE (ADR-0035) : le stockage garde `{{ legal.name }}` en clair, le
+      // front reçoit du texte prêt à afficher. Ici et pas dans `@repo/pages` : le résolveur lit
+      // l'identité du site, et les pages n'ont pas à en dépendre.
+      return { ...found, sections: await interpolateSections(found.sections) };
     },
     {
       params: t.Object({ slug: t.String() }),
