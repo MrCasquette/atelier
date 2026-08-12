@@ -7,11 +7,14 @@ nouvelle doit avoir deux usages réels ; à défaut, elle reste dans le produit 
 
 - [ ] 🔴 **Migrer `richText` de HTML vers Markdown** selon [ADR-0030](../adr/ADR-0030-texte-riche-markdown.md) :
   convertir les données, désactiver le HTML brut et tester le rendu contre le XSS stocké.
-- [ ] 🟠 **Préserver l'ordre déclaré des champs** : choisir une représentation explicitement
-  ordonnée plutôt que dépendre de l'ordre d'un objet stocké en `jsonb`.
-- [ ] 🟠 **Extraire la grammaire des champs hors de `@repo/pages`** lorsque ses deux consommateurs
-  imposent une frontière stable ; trancher le nom du package avec le lexique.
-- [ ] 🟠 **Implémenter l'interpolation V1** après stabilisation de Markdown : jeu fini de variables,
+- [x] 🟠 **Préserver l'ordre déclaré des champs** : choisir une représentation explicitement
+  ordonnée plutôt que dépendre de l'ordre d'un objet stocké en `jsonb`. → `json` au lieu de `jsonb`
+  sur `content_definition.fields` et `entity_definition.fields` ; `jsonb` normalise les clés.
+- [ ] 🟠 **Extraire la grammaire des champs hors de `@repo/pages`** ; trancher le nom du package
+  avec le lexique. Le second consommateur existe désormais (validation d'écriture des entités) :
+  seul le NOM bloque. La frontière retenue est « la primitive et sa compilation partent, les
+  dérivations restent » — DDL côté entités, résolution de components côté pages.
+- [x] 🟠 **Implémenter l'interpolation V1** après stabilisation de Markdown : jeu fini de variables,
   substitution sans évaluation, une passe, littéral conservé pour une inconnue.
 - [ ] 🟡 **Type-gen du DSL** pour les sections et composants de front.
 - [ ] 🟡 **Générateur de formulaires admin** depuis le registre.
@@ -22,8 +25,35 @@ nouvelle doit avoir deux usages réels ; à défaut, elle reste dans le produit 
 
 - [ ] 🟠 **Trancher l'injection DB** dans un ADR : singleton, factory de service, contexte de requête
   et unité transactionnelle. L'éprouver d'abord dans le vertical slice Prisme.
-- [ ] 🟠 **Réduire progressivement le barrel `@echoppe/core`** et vérifier les imports directs aux
-  frontières des packages.
+- [ ] 🟠 **Encaisser le découpage en packages** — le constat, mesuré le 2026-08-12 : les frontières
+  existent dans l'arborescence mais pas dans les imports. L'API compte **61 imports de
+  `@echoppe/core` contre 29 de `@repo/*`**, et **46 usages de symboles qui vivent dans un `@repo/*`**
+  y entrent par le barrel du cœur — 14 fois `media`, 7 fois `user`, 4 fois `menu`, 3 fois `site`.
+  `packages/echoppe-core/src/db/schema/index.ts` réexporte les tables de sept packages, sous le
+  commentaire « réexporté pour ne pas changer la surface ». Rien n'empêche donc de contourner un
+  package : il y a juste un chemin plus court, et il gagne.
+
+  Rien de dramatique — aucune indirection gratuite, le code interne est cohérent et testé. Mais
+  l'extraction a été **payée sans être encaissée**, et une frontière que personne n'emprunte cesse
+  d'être vraie : un package que plus rien n'importe directement finit par accueillir n'importe quoi.
+
+  Deux gestes, dans cet ordre. Le premier seul compte, le second est de l'hygiène :
+
+  1. **Faire tomber le barrel de réexport du cœur.** Que `media` s'importe depuis `@repo/assets` et
+     nulle part ailleurs. Mécanique, vérifiable par une règle de lint — c'est ce qui transforme le
+     découpage de décor en structure. Sans lui, tout le reste est cosmétique.
+  2. **Refondre les feuilles sous ~100 lignes** dans leur consommateur unique, ou les regrouper.
+     Cinq packages sont concernés : `assets` (**32 lignes**, deux tables et un `export`), `shared`
+     (88), `db` (90), `identity` (92), `adapters` (102). Aucun n'achète ce qu'une frontière est
+     censée acheter : ils sont `private` (pas de publication), tous en `0.0.1` sans tests propres
+     (pas de versionnage), et `assets` n'a aucune dépendance sortante — la frontière n'empêche donc
+     rien. À ressortir en dix minutes le jour où un deuxième lecteur apparaît.
+
+  Réserve honnête : le découpage vise un second produit qui n'existe pas encore, donc quatre
+  packages (`assets`, `identity`, `menus`, `pages`) n'ont qu'**un seul consommateur**. C'est du
+  partitionnement anticipé, pas de la sur-abstraction — ça se défait en fusionnant deux dossiers,
+  là où une mauvaise abstraction ne se défait pas. Le pari reste ouvert ; ce qui ne l'est pas, c'est
+  de le porter sans l'appliquer.
 - [ ] 🟠 **Définir la compatibilité runtime/API/SDK** : matrice, dépréciation et politique pré-1.0.
 - [ ] 🟡 Réorganiser les domaines internes uniquement à l'apparition d'un deuxième consommateur.
 - [ ] 🟡 Compiler en CI les exemples des packages publics et une configuration de contenu témoin.
