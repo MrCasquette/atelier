@@ -56,6 +56,7 @@ Portée : socle | <package> | échoppe | prisme
 | [0038](./ADR-0038-ressources-ouvertes-delegation.md) | Ressources ouvertes, délégation des droits, rôles système | accepté · amendé par 0047 | — |
 | [0047](./ADR-0047-autorite-principal.md) | Autorité d'un principal : un prédicat unique, l'administrateur par soustraction, la propriété comme drapeau | accepté · amendé le 2026-08-11 | — |
 | [0048](./ADR-0048-invitation-utilisateur.md) | Inviter un utilisateur : le créateur ne connaît jamais le mot de passe | accepté | — |
+| [0049](./ADR-0049-schema-sequence-de-champs.md) | Le schema est une séquence de champs, pas un dictionnaire | accepté | — |
 
 ## Index — `content` · Page-builder, entités, texte riche
 
