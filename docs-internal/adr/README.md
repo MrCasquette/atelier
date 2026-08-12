@@ -55,6 +55,7 @@ Portée : socle | <package> | échoppe | prisme
 | [0037](./ADR-0037-principaux-surfaces.md) | Principaux, surfaces et sessions : un registre plutôt qu'une union fermée | accepté | — |
 | [0038](./ADR-0038-ressources-ouvertes-delegation.md) | Ressources ouvertes, délégation des droits, rôles système | accepté · amendé par 0047 | — |
 | [0047](./ADR-0047-autorite-principal.md) | Autorité d'un principal : un prédicat unique, l'administrateur par soustraction, la propriété comme drapeau | accepté · amendé le 2026-08-11 | — |
+| [0048](./ADR-0048-invitation-utilisateur.md) | Inviter un utilisateur : le créateur ne connaît jamais le mot de passe | accepté | — |
 
 ## Index — `content` · Page-builder, entités, texte riche
 
