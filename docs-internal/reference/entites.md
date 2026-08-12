@@ -104,6 +104,11 @@ les `entity:<nom>` du journal, chacun avec le libellé que le dev lui a déclar�
 tient plus la sienne — c'est ce qui rendait `content`, `api_key` et `schema` inaccordables depuis
 l'interface, et qui aurait rendu toute entité invisible.
 
+Elle est **bornée à ce que le demandeur peut accorder**, action par action (`actions`) : une entité
+qu'il ne détient pas n'y figure pas, et `schema` n'y figure jamais pour personne d'autre que le
+propriétaire, puisqu'il tient au rang. La borne ne retire rien — retirer un droit n'est pas
+l'accorder, et l'écran resoumet intactes les lignes qu'il n'affiche pas.
+
 ## Ce qui garde le mécanisme
 
 | Garde | Où | Ce qu'elle refuse |

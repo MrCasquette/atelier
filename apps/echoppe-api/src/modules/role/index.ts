@@ -1,5 +1,10 @@
 import { and, db, eq, permission, RESOURCES, role, sql, user } from '@echoppe/core';
-import { invalidatePermissionCache, revokedByGrants, undelegatableGrants } from '@repo/auth';
+import {
+  delegatableActions,
+  invalidatePermissionCache,
+  revokedByGrants,
+  undelegatableGrants,
+} from '@repo/auth';
 import { entityResourceName, loadEntities } from '@repo/entities';
 import { Elysia, t } from 'elysia';
 import { errorSchema, successSchema, withAuthErrors } from '../../lib/response';
@@ -68,31 +73,56 @@ const permissionsUpdateBody = t.Object({
 // Une ressource protégeable, telle que l'écran des rôles doit pouvoir la proposer. Le `label` n'est
 // renseigné que là où le serveur est SEUL à le connaître : une entité porte le libellé que le dev
 // lui a déclaré, alors que le vocabulaire du framework est traduit par l'administration.
+//
+// `actions` dit ce que LE DEMANDEUR peut en accorder — pas ce que la ressource permet dans l'absolu.
+const actionSchema = t.Union([
+  t.Literal('create'),
+  t.Literal('read'),
+  t.Literal('update'),
+  t.Literal('delete'),
+]);
+
 const resourcesSchema = t.Object({
   resources: t.Array(
     t.Object({
       name: t.String(),
       label: t.Nullable(t.String()),
+      actions: t.Array(actionSchema),
     }),
   ),
 });
 
 export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Roles'] } })
-  // GET /roles/resources — tout ce qui est protégeable, framework ET entités déclarées.
+  // GET /roles/resources — ce qui est protégeable, framework ET entités déclarées, BORNÉ à ce que
+  // le demandeur peut en accorder.
   //
   // C'est la SEULE liste : l'écran des rôles ne tient pas la sienne, sans quoi une ressource née
   // après lui resterait muette — c'est ce qui est arrivé à `content`, `api_key` et `schema`. Les
   // entités s'y ajoutent au même titre, dérivées du journal comme partout ailleurs (ADR-0038).
+  //
+  // La borne (#45) applique « on ne peut accorder que ce qu'on détient » AU MOMENT DE PROPOSER, et
+  // non plus seulement au moment d'accorder : une case offerte puis refusée à l'enregistrement est
+  // un refus qu'on ne comprend qu'après coup. Elle ne retire rien à personne — retirer un droit
+  // n'est pas l'accorder, et l'écran resoumet intactes les lignes qu'il n'affiche pas.
   .use(permissionGuard('role', 'read'))
   .get(
     '/resources',
-    async () => {
+    async ({ principal }) => {
       const entities = Object.values(await loadEntities()).map((declaration) => ({
         name: entityResourceName(declaration.name),
-        label: declaration.label ?? null,
+        label: declaration.label as string | null,
       }));
-      const framework = Object.values(RESOURCES).map((name) => ({ name, label: null }));
-      return { resources: [...framework, ...entities] };
+      const framework = Object.values(RESOURCES).map((name) => ({
+        name: name as string,
+        label: null,
+      }));
+
+      const resources = [...framework, ...entities].flatMap(({ name, label }) => {
+        const actions = delegatableActions(principal, name);
+        return actions.length > 0 ? [{ name, label, actions }] : [];
+      });
+
+      return { resources };
     },
     {
       permission: true,

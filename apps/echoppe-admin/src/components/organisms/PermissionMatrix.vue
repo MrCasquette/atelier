@@ -50,9 +50,34 @@ function isLocked(resource: ProtectableResource): boolean {
   return getPermission(resource).locked;
 }
 
+// Le serveur ne rend que ce qu'on peut ACCORDER, action par action (#45) : une case qu'il n'offre
+// pas serait refusée à l'enregistrement. On la désactive plutôt que de la masquer — la ligne reste
+// lisible, et l'on voit ce qui manque.
+type GrantableAction = 'create' | 'read' | 'update' | 'delete';
+
+function grantable(resource: ProtectableResource, action: GrantableAction): boolean {
+  return resource.actions.includes(action);
+}
+
+const ALL_ACTIONS: GrantableAction[] = ['create', 'read', 'update', 'delete'];
+
+function grantableAll(resource: ProtectableResource): boolean {
+  return ALL_ACTIONS.every((action) => grantable(resource, action));
+}
+
+const FLAG_OF: Record<GrantableAction, keyof PermissionFormData> = {
+  create: 'canCreate',
+  read: 'canRead',
+  update: 'canUpdate',
+  delete: 'canDelete',
+};
+
 function togglePermission(resource: ProtectableResource, action: keyof PermissionFormData) {
   if (props.readonly || isLocked(resource)) return;
   if (action === 'resource' || action === 'locked') return;
+
+  const granted = ALL_ACTIONS.find((candidate) => FLAG_OF[candidate] === action);
+  if (granted && !grantable(resource, granted)) return;
 
   const current = getPermission(resource);
   const updated: PermissionFormData = {
@@ -72,7 +97,7 @@ function togglePermission(resource: ProtectableResource, action: keyof Permissio
 }
 
 function toggleAll(resource: ProtectableResource, value: boolean) {
-  if (props.readonly || isLocked(resource)) return;
+  if (props.readonly || isLocked(resource) || !grantableAll(resource)) return;
 
   const newPermissions = props.permissions.filter((p) => p.resource !== resource.name);
 
@@ -306,7 +331,7 @@ function hasAllPermissions(resource: ProtectableResource): boolean {
                   <input
                     type="checkbox"
                     :checked="hasAllPermissions(resource)"
-                    :disabled="readonly"
+                    :disabled="readonly || !grantableAll(resource)"
                     class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
                     @change="toggleAll(resource, ($event.target as HTMLInputElement).checked)"
                   />
@@ -315,7 +340,7 @@ function hasAllPermissions(resource: ProtectableResource): boolean {
                   <input
                     type="checkbox"
                     :checked="getPermission(resource).canCreate"
-                    :disabled="readonly"
+                    :disabled="readonly || !grantable(resource, 'create')"
                     class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
                     @change="togglePermission(resource, 'canCreate')"
                   />
@@ -324,7 +349,7 @@ function hasAllPermissions(resource: ProtectableResource): boolean {
                   <input
                     type="checkbox"
                     :checked="getPermission(resource).canRead"
-                    :disabled="readonly"
+                    :disabled="readonly || !grantable(resource, 'read')"
                     class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
                     @change="togglePermission(resource, 'canRead')"
                   />
@@ -333,7 +358,7 @@ function hasAllPermissions(resource: ProtectableResource): boolean {
                   <input
                     type="checkbox"
                     :checked="getPermission(resource).canUpdate"
-                    :disabled="readonly"
+                    :disabled="readonly || !grantable(resource, 'update')"
                     class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
                     @change="togglePermission(resource, 'canUpdate')"
                   />
@@ -342,7 +367,7 @@ function hasAllPermissions(resource: ProtectableResource): boolean {
                   <input
                     type="checkbox"
                     :checked="getPermission(resource).canDelete"
-                    :disabled="readonly"
+                    :disabled="readonly || !grantable(resource, 'delete')"
                     class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
                     @change="togglePermission(resource, 'canDelete')"
                   />

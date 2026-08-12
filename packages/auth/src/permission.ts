@@ -85,6 +85,28 @@ const GRANTABLE_ACTIONS = [
   ['delete', 'canDelete'],
 ] as const;
 
+const ALL_ACTIONS: readonly Action[] = GRANTABLE_ACTIONS.map(([action]) => action);
+
+/**
+ * L'autre sens d'`undelegatableGrants` : non plus « refuse-t-on cette demande ? » mais **« que
+ * peut-on offrir ? »**. Renvoie les actions que ce principal peut accorder sur cette ressource,
+ * vide s'il ne peut rien en donner.
+ *
+ * Les deux DOIVENT rester d'accord : ce que celle-ci propose, l'autre l'accepte. D'où la même règle
+ * de rang et le même court-circuit du propriétaire, ici plutôt qu'une seconde lecture de la carte
+ * de droits — une matrice qui proposerait ce que l'enregistrement refuse serait un mensonge, et un
+ * refus qu'on ne comprend qu'après coup.
+ */
+export function delegatableActions(principal: Principal<unknown>, resource: string): Action[] {
+  // Le propriétaire peut tout donner, `schema` compris — le don venu du sommet n'est pas une
+  // élévation (cf. `undelegatableGrants`).
+  if (principal.authority.kind === 'total') return [...ALL_ACTIONS];
+
+  if (RANK_BOUND_RESOURCES.has(resource)) return [];
+
+  return ALL_ACTIONS.filter((action) => holds(principal.authority, resource, action));
+}
+
 /**
  * Délégation (ADR-0038) : **on ne peut accorder que ce qu'on détient**, action par action.
  *

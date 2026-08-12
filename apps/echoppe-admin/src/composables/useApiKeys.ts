@@ -25,6 +25,9 @@ export function useApiKeys() {
   const loading = ref(true);
   const saving = ref(false);
 
+  // `write` est composite, façon GitHub : create + update + delete (cf. `undelegatableScopes`).
+  const WRITE_ACTIONS = ['create', 'update', 'delete'] as const;
+
   // Ensemble des scopes valides (rempli au chargement) : garde de type pour narrower `string`
   // (construit depuis les ressources) vers le littéral `Scope` sans cast.
   const known = new Set<string>();
@@ -43,9 +46,20 @@ export function useApiKeys() {
     known.clear();
     // `api_key` exclu : une clé ne peut jamais être scopée sur les clés (cf. plugin apiKey). Les
     // entités déclarées, elles, sont scopables — la liste vient du serveur, entités comprises.
+    //
+    // Une clé est une DÉLÉGATION D'AUTORITÉ (ADR-0038) : on ne propose que les scopes que l'émetteur
+    // peut réellement déléguer. `write` est composite — create + update + delete —, donc il exige
+    // les trois, comme le vérifie `undelegatableScopes` côté serveur.
     const derived = data.resources
       .filter((resource) => resource.name !== 'api_key')
-      .flatMap((resource) => [`read:${resource.name}`, `write:${resource.name}`]);
+      .flatMap((resource) => {
+        const offered: string[] = [];
+        if (resource.actions.includes('read')) offered.push(`read:${resource.name}`);
+        if (WRITE_ACTIONS.every((action) => resource.actions.includes(action))) {
+          offered.push(`write:${resource.name}`);
+        }
+        return offered;
+      });
     for (const scope of derived) known.add(scope);
     scopes.value = derived.filter(isScope);
   }

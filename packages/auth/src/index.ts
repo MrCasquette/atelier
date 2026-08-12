@@ -7,6 +7,7 @@
 
 export {
   type Action,
+  delegatableActions,
   holds,
   isSelfOnly,
   type PermissionGrant,

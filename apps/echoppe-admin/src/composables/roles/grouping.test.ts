@@ -7,7 +7,13 @@ import { groupResources, resourceLabel, type ProtectableResource } from './types
 //
 // Ces fonctions sont pures : elles ne disent plus CE QUI existe, seulement OÙ le poser.
 
-const res = (name: string, label: string | null = null): ProtectableResource => ({ name, label });
+// `actions` — ce que le demandeur peut accorder (#45) — n'entre pas dans le rangement : ces
+// fonctions disent OÙ poser une ressource, jamais ce qu'on a le droit d'en faire.
+const res = (name: string, label: string | null = null): ProtectableResource => ({
+  name,
+  label,
+  actions: ['create', 'read', 'update', 'delete'],
+});
 
 describe('groupResources', () => {
   it('range chaque ressource connue dans son groupe', () => {

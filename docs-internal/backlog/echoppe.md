@@ -38,10 +38,10 @@ Détail : [audit sécurité](../audits/security-audit.md).
 
 ### RBAC et observabilité
 
-- [ ] 🟠 **Achever ADR-0047** : prédicat `Authority/holds`, Administrateur par soustraction et
-  protection des utilisateurs de premier rang.
-- [ ] 🟡 **Borner `GET /roles/resources`** à ce que le demandeur peut déléguer, sans empêcher la
-  révocation d'un droit existant.
+- [x] 🟠 **Achever ADR-0047** : prédicat `Authority/holds`, Administrateur par soustraction et
+  protection des utilisateurs de premier rang. → plus la propriété en drapeau et son transfert.
+- [x] 🟡 **Borner `GET /roles/resources`** à ce que le demandeur peut déléguer, sans empêcher la
+  révocation d'un droit existant. → `delegatableActions`, miroir d'`undelegatableGrants`.
 - [ ] 🟡 **Livrer l'écran « Clés d'API »** : lister les clés propres au principal, créer avec des
   scopes bornés, révéler le secret une fois et révoquer.
 - [ ] 🟡 **Nettoyer la matrice RBAC par surface** : ressources admin/public, gardes PATCH explicites →
