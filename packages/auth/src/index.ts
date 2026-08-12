@@ -41,6 +41,7 @@ export {
   roleScopeEnum,
   session,
   user,
+  userPasswordToken,
 } from './schema';
 export {
   type AdminLoginOutcome,

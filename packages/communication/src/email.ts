@@ -104,6 +104,35 @@ export async function sendResetPasswordEmail(data: ResetPasswordEmailData): Prom
   });
 }
 
+export interface UserInvitationEmailData {
+  email: string;
+  firstName: string;
+  inviteUrl: string;
+  /** Qui invite — le message doit le dire, sinon il ressemble à un hameçonnage. */
+  invitedBy?: string;
+  expiresIn?: string;
+}
+
+/**
+ * Invitation d'un utilisateur d'administration à poser son mot de passe (ADR-0048).
+ *
+ * `skipped: true` quand aucun fournisseur n'est configuré : l'appelant rend alors le lien à celui
+ * qui invite, plutôt que de laisser l'invitation dans le vide.
+ */
+export async function sendUserInvitationEmail(data: UserInvitationEmailData): Promise<EmailResult> {
+  return sendEmail({
+    to: data.email,
+    subject: 'Votre accès à l’administration',
+    template: 'user-invitation',
+    data: {
+      firstName: data.firstName,
+      inviteUrl: data.inviteUrl,
+      invitedBy: data.invitedBy,
+      expiresIn: data.expiresIn ?? '24 heures',
+    },
+  });
+}
+
 export interface ContactFormEmailData {
   adminEmail: string;
   senderName: string;

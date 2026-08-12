@@ -4,6 +4,7 @@ import { buildListResponse, listResponse, parseListQuery } from '../../lib/pagin
 import { badRequestResponse, successSchema, withCrudErrors } from '../../lib/response';
 import { getClientIp, logAudit } from '../audit/service';
 import { type EchoppePrincipal, isFirstRankRoleKey, permissionGuard } from '../auth/rbac';
+import { inviteUser, unusablePasswordHash } from './invitation';
 
 // Toucher au premier rang est un acte du PROPRIÉTAIRE (ADR-0047, décision 4).
 //
@@ -51,9 +52,10 @@ const userSearchQuery = t.Object({
 });
 
 // Body schemas
+// Pas de `password` (ADR-0048) : le créateur ne choisit jamais le secret de qui il crée, sans quoi
+// il peut agir par procuration — et la garde du premier rang n'est plus qu'une politique.
 const userCreateBody = t.Object({
   email: t.String({ format: 'email', maxLength: 255 }),
-  password: t.String({ minLength: 6 }),
   firstName: t.String({ minLength: 1, maxLength: 100 }),
   lastName: t.String({ minLength: 1, maxLength: 100 }),
   role: t.String({ format: 'uuid' }),
@@ -109,9 +111,22 @@ const userDetailSchema = t.Object({
   lastLogin: t.Nullable(t.Date()),
 });
 
+// `invitation` n'est présent QUE si aucun fournisseur d'envoi n'est configuré : le lien revient
+// alors à celui qui invite, à charge pour lui de le transmettre (ADR-0048, décision 3).
+const invitationSchema = t.Object({
+  url: t.String(),
+  expiresAt: t.Date(),
+});
+
 const userCreatedSchema = t.Object({
   id: t.String(),
   email: t.String(),
+  invitation: t.Optional(invitationSchema),
+});
+
+const invitationSentSchema = t.Object({
+  success: t.Literal(true),
+  invitation: t.Optional(invitationSchema),
 });
 
 export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['Users'] } })
@@ -261,15 +276,14 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
         return status(400, { message: 'Rôle introuvable' });
       }
 
-      // Hash password
-      const passwordHash = await Bun.password.hash(body.password);
-
-      // Create user
+      // Le compte naît sans secret utilisable : il ne sert à rien tant que son titulaire n'a pas
+      // posé le sien. `isActive` reste vrai — c'est une décision d'administration, pas un état
+      // transitoire (ADR-0048).
       const [newUser] = await db
         .insert(user)
         .values({
           email: body.email,
-          passwordHash,
+          passwordHash: await unusablePasswordHash(),
           firstName: body.firstName,
           lastName: body.lastName,
           role: body.role,
@@ -278,16 +292,24 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
         })
         .returning({ id: user.id, email: user.email });
 
+      const delivery = await inviteUser({
+        userId: newUser.id,
+        email: newUser.email,
+        firstName: body.firstName,
+        invitedBy: currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : undefined,
+      });
+
       logAudit({
         userId: currentUser?.id,
-        action: 'user.create',
+        action: delivery.by === 'email' ? 'user.invite' : 'user.invite_link_shown',
         entityType: 'user',
         entityId: newUser.id,
         data: { email: newUser.email },
         ipAddress: getClientIp(request.headers),
       });
 
-      return newUser;
+      // Le lien ne sort QUE faute de fournisseur — jamais en doublon d'un envoi réussi.
+      return delivery.by === 'link' ? { ...newUser, invitation: delivery.invitation } : newUser;
     },
     {
       permission: true,
@@ -355,8 +377,15 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
       if (body.lastName !== undefined) updates.lastName = body.lastName;
       if (body.role !== undefined) updates.role = body.role;
 
-      // Hash password if provided
+      // Le mot de passe ne se pose que sur SOI (ADR-0048). Réécrire celui d'un autre, c'est
+      // pouvoir se connecter à sa place — et il n'existe pas d'autre route pour changer le sien.
       if (body.password) {
+        if (!isSelf) {
+          return status(403, {
+            message:
+              'Le mot de passe ne se change que pour soi — utilisez le lien de réinitialisation',
+          });
+        }
         updates.passwordHash = await Bun.password.hash(body.password);
       }
 
@@ -479,6 +508,56 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
       permission: true,
       params: uuidParam,
       response: withCrudErrors({ 200: successSchema }),
+    },
+  )
+
+  // POST /users/:id/reset - Réémettre un lien de pose de mot de passe
+  //
+  // C'est la voie du support : un utilisateur bloqué se débloque sans que personne n'apprenne son
+  // secret (ADR-0048). Même jeton que l'invitation — inviter et débloquer sont le même acte.
+  .post(
+    '/:id/reset',
+    async ({ params, status, currentUser, request, principal }) => {
+      const [target] = await db
+        .select({ id: user.id, email: user.email, firstName: user.firstName })
+        .from(user)
+        .where(eq(user.id, params.id));
+
+      if (!target) {
+        return status(404, { message: 'Utilisateur introuvable' });
+      }
+
+      // Même borne que partout : on ne touche pas au premier rang sans être le propriétaire.
+      // Réémettre un lien vers l'adresse de quelqu'un, c'est agir sur son compte.
+      const isSelf = currentUser?.id === params.id;
+      if (!isTheOwner(principal) && !isSelf && (await targetIsFirstRank(params.id))) {
+        return status(403, RANK_REFUSAL);
+      }
+
+      const delivery = await inviteUser({
+        userId: target.id,
+        email: target.email,
+        firstName: target.firstName,
+        invitedBy: currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : undefined,
+      });
+
+      logAudit({
+        userId: currentUser?.id,
+        action: delivery.by === 'email' ? 'user.password_reset' : 'user.password_reset_link_shown',
+        entityType: 'user',
+        entityId: target.id,
+        data: { email: target.email },
+        ipAddress: getClientIp(request.headers),
+      });
+
+      return delivery.by === 'link'
+        ? { success: true as const, invitation: delivery.invitation }
+        : { success: true as const };
+    },
+    {
+      permission: true,
+      params: uuidParam,
+      response: withCrudErrors({ 200: invitationSentSchema }),
     },
   )
 

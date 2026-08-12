@@ -29,6 +29,14 @@ export type AuditAction =
   | 'user.delete'
   | 'user.login'
   | 'user.logout'
+  // Invitation et déblocage (ADR-0048). Les variantes `_link_shown` disent que le lien est passé
+  // par CELUI QUI INVITE, faute de fournisseur d'envoi : c'est le seul moment où quelqu'un d'autre
+  // que le destinataire a pu le voir, et ça doit rester lisible après coup.
+  | 'user.invite'
+  | 'user.invite_link_shown'
+  | 'user.password_reset'
+  | 'user.password_reset_link_shown'
+  | 'user.password_set'
   // Sans retour pour celui qui le fait, et seul le nouveau propriétaire peut le rendre : c'est
   // exactement ce qu'un journal d'audit existe pour retenir (ADR-0047, décision 6).
   | 'user.ownership_transfer'

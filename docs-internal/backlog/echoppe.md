@@ -34,7 +34,8 @@ Détail : [audit sécurité](../audits/security-audit.md).
 - [ ] 🟠 **Rate limiting des webhooks** Stripe et PayPal.
 - [ ] 🟡 **Handler d'erreur global et contrat 5xx commun** : message générique en production,
   journalisation structurée et types SDK honnêtes.
-- [ ] 🟡 **Reset de mot de passe admin** : câbler le flux jeton déjà disponible.
+- [x] 🟡 **Reset de mot de passe admin** : câbler le flux jeton déjà disponible. → ADR-0048, même
+  jeton que l'invitation — inviter et débloquer sont le même acte.
 
 ### RBAC et observabilité
 

@@ -6,7 +6,7 @@ import {
 } from '@repo/auth';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
-import { authRateLimitOptions } from '../../lib/rate-limit';
+import { authRateLimitOptions, invitationRateLimitOptions } from '../../lib/rate-limit';
 import {
   forbiddenResponse,
   rateLimitResponse,
@@ -14,6 +14,7 @@ import {
   unauthorizedResponse,
 } from '../../lib/response';
 import { getClientIp, logAudit } from '../audit/service';
+import { consumePasswordToken } from '../user/invitation';
 import { COOKIE_NAME, cookieSchema } from './session';
 
 // Schema pour /auth/me (réponse)
@@ -48,6 +49,47 @@ const loginUserSchema = t.Object({
 const loginResponseSchema = t.Object({
   user: loginUserSchema,
 });
+
+// POST /auth/accept-invitation (ADR-0048) — consomme un jeton et pose le mot de passe.
+//
+// PUBLIQUE par nature : celui qui clique n'a pas de session, c'est précisément ce qu'il vient
+// chercher. Elle n'entre pas dans la surface storefront, qui est une liste explicite.
+//
+// Rate-limitée comme une surface d'authentification — un jeton de 32 octets ne se devine pas, mais
+// on ne laisse pas essayer. Compteur SÉPARÉ de la connexion : les partager rendrait les deux
+// solidaires, et dix échecs de connexion empêcheraient un invité d'ouvrir son compte.
+const acceptInvitationRoute = new Elysia().use(rateLimit(invitationRateLimitOptions)).post(
+  '/accept-invitation',
+  async ({ body, status }) => {
+    const result = await consumePasswordToken(body.token, body.password);
+
+    // Inconnu, consommé, périmé : une seule réponse. Distinguer dirait à un attaquant lequel des
+    // trois, donc si le jeton a existé.
+    if (result.outcome === 'invalid-token') {
+      return status(400, { message: 'Lien invalide ou expiré' });
+    }
+
+    logAudit({
+      userId: result.userId,
+      action: 'user.password_set',
+      entityType: 'user',
+      entityId: result.userId,
+    });
+
+    return { success: true };
+  },
+  {
+    body: t.Object({
+      token: t.String({ minLength: 32, maxLength: 128 }),
+      password: t.String({ minLength: 6 }),
+    }),
+    response: {
+      200: successSchema,
+      400: t.Object({ message: t.String() }),
+      429: rateLimitResponse,
+    },
+  },
+);
 
 // Rate-limited login route (separate instance for scoped rate limiting)
 const loginRoute = new Elysia().use(rateLimit(authRateLimitOptions)).post(
@@ -160,4 +202,5 @@ export const authAdminRoutes = new Elysia({ prefix: '/auth', detail: { tags: ['A
   )
 
   // POST /auth/login - WITH rate limit (scoped instance)
-  .use(loginRoute);
+  .use(loginRoute)
+  .use(acceptInvitationRoute);

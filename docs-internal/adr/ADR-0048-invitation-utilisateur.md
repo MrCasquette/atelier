@@ -34,8 +34,10 @@ l'installation dès le second compte. L'argument est réel et on ne le balaie pa
 empreinte impossible, qu'aucune vérification ne peut satisfaire. Il ne devient utilisable qu'au
 moment où son titulaire pose lui-même son mot de passe.
 
-`PATCH /users/:id` perd `password` également. Un administrateur ne réécrit plus le secret de
-personne.
+`PATCH /users/:id` n'accepte plus `password` que **pour soi-même**. Un administrateur ne réécrit
+plus le secret de personne d'autre — mais changer le sien reste un geste ordinaire, et il n'existe
+aucune autre route pour le faire. La borne porte sur la procuration, pas sur l'usage de son propre
+compte.
 
 ### 2. Un seul mécanisme, deux usages
 

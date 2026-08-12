@@ -24,6 +24,11 @@ interface UserForm {
   role: string;
 }
 
+/** Le lien de pose de mot de passe, quand aucun fournisseur d'envoi n'est configuré (ADR-0048). */
+type Invitation = NonNullable<
+  NonNullable<Awaited<ReturnType<typeof api.users.post>>['data']>['invitation']
+>;
+
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
@@ -55,6 +60,47 @@ const canTransfer = computed(
 );
 const transferOpen = ref(false);
 const transferring = ref(false);
+
+// Le mot de passe ne se pose que sur SOI (ADR-0048) : le champ disparaît pour tout autre compte,
+// et le déblocage passe par un lien que le destinataire est seul à suivre.
+const canSetOwnPassword = computed(() => !isNew.value && isSelf.value);
+const canSendLink = computed(() => !isNew.value && !isSelf.value && !isLocked.value);
+
+const invitation = ref<Invitation | null>(null);
+const sendingLink = ref(false);
+const linkCopied = ref(false);
+
+async function copyLink() {
+  if (!invitation.value) return;
+  await navigator.clipboard.writeText(invitation.value.url);
+  linkCopied.value = true;
+  setTimeout(() => {
+    linkCopied.value = false;
+  }, 2000);
+}
+
+async function sendResetLink() {
+  const id = user.value?.id;
+  if (!id) return;
+
+  sendingLink.value = true;
+  const { data, error } = await api.users({ id }).reset.post();
+  sendingLink.value = false;
+
+  if (error) {
+    toast.error(error.value?.message || 'Envoi impossible');
+    return;
+  }
+
+  // Le lien ne revient QUE faute de fournisseur : sinon il est déjà parti, et personne d'autre que
+  // le destinataire ne l'aura vu.
+  if (data?.invitation) {
+    invitation.value = data.invitation;
+    toast.success('Lien à transmettre — aucun fournisseur d’envoi configuré');
+  } else {
+    toast.success('Lien envoyé par courriel');
+  }
+}
 
 async function confirmTransfer() {
   const id = user.value?.id;
@@ -134,11 +180,6 @@ async function save() {
     return;
   }
 
-  if (isNew.value && !form.value.password) {
-    toast.error('Le mot de passe est obligatoire');
-    return;
-  }
-
   if (form.value.password && form.value.password.length < 6) {
     toast.error('Le mot de passe doit contenir au moins 6 caractères');
     return;
@@ -147,10 +188,9 @@ async function save() {
   saving.value = true;
   try {
     if (isNew.value) {
-      // Create user
-      const { error } = await api.users.post({
+      // Aucun mot de passe : l'invité pose le sien (ADR-0048).
+      const { data, error } = await api.users.post({
         email: form.value.email,
-        password: form.value.password,
         firstName: form.value.firstName,
         lastName: form.value.lastName,
         role: form.value.role,
@@ -161,7 +201,15 @@ async function save() {
         return;
       }
 
-      toast.success('Utilisateur créé');
+      // Sans fournisseur d'envoi, le lien revient ici : on RESTE sur l'écran pour le montrer, sinon
+      // il serait perdu et le compte resterait inutilisable.
+      if (data?.invitation) {
+        invitation.value = data.invitation;
+        toast.success('Utilisateur créé — transmettez-lui le lien');
+        return;
+      }
+
+      toast.success('Utilisateur créé, invitation envoyée');
       router.push('/utilisateurs');
     } else {
       // Update user
@@ -293,27 +341,35 @@ function cancel() {
               />
             </div>
 
-            <div>
+            <div v-if="canSetOwnPassword">
               <label class="block text-sm font-medium text-gray-700 mb-1">
                 Mot de passe
-                <span
-                  v-if="isNew"
-                  class="text-red-500"
-                >*</span>
-                <span
-                  v-else
-                  class="text-gray-400 text-xs"
-                >(laisser vide pour ne pas modifier)</span>
+                <span class="text-gray-400 text-xs">(laisser vide pour ne pas modifier)</span>
               </label>
               <input
                 v-model="form.password"
                 type="password"
-                :required="isNew"
-                :disabled="isLocked"
                 minlength="6"
                 placeholder="••••••"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
+            </div>
+
+            <div
+              v-else
+              class="rounded-lg border border-dashed border-gray-300 p-3 text-sm text-gray-600"
+            >
+              <p class="font-medium text-gray-800">
+                Vous ne choisissez pas son mot de passe
+              </p>
+              <p class="mt-1">
+                <template v-if="isNew">
+                  Il le posera lui-même en suivant le lien d'invitation.
+                </template>
+                <template v-else>
+                  Envoyez-lui un lien de réinitialisation pour le débloquer.
+                </template>
+              </p>
             </div>
 
             <div class="md:col-span-2">
@@ -363,6 +419,56 @@ function cancel() {
             </Button>
           </div>
         </form>
+      </div>
+
+      <div
+        v-if="invitation"
+        class="bg-white rounded-lg shadow p-6 mb-6 border border-blue-200"
+      >
+        <h3 class="text-base font-semibold text-gray-900">
+          Lien à transmettre
+        </h3>
+        <p class="mt-2 max-w-2xl text-sm text-gray-600">
+          Aucun fournisseur d'envoi n'est configuré : ce lien ne partira pas tout seul. Transmettez-le
+          par vos moyens — il expire, et ne fonctionne qu'une fois.
+        </p>
+        <div class="mt-3 flex items-center gap-2">
+          <input
+            :value="invitation.url"
+            readonly
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 font-mono text-xs"
+          />
+          <Button
+            variant="secondary"
+            @click="copyLink"
+          >
+            {{ linkCopied ? 'Copié' : 'Copier' }}
+          </Button>
+        </div>
+        <p class="mt-2 text-xs text-gray-500">
+          Expire le {{ new Date(invitation.expiresAt).toLocaleString('fr-FR') }}.
+        </p>
+      </div>
+
+      <div
+        v-if="canSendLink"
+        class="bg-white rounded-lg shadow p-6 mb-6"
+      >
+        <h3 class="text-base font-semibold text-gray-900">
+          Débloquer ce compte
+        </h3>
+        <p class="mt-2 max-w-2xl text-sm text-gray-600">
+          Envoie un lien permettant à {{ user?.firstName }} de choisir un nouveau mot de passe. Vous
+          ne le connaîtrez pas, et ses sessions ouvertes seront fermées.
+        </p>
+        <Button
+          class="mt-4"
+          variant="secondary"
+          :loading="sendingLink"
+          @click="sendResetLink"
+        >
+          Envoyer un lien de réinitialisation
+        </Button>
       </div>
 
       <div

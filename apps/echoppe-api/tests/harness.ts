@@ -35,6 +35,27 @@ const migrationsFolder = fileURLToPath(
 /** Migre la base jetable depuis `packages/echoppe-core/drizzle` (idempotent : no-op si déjà à jour). */
 export const migrate = (): Promise<void> => runMigrations(migrationsFolder);
 
+/**
+ * Vide les compteurs de rate-limit.
+ *
+ * Ils ne mordent QUE si un Redis est joignable : sans lui, `RedisContext` échoue en ouvert. Un
+ * fichier qui frappe une surface d'authentification passait donc ou non **selon l'état de la
+ * machine** — CI sans Redis : muet ; poste de dev avec le conteneur allumé : 429. Le nettoyage
+ * rend le verdict le même des deux côtés.
+ */
+export async function resetRateLimits(): Promise<void> {
+  if (!process.env.REDIS_URL) return;
+
+  const { default: Redis } = await import('ioredis');
+  const redis = new Redis(process.env.REDIS_URL);
+  try {
+    const keys = await redis.keys('rl:*');
+    if (keys.length > 0) await redis.del(...keys);
+  } finally {
+    await redis.quit();
+  }
+}
+
 export interface ReqOptions {
   cookie?: string;
   body?: unknown;

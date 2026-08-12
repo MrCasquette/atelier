@@ -96,6 +96,24 @@ registerEmailTemplate('reset-password', (data) =>
   }),
 );
 
+// Invitation d'un utilisateur d'administration (ADR-0048). Distincte de `reset-password`, qui
+// s'adresse à quelqu'un ayant DEMANDÉ quelque chose : ici le destinataire n'a rien demandé, il faut
+// donc lui dire qui l'invite et à quoi, sans quoi le message ressemble à un hameçonnage.
+registerEmailTemplate('user-invitation', (data) =>
+  emailLayout({
+    title: `Bienvenue sur ${data.siteName ?? 'notre administration'}`,
+    content: `
+      <p>Bonjour ${data.firstName ?? ''},</p>
+      <p>${data.invitedBy ? `${data.invitedBy} vous a` : 'Vous avez été'} invité${data.invitedBy ? '' : ''} à rejoindre l'administration de <strong>${data.siteName ?? 'notre site'}</strong>.</p>
+      <p>Choisissez votre mot de passe pour activer votre accès :</p>
+      <p><a href="${data.inviteUrl}" class="button">Définir mon mot de passe</a></p>
+      <p><small>Ce lien expire dans ${data.expiresIn ?? '24 heures'} et ne fonctionne qu'une fois.</small></p>
+      <p><small>Si vous ne vous attendiez pas à cette invitation, ignorez cet email : sans votre mot de passe, le compte reste inutilisable.</small></p>
+    `,
+    footer: `${data.siteName ?? 'Notre site'}`,
+  }),
+);
+
 registerEmailTemplate('contact-form', (data) =>
   emailLayout({
     title: 'Nouveau message de contact',

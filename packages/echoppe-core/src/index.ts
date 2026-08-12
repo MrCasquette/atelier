@@ -42,7 +42,9 @@ export {
   sendContactFormEmail,
   sendEmail,
   sendResetPasswordEmail,
+  sendUserInvitationEmail,
   setProviderEnabled as setCommunicationProviderEnabled,
+  type UserInvitationEmailData,
 } from '@repo/communication';
 export type { Column, SQL } from '@repo/db';
 // Connexion et runner de migrations : @repo/db (ADR-0025). Réexportés ici pour que la surface

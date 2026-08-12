@@ -98,6 +98,27 @@ export const session = pgTable(
   (table) => [index('session_user_idx').on(table.user), index('session_token_idx').on(table.token)],
 );
 
+// Jeton de pose de mot de passe (ADR-0048). Un compte administrateur naît SANS secret utilisable :
+// son titulaire pose le sien via un lien à durée de vie courte, et le créateur ne le connaît jamais.
+//
+// Une invitation et une réinitialisation sont le MÊME acte — prouver qu'on tient l'adresse, puis
+// poser un mot de passe —, donc le même jeton. Jumelle de `password_reset_token` côté client : on
+// stocke le HASH SHA-256, jamais le jeton, qui ne quitte le serveur que dans le lien.
+export const userPasswordToken = pgTable(
+  'user_password_token',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    user: uuid('user')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    tokenHash: varchar('token_hash', { length: 64 }).notNull().unique(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    usedAt: timestamp('used_at', { withTimezone: true }),
+    dateCreated: timestamp('date_created', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('user_password_token_user_idx').on(table.user)],
+);
+
 export const auditLog = pgTable('audit_log', {
   id: uuid('id').primaryKey().defaultRandom(),
   user: uuid('user').references(() => user.id), // Nullable if system action

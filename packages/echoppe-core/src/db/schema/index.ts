@@ -11,6 +11,7 @@ export {
   roleScopeEnum,
   session,
   user,
+  userPasswordToken,
 } from '@repo/auth';
 // Tables de communication : @repo/communication (ADR-0025) — le cœur les inclut dans SON
 // barrel, donc dans ses migrations.

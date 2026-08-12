@@ -125,6 +125,20 @@ export const authRateLimitOptions = createRateLimitOptions({
   message: 'Trop de tentatives de connexion. Veuillez réessayer dans 15 minutes.',
 });
 
+/**
+ * Pose de mot de passe par jeton : 10 requêtes / 15 min (ADR-0048).
+ *
+ * Compteur SÉPARÉ de celui de la connexion, malgré des valeurs identiques. Les partager les rendrait
+ * solidaires : dix échecs de connexion empêcheraient un invité d'ouvrir son compte, et l'inverse.
+ * Ce sont deux surfaces distinctes, et l'une ne doit pas verrouiller l'autre.
+ */
+export const invitationRateLimitOptions = createRateLimitOptions({
+  prefix: 'rl:invitation:',
+  duration: 60_000 * 15,
+  max: 10,
+  message: 'Trop de tentatives. Veuillez réessayer dans 15 minutes.',
+});
+
 /** Checkout rate limit: 5 requests per minute */
 export const checkoutRateLimitOptions = createRateLimitOptions({
   prefix: 'rl:checkout:',

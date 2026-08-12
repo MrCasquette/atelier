@@ -11,6 +11,14 @@ const router = createRouter({
       meta: { requiresAuth: false },
     },
     {
+      // Où l'invité pose son mot de passe (ADR-0048). PUBLIQUE : il n'a pas encore de compte
+      // utilisable, donc pas de session — l'y envoyer serait un cercle.
+      path: '/invitation',
+      name: 'invitation',
+      component: () => import('../views/InvitationView.vue'),
+      meta: { requiresAuth: false },
+    },
+    {
       path: '/',
       component: () => import('../layouts/AdminLayout.vue'),
       meta: { requiresAuth: true },

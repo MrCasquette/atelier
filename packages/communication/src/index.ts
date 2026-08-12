@@ -27,6 +27,8 @@ export {
   sendContactFormEmail,
   sendEmail,
   sendResetPasswordEmail,
+  sendUserInvitationEmail,
+  type UserInvitationEmailData,
 } from './email';
 export {
   getActiveCommunicationAdapter,
