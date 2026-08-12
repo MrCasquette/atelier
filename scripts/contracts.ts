@@ -2,14 +2,24 @@
 // Régénère le contrat SDK figé depuis l'app pure, et (mode --check) échoue si les fichiers de TYPES
 // figés ont bougé — garde anti-dérive, miroir de la garde Drizzle (ci.yml).
 //
-//   bun run contracts          → régénère (remplace le boot :7533 manuel + generate)
+//   bun run contracts          → régénère (remplace le boot manuel de l'API + generate)
 //   bun run contracts --check  → régénère puis `git diff --exit-code` sur les types → CI
 //
 // On NE garde PAS `openapi.json` : l'émission de `additionalProperties` par TypeBox y varie de façon
 // cosmétique (types identiques) → faux positifs. On garde les types dérivés, comme le gate T4.
 import { $ } from 'bun';
 
-const PORT = 7533;
+// Port de travail ÉPHÉMÈRE, jamais un port fixe. Sur un port fixe, une API de dev déjà lancée
+// dessus vole la place : le serveur spawné meurt (stderr ignoré), `waitReady` répond OK sur
+// l'intrus, et le contrat se régénère depuis le MAUVAIS serveur — en silence.
+function freePort(): number {
+  const probe = Bun.serve({ port: 0, fetch: () => new Response() });
+  const { port } = probe;
+  probe.stop(true);
+  return port;
+}
+
+const PORT = freePort();
 const CHECK = process.argv.includes('--check');
 const TYPE_FILES = [
   'packages/client/src/openapi.ts',

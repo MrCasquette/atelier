@@ -48,23 +48,43 @@ ADMIN_PORT=3001
 API_PORT=8000
 ```
 
-### API : conteneur (7532) vs dev depuis les sources (7533)
+### Deux plages : l'identité (prod) et le +1 (dev)
 
-`7532` reste **le** port de l'API — celui de l'image Docker, du conteneur (`compose.dev.yaml`),
-de la prod et du template `create-echoppe`. L'identité mathématique est intacte.
+`7532` / `3211` / `3141` sont **LES** ports d'Échoppe. Ils appartiennent au produit : les images
+Docker, la prod, le template `create-echoppe`, les défauts du code, et `.env.example` qui les porte
+tels quels. **Ils ne bougent pas** — c'est la cible, pas une valeur de circonstance.
 
-En dev **monorepo**, on lance parfois l'API *depuis les sources* (`bun run dev:api`) alors qu'un
-conteneur tourne déjà sur `7532` (ex. pour régénérer le SDK `@echoppe/client`, qui interroge
-`/docs/json`). Pour que les deux coexistent sans collision, le `.env` du monorepo fixe
-`API_PORT=7533` (source), et le générateur SDK vise `7533` par défaut. Admin (proxy Vite) et
-store suivent via `API_PORT` / `PUBLIC_API_URL`.
+Le décalage **+1** est une accommodation **locale**, et rien d'autre. Raison : une pile Échoppe de
+prod tourne souvent sur la même machine (une instance de démo, un déploiement local) et occupe déjà
+l'identité. Sans décalage, `bun run dev` échoue en `EADDRINUSE` — sur l'API comme sur l'admin.
 
-| Contexte | Port API | Source du port |
-|----------|----------|----------------|
-| Conteneur Docker / prod / template CLI | `7532` | défaut code (`API_PORT ?? 7532`) |
-| Dev monorepo depuis les sources | `7533` | `.env` racine (`API_PORT=7533`) |
+| Service | Le port (produit, prod, `.env.example`) | Poste de dev encombré |
+|---------|------------------------------------------|-----------------------|
+| API | `7532` | `7533` |
+| Admin | `3211` | `3212` |
+| Store | `3141` | `3142` |
 
-`7533` n'a pas de valeur symbolique : c'est un port de travail local, pas une identité produit.
+Le décalage vit dans **deux endroits, et deux seulement** :
+
+- le **`.env` racine, non versionné** (`API_PORT` / `ADMIN_PORT` / `STORE_PORT` + les URL de CORS).
+  C'est lui qui pilote `bun run dev`, le proxy Vite de l'admin (`vite.config.ts` lit `API_PORT` et
+  `ADMIN_PORT` à la racine) et le store. Chacun l'ajuste à sa machine ; `.env.example` ne le suit
+  pas ;
+- **`compose.dev.yaml`**, la pile Docker construite depuis les sources, qui publie sur
+  `${API_PORT:-7533}` et `${ADMIN_PORT:-3212}`. Le port **interne** du conteneur reste `7532` —
+  c'est celui du `Dockerfile`, de son `EXPOSE` et de son healthcheck. Seul le mapping hôte se
+  décale, et un `.env` le surcharge.
+
+Nulle part ailleurs. Les défauts en dur du code (`API_PORT ?? 7532` dans `src/index.ts`, les
+`|| 'http://localhost:7532'` de l'admin, `compose.yaml`, tout `packages/create-echoppe`) restent
+sur l'identité : ils décrivent le produit livré, pas le poste de travail.
+
+**Un consommateur à connaître** : `packages/client/scripts/generate.ts` interroge
+`http://localhost:7533/docs/json` pour régénérer le SDK. Il vise donc l'API **des sources**, pas un
+conteneur. Override par `ECHOPPE_API_URL` pour pointer ailleurs.
+
+`7533`, `3212` et `3142` n'ont aucune valeur symbolique : ce sont des ports de travail local, pas
+une identité produit.
 
 ### Pourquoi des ports "originaux" par défaut ?
 
