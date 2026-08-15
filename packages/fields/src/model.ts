@@ -29,10 +29,14 @@ const fieldMeta = {
 // `definition-service.ts`).
 const refTarget = t.String({ minLength: 1 });
 
-// Un champ du registre. Récursif : `repeater` contient lui-même une séquence de champs.
-//
-// ⚠️ Ce schéma n'est PAS exporté tel quel — cf. `serializedFieldSchema` plus bas et l'adaptateur
-// statique qui l'accompagne. Il reste la SEULE chose qui valide au runtime.
+/**
+ * Un champ du registre. Récursif : `repeater` contient lui-même une séquence de champs.
+ *
+ * ⚠️ Ne pas employer dans une route : son `Static<>` fait échouer l'inférence d'Elysia — c'est
+ * `serializedFieldSchema` qu'on branche, et l'adaptateur statique qui l'accompagne explique
+ * pourquoi. Ce schéma-ci reste la SEULE chose qui valide au runtime : les deux décrivent la même
+ * grammaire, seule l'inférence TypeScript les distingue.
+ */
 export const serializedFieldShape = t.Recursive((self) =>
   t.Union([
     t.Object({
@@ -123,6 +127,15 @@ type FieldMeta = {
   required?: boolean;
 };
 
+/**
+ * Un champ déclaré, tel qu'il voyage sur le fil et tel qu'on le stocke.
+ *
+ * Union discriminée par `kind` — onze primitives. Le `switch` qui la traverse est donc exhaustif
+ * sans branche par défaut : ajouter une primitive fait échouer la compilation là où elle manque,
+ * et c'est voulu.
+ *
+ * Écrit à la main plutôt que dérivé du schéma TypeBox : cf. l'adaptateur statique ci-dessus.
+ */
 export type SerializedField =
   | (FieldMeta & {
       kind: 'text';

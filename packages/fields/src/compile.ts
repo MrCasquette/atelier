@@ -83,8 +83,17 @@ function fieldToSchema(field: SerializedField, components: Components, seen: Set
   }
 }
 
-// La DONNÉE d'une section reste un objet indexé par nom de champ — c'est ce que le front consomme.
-// Seule la DÉCLARATION est une séquence (ADR-0049) : l'ordre y est de l'information, ici non.
+/**
+ * Traduit une séquence de champs en schéma d'objet, sans le compiler.
+ *
+ * La DONNÉE d'une section reste un objet indexé par nom de champ — c'est ce que le front consomme.
+ * Seule la DÉCLARATION est une séquence (ADR-0049) : l'ordre y est de l'information, ici non.
+ *
+ * Préférer `compileFields` pour valider ; celle-ci sert à qui doit composer le schéma avant de le
+ * compiler, ou l'émettre en OpenAPI.
+ *
+ * @throws si un `component`/`list` cite un nom absent de `components`, ou boucle sur lui-même.
+ */
 export function fieldsToSchema(
   fields: readonly SerializedField[],
   components: Components,
