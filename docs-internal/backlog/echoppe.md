@@ -69,7 +69,11 @@ Détail : [ADR-0005](../adr/ADR-0005-panier-stock.md).
 - [ ] 🟡 Ajouter un logger structuré et une corrélation de requête.
 - [ ] 🟡 Fermer proprement PostgreSQL, Redis et les jobs au shutdown.
 - [ ] 🟡 Refactors ciblés : génération de facture et réordonnancement des variantes.
-- [ ] 🟡 Uniformiser les messages d'erreur de l'API.
+- [ ] 🟡 Uniformiser les messages d'erreur de l'API → **c'est la migration
+  d'[ADR-0050](../adr/ADR-0050-exception-jamais-reponse-http.md)**, qui en fixe la forme : union
+  discriminée plate sur `code`, rendue par chaque surface. 214 réponses, 80 messages distincts,
+  ~30 codes visés. Deux amorces existent déjà — le helper `notFound()` employé 11 fois sur 89, et
+  `errorSchema` déprécié mais employé 51 fois — à absorber, pas à corriger d'abord.
 - [ ] 🟡 Inférer `Invoice` depuis le contrat dans l'admin.
 
 ### Documentation et expérience
