@@ -1,14 +1,19 @@
 import { describe, expect, test } from 'bun:test';
 import type { SerializedField } from '@repo/fields';
 import {
+  addColumnSql,
   columnType,
   createTableSql,
+  dropColumnSql,
+  dropTableSql,
   entityResourceName,
   entityTableName,
   fieldColumns,
   foreignKeyDdl,
   foreignKeys,
+  identityColumns,
   isValidIdentifier,
+  isValidTableName,
   NO_REFERENCE_TABLES,
 } from './ddl';
 
@@ -225,5 +230,74 @@ describe('clés étrangères', () => {
 
     expect(sql).toContain('foreign key (photo) references media(id) on delete set null');
     expect(sql).toContain('foreign key (vedette) references product(id) on delete restrict');
+  });
+});
+
+// Le chemin destructeur — `alter` et `drop` — n'était couvert par rien, là où la création l'était
+// entièrement. C'est pourtant celui qui fait perdre des données : un `drop column` part sans
+// confirmation dès que `planEntities` le décide, et son SQL n'a aucun moyen d'être relu ensuite.
+describe('modifier une table existante', () => {
+  test('ajoute une colonne nullable, même si le champ est requis', () => {
+    // Une colonne ajoutée à une table qui contient déjà des lignes ne peut pas être NOT NULL sans
+    // valeur par défaut. La déclaration vit avec ; refuser serait plus dur qu'utile.
+    const sql = addColumnSql('article', { name: 'resume', type: 'text', notNull: true });
+
+    expect(sql).toBe('alter table entity_article add column resume text;');
+    expect(sql).not.toContain('not null');
+  });
+
+  test('retire une colonne, et une table, sur la table préfixée', () => {
+    expect(dropColumnSql('article', 'resume')).toBe(
+      'alter table entity_article drop column resume;',
+    );
+    expect(dropTableSql('article')).toBe('drop table entity_article;');
+  });
+
+  test('aucune des trois ne produit de SQL pour un nom d’entité refusé', () => {
+    // La garde est `entityTableName`, partagée avec la création : un nom qui ne passe pas la liste
+    // blanche lève avant toute interpolation.
+    for (const bad of ['article; drop table user', 'Article', '1article', 'article-2', '']) {
+      expect(() => addColumnSql(bad, { name: 'x', type: 'text', notNull: false })).toThrow();
+      expect(() => dropColumnSql(bad, 'x')).toThrow();
+      expect(() => dropTableSql(bad)).toThrow();
+    }
+  });
+
+  test('le nom de COLONNE, lui, n’est pas validé ici — il vient d’une source déjà sûre', () => {
+    // Constat volontaire, pas une recommandation. `addColumnSql` reçoit des colonnes produites par
+    // `fieldColumns`, qui appelle `assertIdentifier` sur chaque champ ; `dropColumnSql` reçoit un
+    // nom lu sur la table vivante. Si un troisième appelant apparaît, cette asymétrie devient un
+    // trou — et ce test est ce qui le fera remarquer.
+    expect(dropColumnSql('article', 'x; drop table user')).toBe(
+      'alter table entity_article drop column x; drop table user;',
+    );
+  });
+
+  test('une table est valide sous les mêmes règles qu’un identifiant, bornes comprises', () => {
+    expect(isValidTableName('entity_article')).toBe(true);
+    expect(isValidTableName('Entity')).toBe(false);
+    expect(isValidTableName('')).toBe(false);
+    expect(isValidTableName('a'.repeat(64))).toBe(false);
+  });
+});
+
+describe('colonnes d’identité', () => {
+  test('une entité de liste porte un slug, une singleton porte son drapeau verrouillé', () => {
+    const list = identityColumns(false);
+    const singleton = identityColumns(true);
+
+    expect(list).toContain('slug varchar(150) not null unique');
+    expect(list.some((c) => c.includes('singleton'))).toBe(false);
+
+    expect(singleton).toContain('singleton boolean not null default true unique check (singleton)');
+    expect(singleton.some((c) => c.includes('slug'))).toBe(false);
+  });
+
+  test('les deux formes portent l’identifiant et les dates, dans le même ordre', () => {
+    for (const columns of [identityColumns(false), identityColumns(true)]) {
+      expect(columns[0]).toBe('id uuid primary key default gen_random_uuid()');
+      expect(columns.at(-2)).toBe('date_created timestamptz not null default now()');
+      expect(columns.at(-1)).toBe('date_updated timestamptz not null default now()');
+    }
   });
 });
