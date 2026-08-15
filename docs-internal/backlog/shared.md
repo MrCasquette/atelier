@@ -25,6 +25,27 @@ nouvelle doit avoir deux usages réels ; à défaut, elle reste dans le produit 
 
 - [ ] 🟠 **Trancher l'injection DB** dans un ADR : singleton, factory de service, contexte de requête
   et unité transactionnelle. L'éprouver d'abord dans le vertical slice Prisme.
+- [ ] 🟠 **Retirer le singleton de `@repo/communication` au profit d'une composition injectable.**
+  `email.ts` résout son adapter via `getActiveCommunicationAdapter()`, importé d'un singleton de
+  module aux fabriques câblées en dur : **aucune couture** ne permet d'en substituer un faux. Les
+  credentials sont bien injectés (DIP), mais les stuber supprime la dépendance à la base, **pas au
+  réseau** — un adapter muni de credentials valides appelle la véritable API.
+
+  Ce qui protège les tests aujourd'hui est qu'aucun provider n'est configuré dans la base de test :
+  une propriété de la donnée, pas de l'architecture, sur un Postgres que tous les fichiers partagent.
+
+  Sortie retenue : une fabrique `createCommunicationRegistry(factories)` composée par le produit au
+  démarrage — la forme « acteur », conforme au sens de la flèche d'ADR-0025. Écarté : un garde
+  `NODE_ENV`, qui serait un test d'environnement dans du code de domaine, invisible au type, et ne
+  protégerait que le chemin qui pense à le consulter. Touche les 4 appelants de `sendEmail` plus le
+  câblage au boot. Débloque les tests du chemin d'envoi, aujourd'hui impossibles.
+- [ ] 🟡 **Séparer la partie pure de `@repo/pages` de sa partie connectée**, sur le modèle déjà
+  appliqué dans `@repo/auth` (`permission.ts` / `permission-cache.ts`). `definition-service.ts`
+  importe `db` au niveau module et `@repo/db` **lève à l'import** sans `DATABASE_URL` : la logique
+  pure — `assertRegistryCoherent`, `unknownRefTargets` — est soudée à la connexion par le graphe
+  d'imports alors qu'elle n'interroge rien. Ses tests doivent poser une URL factice, contournement
+  consigné dans le fichier de test. La convention existe déjà dans le dépôt ; ce module ne l'applique
+  pas.
 - [ ] 🟠 **Encaisser le découpage en packages** — le constat, mesuré le 2026-08-12 : les frontières
   existent dans l'arborescence mais pas dans les imports. L'API compte **61 imports de
   `@echoppe/core` contre 29 de `@repo/*`**, et **46 usages de symboles qui vivent dans un `@repo/*`**
@@ -57,6 +78,40 @@ nouvelle doit avoir deux usages réels ; à défaut, elle reste dans le produit 
 - [ ] 🟠 **Définir la compatibilité runtime/API/SDK** : matrice, dépréciation et politique pré-1.0.
 - [ ] 🟡 Réorganiser les domaines internes uniquement à l'apparition d'un deuxième consommateur.
 - [ ] 🟡 Compiler en CI les exemples des packages publics et une configuration de contenu témoin.
+
+## Sécurité
+
+Relevés par l'audit de couverture documentaire (lot 2, 2026-08-16). Aucun n'est exploité aujourd'hui ;
+tous reposent sur une propriété circonstancielle plutôt que sur une garde.
+
+- [ ] 🟠 **Échapper les données utilisateur du gabarit `contact-form`**
+  (`packages/communication/src/templates.ts:117`). `name`, `email`, `phone`, `subject` et `message`
+  sont interpolés bruts dans le HTML de l'e-mail, et proviennent d'un formulaire **public et non
+  authentifié**. N'importe qui peut donc faire arriver du HTML arbitraire dans la boîte de
+  l'administrateur — liens, pixels de traçage, mise en page usurpée. Les clients mail bloquent les
+  scripts, donc pas de XSS : le risque réel est un hameçonnage qui paraît émis par la boutique
+  elle-même. Vérifier au passage les autres gabarits, qui interpolent selon le même motif.
+- [ ] 🟠 **Fermer les deux oracles d'énumération de `authenticate`**
+  (`packages/auth/src/service.ts:162-167`). Deux problèmes distincts :
+  - **Explicite** — `account-disabled` est rendu **avant** la vérification du mot de passe : on
+    confirme qu'une adresse correspond à un compte désactivé sans aucun identifiant valide.
+    Correctif : vérifier le mot de passe d'abord, ne consulter `isActive` qu'ensuite. On n'apprend
+    l'état de son compte qu'après avoir prouvé qu'il est le sien.
+  - **Temporel** — le chemin « adresse inconnue » retourne sans exécuter `Bun.password.verify`, qui
+    est volontairement coûteux. L'écart est de plusieurs ordres de grandeur et porte sur **tous** les
+    comptes. Il touche aussi le login client
+    (`apps/echoppe-api/src/modules/auth/customer-service.ts:163`), donc une surface publique.
+    Correctif : vérifier contre un **hash leurre** calculé une fois au chargement, avec les mêmes
+    paramètres de coût. Ça ne rend pas les durées identiques — la requête SQL diffère aussi — mais
+    supprime le seul écart mesurable à distance de façon fiable.
+
+  Complément indispensable, à traiter avec : une **limitation de débit** sur les endpoints
+  d'authentification. Sans elle l'énumération reste possible, seulement plus lente.
+
+  Arbitrage séparé, à décider et non à corriger : l'inscription client rend `email-taken`
+  (`customer-service.ts:104`), une énumération explicite sur un endpoint public. Le durcissement
+  imposerait le schéma « on vous a envoyé un e-mail » à tous les inscrits légitimes. Sur une
+  boutique, le coût ergonomique paraît supérieur au gain.
 
 ## Documentation et gouvernance
 
