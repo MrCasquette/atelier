@@ -1,3 +1,8 @@
+// @echoppe/core — le cœur du produit Échoppe : il possède la base et ses migrations (ADR-0025).
+//
+// Ce barrel réexporte des symboles de sept paquets partagés. Ne pas s'en servir comme raccourci :
+// une table partagée s'importe depuis SON paquet. Voir README.md.
+
 // Vocabulaire de requête — vient de @repo/db, réexporté pour ne pas changer la surface.
 
 // Abstraction d'injection des credentials (DIP) partagée par les familles d'adapters

@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 /**
- * Lance le smoke test storefront (tests/storefront-smoke.test.ts) contre une base
- * JETABLE.
+ * Lance les tests de frontière de l'API — tout `tests/`, pas seulement le smoke storefront —
+ * contre une base JETABLE.
  *
  * - Si SMOKE_DATABASE_URL est défini (CI, service Postgres), on l'utilise.
  * - Sinon, on provisionne un conteneur Postgres éphémère sur un port libre, détruit en

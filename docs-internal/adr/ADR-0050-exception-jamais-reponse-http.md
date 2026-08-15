@@ -302,5 +302,12 @@ domaine.
 - La migration **n'est pas lancée**. L'ordre retenu : harmoniser la taxonomie, puis convertir surface
   par surface. `message` reste rempli en parallèle pendant la transition — l'administration le lit
   dans huit vues — puis est déprécié.
+- **Deux amorces existent déjà et sont à absorber par cette migration**, pas à traiter séparément :
+  `apps/echoppe-api/src/lib/response.ts` porte un helper `notFound(entity)` dont le commentaire
+  diagnostique exactement le problème mesuré ici — il n'est employé que **11 fois contre 89** 404
+  écrits à la main. Et `errorSchema`, marqué `@deprecated` au profit des schémas spécifiques, reste
+  employé **51 fois**. Les corriger avant la migration serait du travail jeté : elle réécrit les 214
+  réponses de toute façon. `notFound(entity)` est d'ailleurs la forme dont `common.not_found` +
+  paramètre `resource` est l'aboutissement — l'intention était déjà là.
 - Les fautes d'énumération de `authenticate` relèvent d'un **chantier sécurité distinct**, où la
   priorité est la sécurité et non la qualité du message.

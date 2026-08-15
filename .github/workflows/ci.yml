@@ -42,7 +42,7 @@ jobs:
       - name: Lint
         run: bun run lint
 
-      # Tests unitaires des paquets et de l'API (24 tests, 5 espaces de travail). Sans base : ce
+      # Tests unitaires des paquets et de l'administration — 13 espaces de travail. Sans base : ce
       # sont des tests de logique pure — les tests de frontière, eux, tournent dans le job `smoke`
       # contre un vrai Postgres. DATABASE_URL placeholder, car importer @echoppe/core construit son
       # client au chargement du module et lève sans la variable.

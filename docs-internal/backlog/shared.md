@@ -62,7 +62,9 @@ nouvelle doit avoir deux usages réels ; à défaut, elle reste dans le produit 
 
   1. **Faire tomber le barrel de réexport du cœur.** Que `media` s'importe depuis `@repo/assets` et
      nulle part ailleurs. Mécanique, vérifiable par une règle de lint — c'est ce qui transforme le
-     découpage de décor en structure. Sans lui, tout le reste est cosmétique.
+     découpage de décor en structure. Sans lui, tout le reste est cosmétique. Attention : le barrel
+     de `db/schema/index.ts` doit **survivre pour les migrations** — `drizzle.config.ts` ne lit que
+     lui. C'est son usage comme raccourci d'import qui doit tomber, pas son existence.
   2. **Refondre les feuilles sous ~100 lignes** dans leur consommateur unique, ou les regrouper.
      Cinq packages sont concernés : `assets` (**32 lignes**, deux tables et un `export`), `shared`
      (88), `db` (90), `identity` (92), `adapters` (102). Aucun n'achète ce qu'une frontière est
