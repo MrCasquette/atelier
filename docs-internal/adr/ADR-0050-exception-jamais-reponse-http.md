@@ -63,6 +63,10 @@ tranchée séparément — cet ADR la rend indépendante.
 Le critère n'est pas la nature de la faute mais son destinataire : **peut-il agir, et reçoit-il une
 réponse HTTP ?**
 
+> ⚠️ **Ce critère est remplacé** par l'[amendement du 2026-08-16](#amendement-2026-08-16--la-surface-destinataire-et-le-contrat-de-faute) :
+> il suppose une seule réponse par faute, ce qu'un cas suffit à démentir. L'invariant, lui, tient.
+> La section ci-dessous est conservée comme état initial de la décision.
+
 ### 1. Faute actionnable qui traverse HTTP → valeur typée et structurée
 
 Rendue, jamais levée. Un **code** et ses opérandes, pas une phrase :
@@ -141,3 +145,162 @@ de langue, encore ouverte.
   à l'implémentation, sur le premier chemin converti.
 - **Le refactor n'est pas lancé.** Cet ADR fixe la règle et l'inventaire ; le chantier est à
   planifier.
+
+## Amendement 2026-08-16 — la surface destinataire, et le contrat de faute
+
+L'invariant ne change pas. Le **critère** qui l'accompagnait, si — il était faux — et le contrat que
+l'ADR laissait ouvert est ici fixé.
+
+### Ce que cet amendement corrige
+
+La décision initiale tranchait sur « peut-il agir, et reçoit-il une réponse HTTP ? ». Ce critère
+suppose que « peut-il agir ? » a **une** réponse par faute. Un cas suffit à le briser :
+`payment_provider_not_configured` est inactionnable pour l'acheteur et parfaitement actionnable pour
+l'administrateur. La faute est la même, le destinataire change, le binaire n'a plus de valeur de
+vérité.
+
+Le défaut de fond : un seul critère portait deux questions indépendantes — **qui écrit le texte**
+(jamais le domaine, et ça reste vrai) et **quelle faute est montrée à qui** (une décision par
+surface). La frontière HTTP est un fait, pas un destinataire : plusieurs surfaces la franchissent
+avec des droits différents.
+
+### 1. Le critère devient la surface destinataire
+
+Trois étages, et la protection vit au deuxième — pas au premier :
+
+1. **Le domaine émet** une faute structurée complète, **une seule fois**, sans savoir qui lira.
+2. **La route projette** selon l'audience avant de sérialiser : elle retire des champs. C'est une
+   opération mécanique, côté serveur, et c'est le seul endroit où la divulgation se décide.
+3. **La surface rend** le texte à partir de ce qu'elle a reçu.
+
+La présentation est côté client, mais **la redaction est côté serveur**. Compter sur la surface pour
+« choisir d'afficher un message générique » ne protège rien : un storefront headless tourne dans un
+navigateur, et ce qu'il a reçu est lisible.
+
+### 2. Une seule émission, un seul vocabulaire
+
+Pas de code public distinct d'un code interne. Une table de correspondance entre deux vocabulaires
+serait un second artefact à tenir synchronisé, pour un gain nul.
+
+**Le code n'est pas un vecteur de divulgation** : c'est une clé, au même titre qu'une clé i18n, et
+une clé n'est pas un secret. L'utilisateur ne voit jamais `payment.provider_not_configured` ; il voit
+ce que sa surface en a fait. Le vecteur, c'est la **donnée** — `provider: 'stripe'` — pas le nom de
+la faute.
+
+### 3. La redaction porte sur les champs, et se justifie par classe
+
+Retirer par défaut est un réflexe, pas un raisonnement. Chaque champ se juge :
+
+| Classe | Décision |
+|---|---|
+| Déjà public par construction (nom de prestataire, devise, route publique) | **Laisser.** `stripe` est visible dans les scripts chargés, les redirections et la CSP : le retirer coûte de la précision à l'admin pour protéger une information publiée ailleurs. |
+| Topologie interne (noms de tables, chemins, identifiants internes, versions) | Retirer. Aucune valeur pour le lecteur, valeur cumulative pour qui cartographie. |
+| **État énumérable** | La seule classe réellement dangereuse : le champ transforme l'endpoint en **oracle**. |
+| Secrets, données personnelles | Retirer. |
+
+Quand un champ a été retiré, l'enveloppe peut porter un **identifiant de corrélation** opaque : il ne
+signifie rien par construction, ne divulgue donc rien, et permet au support de rebrancher un
+utilisateur sur la cause réelle via les logs. C'est là que l'opacité travaille — sur la corrélation,
+jamais sur les codes.
+
+### 4. Fusionner deux fautes à l'émission : seulement contre un oracle
+
+Rare, et à justifier explicitement. `authenticate` en est l'exemple canonique : rendre
+`invalid-credentials` pour « adresse inconnue » **et** pour « mauvais mot de passe » n'est pas un
+choix de présentation remonté trop haut, c'est le domaine qui affirme que ces deux situations sont
+la même faute, comme propriété de sécurité. Aucun catalogue de lecture ne pourrait rattraper la
+distinction si elle était émise.
+
+Partout ailleurs : **émettre précisément**, et laisser les surfaces rendre.
+
+### 5. Le contrat de faute
+
+#### Ce que la mesure a établi
+
+Sur les **214 réponses d'erreur** de `echoppe-api` : **100 % ont la forme `{ message: string }`**,
+pour **80 messages distincts**, dont **10 seulement** portent une donnée interpolée.
+
+Un premier classement par message donnait une ligne dense (`not_found`, 94 occurrences sur 17
+ressources) et ~24 fautes « spécifiques ». Ce classement décrivait l'historique du code, pas le
+domaine. **Reclassées par la garde qui les produit**, ces ~24 fautes se réduisent à **7 concepts**,
+dont 4 transverses :
+
+- `Pays de livraison invalide` est un `if (!snapshot)` — un `not_found` déguisé par sa formulation ;
+- `Mode de paiement X non disponible` et `Provider X non configuré` sont **la même garde**
+  (`!adapter.isConfigured()`) écrite deux fois ;
+- `Cette commande a déjà été payée`, `Seuls les paiements complétés…`, `Cet utilisateur est déjà le
+  propriétaire` et `Variante non disponible` sont un même concept — **`invalid_state`** — invisible
+  jusque-là parce que chaque module le formulait dans ses propres termes métier.
+
+#### La forme retenue : union discriminée plate
+
+```ts
+type Fault =
+  | { code: 'not_found'; resource: Resource }
+  | { code: 'invalid_state'; resource: Resource; current: string; expected: string }
+  | { code: 'configuration_missing'; target: string }
+  | { code: 'required_data_missing'; field: string }
+  | { code: 'insufficient_stock'; available: number; requested: number }
+  | { code: 'invalid_token' }
+  | { code: 'external_operation_failed'; operation: string };
+
+/** Métadonnées de transport : à côté de la faute, jamais dedans. */
+type ErrorResponse = { fault: Fault; incident?: string };
+```
+
+`code` est le discriminant. `Resource` est une **union fermée** : le contrat expose son vocabulaire
+et reste exhaustivement typable ; ajouter une valeur est additif.
+
+#### Pourquoi pas les trois autres formes
+
+- **`{ code, params: {...} }`** — `params` est présent dans 100 % des membres avec un sens invariant :
+  une profondeur qui ne distingue rien. Elle avait été justifiée par l'i18n, à tort : un moteur de
+  rendu prend un sac et **ignore ce qu'il n'utilise pas**, donc `t(fault.code, fault)` fonctionne sur
+  une union plate. L'argument ne survit pas à l'examen de la couche qui l'avait motivé.
+- **`{ resource, error }`** — impose `resource` alors que `configuration_missing` porte une variable
+  d'environnement et `insufficient_stock` deux quantités ; et fige deux champs quand `invalid_state`
+  en demande trois. C'est la forme retenue, mal généralisée.
+- **`{ code: 'product.not_found' }`** — fusionner les deux dimensions demanderait une vingtaine de
+  codes pour un seul concept, et autant d'entrées de catalogue ne différant que par un nom commun.
+
+### 6. Un catalogue par surface, avec repli obligatoire
+
+Chaque surface tient sa table `code → texte` : l'administration nomme le prestataire, la boutique
+reste générique, la CLI affiche la faute brute. Le catalogue est **indexé par le discriminant**, donc
+aucune surface ne manipule les formes génériquement — elle n'applique qu'une règle : un discriminant,
+le reste est de la donnée de message.
+
+Un repli est obligatoire : l'API livrera un jour un code qu'une surface déployée plus tôt ne connaît
+pas. Sans lui, l'utilisateur voit une clé brute.
+
+Le catalogue français mappe `not_found` + `resource: 'order'` vers « Commande introuvable » — ce qui
+règle au passage l'accord en genre, que le domaine n'a pas à connaître.
+
+## Conséquences de l'amendement
+
+**Le vocabulaire des codes entre dans le contrat d'API**, au sens d'[ADR-0007](./ADR-0007-contrat-sdk.md) :
+un client headless fera un `switch` dessus. Règle de versionnement — **ajouter un membre à l'union ou
+un champ à un membre est additif ; renommer un code est cassant.**
+
+**La V1 et la V2 consomment le même vocabulaire.** En V1 le développeur écrit son catalogue ; en V2 un
+utilisateur non technique l'édite depuis l'administration. La V2 devient un écran posé sur une table
+existante, pas une refonte.
+
+**Environ 30 codes pour 80 messages** — 7 concepts transverses et une vingtaine de codes propres au
+domaine.
+
+### Deux défauts trouvés en remontant aux gardes
+
+- `checkout/index.ts:87` et `:90` rendent **le même message pour deux concepts distincts** — aucun
+  panier actif, et panier existant mais vide.
+- `payment/index.ts:419` (`Transaction ID manquant`) n'est pas une faute utilisateur : la garde porte
+  sur un paiement déjà `completed` dépourvu d'identifiant de transaction, donc sur un **invariant
+  interne violé**. Sous le présent ADR, ce doit être une exception, pas un 400.
+
+### Suivi
+
+- La migration **n'est pas lancée**. L'ordre retenu : harmoniser la taxonomie, puis convertir surface
+  par surface. `message` reste rempli en parallèle pendant la transition — l'administration le lit
+  dans huit vues — puis est déprécié.
+- Les fautes d'énumération de `authenticate` relèvent d'un **chantier sécurité distinct**, où la
+  priorité est la sécurité et non la qualité du message.
