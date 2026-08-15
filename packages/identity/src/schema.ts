@@ -4,13 +4,8 @@ import { boolean, char, check, decimal, pgTable, uuid, varchar } from 'drizzle-o
 
 // Identité d'un site et de l'entité légale derrière lui (ADR-0040).
 //
-// Ces tables remplacent `company`, qui mêlait six couches et dont la nullabilité était à l'envers :
-// les colonnes universelles — hébergeur, directeur de publication — y étaient facultatives, les
-// colonnes de boutique obligatoires. Inutilisable pour un CMS.
-//
-// La STRUCTURE est commune aux deux produits. Seule l'EXIGENCE diffère, et elle s'exprime à la
-// frontière de validation, pas ici : Échoppe refuse d'enregistrer une entité légale incomplète,
-// Prisme accepte tout. C'est pour ça que tout est nullable sauf `site.name`.
+// Tout est nullable sauf `site.name` : la structure est commune aux deux produits, seule l'exigence
+// diffère et elle s'exprime à la frontière de validation. Le pourquoi est dans README.md.
 
 // Donnée de référence neutre : la liste ISO n'appartient à aucun produit (ADR-0034).
 export const country = pgTable('country', {

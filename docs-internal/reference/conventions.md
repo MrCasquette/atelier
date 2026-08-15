@@ -63,6 +63,31 @@ plusieurs natures. Pas d'arborescence posée d'avance (philosophy §4 appliquée
 
 ## Structure des packages
 
+### La charte d'un paquet vit dans son `README.md`
+
+Tout paquet **interne** (`private: true`) porte un `README.md` qui énonce sa raison d'être, sa
+frontière — ce qui lui appartient et ce qui appartient à son consommateur —, ses dépendances et leur
+justification, et les ADR qui le régissent.
+
+Le barrel (`src/index.ts`) ne reprend **pas** ce raisonnement. Il garde deux ou trois lignes
+**impératives** — la règle, pas son argumentation — et renvoie au README :
+
+```ts
+// @repo/fields — la grammaire d'un champ.
+// Ni route, ni table, ni accès base : voir README.md.
+```
+
+Les deux supports ne s'adressent pas au même lecteur. Le barrel est lu par qui s'apprête à violer la
+frontière : la règle doit s'y trouver au point de violation. Le README est lu par qui décide
+d'utiliser, d'extraire ou de publier le paquet, et peut porter ce qui n'a pas sa place en tête d'un
+fichier source. Dupliquer le raisonnement dans les deux le fait diverger — constaté et corrigé sur
+`@repo/fields`.
+
+**Exception — les paquets publiés.** Pour `@mrcasquette/content`, `@echoppe/client` et
+`create-echoppe`, `README.md` est la page npm : elle s'adresse à un consommateur externe et ne doit
+pas porter d'histoire interne (numéros de tickets, ordre d'extraction, dettes). Leur charte reste
+dans le barrel.
+
 ### `packages/echoppe-core` — slicing horizontal assumé (pour l'instant)
 
 `core` est organisé par **couche technique** : `db/schema/*`, `adapters/<famille>/*`, `services/*`,
@@ -128,6 +153,11 @@ actions}`.
   réflexe partout.
 - Jamais de catch silencieux. Pas de `console.log` de debug en prod (les logs structurés
   `[Contexte] …` sont volontaires).
+- **Le `message` d'une exception n'entre jamais dans un corps de réponse**
+  ([ADR-0050](../adr/ADR-0050-exception-jamais-reponse-http.md)). Une faute qui traverse HTTP est une
+  valeur structurée — union discriminée plate sur `code` — dont chaque surface rend le texte. Le
+  domaine n'écrit pas d'interface. *Contrat acté, migration non lancée : le code actuel ne s'y
+  conforme pas encore.*
 
 ## Frontière de validation
 
