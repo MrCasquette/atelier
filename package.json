@@ -32,7 +32,7 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "sh scripts/release.sh",
-    "test": "bun run --cwd packages/adapters test && bun run --cwd packages/auth test && bun run --cwd packages/content test && bun run --cwd packages/entities test && bun run --cwd packages/references test && bun run --cwd packages/echoppe-core test && bun run --cwd packages/client test && bun run --cwd apps/echoppe-admin test",
+    "test": "bun run --cwd packages/adapters test && bun run --cwd packages/auth test && bun run --cwd packages/content test && bun run --cwd packages/entities test && bun run --cwd packages/fields test && bun run --cwd packages/references test && bun run --cwd packages/echoppe-core test && bun run --cwd packages/client test && bun run --cwd apps/echoppe-admin test",
     "test:integration": "bun run --cwd apps/echoppe-api test:smoke",
     "contracts": "bun run scripts/contracts.ts",
     "contracts:check": "bun run scripts/contracts.ts --check",
