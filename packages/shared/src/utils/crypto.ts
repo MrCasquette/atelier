@@ -19,8 +19,11 @@ function getEncryptionKey(): Buffer {
 }
 
 /**
- * Chiffre une chaîne avec AES-256-GCM
- * Retourne: iv (12 bytes) + authTag (16 bytes) + ciphertext, encodé en base64
+ * Chiffre une chaîne avec AES-256-GCM.
+ *
+ * Rend `iv (12) + authTag (16) + ciphertext`, en base64. Cette disposition est un CONTRAT de
+ * compatibilité, pas un détail : `decrypt` la suppose, et tout credential déjà stocké l'a adoptée.
+ * La changer rend illisible ce qui est en base.
  */
 export function encrypt(plaintext: string): string {
   const key = getEncryptionKey();
@@ -30,7 +33,6 @@ export function encrypt(plaintext: string): string {
   const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
   const authTag = cipher.getAuthTag();
 
-  // Concatène: iv + authTag + ciphertext
   const combined = Buffer.concat([iv, authTag, encrypted]);
   return combined.toString('base64');
 }
@@ -42,7 +44,6 @@ export function decrypt(encryptedBase64: string): string {
   const key = getEncryptionKey();
   const combined = Buffer.from(encryptedBase64, 'base64');
 
-  // Extrait: iv (12) + authTag (16) + ciphertext
   const iv = combined.subarray(0, IV_LENGTH);
   const authTag = combined.subarray(IV_LENGTH, IV_LENGTH + AUTH_TAG_LENGTH);
   const ciphertext = combined.subarray(IV_LENGTH + AUTH_TAG_LENGTH);
@@ -55,9 +56,7 @@ export function decrypt(encryptedBase64: string): string {
   return decrypted.toString('utf8');
 }
 
-/**
- * Vérifie si la clé de chiffrement est configurée
- */
+/** Sonde sans effet de bord : dit si un chiffrement est possible, là où `encrypt` lèverait. */
 export function isEncryptionConfigured(): boolean {
   try {
     getEncryptionKey();
