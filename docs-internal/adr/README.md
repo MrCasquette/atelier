@@ -37,7 +37,7 @@ Portée : socle | <package> | échoppe | prisme
 | [0033](./ADR-0033-organisation-monorepo.md) | Organisation du monorepo : disposition à plat, deux cores, packages partagés | accepté | — |
 | [0041](./ADR-0041-hierarchie-autorites.md) | Hiérarchie des autorités : framework → décision produit → SSOT personnelle | accepté | — |
 | [0044](./ADR-0044-surface-http-paquets-partages.md) | Un paquet partagé n'expose pas de routes : `service` + `model`, jamais Elysia | accepté | — |
-| [0050](./ADR-0050-exception-jamais-reponse-http.md) | Une exception ne compose jamais une réponse HTTP | accepté, amendé 2026-08-16 | — |
+| [0050](./ADR-0050-exception-jamais-reponse-http.md) | Une exception ne compose jamais une réponse HTTP | accepté, amendé 2026-08-16 | [audit-couverture-documentaire.md](../audits/audit-couverture-documentaire.md) |
 | [0034](./ADR-0034-identite-referentiel-reglages.md) | Identité, référentiel et réglages : ce que l'outil possède | accepté, partiellement amendé par [0040](./ADR-0040-identite-site-entite-legale.md) | — |
 
 ## Index — `client` · SDK et contrat d'API

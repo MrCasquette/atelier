@@ -39,13 +39,14 @@ nouvelle doit avoir deux usages réels ; à défaut, elle reste dans le produit 
   `NODE_ENV`, qui serait un test d'environnement dans du code de domaine, invisible au type, et ne
   protégerait que le chemin qui pense à le consulter. Touche les 4 appelants de `sendEmail` plus le
   câblage au boot. Débloque les tests du chemin d'envoi, aujourd'hui impossibles.
+  Détail : [audit de couverture documentaire](../audits/audit-couverture-documentaire.md).
 - [ ] 🟡 **Séparer la partie pure de `@repo/pages` de sa partie connectée**, sur le modèle déjà
   appliqué dans `@repo/auth` (`permission.ts` / `permission-cache.ts`). `definition-service.ts`
   importe `db` au niveau module et `@repo/db` **lève à l'import** sans `DATABASE_URL` : la logique
   pure — `assertRegistryCoherent`, `unknownRefTargets` — est soudée à la connexion par le graphe
   d'imports alors qu'elle n'interroge rien. Ses tests doivent poser une URL factice, contournement
   consigné dans le fichier de test. La convention existe déjà dans le dépôt ; ce module ne l'applique
-  pas.
+  pas. Détail : [audit de couverture documentaire](../audits/audit-couverture-documentaire.md).
 - [ ] 🟠 **Encaisser le découpage en packages** — le constat, mesuré le 2026-08-12 : les frontières
   existent dans l'arborescence mais pas dans les imports. L'API compte **61 imports de
   `@echoppe/core` contre 29 de `@repo/*`**, et **46 usages de symboles qui vivent dans un `@repo/*`**
@@ -83,8 +84,9 @@ nouvelle doit avoir deux usages réels ; à défaut, elle reste dans le produit 
 
 ## Sécurité
 
-Relevés par l'audit de couverture documentaire (lot 2, 2026-08-16). Aucun n'est exploité aujourd'hui ;
-tous reposent sur une propriété circonstancielle plutôt que sur une garde.
+Relevés par l'[audit de couverture documentaire](../audits/audit-couverture-documentaire.md)
+(lot 2, 2026-08-16). Aucun n'est exploité aujourd'hui ; tous reposent sur une propriété
+circonstancielle plutôt que sur une garde.
 
 - [ ] 🟠 **Échapper les données utilisateur du gabarit `contact-form`**
   (`packages/communication/src/templates.ts:117`). `name`, `email`, `phone`, `subject` et `message`
