@@ -2,11 +2,11 @@
 // Remplace le trio dupliqué switch + singletons `let xAdapter` + boucle getAvailable + reset : on
 // déclare une map `provider → fabrique`, tout le reste en dérive. Ajouter un provider = une entrée.
 export interface AdapterRegistry<P extends string, A> {
-  // Instance (lazy, mémoïsée) de l'adapter d'un provider.
+  /** Instance de l'adapter d'un provider — construite au premier appel, puis mémoïsée. */
   get(provider: P): A;
-  // Providers « prêts » (selon le prédicat fourni, ex. configuré + activé), dans l'ordre déclaré.
+  /** Providers « prêts » selon le prédicat fourni (ex. configuré + activé), dans l'ordre déclaré. */
   available(isReady: (provider: P) => Promise<boolean>): Promise<P[]>;
-  // Purge les instances mémoïsées (ex. après rotation de credentials).
+  /** Purge les instances mémoïsées — à appeler après une rotation de credentials. */
   reset(): void;
 }
 

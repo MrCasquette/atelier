@@ -3,6 +3,6 @@
 // credentials déchiffrés) ; un test injecte un stub. C'est ce qui rend la couche adapter testable
 // sans base de données.
 export interface CredentialStore<T> {
-  // Renvoie les credentials utilisables (déchiffrés, provider activé), ou `null` sinon.
+  /** Credentials utilisables — déchiffrés, provider activé — ou `null` si l'un des deux manque. */
   get(): Promise<T | null>;
 }
