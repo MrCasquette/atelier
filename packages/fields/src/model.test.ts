@@ -15,7 +15,7 @@ import { type SerializedField, serializedFieldSchema, serializedFieldShape } fro
 //
 //   1. l'assignabilité mutuelle voit les propriétés REQUISES et les mauvais types, mais PAS la
 //      disparition d'une propriété optionnelle — `{ a?: number }` et `{}` sont mutuellement
-//      assignables en TypeScript, et la grammaire compte 26 `t.Optional` ;
+//      assignables en TypeScript, et la grammaire est massivement optionnelle ;
 //   2. l'égalité des `keyof`, membre par membre, voit ça. Sur l'union ENTIÈRE elle ne verrait
 //      rien : `keyof (A | B)` rend l'INTERSECTION des clés, soit `name` et `kind` seuls.
 

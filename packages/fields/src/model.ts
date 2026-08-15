@@ -38,7 +38,8 @@ const fieldMeta = {
 
 // Cible d'un champ `ref` : un NOM de cible inscrite au registre de références, pas une union
 // fermée (ADR-0032). Le socle ne connaît pas les entités du produit ; l'existence de la cible se
-// vérifie à la synchronisation du registre, pas dans la grammaire (cf. definition/service.ts).
+// vérifie à la synchronisation du registre, pas dans la grammaire (cf. `@repo/pages`,
+// `definition-service.ts`).
 const refTarget = t.String({ minLength: 1 });
 
 // Un champ du registre. Récursif : `repeater` contient lui-même une séquence de champs.
@@ -125,8 +126,8 @@ export const serializedFieldShape = t.Recursive((self) =>
 //
 // CE BLOC DISPARAÎT le jour où l'inférence récursive d'Elysia encaisse un tableau : il suffira
 // d'exporter `serializedFieldShape` directement et de supprimer ces lignes avec leur verrou.
-// Le verrou, justement, vit dans `definition-model.test.ts` — la duplication n'est tolérable que
-// parce qu'une dérive y échoue à la compilation.
+// Le verrou, justement, vit dans `model.test.ts` — la duplication n'est tolérable que parce
+// qu'une dérive y échoue à la compilation.
 
 type FieldMeta = {
   name: string;
