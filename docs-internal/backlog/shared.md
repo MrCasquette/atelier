@@ -109,8 +109,13 @@ circonstancielle plutôt que sur une garde.
     paramètres de coût. Ça ne rend pas les durées identiques — la requête SQL diffère aussi — mais
     supprime le seul écart mesurable à distance de façon fiable.
 
-  Complément indispensable, à traiter avec : une **limitation de débit** sur les endpoints
-  d'authentification. Sans elle l'énumération reste possible, seulement plus lente.
+  Ce volet temporel était déjà tracé dans le backlog Échoppe (« Timing du login : vérification
+  factice lorsqu'un utilisateur est introuvable »). Il est consolidé ici parce que `authenticate`
+  vit dans `@repo/auth`, un paquet partagé, et que les deux volets se corrigent d'un seul geste.
+
+  Dépendance, pas doublon : la **limitation de débit** sur les endpoints d'authentification est
+  suivie dans le [backlog Échoppe](./echoppe.md) (« Rate-limit fail-open sans Redis »). Sans elle,
+  l'énumération reste possible, seulement plus lente — aucun des correctifs ci-dessus ne la remplace.
 
   Arbitrage séparé, à décider et non à corriger : l'inscription client rend `email-taken`
   (`customer-service.ts:104`), une énumération explicite sur un endpoint public. Le durcissement

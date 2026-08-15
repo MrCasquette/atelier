@@ -27,13 +27,17 @@ Détail : [audit sécurité](../audits/security-audit.md).
 
 - [ ] 🔴 **Rate-limit fail-open sans Redis et IP de confiance** : choisir fallback mémoire ou
   démarrage refusé sans backend ; définir la politique de proxy de confiance.
-- [ ] 🟠 **Timing du login** : vérification factice lorsqu'un utilisateur est introuvable.
+- Timing du login → consolidé dans le [backlog socle](./shared.md) § Sécurité, avec l'oracle
+  explicite du même code : `authenticate` vit dans `@repo/auth`, et les deux se corrigent ensemble.
 - [ ] 🟠 **Upload média** : whitelist MIME/extension, taille maximale, nom serveur et
   `Content-Disposition` sûr.
 - [ ] 🟠 **Hasher les tokens de session** stockés en base.
 - [ ] 🟠 **Rate limiting des webhooks** Stripe et PayPal.
 - [ ] 🟡 **Handler d'erreur global et contrat 5xx commun** : message générique en production,
-  journalisation structurée et types SDK honnêtes.
+  journalisation structurée et types SDK honnêtes. À traiter **avec** la migration
+  d'[ADR-0050](../adr/ADR-0050-exception-jamais-reponse-http.md), qui pose l'invariant dont ce
+  handler est le point d'application : l'API n'a aujourd'hui aucun `onError`, donc aucun point de
+  conversion garanti pour une exception non rattrapée.
 - [x] 🟡 **Reset de mot de passe admin** : câbler le flux jeton déjà disponible. → ADR-0048, même
   jeton que l'invitation — inviter et débloquer sont le même acte.
 
