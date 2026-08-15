@@ -33,14 +33,15 @@ export function emptyValue(field: SerializedField, registry: Registry): unknown 
   }
 }
 
-// Donnée vide d'une map de champs (définition, ou groupe repeater/list imbriqué).
+// Donnée vide d'une séquence de champs (définition, ou groupe repeater/list imbriqué).
+// La DONNÉE reste indexée par nom — c'est la déclaration qui est ordonnée (ADR-0049).
 export function emptyFieldsData(
-  fields: Record<string, SerializedField>,
+  fields: readonly SerializedField[],
   registry: Registry,
 ): BlockData {
   const data: BlockData = {};
-  for (const [name, field] of Object.entries(fields)) {
-    data[name] = emptyValue(field, registry);
+  for (const field of fields) {
+    data[field.name] = emptyValue(field, registry);
   }
   return data;
 }
@@ -97,16 +98,16 @@ function pruneValue(field: SerializedField, value: unknown, registry: Registry):
   }
 }
 
-// Applique le pruning à un dictionnaire de champs (définition ou groupe repeater imbriqué).
+// Applique le pruning à une séquence de champs (définition ou groupe repeater imbriqué).
 export function pruneFields(
-  fields: Record<string, SerializedField>,
+  fields: readonly SerializedField[],
   data: Record<string, unknown>,
   registry: Registry,
 ): BlockData {
   const out: BlockData = {};
-  for (const [name, field] of Object.entries(fields)) {
-    const pruned = pruneValue(field, data[name], registry);
-    if (pruned !== OMIT) out[name] = pruned;
+  for (const field of fields) {
+    const pruned = pruneValue(field, data[field.name], registry);
+    if (pruned !== OMIT) out[field.name] = pruned;
   }
   return out;
 }

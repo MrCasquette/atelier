@@ -122,7 +122,7 @@ export async function loadVariables(): Promise<ReadonlyMap<string, string>> {
  */
 function interpolateFields(
   data: unknown,
-  fields: Record<string, SerializedField>,
+  fields: readonly SerializedField[],
   context: Context,
 ): unknown {
   if (data === null || typeof data !== 'object' || Array.isArray(data)) return data;
@@ -130,7 +130,11 @@ function interpolateFields(
   const source = data as Record<string, unknown>;
   const result: Record<string, unknown> = { ...source };
 
-  for (const [key, field] of Object.entries(fields)) {
+  // La DÉCLARATION est une séquence (ADR-0049), la DONNÉE reste indexée par nom de champ : on
+  // parcourt donc la première pour adresser la seconde. L'ordre n'a ici aucune importance — on
+  // réécrit des valeurs en place — mais suivre la déclaration reste la règle du parcours.
+  for (const field of fields) {
+    const key = field.name;
     const value = source[key];
 
     if ((field.kind === 'text' || field.kind === 'richText') && typeof value === 'string') {
@@ -167,7 +171,7 @@ function interpolateFields(
 /** Ce qu'il faut sous la main pour descendre : les valeurs, et de quoi résoudre un composant. */
 type Context = {
   values: ReadonlyMap<string, string>;
-  components: Record<string, { fields: Record<string, SerializedField> }>;
+  components: Record<string, { fields: readonly SerializedField[] }>;
 };
 
 export type ResolvedSection = { id: string; type: string; data: unknown };

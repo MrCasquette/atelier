@@ -72,12 +72,15 @@ function assignmentsOf(
   declaration: EntityDeclaration,
   data: Record<string, unknown>,
 ): Assignment[] {
-  const fields = declaration.fields;
-  return fieldColumns(fields)
-    .filter((column) => data[column.name] !== undefined)
-    .map((column) => ({
+  // `fieldColumns` rend une colonne par champ, DANS LE MÊME ORDRE : l'appariement est positionnel,
+  // sans index intermédiaire à construire (ADR-0049).
+  const columns = fieldColumns(declaration.fields);
+  return declaration.fields
+    .map((field, index) => ({ field, column: columns[index] }))
+    .filter(({ column }) => data[column.name] !== undefined)
+    .map(({ field, column }) => ({
       column: column.name,
-      value: bindable(fields[column.name], data[column.name]),
+      value: bindable(field, data[column.name]),
     }));
 }
 

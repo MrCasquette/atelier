@@ -77,10 +77,10 @@ beforeAll(async () => {
         note: {
           name: 'note',
           singleton: false,
-          fields: {
-            titre: { kind: 'text', maxLength: 200, required: true },
-            vues: { kind: 'number', integer: true },
-          },
+          fields: [
+            { name: 'titre', kind: 'text', maxLength: 200, required: true },
+            { name: 'vues', kind: 'number', integer: true },
+          ],
         },
       },
     },

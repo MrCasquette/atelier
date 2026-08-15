@@ -117,7 +117,7 @@ beforeAll(async () => {
           name: 'fiche',
           label: 'Fiche pratique',
           singleton: false,
-          fields: { titre: { kind: 'text', maxLength: 200, required: true } },
+          fields: [{ name: 'titre', kind: 'text', maxLength: 200, required: true }],
         },
       },
     },

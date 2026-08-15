@@ -278,7 +278,10 @@ export type InferSections<C extends ContentDefinition> =
     : never;
 
 // ── Registre sérialisé (JSON) — références par nom ───────────────────────────────────────────
-export type SerializedField =
+//
+// La FORME d'un champ, sans son nom. L'authoring réutilise les mêmes descripteurs (`Options<TextField>`
+// dans field.ts), où le nom est la clé de l'objet littéral que le dev écrit.
+type SerializedFieldShape =
   | TextField
   | RichTextField
   | NumberField
@@ -307,7 +310,7 @@ export type SerializedField =
     }
   | {
       kind: 'repeater';
-      fields: Record<string, SerializedField>;
+      fields: SerializedField[];
       label?: string;
       hint?: string;
       required?: boolean;
@@ -315,11 +318,22 @@ export type SerializedField =
       max?: number;
     };
 
+/**
+ * Un champ sérialisé PORTE son nom (ADR-0049).
+ *
+ * Le nom était la clé d'un objet ; il est devenu une propriété, parce que l'ordre de déclaration
+ * est une information métier — c'est l'ordre du formulaire d'administration — et qu'un objet ne le
+ * garantit nulle part : ni `jsonb` (qui trie les clés), ni JavaScript lui-même (qui énumère les
+ * clés numériques en tête). Un tableau, si.
+ */
+export type SerializedField = SerializedFieldShape & { name: string };
+
 export interface SerializedDefinition {
   name: string;
   label?: string;
   icon?: string;
-  fields: Record<string, SerializedField>;
+  /** SÉQUENCE, pas dictionnaire : la position porte l'ordre déclaré (ADR-0049). */
+  fields: SerializedField[];
 }
 
 export interface SerializedEntity extends SerializedDefinition {

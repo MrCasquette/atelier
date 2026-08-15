@@ -1,5 +1,6 @@
 import { permission } from '@repo/auth';
 import { db, inArray, sql } from '@repo/db';
+import { duplicateFieldNames } from '@repo/pages';
 import { TypeCompiler } from 'elysia/type-system';
 import {
   addColumnSql,
@@ -361,6 +362,16 @@ export async function planEntities(
   // Un lien qui cite un champ inexistant ne se résoudra jamais. Le DSL le refuse déjà au dev, mais
   // rien ne garantit qu'un registre poussé soit passé par ce chemin (ADR-0046).
   plan.blockers.push(...incoherentLinks(registry));
+
+  // Deux champs de même nom (ADR-0049). Postgres refuserait le DDL de toute façon — mais au PUSH,
+  // après qu'un `check` a dit que tout allait bien, et sans nommer l'entité fautive. Un blocage ici
+  // le dit là où on le demande.
+  for (const declaration of Object.values(registry)) {
+    const duplicates = duplicateFieldNames(declaration.name, declaration.fields);
+    if (duplicates.length > 0) {
+      plan.blockers.push(`Champs en double : ${duplicates.join(', ')}.`);
+    }
+  }
 
   for (const [key, declaration] of Object.entries(registry)) {
     if (key !== declaration.name) {

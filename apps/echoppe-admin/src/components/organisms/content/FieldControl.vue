@@ -47,7 +47,7 @@ function inputType(format?: string): 'text' | 'email' | 'url' {
 }
 
 // Résout les champs d'un component nommé (list/component) depuis le registre.
-function componentFields(name: string): Record<string, SerializedField> | null {
+function componentFields(name: string): readonly SerializedField[] | null {
   return registry?.components[name]?.fields ?? null;
 }
 
@@ -151,7 +151,7 @@ function toggleEnum(value: string) {
   >
     <DynamicForm
       v-if="componentFields(field.of)"
-      :fields="componentFields(field.of) || {}"
+      :fields="componentFields(field.of) || []"
       :model-value="asRecord(modelValue)"
       @update:model-value="update"
     />
@@ -166,7 +166,7 @@ function toggleEnum(value: string) {
   <!-- list (répétition d'un component) -->
   <FieldRepeater
     v-else-if="field.kind === 'list'"
-    :fields="componentFields(field.of) ?? {}"
+    :fields="componentFields(field.of) ?? []"
     :model-value="asArray(modelValue)"
     :min="field.min"
     :max="field.max"

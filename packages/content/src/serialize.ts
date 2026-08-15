@@ -33,6 +33,7 @@ const normalizeEnumOptions = (options: ReadonlyArray<string | EnumOption>): Enum
   options.map((option) => (typeof option === 'string' ? { value: option, label: option } : option));
 
 function serializeField(
+  name: string,
   value: FieldValue,
   registry: Registry,
   registered: Map<string, Definition>,
@@ -40,12 +41,13 @@ function serializeField(
   // Component imbriqué by-reference (ex. `cta: link`) → ref par nom + auto-collecte.
   if (value.kind === 'definition') {
     collectComponent(value, registry, registered);
-    return { kind: 'component', of: value.name };
+    return { name, kind: 'component', of: value.name };
   }
 
   switch (value.kind) {
     case 'enum':
       return {
+        name,
         kind: 'enum',
         options: normalizeEnumOptions(value.options),
         multiple: value.multiple,
@@ -57,6 +59,7 @@ function serializeField(
     case 'list': {
       collectComponent(value.of, registry, registered);
       return {
+        name,
         kind: 'list',
         of: value.of.name,
         label: value.label,
@@ -68,6 +71,7 @@ function serializeField(
     }
     case 'repeater': {
       return {
+        name,
         kind: 'repeater',
         fields: serializeFields(value.fields, registry, registered),
         label: value.label,
@@ -78,21 +82,30 @@ function serializeField(
       };
     }
     default:
-      // Primitives, image, ref : le descripteur est déjà la forme JSON du registre.
-      return value;
+      // Primitives, image, ref : le descripteur est déjà la forme JSON du registre, au nom près.
+      return { name, ...value };
   }
 }
 
+/**
+ * POINT DE CAPTURE UNIQUE DE L'ORDRE — INVARIANT (ADR-0049).
+ *
+ * C'est ici, et nulle part ailleurs, que l'ordre écrit par le dev dans son fichier TS est figé.
+ * `Object.entries` le lit une fois ; passé cette ligne, l'ordre vit dans la SÉQUENCE du tableau,
+ * qui le porte jusqu'au bout — HTTP, `jsonb`, relecture.
+ *
+ * Aucun consommateur en aval ne doit reconstruire d'objet indexé par nom : la règle d'énumération
+ * de JavaScript (les clés numériques d'abord, `{ '2024': … }` saute en tête) réintroduirait le bug
+ * silencieusement, hors de portée du stockage. Un test le verrouille avec un champ nommé `2024`.
+ */
 function serializeFields(
   fields: Definition['fields'],
   registry: Registry,
   registered: Map<string, Definition>,
-): Record<string, SerializedField> {
-  const out: Record<string, SerializedField> = {};
-  for (const [key, value] of Object.entries(fields)) {
-    out[key] = serializeField(value, registry, registered);
-  }
-  return out;
+): SerializedField[] {
+  return Object.entries(fields).map(([name, value]) =>
+    serializeField(name, value, registry, registered),
+  );
 }
 
 function serializeDefinition(

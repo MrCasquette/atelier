@@ -7,7 +7,9 @@ import type { ApiData, ApiItem } from '@/types/api';
 // ── Registre ──────────────────────────────────────────────────────────────────────────────────
 export type Registry = ApiData<ReturnType<typeof api.content.registry.get>>;
 export type SerializedDefinition = Registry['sections'][string];
-export type SerializedField = SerializedDefinition['fields'][string];
+// `[number]` et non `[string]` : `fields` est une SÉQUENCE, dont la position porte l'ordre déclaré
+// — donc l'ordre d'affichage du formulaire généré (ADR-0049).
+export type SerializedField = SerializedDefinition['fields'][number];
 export type FieldKind = SerializedField['kind'];
 
 // Extrait la variante du champ correspondant à un `kind` (pour typer les props des widgets).

@@ -50,7 +50,7 @@ describe('grammaire des identifiants', () => {
 
   test('un nom refusé ne produit jamais de SQL', () => {
     expect(() => entityTableName('a"; drop table page; --')).toThrow(/refusé/);
-    expect(() => fieldColumns({ 'x"; drop table page': { kind: 'text' } })).toThrow(/refusé/);
+    expect(() => fieldColumns([{ name: 'x"; drop table page', kind: 'text' }])).toThrow(/refusé/);
   });
 
   test('préfixe la table pour ne jamais heurter une table du cœur', () => {
@@ -66,21 +66,24 @@ describe('grammaire des identifiants', () => {
 
 describe('type de colonne', () => {
   const cases: Array<[SerializedField, string]> = [
-    [{ kind: 'text' }, 'text'],
-    [{ kind: 'text', maxLength: 200 }, 'varchar(200)'],
-    [{ kind: 'richText' }, 'text'],
-    [{ kind: 'number' }, 'numeric'],
-    [{ kind: 'number', integer: true }, 'integer'],
-    [{ kind: 'boolean' }, 'boolean'],
-    [{ kind: 'date' }, 'date'],
-    [{ kind: 'date', time: true }, 'timestamptz'],
-    [{ kind: 'enum', options: [{ value: 'a', label: 'A' }] }, 'text'],
-    [{ kind: 'enum', options: [{ value: 'a', label: 'A' }], multiple: true }, 'text[]'],
-    [{ kind: 'image' }, 'uuid'],
-    [{ kind: 'ref', to: 'product' }, 'uuid'],
-    [{ kind: 'component', of: 'auteur' }, 'jsonb'],
-    [{ kind: 'list', of: 'auteur' }, 'jsonb'],
-    [{ kind: 'repeater', fields: {} }, 'jsonb'],
+    [{ name: 'champ', kind: 'text' }, 'text'],
+    [{ name: 'champ', kind: 'text', maxLength: 200 }, 'varchar(200)'],
+    [{ name: 'champ', kind: 'richText' }, 'text'],
+    [{ name: 'champ', kind: 'number' }, 'numeric'],
+    [{ name: 'champ', kind: 'number', integer: true }, 'integer'],
+    [{ name: 'champ', kind: 'boolean' }, 'boolean'],
+    [{ name: 'champ', kind: 'date' }, 'date'],
+    [{ name: 'champ', kind: 'date', time: true }, 'timestamptz'],
+    [{ name: 'champ', kind: 'enum', options: [{ value: 'a', label: 'A' }] }, 'text'],
+    [
+      { name: 'champ', kind: 'enum', options: [{ value: 'a', label: 'A' }], multiple: true },
+      'text[]',
+    ],
+    [{ name: 'champ', kind: 'image' }, 'uuid'],
+    [{ name: 'champ', kind: 'ref', to: 'product' }, 'uuid'],
+    [{ name: 'champ', kind: 'component', of: 'auteur' }, 'jsonb'],
+    [{ name: 'champ', kind: 'list', of: 'auteur' }, 'jsonb'],
+    [{ name: 'champ', kind: 'repeater', fields: [] }, 'jsonb'],
   ];
 
   for (const [field, expected] of cases) {
@@ -90,7 +93,7 @@ describe('type de colonne', () => {
   }
 
   test('une longueur fractionnaire ne peut pas se glisser dans le DDL', () => {
-    expect(columnType({ kind: 'text', maxLength: 12.9 })).toBe('varchar(12)');
+    expect(columnType({ name: 'champ', kind: 'text', maxLength: 12.9 })).toBe('varchar(12)');
   });
 });
 
@@ -99,10 +102,10 @@ describe('création de table', () => {
     const sql = createTableSql(
       'article',
       false,
-      {
-        titre: { kind: 'text', maxLength: 200, required: true },
-        vues: { kind: 'number', integer: true },
-      },
+      [
+        { name: 'titre', kind: 'text', maxLength: 200, required: true },
+        { name: 'vues', kind: 'number', integer: true },
+      ],
       NO_REFERENCE_TABLES,
     );
 
@@ -117,7 +120,12 @@ describe('création de table', () => {
   test('un singleton porte la contrainte de cardinalité, et pas de slug', () => {
     // `boolean NOT NULL DEFAULT true UNIQUE CHECK (singleton)` : au plus UNE ligne, garanti par
     // Postgres (ADR-0039). Borne haute seulement — aucune ligne n'est créée à l'activation.
-    const sql = createTableSql('cgv', true, { corps: { kind: 'richText' } }, NO_REFERENCE_TABLES);
+    const sql = createTableSql(
+      'cgv',
+      true,
+      [{ name: 'corps', kind: 'richText' }],
+      NO_REFERENCE_TABLES,
+    );
 
     expect(sql).toContain('singleton boolean not null default true unique check (singleton)');
     expect(sql).not.toContain('slug');
@@ -131,13 +139,13 @@ describe('clés étrangères', () => {
   const tables = { media: 'media', targets: { product: 'product', page: 'page' } };
 
   test('un champ image vise la table des médias', () => {
-    expect(foreignKeys({ photo: { kind: 'image' } }, tables)).toEqual([
+    expect(foreignKeys([{ name: 'photo', kind: 'image' }], tables)).toEqual([
       { column: 'photo', table: 'media', onDelete: 'set null' },
     ]);
   });
 
   test('un champ ref vise la table déclarée par sa cible', () => {
-    expect(foreignKeys({ vedette: { kind: 'ref', to: 'product' } }, tables)).toEqual([
+    expect(foreignKeys([{ name: 'vedette', kind: 'ref', to: 'product' }], tables)).toEqual([
       { column: 'vedette', table: 'product', onDelete: 'set null' },
     ]);
   });
@@ -146,12 +154,12 @@ describe('clés étrangères', () => {
   // peut pas devenir nulle — `restrict` énonce ce que `set null` ferait échouer de toute façon.
   test('un champ obligatoire RETIENT sa cible, un champ optionnel se vide', () => {
     const derived = foreignKeys(
-      {
-        illustration: { kind: 'image' },
-        couverture: { kind: 'image', required: true },
-        lie: { kind: 'ref', to: 'product' },
-        parent: { kind: 'ref', to: 'page', required: true },
-      },
+      [
+        { name: 'illustration', kind: 'image' },
+        { name: 'couverture', kind: 'image', required: true },
+        { name: 'lie', kind: 'ref', to: 'product' },
+        { name: 'parent', kind: 'ref', to: 'page', required: true },
+      ],
       tables,
     );
 
@@ -166,21 +174,21 @@ describe('clés étrangères', () => {
   test("une cible qui n'a pas dit où elle vit ne produit aucune contrainte", () => {
     // Le silence est un état NORMAL : une cible adossée à une vue ou à un système externe reste
     // légitime. Son champ garde un `uuid` nu — le comportement d'avant ADR-0045.
-    expect(foreignKeys({ lien: { kind: 'ref', to: 'externe' } }, tables)).toEqual([]);
+    expect(foreignKeys([{ name: 'lien', kind: 'ref', to: 'externe' }], tables)).toEqual([]);
   });
 
   test("sans table de médias connue, un champ image reste un uuid nu plutôt qu'un refus", () => {
-    expect(foreignKeys({ photo: { kind: 'image' } }, { targets: {} })).toEqual([]);
+    expect(foreignKeys([{ name: 'photo', kind: 'image' }], { targets: {} })).toEqual([]);
   });
 
   test('les champs qui vivent en jsonb restent hors de portée', () => {
     // `list`, `repeater`, `component` : aucune clé étrangère ne sait atteindre l'intérieur d'un
     // jsonb. Dette nommée dans ADR-0045, pas un oubli.
     const derived = foreignKeys(
-      {
-        blocs: { kind: 'list', of: 'bloc' },
-        galerie: { kind: 'repeater', fields: { image: { kind: 'image' } } },
-      },
+      [
+        { name: 'blocs', kind: 'list', of: 'bloc' },
+        { name: 'galerie', kind: 'repeater', fields: [{ name: 'image', kind: 'image' }] },
+      ],
       tables,
     );
 
@@ -191,7 +199,7 @@ describe('clés étrangères', () => {
     // Le nom vient du schéma Drizzle, pas d'un fichier du dev — mais il entre dans du DDL au même
     // titre. On ne se demande pas d'où il vient.
     expect(() =>
-      foreignKeys({ lien: { kind: 'ref', to: 'x' } }, { targets: { x: 'a"; drop' } }),
+      foreignKeys([{ name: 'lien', kind: 'ref', to: 'x' }], { targets: { x: 'a"; drop' } }),
     ).toThrow('Table de cible refusée');
   });
 
@@ -207,11 +215,11 @@ describe('clés étrangères', () => {
     const sql = createTableSql(
       'article',
       false,
-      {
-        titre: { kind: 'text', required: true },
-        photo: { kind: 'image' },
-        vedette: { kind: 'ref', to: 'product', required: true },
-      },
+      [
+        { name: 'titre', kind: 'text', required: true },
+        { name: 'photo', kind: 'image' },
+        { name: 'vedette', kind: 'ref', to: 'product', required: true },
+      ],
       tables,
     );
 

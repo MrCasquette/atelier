@@ -32,15 +32,15 @@ beforeAll(async () => {
         billet: {
           name: 'billet',
           singleton: false,
-          fields: {
-            titre: { kind: 'text', maxLength: 200, required: true },
-            vues: { kind: 'number', integer: true },
-          },
+          fields: [
+            { name: 'titre', kind: 'text', maxLength: 200, required: true },
+            { name: 'vues', kind: 'number', integer: true },
+          ],
         },
         mentions: {
           name: 'mentions',
           singleton: true,
-          fields: { corps: { kind: 'richText' } },
+          fields: [{ name: 'corps', kind: 'richText' }],
         },
       },
     },

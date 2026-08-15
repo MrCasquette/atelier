@@ -72,7 +72,7 @@ beforeAll(async () => {
         communique: {
           name: 'communique',
           singleton: false,
-          fields: { titre: { kind: 'text', required: true } },
+          fields: [{ name: 'titre', kind: 'text', required: true }],
         },
       },
     },

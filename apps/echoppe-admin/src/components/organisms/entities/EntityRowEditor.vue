@@ -46,7 +46,7 @@ watch(
       return;
     }
     const filled: BlockData = { ...empty };
-    for (const name of Object.keys(props.declaration.fields)) {
+    for (const { name } of props.declaration.fields) {
       if (row[name] !== undefined && row[name] !== null) filled[name] = row[name];
     }
     data.value = filled;

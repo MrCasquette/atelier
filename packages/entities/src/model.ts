@@ -29,7 +29,8 @@ export const entityDeclarationSchema = t.Object({
   // Absent = entité non référençable, ce qui est un état normal (ADR-0032) : ce qui rend une
   // entité citable est d'avoir une URL, pas d'être déclarée.
   link: t.Optional(entityLinkSchema),
-  fields: t.Record(t.String(), serializedFieldSchema),
+  // SÉQUENCE, pas dictionnaire (ADR-0049) — c'est aussi l'ordre des colonnes dérivées.
+  fields: t.Array(serializedFieldSchema),
 });
 
 export const entityRegistrySchema = t.Record(t.String(), entityDeclarationSchema);

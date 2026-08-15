@@ -32,11 +32,10 @@ watch(name, load);
 const FLAT_KINDS = new Set(['text', 'number', 'boolean', 'date', 'enum']);
 const PREVIEW_COLUMNS = 3;
 
-const previewFields = computed<[string, SerializedField][]>(() => {
-  const fields = declaration.value?.fields ?? {};
-  return Object.entries(fields)
-    .filter(([, field]) => FLAT_KINDS.has(field.kind))
-    .slice(0, PREVIEW_COLUMNS);
+// « Les premiers » n'a de sens que parce que `fields` est une séquence (ADR-0049).
+const previewFields = computed<SerializedField[]>(() => {
+  const fields = declaration.value?.fields ?? [];
+  return fields.filter((field) => FLAT_KINDS.has(field.kind)).slice(0, PREVIEW_COLUMNS);
 });
 
 function cell(row: EntityRow, name: string): string {
@@ -137,11 +136,11 @@ async function confirmDelete() {
               Slug
             </th>
             <th
-              v-for="[field, definition] in previewFields"
-              :key="field"
+              v-for="field in previewFields"
+              :key="field.name"
               class="px-4 py-3 font-medium"
             >
-              {{ definition.label ?? field }}
+              {{ field.label ?? field.name }}
             </th>
             <th class="px-4 py-3" />
           </tr>
@@ -157,11 +156,11 @@ async function confirmDelete() {
               {{ cell(row, 'slug') }}
             </td>
             <td
-              v-for="[field] in previewFields"
-              :key="field"
+              v-for="field in previewFields"
+              :key="field.name"
               class="px-4 py-3 text-gray-500"
             >
-              {{ cell(row, field) }}
+              {{ cell(row, field.name) }}
             </td>
             <td class="px-4 py-3 text-right">
               <button

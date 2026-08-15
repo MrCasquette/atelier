@@ -148,10 +148,22 @@ jamais à ça.
   par champ, hors de ce que le DSL sait dire. Les champs de premier niveau, eux, sont contraints
   (ADR-0045).
 
-  Le stockage, lui, **respecte l'ordre déclaré** : `content_definition.fields` et
-  `entity_definition.fields` sont en `json` et non `jsonb`, précisément pour ça (#46). `jsonb`
-  normalise les clés — par longueur puis octet — et le formulaire généré affichait les champs dans
-  un ordre que personne n'avait choisi.
+  Le stockage, lui, **respecte l'ordre déclaré** : `fields` est une **séquence** `[{ name, kind, … }]`
+  et non un dictionnaire ([ADR-0049](../adr/ADR-0049-schema-sequence-de-champs.md)). Un tableau est
+  ordonné par construction, donc `jsonb` le préserve — ce qui n'était pas vrai d'un objet, dont il
+  trie les clés par longueur puis octet, si bien que le formulaire généré affichait les champs dans
+  un ordre que personne n'avait choisi (#46).
+
+  L'ordre est de l'information et pas de la présentation : c'est celui des colonnes dérivées, celui
+  du formulaire d'administration, et c'est lui qui donne son sens au « premier champ texte » dont
+  une occurrence tire son libellé.
+
+  Deux bornes en découlent. Un nom de champ **commence par une lettre** — `{ '2024': … }` est déjà
+  réordonné par JavaScript dans l'objet littéral du dev, avant toute sérialisation, donc on refuse
+  le cas plutôt que de promettre un ordre qu'on ne tiendrait pas. Et **deux champs ne peuvent pas
+  porter le même nom** : l'objet l'interdisait gratuitement, la séquence l'admet, donc `check` le
+  refuse en nommant l'entité et le champ — sans quoi Postgres le dirait au push, trop tard et moins
+  clairement.
 - **Trier, filtrer ou paginer la liste des occurrences.** L'écran rend ce que la route rend, les
   plus récentes d'abord. Une entité qui grossit demandera mieux.
 - **Contraindre un `enum` en base.** La valeur est déjà validée à la frontière par le schéma compilé

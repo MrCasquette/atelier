@@ -53,28 +53,34 @@ const options = async (name: string): Promise<Option[]> => {
 const chronique: Declaration = {
   name: 'chronique',
   singleton: false,
-  fields: { titre: { kind: 'text' } },
+  fields: [{ name: 'titre', kind: 'text' }],
   link: { mode: 'route', route: '/blog/:slug' },
 };
 
 const lien_social: Declaration = {
   name: 'lien_social',
   singleton: false,
-  fields: { nom: { kind: 'text' }, adresse: { kind: 'text' } },
+  fields: [
+    { name: 'nom', kind: 'text' },
+    { name: 'adresse', kind: 'text' },
+  ],
   link: { mode: 'href', field: 'adresse' },
 };
 
 const ancre_test: Declaration = {
   name: 'ancre_test',
   singleton: false,
-  fields: { titre: { kind: 'text' }, parent: { kind: 'ref', to: 'page' } },
+  fields: [
+    { name: 'titre', kind: 'text' },
+    { name: 'parent', kind: 'ref', to: 'page' },
+  ],
   link: { mode: 'anchor', parent: 'parent' },
 };
 
 const prive: Declaration = {
   name: 'prive',
   singleton: false,
-  fields: { note: { kind: 'text' } },
+  fields: [{ name: 'note', kind: 'text' }],
 };
 
 beforeAll(async () => {
@@ -184,14 +190,17 @@ describe('une entité citable hérite de ses clés étrangères', () => {
   const socle: Declaration = {
     name: 'socle',
     singleton: false,
-    fields: { titre: { kind: 'text' } },
+    fields: [{ name: 'titre', kind: 'text' }],
     link: { mode: 'route', route: '/socle/:slug' },
   };
 
   const avis: Declaration = {
     name: 'avis',
     singleton: false,
-    fields: { titre: { kind: 'text' }, sujet: { kind: 'ref', to: 'entity:socle' } },
+    fields: [
+      { name: 'titre', kind: 'text' },
+      { name: 'sujet', kind: 'ref', to: 'entity:socle' },
+    ],
   };
 
   it('contraint un champ ref qui vise une entité, dès le premier push', async () => {

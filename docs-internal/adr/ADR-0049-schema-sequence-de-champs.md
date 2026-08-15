@@ -30,7 +30,7 @@ préserve donc les clés telles qu'écrites.
 lecteur ne l'« optimise » pas en ressuscitant le bug. Et surtout : **ça ne corrigeait qu'un maillon
 sur deux.**
 
-### Le maillon qu'on n'avait pas vu
+### Un second maillon, que la séquence ne répare pas
 
 JavaScript a sa propre règle de réordonnancement. `OrdinaryOwnPropertyKeys` énumère d'abord les clés
 qui ressemblent à un index de tableau, **par ordre numérique croissant**, puis les autres dans
@@ -41,13 +41,14 @@ Object.keys({ titre: 1, '2024': 2, corps: 3, '7': 4 })
 // → ['7', '2024', 'titre', 'corps']
 ```
 
-Ça se produit dans `serializeFields`, **avant** que Postgres ne voie quoi que ce soit. Le passage à
-`json` n'y peut rien.
+C'est atteignable : les entités sont protégées par la liste blanche d'identifiants de `ddl.ts`
+(`/^[a-z][a-z0-9_]*$/`), mais les sections et composants déclaraient
+`fields: t.Record(t.String(), …)`, sans contrainte de forme sur le nom.
 
-C'est atteignable aujourd'hui : les entités sont protégées par la liste blanche d'identifiants de
-`ddl.ts` (`/^[a-z][a-z0-9_]*$/`), mais les sections et composants déclarent
-`fields: t.Record(t.String(), …)`, sans contrainte de forme sur le nom. Un champ nommé `2024` dans
-une section passe la grammaire et se réordonne tout seul.
+**Point important, établi en implémentant** : ce brouillage a lieu dans **l'objet littéral que le dev
+écrit**, donc avant `serializeFields` et avant tout stockage. Ni `json`, ni la séquence ne le
+rattrapent — un test l'a démontré en échouant. C'est une limite du support d'écriture, pas du
+transport. Elle appelle donc un refus, pas une conversion (décision 6).
 
 ## Décision
 
@@ -127,6 +128,51 @@ vérification rejoint `assertRegistryCoherent`, avec son test et son message.
 
 C'est le seul coût réel du changement, et il est assumé : une garantie qui se voit vaut mieux
 qu'une garantie qui tient à la forme du conteneur.
+
+### 6. Un nom de champ commence par une lettre
+
+`/^[a-zA-Z][a-zA-Z0-9_]*$/`, refusé au dev par le DSL (`assertFieldNames`) **et** à la frontière par
+la grammaire — une clé d'API pousse ce qu'elle veut.
+
+C'est la seule réponse tenable au second maillon. On ne peut pas garantir l'ordre d'un champ nommé
+`2024` : il est déjà brouillé quand `defineSection` reçoit son objet. Entre promettre un ordre qu'on
+ne tient pas et refuser le cas qui le casse, on refuse — et on le dit dans le message d'erreur.
+
+Les entités vivaient déjà sous une règle plus stricte (`ddl.ts`, minuscules seulement, parce que le
+nom devient une colonne SQL). Celle-ci ne la remplace pas, elle couvre les sections et composants,
+dont les champs vont en `jsonb` et n'avaient aucune contrainte.
+
+### 7. Un adaptateur statique pour Elysia
+
+Depuis que `fields` est un tableau, `Static<>` du schéma récursif traverse un `t.Array`. TypeScript
+n'arrive alors plus à prouver que ce type est égal à lui-même à travers les génériques de route
+d'Elysia : trois routes cessent de compiler (`/content/registry`, `/content/entities`,
+`/content/entities/mine`) alors que le type est assignable en direct. Ni le modèle nommé, ni
+l'annotation du handler n'y changent rien — vérifié un par un.
+
+`serializedFieldSchema` devient donc `t.Unsafe<SerializedField>(serializedFieldShape)`, où
+`SerializedField` est écrit à la main. **La validation runtime et le schéma OpenAPI émis sont
+identiques** — on passe le vrai schéma récursif, et le JSON produit est le même (testé). On dit
+seulement à TypeScript quel type lire.
+
+C'est un contournement de framework, pas un modèle : il disparaît le jour où l'inférence récursive
+d'Elysia encaisse un tableau. La duplication n'est tolérable que **verrouillée**, et le verrou tient
+en deux contrôles complémentaires, dans `definition-model.test.ts` :
+
+- **assignabilité mutuelle** — voit les propriétés requises, les mauvais types, un membre entier
+  absent. Aveugle à la disparition d'une propriété optionnelle : `{ a?: number }` et `{}` sont
+  mutuellement assignables, et la grammaire compte 26 `t.Optional` ;
+- **égalité des `keyof`, membre par membre** — voit ça. Sur l'union entière elle ne verrait rien :
+  `keyof (A | B)` rend l'**intersection** des clés.
+
+Deux pièges à connaître, tous deux rencontrés : `[X] extends [never]` et non `X extends never`, sans
+quoi le conditionnel se distribue sur l'union vide et le verrou s'auto-annule dans le cas même qu'il
+doit attraper ; et la forme **explicite par `kind`**, la version générique sur un type mappé étant
+vacue — avec un `K` générique, TypeScript diffère `Extract` et tout s'effondre en `never`.
+
+**On ne réduit pas le DSL pour contourner ça.** Un répéteur dans un répéteur reste déclarable, et
+l'administration le rend — trois composants s'appellent en récursion mutuelle pour ça. Faire dériver
+une amputation du langage d'une limite d'inférence confondrait deux décisions.
 
 ## Conséquences
 

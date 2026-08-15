@@ -11,7 +11,7 @@ import type { BlockData, SerializedField } from '@/composables/content/types';
 // l'ajout/suppression/réordonnancement d'items, chacun édité par un DynamicForm imbriqué. Bornes
 // min/max respectées (ajout désactivé au max, suppression au min). Mise à jour immuable.
 const props = defineProps<{
-  fields: Record<string, SerializedField>;
+  fields: readonly SerializedField[];
   modelValue: unknown[];
   min?: number;
   max?: number;

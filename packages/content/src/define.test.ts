@@ -61,7 +61,10 @@ describe('sérialisation des entités', () => {
     );
 
     expect(registry.components.auteur).toBeDefined();
-    expect(registry.entities?.article.fields.auteurs).toEqual({ kind: 'list', of: 'auteur' });
+    // Le champ PORTE son nom, il n'est plus une clé (ADR-0049).
+    expect(registry.entities?.article.fields).toEqual([
+      { name: 'auteurs', kind: 'list', of: 'auteur' },
+    ]);
   });
 
   test('refuse deux entités de même nom', () => {
@@ -87,8 +90,8 @@ describe('sérialisation des entités', () => {
       }),
     );
 
-    expect(registry.sections.article.fields).toHaveProperty('titre');
-    expect(registry.entities?.article.fields).toHaveProperty('corps');
+    expect(registry.sections.article.fields.map((field) => field.name)).toEqual(['titre']);
+    expect(registry.entities?.article.fields.map((field) => field.name)).toEqual(['corps']);
   });
 
   test("un contenu sans entités pousse le JSON d'avant leur existence", () => {
@@ -198,5 +201,70 @@ describe('inférence de la forme rendue', () => {
 
     expect(uneListe.slug).toBe('mon-article');
     expect(unSingleton.id).toBe('y');
+  });
+});
+
+// L'INVARIANT d'ADR-0049 : l'ordre déclaré est de l'information — c'est celui du formulaire
+// d'administration et celui des colonnes dérivées —, et la sérialisation est le POINT DE CAPTURE
+// UNIQUE qui le fige. Ces cas ne décrivent pas un confort : ils verrouillent la raison d'être de la
+// séquence. Le jour où l'un d'eux échoue, un `Object.fromEntries` s'est glissé quelque part.
+describe("l'ordre déclaré survit à la sérialisation", () => {
+  test('rend les champs dans l’ordre où le dev les a écrits', () => {
+    const registry = serialize(
+      defineContent({
+        sections: [
+          defineSection('legal', {
+            fields: { titre: f.text(), sousTitre: f.text(), corps: f.richText(), a: f.text() },
+          }),
+        ],
+        entities: [],
+      }),
+    );
+
+    // En `jsonb`, un OBJET aurait été retrié par longueur puis octet : a, corps, titre, sousTitre.
+    expect(registry.sections.legal.fields.map((field) => field.name)).toEqual([
+      'titre',
+      'sousTitre',
+      'corps',
+      'a',
+    ]);
+  });
+
+  test('refuse les noms que JavaScript réordonne de lui-même', () => {
+    // LE cas que ni `json` ni la séquence ne rattrapent. `Object.keys` énumère les clés qui
+    // ressemblent à un index de tableau EN TÊTE et par ordre croissant, et ça se produit dans
+    // l'objet littéral du dev — AVANT toute sérialisation, avant que Postgres ne voie quoi que ce
+    // soit. `{ titre, 2024, corps, 7 }` est déjà `7, 2024, titre, corps` à la lecture du fichier.
+    //
+    // On ne peut donc pas garantir l'ordre pour ces noms-là. On les refuse, ce qui est la seule
+    // promesse tenable (ADR-0049).
+    expect(() => defineSection('archive', { fields: { titre: f.text(), 2024: f.text() } })).toThrow(
+      /Nom de champ refusé/,
+    );
+
+    expect(() =>
+      defineSection('archive', { fields: { titre: f.text(), corps: f.richText() } }),
+    ).not.toThrow();
+  });
+
+  test('fige aussi l’ordre à l’intérieur d’un répéteur', () => {
+    const registry = serialize(
+      defineContent({
+        sections: [
+          defineSection('faq', {
+            fields: {
+              lignes: f.repeater({
+                fields: { question: f.text(), reponse: f.richText(), ordre: f.number() },
+              }),
+            },
+          }),
+        ],
+        entities: [],
+      }),
+    );
+
+    const [lignes] = registry.sections.faq.fields;
+    if (lignes.kind !== 'repeater') throw new Error('Le champ attendu est un répéteur');
+    expect(lignes.fields.map((field) => field.name)).toEqual(['question', 'reponse', 'ordre']);
   });
 });

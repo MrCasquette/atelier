@@ -15,14 +15,16 @@ requireSmokeDb();
 
 let ownerCookie: string;
 
-type Fields = Record<string, unknown>;
-type Declaration = { name: string; singleton: boolean; fields: Fields };
+/** Forme d'écriture des fixtures : lisible. La déclaration poussée, elle, est une séquence. */
+type Fields = Record<string, Record<string, unknown>>;
+type Declaration = { name: string; singleton: boolean; fields: unknown[] };
 type Constraint = { column_name: string; foreign_table: string; delete_rule: string };
 
+// Le champ PORTE son nom depuis ADR-0049 — conversion ici pour garder les cas lisibles.
 const entity = (name: string, fields: Fields, singleton = false): Declaration => ({
   name,
   singleton,
-  fields,
+  fields: Object.entries(fields).map(([field, shape]) => ({ name: field, ...shape })),
 });
 
 const push = (declarations: Declaration[]) =>

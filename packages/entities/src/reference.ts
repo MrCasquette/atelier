@@ -23,10 +23,13 @@ import type { EntityDeclaration, EntityRegistry } from './model';
  * Dérivé plutôt que déclaré. Un réglage de plus dans le DSL pour dire « c'est celui-là le titre »
  * se paierait sur chaque entité, alors que l'ordre de déclaration porte déjà l'intention : on écrit
  * le titre en premier. À défaut, le slug — qui est toujours lisible.
+ *
+ * C'est le consommateur qui montre le mieux pourquoi l'ordre est de l'information et non de la
+ * présentation (ADR-0049) : « premier » n'a de sens que si la séquence en a un.
  */
 function labelColumn(declaration: EntityDeclaration): string | null {
-  for (const [name, field] of Object.entries(declaration.fields)) {
-    if ((field as SerializedField).kind === 'text') return name;
+  for (const field of declaration.fields as SerializedField[]) {
+    if (field.kind === 'text') return field.name;
   }
   return null;
 }
@@ -82,7 +85,9 @@ async function anchorUrls(
   const link = declaration.link;
   if (link?.mode !== 'anchor') return new Map();
 
-  const parentField = declaration.fields[link.parent] as SerializedField | undefined;
+  const parentField = (declaration.fields as SerializedField[]).find(
+    (field) => field.name === link.parent,
+  );
   const parentName = parentField?.kind === 'ref' ? parentField.to : undefined;
   const parent = parentName ? registry.get(parentName) : undefined;
   if (!parent) return new Map();

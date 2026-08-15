@@ -11,17 +11,17 @@ type Checked = {
   name: string;
   singleton: boolean;
   link?: LinkDeclaration;
-  fields: Record<string, { kind: string }>;
+  fields: { name: string; kind: string }[];
 };
 
 const article = (over: Partial<Checked> = {}): Checked => ({
   name: 'article',
   singleton: false,
-  fields: {
-    titre: { kind: 'text' },
-    url: { kind: 'text' },
-    page: { kind: 'ref' },
-  },
+  fields: [
+    { name: 'titre', kind: 'text' },
+    { name: 'url', kind: 'text' },
+    { name: 'page', kind: 'ref' },
+  ],
   ...over,
 });
 

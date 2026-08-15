@@ -15,7 +15,8 @@ type CheckedEntity = {
   name: string;
   singleton: boolean;
   link?: LinkDeclaration;
-  fields: Record<string, { kind: string }>;
+  /** Séquence, pas dictionnaire (ADR-0049) — on y cherche par nom, l'ordre n'importe pas ici. */
+  fields: readonly { name: string; kind: string }[];
 };
 
 /**
@@ -49,7 +50,7 @@ export function incoherentLinks(registry: Record<string, CheckedEntity>): string
     }
 
     if (link.mode === 'href') {
-      const field = declaration.fields[link.field];
+      const field = declaration.fields.find((candidate) => candidate.name === link.field);
       if (!field) {
         faults.push(`${cite} : le lien cite « ${link.field} », champ non déclaré.`);
       } else if (field.kind !== 'text') {
@@ -62,7 +63,7 @@ export function incoherentLinks(registry: Record<string, CheckedEntity>): string
       faults.push(`${cite} est un singleton : il n'a pas de slug dont dériver une ancre.`);
       continue;
     }
-    const parent = declaration.fields[link.parent];
+    const parent = declaration.fields.find((candidate) => candidate.name === link.parent);
     if (!parent) {
       faults.push(`${cite} : le lien cite « ${link.parent} », champ non déclaré.`);
     } else if (parent.kind !== 'ref') {

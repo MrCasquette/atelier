@@ -6,8 +6,11 @@ import type { BlockData, SerializedField } from '@/composables/content/types';
 // Générateur de formulaire registre-dirigé : rend un contrôle par champ d'une définition. Récursif
 // via FieldControl (component/list/repeater). Mise à jour immuable — chaque changement émet un
 // nouvel objet, la réactivité remonte jusqu'au bloc.
+//
+// L'ordre de `fields` EST l'ordre d'affichage : c'est ce composant qui donne son sens à la séquence
+// d'ADR-0049, et c'est ici que le désordre se voyait quand la déclaration était un objet.
 const props = defineProps<{
-  fields: Record<string, SerializedField>;
+  fields: readonly SerializedField[];
   modelValue: BlockData;
 }>();
 
@@ -23,14 +26,14 @@ function setField(name: string, value: unknown) {
 <template>
   <div class="space-y-4">
     <div
-      v-for="(field, name) in fields"
-      :key="name"
+      v-for="field in fields"
+      :key="field.name"
     >
-      <Label :required="field.required">{{ field.label ?? name }}</Label>
+      <Label :required="field.required">{{ field.label ?? field.name }}</Label>
       <FieldControl
         :field="field"
-        :model-value="modelValue[name]"
-        @update:model-value="setField(name, $event)"
+        :model-value="modelValue[field.name]"
+        @update:model-value="setField(field.name, $event)"
       />
       <p
         v-if="field.hint"

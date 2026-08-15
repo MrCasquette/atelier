@@ -24,18 +24,47 @@ export interface DefinitionConfig<F extends Fields> {
   fields: F;
 }
 
+/**
+ * Un nom de champ commence par une LETTRE — INVARIANT (ADR-0049).
+ *
+ * Ce n'est pas une convention de style, c'est ce qui rend l'ordre déclaré fiable. Les champs
+ * s'écrivent dans un objet littéral, et JavaScript énumère les clés qui ressemblent à un index de
+ * tableau EN TÊTE et par ordre numérique croissant :
+ *
+ *   Object.keys({ titre: 1, '2024': 2, corps: 3, '7': 4 })  →  ['7', '2024', 'titre', 'corps']
+ *
+ * Le brouillage a lieu à l'écriture, avant toute sérialisation : passer à une séquence ne le
+ * rattrape pas, `json` non plus. On refuse donc le seul cas où il se produit, plutôt que de
+ * prétendre garantir un ordre qu'on ne tiendrait pas.
+ */
+const FIELD_NAME = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+
+function assertFieldNames(name: string, fields: Fields): void {
+  for (const key of Object.keys(fields)) {
+    if (!FIELD_NAME.test(key)) {
+      throw new Error(
+        `Nom de champ refusé dans « ${name} » : « ${key} ». Un champ commence par une lettre, ` +
+          `puis lettres, chiffres et « _ » — un nom numérique casserait l'ordre de déclaration.`,
+      );
+    }
+  }
+}
+
 const define = <F extends Fields, Name extends string>(
   role: Definition['role'],
   name: Name,
   config: DefinitionConfig<F>,
-): Definition<F, Name> => ({
-  kind: 'definition',
-  role,
-  name,
-  label: config.label,
-  icon: config.icon,
-  fields: config.fields,
-});
+): Definition<F, Name> => {
+  assertFieldNames(name, config.fields);
+  return {
+    kind: 'definition',
+    role,
+    name,
+    label: config.label,
+    icon: config.icon,
+    fields: config.fields,
+  };
+};
 
 export function defineComponent<const F extends Fields, Name extends string>(
   name: Name,

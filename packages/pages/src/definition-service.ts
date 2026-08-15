@@ -88,15 +88,17 @@ function fieldToSchema(field: SerializedField, components: Components, seen: Set
   }
 }
 
+// La DONNÉE d'une section reste un objet indexé par nom de champ — c'est ce que le front consomme.
+// Seule la DÉCLARATION est une séquence (ADR-0049) : l'ordre y est de l'information, ici non.
 function fieldsToSchema(
-  fields: Record<string, SerializedField>,
+  fields: readonly SerializedField[],
   components: Components,
   seen: Set<string>,
 ): TSchema {
   const shape: Record<string, TSchema> = {};
-  for (const [key, field] of Object.entries(fields)) {
+  for (const field of fields) {
     const schema = fieldToSchema(field, components, seen);
-    shape[key] = field.required ? schema : t.Optional(schema);
+    shape[field.name] = field.required ? schema : t.Optional(schema);
   }
   return t.Object(shape);
 }
@@ -115,7 +117,7 @@ const definitionToSchema = (def: SerializedDefinition, components: Components): 
  * référence un component du registre, que l'appelant seul sait charger.
  */
 export function compileFields(
-  fields: Record<string, SerializedField>,
+  fields: readonly SerializedField[],
   components: Components,
 ): TypeCheck<TSchema> {
   return TypeCompiler.Compile(fieldsToSchema(fields, components, new Set()));
@@ -180,7 +182,47 @@ export async function loadRegistry(): Promise<Registry> {
  * en tentant de compiler toutes ses sections. Lève si incohérent. Appelé avant de persister un push.
  */
 export function assertRegistryCoherent(registry: Registry): void {
+  const duplicates = [
+    ...Object.entries(registry.sections),
+    ...Object.entries(registry.components),
+  ].flatMap(([name, def]) => duplicateFieldNames(name, def.fields));
+
+  if (duplicates.length > 0) {
+    throw new Error(`Champs en double : ${duplicates.join(', ')}.`);
+  }
+
   compileSections(registry);
+}
+
+/**
+ * Noms de champs déclarés deux fois dans une même définition, en descendant les répéteurs.
+ *
+ * L'objet donnait cette garantie gratuitement — deux clés identiques ne coexistent pas. La séquence
+ * l'admet (ADR-0049), donc elle se vérifie. Une garantie qui se voit vaut mieux qu'une garantie qui
+ * tenait à la forme du conteneur, mais encore faut-il qu'elle soit posée sur TOUS les chemins
+ * d'écriture — d'où cette fonction exportée plutôt qu'une garde locale au registre des pages : les
+ * entités ont leur propre chemin de poussée, et elles s'en servent dans `planEntities`.
+ *
+ * Sans elle, le doublon est silencieux côté sections : `fieldsToSchema` écrase la première
+ * occurrence, et le formulaire affiche deux champs dont un seul est validé. Côté entités, Postgres
+ * refuse le DDL (« column specified more than once ») — mais au push, alors que `check` a déjà dit
+ * que tout allait bien, et sans nommer l'entité fautive.
+ *
+ * Rend TOUTES les fautes, en clair. Même forme qu'`unknownRefTargets`.
+ */
+export function duplicateFieldNames(owner: string, fields: readonly SerializedField[]): string[] {
+  const faults: string[] = [];
+  const seen = new Set<string>();
+
+  for (const field of fields) {
+    if (seen.has(field.name)) faults.push(`« ${owner}.${field.name} »`);
+    seen.add(field.name);
+    if (field.kind === 'repeater') {
+      faults.push(...duplicateFieldNames(`${owner}.${field.name}`, field.fields));
+    }
+  }
+
+  return faults;
 }
 
 // Aplati le registre (sections + components) en lignes `content_definition` (une par définition).
@@ -210,12 +252,12 @@ export function unknownRefTargets(registry: Registry, knownTargets: string[]): s
   const known = new Set(knownTargets);
   const faults = new Set<string>();
 
-  const walkFields = (owner: string, fields: Record<string, SerializedField>): void => {
-    for (const [key, field] of Object.entries(fields)) {
+  const walkFields = (owner: string, fields: readonly SerializedField[]): void => {
+    for (const field of fields) {
       if (field.kind === 'ref' && !known.has(field.to)) {
-        faults.add(`${owner}.${key} → « ${field.to} »`);
+        faults.add(`${owner}.${field.name} → « ${field.to} »`);
       }
-      if (field.kind === 'repeater') walkFields(`${owner}.${key}`, field.fields);
+      if (field.kind === 'repeater') walkFields(`${owner}.${field.name}`, field.fields);
     }
   };
 

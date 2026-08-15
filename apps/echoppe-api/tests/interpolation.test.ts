@@ -48,19 +48,19 @@ beforeAll(async () => {
       components: {
         encart: {
           name: 'encart',
-          fields: { note: { kind: 'richText' } },
+          fields: [{ name: 'note', kind: 'richText' }],
         },
       },
       sections: {
         legal: {
           name: 'legal',
-          fields: {
-            titre: { kind: 'text' },
-            corps: { kind: 'richText' },
-            reference: { kind: 'text' },
-            encart: { kind: 'component', of: 'encart' },
-            lignes: { kind: 'repeater', fields: { texte: { kind: 'text' } } },
-          },
+          fields: [
+            { name: 'titre', kind: 'text' },
+            { name: 'corps', kind: 'richText' },
+            { name: 'reference', kind: 'text' },
+            { name: 'encart', kind: 'component', of: 'encart' },
+            { name: 'lignes', kind: 'repeater', fields: [{ name: 'texte', kind: 'text' }] },
+          ],
         },
       },
     },

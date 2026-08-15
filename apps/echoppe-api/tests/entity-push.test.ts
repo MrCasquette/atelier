@@ -16,14 +16,17 @@ requireSmokeDb();
 let ownerCookie: string;
 let editorCookie: string;
 
-type Fields = Record<string, unknown>;
-type Declaration = { name: string; singleton: boolean; fields: Fields; label?: string };
+/** Forme d'écriture des fixtures : lisible. La déclaration poussée, elle, est une séquence. */
+type Fields = Record<string, Record<string, unknown>>;
+type Declaration = { name: string; singleton: boolean; fields: unknown[]; label?: string };
 type Plan = { steps: Array<{ sql: string; destructive: boolean; summary: string }> };
 
+// Le champ PORTE son nom depuis ADR-0049 — la conversion tient ici pour que les cas de test
+// restent lisibles, et parce que l'ordre déclaré n'a pas d'importance dans ce fichier-ci.
 const entity = (name: string, fields: Fields, singleton = false): Declaration => ({
   name,
   singleton,
-  fields,
+  fields: Object.entries(fields).map(([field, shape]) => ({ name: field, ...shape })),
 });
 
 const registryOf = (...declarations: Declaration[]) =>

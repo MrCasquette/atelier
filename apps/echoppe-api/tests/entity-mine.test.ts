@@ -92,13 +92,16 @@ beforeAll(async () => {
           label: 'Dépêches',
           icon: 'M4 6h16',
           singleton: false,
-          fields: { titre: { kind: 'text', required: true }, corps: { kind: 'richText' } },
+          fields: [
+            { name: 'titre', kind: 'text', required: true },
+            { name: 'corps', kind: 'richText' },
+          ],
         },
         entete: {
           name: 'entete',
           label: 'En-tête',
           singleton: true,
-          fields: { slogan: { kind: 'text' } },
+          fields: [{ name: 'slogan', kind: 'text' }],
         },
       },
     },
@@ -156,10 +159,11 @@ describe('la réponse porte de quoi générer un écran', () => {
       icon: 'M4 6h16',
       singleton: false,
     });
-    // DANS L'ORDRE DÉCLARÉ (#46). Le journal stockait en `jsonb`, qui réordonne les clés — par
+    // DANS L'ORDRE DÉCLARÉ. Le journal stockait un OBJET en `jsonb`, qui réordonne les clés — par
     // longueur puis octet —, donc `{ titre, corps }` ressortait `{ corps, titre }` et le formulaire
-    // généré affichait les champs dans le désordre. En `json`, le texte source survit.
-    expect(Object.keys(depeche?.fields ?? {})).toEqual(['titre', 'corps']);
+    // généré affichait les champs dans le désordre (#46). Depuis ADR-0049 l'ordre vit dans la
+    // séquence, que `jsonb` préserve : c'est la position qui le porte, plus la forme du conteneur.
+    expect(depeche?.fields.map((field) => field.name)).toEqual(['titre', 'corps']);
   });
 
   it('dit la cardinalité, qui décide de la forme de l’écran', async () => {

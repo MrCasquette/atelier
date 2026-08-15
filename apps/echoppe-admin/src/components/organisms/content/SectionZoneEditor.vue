@@ -138,7 +138,7 @@ function move(index: number, direction: -1 | 1) {
       >
         <DynamicForm
           v-if="blockDef(block.type)"
-          :fields="blockDef(block.type)?.fields ?? {}"
+          :fields="blockDef(block.type)?.fields ?? []"
           :model-value="block.data"
           @update:model-value="patchBlock(index, { data: $event })"
         />

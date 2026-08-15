@@ -1,4 +1,4 @@
-import { boolean, json, jsonb, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { boolean, jsonb, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core';
 
 // Journal des entités activées (ADR-0028, conséquence n°2) — l'équivalent de
 // `__drizzle_migrations` pour les entités : quelles entités existent, et sous quelle déclaration.
@@ -21,17 +21,15 @@ export const entityDefinition = pgTable('entity_definition', {
   // Au plus une occurrence (ADR-0039). Pilote l'UI, la forme de la route, et la contrainte posée
   // sur la table dérivée.
   singleton: boolean('singleton').notNull().default(false),
-  // Dictionnaire { [champ]: SerializedField } — la déclaration elle-même, telle que poussée. C'est
-  // ce qui sert de point de comparaison au prochain `check` : pas besoin d'une version à part, la
-  // déclaration EST la version.
-  // `json` et non `jsonb` : DÉLIBÉRÉ (#46). `jsonb` normalise et réordonne les clés — par longueur
-  // puis octet —, donc l'ordre dans lequel le dev a écrit ses champs se perdait au stockage, et le
-  // formulaire généré les affichait dans le désordre. `json` garde le texte source tel quel.
+  // SÉQUENCE [{ name, kind, … }] — la déclaration elle-même, telle que poussée. C'est ce qui sert
+  // de point de comparaison au prochain `check` : pas besoin d'une version à part, la déclaration
+  // EST la version. L'ordre y est de l'information : c'est celui des colonnes dérivées, et celui du
+  // formulaire d'administration.
   //
-  // On y perd les opérateurs d'indexation et les requêtes sur le contenu : personne n'en fait sur
-  // cette colonne, et le jour où quelqu'un en aura besoin, c'est la grammaire qu'il faudra changer
-  // (un tableau ordonné), pas le type de la colonne.
-  fields: json('fields').notNull(),
+  // `jsonb` le préserve, parce qu'un tableau est ordonné par construction (ADR-0049). Ce n'était
+  // pas le cas quand la déclaration était un objet — `jsonb` trie les clés, d'où le passage
+  // temporaire à `json` sous #46, que la séquence rend caduc.
+  fields: jsonb('fields').notNull(),
   // Comment l'entité produit son lien (ADR-0046) — `null` quand elle ne se cite pas, ce qui est un
   // état normal : ce qui rend une entité référençable est d'avoir une URL, pas d'être déclarée.
   // C'est cette colonne qui permet de réinscrire les cibles au démarrage, sans rejouer un push.

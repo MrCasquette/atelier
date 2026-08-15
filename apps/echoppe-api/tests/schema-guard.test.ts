@@ -62,13 +62,17 @@ beforeAll(async () => {
   editorCookie = await createEditorSession();
 });
 
-// #46 — l'autre moitié du défaut. Les sections l'avaient depuis toujours : `content_definition.fields`
-// était en `jsonb`, qui réordonne les clés, donc le formulaire d'édition affichait les champs dans
-// un ordre que le dev n'avait pas choisi.
+// #46 puis ADR-0049 — l'ordre déclaré traverse la frontière HTTP et le stockage.
+//
+// Le défaut d'origine : `content_definition.fields` était un objet en `jsonb`, qui trie les clés par
+// longueur puis octet, donc le formulaire d'édition affichait les champs dans un ordre que le dev
+// n'avait pas choisi. #46 avait déplacé la colonne en `json` ; ADR-0049 a déplacé l'ORDRE dans une
+// séquence, ce qui rend `jsonb` de nouveau sûr — un tableau est ordonné par construction.
 describe('l’ordre des champs déclarés survit au stockage', () => {
-  it('rend les champs d’une section dans l’ordre où le dev les a écrits', async () => {
-    const declared = ['titre', 'sous_titre', 'corps', 'a'];
+  // Choisis pour tomber : sur un objet en `jsonb`, ils ressortaient `a, corps, titre, sous_titre`.
+  const declared = ['titre', 'sous_titre', 'corps', 'a'];
 
+  it('rend les champs d’une section dans l’ordre où le dev les a écrits', async () => {
     const pushed = await req('PUT', '/content/registry', {
       cookie: ownerCookie,
       body: {
@@ -78,14 +82,12 @@ describe('l’ordre des champs déclarés survit au stockage', () => {
           heros: {
             name: 'heros',
             label: 'Héros',
-            fields: {
-              // Choisis pour tomber : `jsonb` trie par longueur puis octet, donc il rendrait
-              // `a, corps, titre, sous_titre` — un ordre que personne n'a demandé.
-              titre: { kind: 'text', required: true },
-              sous_titre: { kind: 'text' },
-              corps: { kind: 'richText' },
-              a: { kind: 'text' },
-            },
+            fields: [
+              { name: 'titre', kind: 'text', required: true },
+              { name: 'sous_titre', kind: 'text' },
+              { name: 'corps', kind: 'richText' },
+              { name: 'a', kind: 'text' },
+            ],
           },
         },
       },
@@ -94,10 +96,58 @@ describe('l’ordre des champs déclarés survit au stockage', () => {
 
     const res = await req('GET', '/content/registry', { cookie: ownerCookie });
     const registry = (await res.json()) as {
-      sections: Record<string, { fields: Record<string, unknown> }>;
+      sections: Record<string, { fields: { name: string }[] }>;
     };
 
-    expect(Object.keys(registry.sections.heros.fields)).toEqual(declared);
+    expect(registry.sections.heros.fields.map((field) => field.name)).toEqual(declared);
+  });
+
+  it('refuse un nom de champ que JavaScript réordonnerait', async () => {
+    // La borne d'ADR-0049 : `{ '2024': … }` est déjà brouillé dans l'objet littéral du dev, avant
+    // toute sérialisation. Ni la séquence ni le stockage ne peuvent le rattraper — d'où un refus à
+    // la frontière plutôt qu'une promesse d'ordre qu'on ne tiendrait pas.
+    const pushed = await req('PUT', '/content/registry', {
+      cookie: ownerCookie,
+      body: {
+        version: 1,
+        components: {},
+        sections: {
+          archive: {
+            name: 'archive',
+            fields: [
+              { name: 'titre', kind: 'text' },
+              { name: '2024', kind: 'text' },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(pushed.status).toBe(422);
+  });
+
+  it('refuse deux champs de même nom, que la séquence autorise', async () => {
+    // L'objet donnait cette garantie gratuitement — deux clés identiques ne coexistent pas. Le
+    // tableau l'admet, donc elle se vérifie (`duplicateFieldNames`).
+    const pushed = await req('PUT', '/content/registry', {
+      cookie: ownerCookie,
+      body: {
+        version: 1,
+        components: {},
+        sections: {
+          doublon: {
+            name: 'doublon',
+            fields: [
+              { name: 'titre', kind: 'text' },
+              { name: 'titre', kind: 'richText' },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(pushed.status).toBe(422);
+    expect(await pushed.text()).toContain('titre');
   });
 });
 

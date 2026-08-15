@@ -112,11 +112,11 @@ export function columnType(field: SerializedField): string {
  * Un champ `required` devient `NOT NULL`. Conséquence assumée : rendre un champ obligatoire après
  * coup échoue si des lignes existent sans valeur — c'est Postgres qui refuse, et il a raison.
  */
-export function fieldColumns(fields: Record<string, SerializedField>): ColumnSpec[] {
+export function fieldColumns(fields: readonly SerializedField[]): ColumnSpec[] {
   const columns: ColumnSpec[] = [];
-  for (const [name, field] of Object.entries(fields)) {
-    assertIdentifier(name, 'Nom de champ');
-    columns.push({ name, type: columnType(field), notNull: field.required === true });
+  for (const field of fields) {
+    assertIdentifier(field.name, 'Nom de champ');
+    columns.push({ name: field.name, type: columnType(field), notNull: field.required === true });
   }
   return columns;
 }
@@ -177,14 +177,15 @@ function targetTable(field: SerializedField, tables: ReferenceTables): string | 
  * jsonb, qu'aucune clé étrangère ne sait atteindre. Dette nommée dans ADR-0045.
  */
 export function foreignKeys(
-  fields: Record<string, SerializedField>,
+  fields: readonly SerializedField[],
   tables: ReferenceTables,
 ): ForeignKeySpec[] {
   const keys: ForeignKeySpec[] = [];
-  for (const [name, field] of Object.entries(fields)) {
+  for (const field of fields) {
     const table = targetTable(field, tables);
     if (!table) continue;
 
+    const name = field.name;
     assertIdentifier(name, 'Nom de champ');
     if (!isValidTableName(table)) {
       throw new Error(`Table de cible refusée : « ${table} », visée par le champ « ${name} ».`);
@@ -233,7 +234,7 @@ const columnDdl = (column: ColumnSpec): string =>
 export function createTableSql(
   name: string,
   singleton: boolean,
-  fields: Record<string, SerializedField>,
+  fields: readonly SerializedField[],
   // Requis, sans valeur par défaut : un appelant qui oublierait l'argument produirait une table
   // sans ses garanties, en silence. Le compilateur l'oblige à dire ce qu'il vise — quitte à dire
   // `NO_REFERENCE_TABLES`, qui est alors un choix écrit et non un oubli.

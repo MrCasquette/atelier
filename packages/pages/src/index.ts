@@ -15,6 +15,7 @@ export {
 export {
   assertRegistryCoherent,
   compileFields,
+  duplicateFieldNames,
   invalidateRegistryCache,
   loadRegistry,
   type SyncRegistryOutcome,
