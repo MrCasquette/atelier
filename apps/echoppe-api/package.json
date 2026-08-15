@@ -19,6 +19,7 @@
     "@elysiajs/openapi": "^1.4.15",
     "@repo/auth": "workspace:*",
     "@repo/entities": "workspace:*",
+    "@repo/fields": "workspace:*",
     "@repo/menus": "workspace:*",
     "@repo/pages": "workspace:*",
     "@repo/references": "workspace:*",

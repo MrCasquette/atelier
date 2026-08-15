@@ -1,6 +1,6 @@
 import { permission } from '@repo/auth';
 import { db, inArray, sql } from '@repo/db';
-import { duplicateFieldNames } from '@repo/pages';
+import { duplicateFieldNames } from '@repo/fields';
 import { TypeCompiler } from 'elysia/type-system';
 import {
   addColumnSql,

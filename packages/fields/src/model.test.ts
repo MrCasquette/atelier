@@ -1,15 +1,11 @@
 import { describe, expect, it } from 'bun:test';
 import { type Static, t } from 'elysia';
 import { TypeCompiler } from 'elysia/type-system';
-import {
-  type SerializedField,
-  serializedFieldSchema,
-  serializedFieldShape,
-} from './definition-model';
+import { type SerializedField, serializedFieldSchema, serializedFieldShape } from './model';
 
 // Verrou de l'adaptateur statique d'ADR-0049.
 //
-// `definition-model.ts` décrit la grammaire DEUX fois : en TypeBox (ce qui valide) et en TypeScript
+// `model.ts` décrit la grammaire DEUX fois : en TypeBox (ce qui valide) et en TypeScript
 // (ce qu'Elysia sait comparer). Cette duplication n'est tolérable que parce qu'une divergence
 // échoue ICI, à la compilation. Si ce fichier devient vert alors qu'il ne devrait pas, la
 // duplication redevient une dette silencieuse — et c'est le seul scénario qui rendrait le

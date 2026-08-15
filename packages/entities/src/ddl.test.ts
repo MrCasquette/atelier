@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import type { SerializedField } from '@repo/pages';
+import type { SerializedField } from '@repo/fields';
 import {
   columnType,
   createTableSql,

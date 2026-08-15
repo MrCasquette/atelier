@@ -1,5 +1,5 @@
 import { db, sql } from '@repo/db';
-import { compileFields, type SerializedDefinition, type SerializedField } from '@repo/pages';
+import { type Components, compileFields, type SerializedField } from '@repo/fields';
 import { entityTableName, fieldColumns } from './ddl';
 import type { EntityDeclaration } from './model';
 import { type EntityRow, projectRow, selectionOf } from './row-service';
@@ -26,7 +26,7 @@ const checks = new Map<string, ReturnType<typeof compileFields>>();
 
 function checkFor(
   declaration: EntityDeclaration,
-  components: Record<string, SerializedDefinition>,
+  components: Components,
 ): ReturnType<typeof compileFields> {
   const key = `${declaration.name}:${JSON.stringify(declaration.fields)}`;
   const cached = checks.get(key);
@@ -46,7 +46,7 @@ function checkFor(
 export function validateEntityData(
   declaration: EntityDeclaration,
   data: unknown,
-  components: Record<string, SerializedDefinition>,
+  components: Components,
 ): { ok: true } | { ok: false; errors: string[] } {
   const check = checkFor(declaration, components);
   if (check.Check(data)) return { ok: true };

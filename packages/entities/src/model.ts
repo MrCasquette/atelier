@@ -1,12 +1,11 @@
-import { serializedFieldSchema } from '@repo/pages';
+import { serializedFieldSchema } from '@repo/fields';
 import { type Static, t } from 'elysia';
 
 // Grammaire de ce qui entre par le push d'entités — la frontière de validation de cette route.
 //
-// La grammaire des CHAMPS vient de `@repo/pages` plutôt que d'être réécrite ici : une entité et
+// La grammaire des CHAMPS vient de `@repo/fields` plutôt que d'être réécrite ici : une entité et
 // une section décrivent leurs champs de la même façon, c'est le point qu'ADR-0026 désigne comme
-// « partagé intégralement ». La dépendance se lit à l'envers du bon sens — les champs ne sont pas
-// une affaire de pages — et c'est un héritage de l'ordre d'extraction, pas une intention. Cf. #35.
+// « partagé intégralement ». Ce qui est propre à l'entité — sa cardinalité, son lien — reste ici.
 
 /**
  * Comment l'entité produit son lien (ADR-0032, résolu par ADR-0046).

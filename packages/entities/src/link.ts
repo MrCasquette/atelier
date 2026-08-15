@@ -1,6 +1,5 @@
 // Cohérence d'un `link` d'entité avec les champs qu'il nomme (ADR-0046). Fonction PURE — aucune
-// base, aucun transport, et c'est délibéré : `model.ts` importe la grammaire TypeBox de
-// `@repo/pages`, qui traîne la connexion. Une vérification de cohérence n'a pas à exiger une
+// base, aucun transport, et c'est délibéré : une vérification de cohérence n'a pas à exiger une
 // DATABASE_URL pour se tester.
 //
 // Les types d'entrée sont STRUCTURELS plutôt qu'importés du schéma : ce module n'a besoin que de

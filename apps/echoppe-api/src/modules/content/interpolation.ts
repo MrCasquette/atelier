@@ -1,5 +1,6 @@
 import { db, legalEntity, site } from '@echoppe/core';
-import { loadRegistry, type SerializedField } from '@repo/pages';
+import type { SerializedField } from '@repo/fields';
+import { loadRegistry } from '@repo/pages';
 
 // Interpolation de variables dans le contenu (ADR-0035, V1 humble).
 //

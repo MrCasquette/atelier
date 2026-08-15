@@ -61,6 +61,7 @@
         "@elysiajs/openapi": "^1.4.15",
         "@repo/auth": "workspace:*",
         "@repo/entities": "workspace:*",
+        "@repo/fields": "workspace:*",
         "@repo/menus": "workspace:*",
         "@repo/pages": "workspace:*",
         "@repo/references": "workspace:*",
@@ -222,9 +223,20 @@
       "dependencies": {
         "@repo/auth": "workspace:*",
         "@repo/db": "workspace:*",
-        "@repo/pages": "workspace:*",
+        "@repo/fields": "workspace:*",
         "@repo/references": "workspace:*",
         "drizzle-orm": "^0.45.2",
+        "elysia": "^1.4.29",
+      },
+      "devDependencies": {
+        "bun-types": "^1.3.14",
+        "typescript": "6.0.3",
+      },
+    },
+    "packages/fields": {
+      "name": "@repo/fields",
+      "version": "0.0.1",
+      "dependencies": {
         "elysia": "^1.4.29",
       },
       "devDependencies": {
@@ -261,6 +273,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@repo/db": "workspace:*",
+        "@repo/fields": "workspace:*",
         "@repo/references": "workspace:*",
         "drizzle-orm": "^0.45.2",
         "elysia": "^1.4.29",
@@ -701,6 +714,8 @@
     "@repo/db": ["@repo/db@workspace:packages/db"],
 
     "@repo/entities": ["@repo/entities@workspace:packages/entities"],
+
+    "@repo/fields": ["@repo/fields@workspace:packages/fields"],
 
     "@repo/identity": ["@repo/identity@workspace:packages/identity"],
 

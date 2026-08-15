@@ -1,5 +1,5 @@
 import { db, sql } from '@repo/db';
-import type { SerializedField } from '@repo/pages';
+import type { SerializedField } from '@repo/fields';
 import {
   type EntityProjection,
   linkUrl,

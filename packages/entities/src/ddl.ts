@@ -1,4 +1,4 @@
-import type { SerializedField } from '@repo/pages';
+import type { SerializedField } from '@repo/fields';
 
 // Traduction d'une déclaration d'entité en SQL. Fonctions PURES — aucune base, aucun transport :
 // c'est ce qui les rend testables, et ce sont elles qu'il faut le plus tester.

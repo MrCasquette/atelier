@@ -10,10 +10,10 @@ nouvelle doit avoir deux usages réels ; à défaut, elle reste dans le produit 
 - [x] 🟠 **Préserver l'ordre déclaré des champs** : choisir une représentation explicitement
   ordonnée plutôt que dépendre de l'ordre d'un objet stocké en `jsonb`. → `json` au lieu de `jsonb`
   sur `content_definition.fields` et `entity_definition.fields` ; `jsonb` normalise les clés.
-- [ ] 🟠 **Extraire la grammaire des champs hors de `@repo/pages`** ; trancher le nom du package
-  avec le lexique. Le second consommateur existe désormais (validation d'écriture des entités) :
-  seul le NOM bloque. La frontière retenue est « la primitive et sa compilation partent, les
-  dérivations restent » — DDL côté entités, résolution de components côté pages.
+- [x] 🟠 **Extraire la grammaire des champs hors de `@repo/pages`** ; trancher le nom du package
+  avec le lexique. → `@repo/fields`, sans aucune dépendance : la primitive et sa compilation sont
+  parties, les dérivations sont restées — DDL côté entités, registre à deux rôles côté pages.
+  `@repo/entities` ne dépend plus de `@repo/pages`.
 - [x] 🟠 **Implémenter l'interpolation V1** après stabilisation de Markdown : jeu fini de variables,
   substitution sans évaluation, une passe, littéral conservé pour une inconnue.
 - [ ] 🟡 **Type-gen du DSL** pour les sections et composants de front.
