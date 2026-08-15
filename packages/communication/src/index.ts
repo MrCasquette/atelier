@@ -1,12 +1,7 @@
 // @repo/communication — l'envoi d'e-mails, ses providers et ses gabarits.
 //
-// Ce paquet ne connaît AUCUN vocabulaire de produit. `EmailTemplate` est un registre ouvert
-// (ADR-0007 de conventions.md, § « Un registre, pas une union fermée ») : il n'inscrit que les
-// gabarits qu'il possède réellement — réinitialisation de mot de passe et formulaire de contact.
-// Commande, expédition et bienvenue sont inscrits par Échoppe, dans son propre module.
-//
-// Sa seule dépendance à une table est `site`, pour le nom et l'URL du site dans les pieds de page.
-// Elle sera remplacée par la surface de variables quand celle-ci existera (ADR-0035).
+// Aucun vocabulaire de produit : n'inscrire ici que les gabarits que le socle possède réellement.
+// L'envoi n'a pas de couture pour les tests — voir README.md avant d'y toucher.
 export { BrevoAdapter } from './brevo';
 export {
   type BrevoCredentials,

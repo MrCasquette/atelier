@@ -1,14 +1,8 @@
 // @repo/entities — une entité déclarée, sa table dérivée, et le journal qui dit laquelle existe
 // (ADR-0027, ADR-0028).
 //
-// Une entité est de la DONNÉE : elle garde tout son sens sans le CMS, donc elle va en vraies
-// colonnes (ADR-0026). Ce paquet contient la mécanique qui l'y met — traduction déclaration → DDL,
-// comparaison au schéma réel, application. Aucune route : les codes HTTP sont du produit
-// (ADR-0044).
-//
-// La DÉFINITION du journal est livrée comme définition ; chaque cœur l'inclut dans son barrel et
-// donc dans ses migrations (ADR-0025). Les tables d'entités, elles, ne sont dans aucune migration —
-// c'est le prix de la condition sine qua non d'ADR-0028, et il se paie sur le drift guard.
+// Aucune route. Les IDENTIFIANTS passent la liste blanche de `ddl.ts` — jamais d'échappement —, les
+// VALEURS sont toujours liées. Voir README.md.
 export {
   addColumnSql,
   type ColumnSpec,
