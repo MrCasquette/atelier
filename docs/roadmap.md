@@ -33,6 +33,11 @@ Le socle tourne en production (`0.2.x`) :
   ressource) pour la CLI et les intégrations, sans exposer les identifiants humains.
 - **Première vraie boutique via la CLI** — validation grandeur nature du scaffolding.
 - **Cette roadmap publique.**
+- **Erreurs API structurées** — chaque refus de l'API porte un **code stable** et ses données
+  (`not_found` + la ressource, `insufficient_stock` + les quantités…) plutôt qu'une phrase toute
+  faite. Votre front choisit ses propres messages, dans sa langue, et peut réagir au code sans
+  analyser du texte. *(Contrat arrêté et posé ; conversion des routes en cours — le champ `message`
+  actuel reste rempli pendant toute la transition.)*
 
 ## ⏭️ Ensuite
 
@@ -43,7 +48,6 @@ Le socle tourne en production (`0.2.x`) :
 - **RGPD** — protocole de suppression de compte (archivage légal vs suppression),
   export des données client, bannière cookies.
 - **Admin ↔ features storefront** — exposer côté admin les capacités qui le justifient.
-- **Erreurs API structurées** — codes + messages clairs, exploitables côté client.
 
 ## 🔭 Plus tard
 
@@ -54,6 +58,8 @@ Le socle tourne en production (`0.2.x`) :
 - **Import / export CSV** — produits, commandes, clients.
 - **Intégrations** — webhooks sortants, templates Zapier / n8n / Make.
 - **Analytics privacy-first** — CA, conversions, top produits, sans Google Analytics.
+- **Messages d'erreur personnalisables** depuis l'admin — réécrire ce que voit un client sans
+  toucher au code, au-dessus des codes d'erreur stables.
 - **Multi-langue**, **SEO avancé** (sitemap, JSON-LD), **mode caisse**, **PWA store**.
 
 ---
