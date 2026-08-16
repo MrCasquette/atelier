@@ -12,6 +12,8 @@ Références :
 - [Backlog shared](./docs-internal/backlog/shared.md)
 - [Roadmap produit Prisme](./docs-internal/design/roadmap-prisme.md)
 - [Index des ADR](./docs-internal/adr/README.md)
+- [Bilan de l'audit de couverture documentaire](./docs-internal/audits/audit-couverture-documentaire.md)
+  — d'où viennent les mesures citées ici
 
 ## État acquis
 
@@ -58,16 +60,34 @@ il n'est pas seulement déclaré dans les barrels.
 
 ## Jalon 1 — Fermer les vulnérabilités courtes et exposées
 
-- [ ] Échapper toutes les données utilisateur injectées dans les gabarits HTML d'e-mail.
-- [ ] Fermer l'oracle explicite d'`authenticate` : vérifier le mot de passe avant de révéler qu'un
-  compte est désactivé.
-- [ ] Fermer l'oracle temporel : vérifier un hash leurre lorsqu'un compte est inconnu.
-- [ ] Corriger le rate limiting sans Redis.
+- [ ] **Échapper les données utilisateur des gabarits HTML d'e-mail.** Point de départ :
+  `packages/communication/src/templates.ts:117`, où `name`, `email`, `phone`, `subject` et `message`
+  sont interpolés bruts et proviennent d'un formulaire **public non authentifié**. Vérifier les
+  autres gabarits, qui suivent le même motif. Pas de XSS — les clients mail bloquent les scripts —
+  mais liens, pixels de traçage et mise en page usurpée passent.
+- [ ] **Fermer l'oracle explicite d'`authenticate`** (`packages/auth/src/service.ts:162-167`) :
+  `account-disabled` est rendu **avant** `Bun.password.verify`. Inverser l'ordre — on n'apprend
+  l'état de son compte qu'après avoir prouvé qu'il est le sien.
+- [ ] **Fermer l'oracle temporel** : le chemin « adresse inconnue » saute entièrement la vérification,
+  volontairement coûteuse. Vérifier contre un **hash leurre calculé une fois au chargement**, avec
+  les mêmes paramètres de coût. Touche aussi le login client
+  (`apps/echoppe-api/src/modules/auth/customer-service.ts:163`), donc une surface publique. Ne rend
+  pas les durées identiques — la requête SQL diffère — mais supprime le seul écart mesurable à
+  distance de façon fiable.
+- [ ] Corriger le rate limiting sans Redis. **Aucun des correctifs ci-dessus ne le remplace** : sans
+  lui l'énumération reste possible, seulement plus lente.
 - [ ] Définir et tester la politique de proxy de confiance.
 - [ ] Hasher les tokens de session stockés en base.
 - [ ] Durcir les uploads média : contenu, taille, nom serveur et téléchargement sûr.
-- [ ] Ajouter le `onError` global garanti par ADR-0050.
+- [ ] **Ajouter le `onError` global garanti par ADR-0050.** Il n'en existe aucun aujourd'hui, donc
+  aucun point de conversion garanti pour une exception non rattrapée. Prérequis du jalon 0 autant
+  que de celui-ci.
 - [ ] Borner les webhooks sans substituer le rate limiting à leur signature et à leur idempotence.
+
+Arbitrage à décider et non à corriger : l'inscription client rend `email-taken`
+(`customer-service.ts:104`), une énumération explicite sur un endpoint public. Le durcissement
+imposerait « on vous a envoyé un e-mail » à tous les inscrits légitimes — sur une boutique, le coût
+ergonomique paraît supérieur au gain.
 
 **Critère de sortie** : login, session, formulaire de contact et upload possèdent chacun un test de
 refus ou d'abus.
@@ -76,12 +96,27 @@ refus ou d'abus.
 
 Ne réaliser ici que les travaux nécessaires au second produit.
 
-- [ ] Remplacer le singleton de `@repo/communication` par une factory de registre injectable.
-- [ ] Séparer la partie pure de `@repo/pages` de sa partie connectée.
-- [ ] Faire tomber les réexports fonctionnels de `@echoppe/core` au profit d'imports directs depuis
-  `@repo/*`.
+- [ ] **Remplacer le singleton de `@repo/communication` par une factory injectable.**
+  `email.ts:39` résout son adapter via `getActiveCommunicationAdapter()`, importé d'un singleton de
+  module aux fabriques câblées en dur : aucune couture. Les credentials sont injectés (DIP), mais
+  les stuber supprime la dépendance à la base, **pas au réseau**. Cible :
+  `createCommunicationRegistry(factories)` composée par le produit au démarrage. Touche les
+  4 appelants de `sendEmail` plus le boot. Écarté : un garde `NODE_ENV` — test d'environnement dans
+  du code de domaine, invisible au type. **Débloque les tests du chemin d'envoi**, aujourd'hui
+  impossibles.
+- [ ] **Séparer la partie pure de `@repo/pages` de sa partie connectée.** `definition-service.ts`
+  importe `db` au niveau module et `@repo/db` lève à l'import sans `DATABASE_URL` : la logique pure
+  (`assertRegistryCoherent`, `unknownRefTargets`) est soudée à la connexion par le graphe d'imports.
+  Modèle déjà appliqué dans `@repo/auth` (`permission.ts` / `permission-cache.ts`). Supprime le
+  contournement consigné dans `definition-service.test.ts`.
+- [ ] **Faire tomber les réexports fonctionnels de `@echoppe/core`.** Mesuré : l'API compte 61
+  imports de `@echoppe/core` contre 29 de `@repo/*`, et 46 usages de symboles vivant dans un `@repo/*`
+  y entrent par le barrel du cœur.
 - [ ] Conserver le barrel de schéma nécessaire à Drizzle, sans l'utiliser comme raccourci applicatif.
-- [ ] Ajouter une règle empêchant le retour des imports contournant les packages.
+  `drizzle.config.ts` ne lit que `db/schema/index.ts` : c'est son usage comme raccourci d'import qui
+  doit tomber, pas son existence.
+- [ ] Ajouter une règle empêchant le retour des imports contournant les packages. **C'est ce qui
+  transforme le découpage de décor en structure** — sans elle, le reste est cosmétique.
 - [ ] Trancher l'injection DB à partir d'un cas concret du vertical slice Prisme.
 
 Ne pas fusionner les petits packages à ce stade. Prisme permettra d'identifier lesquels ont
