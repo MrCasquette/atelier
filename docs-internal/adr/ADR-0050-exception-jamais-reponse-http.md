@@ -354,3 +354,45 @@ domaine.
   paramètre `resource` est l'aboutissement — l'intention était déjà là.
 - Les fautes d'énumération de `authenticate` relèvent d'un **chantier sécurité distinct**, où la
   priorité est la sécurité et non la qualité du message.
+
+## Note d'implémentation 2026-08-16 — première tranche verticale
+
+`catalog/product` migré (26 réponses), plus le `onError` global. Trois points que la décision
+laissait ouverts et que l'implémentation a tranchés.
+
+### La forme du socle est paramétrée par sa ressource
+
+`Fault<R extends string = string>`, et `EchoppeFault = Fault<EchoppeResource>`. Le socle reste
+littéralement conforme à la décision — `resource` y est une `string` par défaut, aucun vocabulaire de
+produit n'y entre.
+
+La raison du paramètre : sans lui, la fermeture ne valait qu'à l'**entrée** des constructeurs. Leur
+retour annoncé `Fault` reperdait `resource` en `string`, et rien en aval — ni un schéma qui sort sur
+le fil, ni un catalogue de surface — ne pouvait énumérer les ressources. Seul
+`permission_denied.resource` reste ouvert, comme prévu.
+
+### Le schéma de transport est spécialisé par produit, et vit dans l'application
+
+`apps/echoppe-api/src/lib/fault-schema.ts`, pas `@repo/shared`. Deux raisons distinctes :
+
+1. TypeBox est une préoccupation de **transport** — OpenAPI, validation de réponse, inférence Eden.
+   Le faire remonter dans le paquet le plus bas du socle imposerait une dépendance de frontière à
+   tout paquet qui refuse quelque chose, y compris ceux qui ne servent jamais de HTTP.
+2. Le schéma **énumère un vocabulaire**, qui est celui d'un produit. `prisme-api` écrira le sien sur
+   `PrismeResource`, avec les mêmes 19 codes. Un schéma unique dans le socle devrait retomber sur
+   `t.String()` et ne documenterait plus rien.
+
+La forme est donc écrite deux fois. Le prix est payé une fois et **verrouillé** par trois gardes de
+compilation (`Equal<Static<schema>, EchoppeFault>`) : un code ajouté, un champ renommé ou une
+ressource déclarée par un paquet partagé cassent `type-check`.
+
+### Le `$ref` partagé est bloqué, et c'est le point à traiter avant d'élargir
+
+Le contrat OpenAPI grossit de **~3 200 lignes pour deux routes publiques** : l'union des 41
+ressources est recopiée dans chaque membre de chaque réponse. Le correctif est le modèle nommé
+`ErrorResponse`, donc un `$ref` unique — impossible aujourd'hui : une union discriminée qui traverse
+`.model()` d'Elysia ressort avec `resource: never` côté inférence, et toute route qui la rend devient
+intypable. Même contrainte pour un `t.Union` construit par `.map` plutôt qu'écrit en tuple littéral.
+
+Le schéma reste donc **inline**, et le modèle n'est pas enregistré. À trancher avant de migrer les
+modules suivants : à l'échelle des 214 réponses, le contrat public deviendrait inexploitable.

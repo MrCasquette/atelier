@@ -9,6 +9,7 @@ import type { DataTableColumn } from '@/components/organisms/DataTable/types';
 import type { Category } from '@/composables/categories';
 import { useToast } from '@/composables/useToast';
 import { api } from '@/lib/api';
+import { errorMessage } from '@/lib/apiError';
 import type { ApiData } from '@/types/api';
 import type { StatusVariant } from '@/types/ui';
 import { computed, h, onMounted, ref } from 'vue';
@@ -140,14 +141,25 @@ function confirmDeleteSelected() {
 
 async function deleteSelectedProducts() {
   let failed = 0;
+  // La première cause rencontrée, pour la dire au lieu de la compter : sur une suppression en lot,
+  // les échecs partagent en pratique la même raison, et « 3 produits » n'en donne aucune.
+  let reason: string | null = null;
+
   for (const product of selectedProducts.value) {
     const { error } = await api.products({ id: product.id }).delete();
-    if (error) failed++;
+    if (!error) continue;
+    failed++;
+    reason ??= errorMessage({ value: error.value }, '');
   }
+
   deleteModalOpen.value = false;
   selectedProducts.value = [];
   await loadProducts();
-  if (failed > 0) toast.error(`Échec de la suppression de ${failed} produit(s)`);
+
+  if (failed > 0) {
+    const count = `Échec de la suppression de ${failed} produit(s)`;
+    toast.error(reason ? `${count} — ${reason.toLowerCase()}` : count);
+  }
 }
 
 function cancelDelete() {
@@ -267,13 +279,22 @@ function handleSelectionChange(selected: Product[]) {
 
 async function setProductsStatus(status: 'draft' | 'published' | 'archived') {
   let failed = 0;
+  let reason: string | null = null;
+
   for (const p of selectedProducts.value) {
     const { error } = await api.products({ id: p.id }).patch({ status });
-    if (error) failed++;
+    if (!error) continue;
+    failed++;
+    reason ??= errorMessage({ value: error.value }, '');
   }
+
   selectedProducts.value = [];
   await loadProducts();
-  if (failed > 0) toast.error(`Échec du changement de statut de ${failed} produit(s)`);
+
+  if (failed > 0) {
+    const count = `Échec du changement de statut de ${failed} produit(s)`;
+    toast.error(reason ? `${count} — ${reason.toLowerCase()}` : count);
+  }
 }
 
 function handleBatchAction(actionId: string) {

@@ -44,19 +44,36 @@ contrat et terminer une première tranche verticale avant de changer de sujet.
 - [x] Conserver temporairement `message` comme compatibilité explicitement dépréciée → `@deprecated`
   sur `ErrorResponse.message`, rempli par `apps/echoppe-api/src/lib/fault-message.ts`.
 - [x] Vérifier lint, type-check et tests ciblés.
-- [ ] Ajouter les tests unitaires du contrat et de ses **constructeurs**. Le catalogue de rendu est
-  couvert (8 tests, dont l'exhaustivité des 19 codes et le repli sur ressource inconnue) ; les
-  constructeurs eux-mêmes ne le sont pas encore.
-- [ ] Migrer un premier chemin complet domaine → route → surface comme preuve. Cible proposée :
-  `catalog/product`, qui concentre 22 `not_found`.
-- [ ] Ajouter le `onError` global — prérequis de la migration, pas seulement de la sécurité
-  (également listé au jalon 1).
+- [x] Ajouter les tests unitaires du contrat et de ses **constructeurs** →
+  `packages/echoppe-core/src/constants/fault.test.ts`. L'exhaustivité tient par un
+  `Record<FaultCode, …>` : un code ajouté sans constructeur ne compile plus.
+- [x] Paramétrer `Fault<R>` et spécialiser `EchoppeFault`. Sans ça, la fermeture ne valait qu'à
+  l'**entrée** des constructeurs — leur retour reperdait `resource` en `string`, et rien en aval ne
+  pouvait énumérer les ressources.
+- [x] Migrer un premier chemin complet domaine → route → surface : les **26 réponses** des 7 fichiers
+  de `catalog/product`, le schéma de frontière (`lib/fault-schema.ts`, vérifié contre le type par
+  trois gardes de compilation), et la lecture côté administration (`lib/fault.ts` + `apiError.ts`).
+- [x] Ajouter le `onError` global → `apps/echoppe-api/src/error-handler.ts` (également listé au
+  jalon 1).
 
 Ne pas migrer les 214 réponses d'erreur dans un seul diff. Procéder verticalement, par famille de
 fautes et avec une surface consommatrice à chaque étape.
 
-**Critère de sortie** : le contrat est réellement consommé par au moins une route et une surface ;
-il n'est pas seulement déclaré dans les barrels.
+**Critère de sortie** : atteint — le contrat est consommé par les routes produit et par
+l'administration ; il n'est plus seulement déclaré dans les barrels.
+
+### Ce que la première tranche a révélé, à traiter avant d'élargir
+
+- **Le schéma de faute est spécialisé par produit, et vit dans l'application.** TypeBox est une
+  préoccupation de transport : le faire entrer dans `@repo/shared` imposerait une dépendance de
+  frontière à tout paquet qui refuse quelque chose. `prisme-api` écrira le sien sur `PrismeResource`.
+- **Le contrat OpenAPI gonfle de ~3 200 lignes pour deux routes publiques.** L'union des 41
+  ressources est recopiée dans chaque membre de chaque réponse. Le correctif est le `$ref` partagé,
+  donc le modèle nommé `ErrorResponse` — impossible aujourd'hui : une union discriminée qui traverse
+  `.model()` d'Elysia ressort avec `resource: never` et rend les routes intypables. **À trancher
+  avant de migrer les modules suivants**, sinon le contrat public devient inexploitable.
+- **Les 401/403 ne sont pas migrés** : ils sont émis par le middleware d'authentification, pas par
+  les routes. C'est leur propre tranche.
 
 ## Jalon 1 — Fermer les vulnérabilités courtes et exposées
 
@@ -79,9 +96,10 @@ il n'est pas seulement déclaré dans les barrels.
 - [ ] Définir et tester la politique de proxy de confiance.
 - [ ] Hasher les tokens de session stockés en base.
 - [ ] Durcir les uploads média : contenu, taille, nom serveur et téléchargement sûr.
-- [ ] **Ajouter le `onError` global garanti par ADR-0050.** Il n'en existe aucun aujourd'hui, donc
-  aucun point de conversion garanti pour une exception non rattrapée. Prérequis du jalon 0 autant
-  que de celui-ci.
+- [x] **Ajouter le `onError` global garanti par ADR-0050** (livré au jalon 0) →
+  `apps/echoppe-api/src/error-handler.ts`. Il ne convertit que l'exception non rattrapée : le détail
+  part au log avec un identifiant de corrélation, la réponse ne porte que celui-ci. Validation,
+  route inconnue et corps illisible restent à Elysia — aucun message d'exception n'y transite.
 - [ ] Borner les webhooks sans substituer le rate limiting à leur signature et à leur idempotence.
 
 Arbitrage à décider et non à corriger : l'inscription client rend `email-taken`
