@@ -1040,6 +1040,101 @@ export interface components {
                 hasPrevPage: boolean;
             };
         };
+        /** @description Réponse d’erreur (ADR-0050) */
+        ErrorResponse: {
+            /** @description Faute structurée : `code` est le discriminant, les autres champs sont ses opérandes. */
+            fault: {
+                /** @constant */
+                code: "not_found";
+                /** @description Ressource concernée par la faute */
+                resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
+            } | {
+                /** @constant */
+                code: "already_exists";
+                /** @description Ressource concernée par la faute */
+                resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
+                field: string;
+            } | {
+                /** @constant */
+                code: "in_use";
+                /** @description Ressource concernée par la faute */
+                resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
+                /** @description Ressource concernée par la faute */
+                usedBy: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
+            } | {
+                /** @constant */
+                code: "invalid_state";
+                /** @description Ressource concernée par la faute */
+                resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
+                current: string;
+                expected: string;
+            } | {
+                /** @constant */
+                code: "insufficient_stock";
+                available: number;
+                requested: number;
+            } | {
+                /** @constant */
+                code: "unauthenticated";
+            } | {
+                /** @constant */
+                code: "invalid_credentials";
+            } | {
+                /** @constant */
+                code: "invalid_token";
+            } | {
+                /** @constant */
+                code: "permission_denied";
+                action: string;
+                resource: string;
+            } | {
+                /** @constant */
+                code: "protected_subject";
+                /** @description Ressource concernée par la faute */
+                resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
+            } | {
+                /** @constant */
+                code: "self_action_forbidden";
+                action: string;
+            } | {
+                /** @constant */
+                code: "owner_only";
+                action: string;
+            } | {
+                /** @constant */
+                code: "forbidden_resource";
+                /** @description Ressource concernée par la faute */
+                resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
+            } | {
+                /** @constant */
+                code: "configuration_missing";
+                target: string;
+            } | {
+                /** @constant */
+                code: "required_data_missing";
+                field: string;
+            } | {
+                /** @constant */
+                code: "validation_failed";
+                details: string[];
+            } | {
+                /** @constant */
+                code: "unknown_reference_targets";
+                targets: string[];
+            } | {
+                /** @constant */
+                code: "unknown_scopes";
+                scopes: string[];
+            } | {
+                /** @constant */
+                code: "external_operation_failed";
+                operation: string;
+            };
+            /** @description Corrélation opaque vers la trace serveur, si des champs ont été retirés */
+            incident?: string;
+            /** @description Rendu français — format hérité, lire `fault` */
+            message: string;
+        };
         Identity: {
             site: ({
                 /**
@@ -1903,100 +1998,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Faute structurée : `code` est le discriminant, les autres champs sont ses opérandes. */
-                        fault: {
-                            /** @constant */
-                            code: "not_found";
-                            /** @description Ressource concernée par la faute */
-                            resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
-                        } | {
-                            /** @constant */
-                            code: "already_exists";
-                            /** @description Ressource concernée par la faute */
-                            resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
-                            field: string;
-                        } | {
-                            /** @constant */
-                            code: "in_use";
-                            /** @description Ressource concernée par la faute */
-                            resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
-                            /** @description Ressource concernée par la faute */
-                            usedBy: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
-                        } | {
-                            /** @constant */
-                            code: "invalid_state";
-                            /** @description Ressource concernée par la faute */
-                            resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
-                            current: string;
-                            expected: string;
-                        } | {
-                            /** @constant */
-                            code: "insufficient_stock";
-                            available: number;
-                            requested: number;
-                        } | {
-                            /** @constant */
-                            code: "unauthenticated";
-                        } | {
-                            /** @constant */
-                            code: "invalid_credentials";
-                        } | {
-                            /** @constant */
-                            code: "invalid_token";
-                        } | {
-                            /** @constant */
-                            code: "permission_denied";
-                            action: string;
-                            resource: string;
-                        } | {
-                            /** @constant */
-                            code: "protected_subject";
-                            /** @description Ressource concernée par la faute */
-                            resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
-                        } | {
-                            /** @constant */
-                            code: "self_action_forbidden";
-                            action: string;
-                        } | {
-                            /** @constant */
-                            code: "owner_only";
-                            action: string;
-                        } | {
-                            /** @constant */
-                            code: "forbidden_resource";
-                            /** @description Ressource concernée par la faute */
-                            resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
-                        } | {
-                            /** @constant */
-                            code: "configuration_missing";
-                            target: string;
-                        } | {
-                            /** @constant */
-                            code: "required_data_missing";
-                            field: string;
-                        } | {
-                            /** @constant */
-                            code: "validation_failed";
-                            details: string[];
-                        } | {
-                            /** @constant */
-                            code: "unknown_reference_targets";
-                            targets: string[];
-                        } | {
-                            /** @constant */
-                            code: "unknown_scopes";
-                            scopes: string[];
-                        } | {
-                            /** @constant */
-                            code: "external_operation_failed";
-                            operation: string;
-                        };
-                        /** @description Corrélation opaque vers la trace serveur, si des champs ont été retirés */
-                        incident?: string;
-                        /** @description Rendu français — format hérité, lire `fault` */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Entité non traitable - Règle métier non respectée */
@@ -2053,100 +2055,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Faute structurée : `code` est le discriminant, les autres champs sont ses opérandes. */
-                        fault: {
-                            /** @constant */
-                            code: "not_found";
-                            /** @description Ressource concernée par la faute */
-                            resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
-                        } | {
-                            /** @constant */
-                            code: "already_exists";
-                            /** @description Ressource concernée par la faute */
-                            resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
-                            field: string;
-                        } | {
-                            /** @constant */
-                            code: "in_use";
-                            /** @description Ressource concernée par la faute */
-                            resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
-                            /** @description Ressource concernée par la faute */
-                            usedBy: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
-                        } | {
-                            /** @constant */
-                            code: "invalid_state";
-                            /** @description Ressource concernée par la faute */
-                            resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
-                            current: string;
-                            expected: string;
-                        } | {
-                            /** @constant */
-                            code: "insufficient_stock";
-                            available: number;
-                            requested: number;
-                        } | {
-                            /** @constant */
-                            code: "unauthenticated";
-                        } | {
-                            /** @constant */
-                            code: "invalid_credentials";
-                        } | {
-                            /** @constant */
-                            code: "invalid_token";
-                        } | {
-                            /** @constant */
-                            code: "permission_denied";
-                            action: string;
-                            resource: string;
-                        } | {
-                            /** @constant */
-                            code: "protected_subject";
-                            /** @description Ressource concernée par la faute */
-                            resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
-                        } | {
-                            /** @constant */
-                            code: "self_action_forbidden";
-                            action: string;
-                        } | {
-                            /** @constant */
-                            code: "owner_only";
-                            action: string;
-                        } | {
-                            /** @constant */
-                            code: "forbidden_resource";
-                            /** @description Ressource concernée par la faute */
-                            resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
-                        } | {
-                            /** @constant */
-                            code: "configuration_missing";
-                            target: string;
-                        } | {
-                            /** @constant */
-                            code: "required_data_missing";
-                            field: string;
-                        } | {
-                            /** @constant */
-                            code: "validation_failed";
-                            details: string[];
-                        } | {
-                            /** @constant */
-                            code: "unknown_reference_targets";
-                            targets: string[];
-                        } | {
-                            /** @constant */
-                            code: "unknown_scopes";
-                            scopes: string[];
-                        } | {
-                            /** @constant */
-                            code: "external_operation_failed";
-                            operation: string;
-                        };
-                        /** @description Corrélation opaque vers la trace serveur, si des champs ont été retirés */
-                        incident?: string;
-                        /** @description Rendu français — format hérité, lire `fault` */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Entité non traitable - Règle métier non respectée */

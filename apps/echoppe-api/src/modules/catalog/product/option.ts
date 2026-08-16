@@ -13,7 +13,6 @@ import {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../../lib/fault';
-import { errorResponseSchema } from '../../../lib/fault-schema';
 import { successSchema, withCrudFaults } from '../../../lib/response';
 import { models } from '../../../model';
 import { permissionGuard } from '../../auth/rbac';
@@ -129,7 +128,7 @@ export const productOptionRoutes = new Elysia()
       permission: true,
       params: t.Object({ id: t.String({ format: 'uuid' }) }),
       body: optionBody,
-      response: withCrudFaults({ 200: 'Option', 409: errorResponseSchema }),
+      response: withCrudFaults({ 200: 'Option', 409: 'ErrorResponse' }),
     },
   )
 
@@ -276,7 +275,7 @@ export const productOptionRoutes = new Elysia()
     {
       permission: true,
       params: optionValueParams,
-      response: withCrudFaults({ 200: successSchema, 409: errorResponseSchema }),
+      response: withCrudFaults({ 200: successSchema, 409: 'ErrorResponse' }),
     },
   )
 
@@ -313,6 +312,6 @@ export const productOptionRoutes = new Elysia()
     {
       permission: true,
       params: optionParams,
-      response: withCrudFaults({ 200: successSchema, 409: errorResponseSchema }),
+      response: withCrudFaults({ 200: successSchema, 409: 'ErrorResponse' }),
     },
   );

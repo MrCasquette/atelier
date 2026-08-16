@@ -1,6 +1,5 @@
 import { type TSchema, t } from 'elysia';
 import type { ModelName } from '../model';
-import { errorResponseSchema } from './fault-schema';
 
 // ============================================
 // Schemas de réponse communs
@@ -126,9 +125,9 @@ type ResponseMap = Record<number, TSchema | ModelName>;
 //   serveur) présent sur quasiment toutes les routes ;
 // - les codes spécifiques au type de route (401/403/404/429/503…).
 // `const T` préserve les littéraux (noms de modèles) passés en entrée.
-// NOTE : les shapes d'erreur restent INLINE pour l'instant ; le passage au modèle nommé
-// `ErrorResponse` (dédup + type client) se fera au flip final, une fois toutes les routes
-// migrées sur `.use(models)` (contrainte de propagation enfant→parent des modèles Elysia).
+// NOTE : les shapes d'erreur HÉRITÉES restent inline — elles sont triviales (`{ message }`), donc
+// la dédup ne rapporterait rien. Les routes migrées sur ADR-0050 utilisent, elles, le modèle nommé
+// (cf. `FAULT_ERRORS` plus bas), parce que leur schéma est gros et partagé.
 
 /** Socle d'erreurs universel : validation d'input (422) + erreur serveur (500). */
 const COMMON_ERRORS = { 422: unprocessableResponse, 500: serverErrorResponse };
@@ -195,14 +194,17 @@ export function withServiceErrors<const T extends ResponseMap>(responses: T) {
 // `...responses` passe EN DERNIER, à l'inverse des helpers hérités : une route migrée ajoute ses
 // propres codes (409 sur un conflit) sans que le socle les écrase.
 
-// Le schéma est INLINE, et non le modèle nommé `ErrorResponse` : une union discriminée qui traverse
-// `.model()` ressort avec `resource: never` côté inférence, et les routes deviennent intypables.
-// C'est la même contrainte que la note ci-dessus — le flip vers le modèle nommé attend que toutes
-// les routes soient sur `.use(models)`. Le modèle reste enregistré pour l'OpenAPI ; ici on garde
-// l'inférence.
-
-/** Les codes que la route migrée émet elle-même portent la faute. */
-const FAULT_ERRORS = { 404: errorResponseSchema };
+/**
+ * Les codes que la route migrée émet elle-même portent la faute, par MODÈLE NOMMÉ — donc un `$ref`
+ * unique dans l'OpenAPI au lieu de l'union des 41 ressources recopiée dans chaque réponse.
+ *
+ * L'annotation de type n'est pas décorative et `as const` ne la remplace PAS : `as const` ajoute
+ * `readonly`, et le littéral `'ErrorResponse'` ne survit alors pas au spread dans les helpers — il
+ * s'élargit en `string`, Elysia cesse d'y voir un nom de modèle, et lit `404` comme un statut
+ * textuel. Les routes deviennent intypables, avec des messages qui accusent l'union discriminée
+ * (`resource: never`) alors que la cause est ici. Mesuré sur les deux formes.
+ */
+const FAULT_ERRORS: { 404: 'ErrorResponse' } = { 404: 'ErrorResponse' };
 
 /** Routes CRUD protégées, migrées : 404 contractuel, 401/403 hérités du middleware. */
 export function withCrudFaults<const T extends ResponseMap>(responses: T) {

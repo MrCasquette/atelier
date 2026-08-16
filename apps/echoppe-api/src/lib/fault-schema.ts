@@ -25,11 +25,15 @@ import { type Static, t } from 'elysia';
  * Les paquets déclarent leurs ressources comme des TYPES (`AssetsResource = 'media' | …`) : rien
  * n'en subsiste à l'exécution, et un schéma a besoin de valeurs.
  *
- * Les littéraux sont écrits un par un, et non dérivés d'une liste par `.map` : Elysia, en typant la
- * réponse d'une route, résout un `t.Union` construit à partir d'un tableau non-tuple en `never` —
- * le schéma valide toujours à l'exécution, mais toute route qui le rend devient intypable. La
- * verbosité est le prix de l'inférence ; la garde de compilation en bas de fichier interdit qu'elle
- * dérive.
+ * Les littéraux sont écrits un par un, et non dérivés d'une liste par `.map` : `Static` s'en sort,
+ * mais Elysia, en typant la réponse d'une route, résout un `t.Union` construit sur un tableau
+ * non-tuple en `never`. La verbosité est le prix de l'inférence ; la garde de compilation en bas de
+ * fichier interdit qu'elle dérive.
+ *
+ * Cette union reste INLINE dans `faultSchema` plutôt que d'être un modèle nommé de plus : un `t.Ref`
+ * imbriqué ne se résout pas dans `Static`, ce qui ferait tomber les gardes ci-dessous. On échange
+ * ~1 000 lignes dans UN composant du contrat contre le verrou qui empêche schéma et type de
+ * diverger — le composant, lui, ne se recopie pas d'une route à l'autre.
  */
 const resourceSchema = t.Union(
   [

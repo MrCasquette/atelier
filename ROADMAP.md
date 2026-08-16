@@ -67,11 +67,13 @@ l'administration ; il n'est plus seulement déclaré dans les barrels.
 - **Le schéma de faute est spécialisé par produit, et vit dans l'application.** TypeBox est une
   préoccupation de transport : le faire entrer dans `@repo/shared` imposerait une dépendance de
   frontière à tout paquet qui refuse quelque chose. `prisme-api` écrira le sien sur `PrismeResource`.
-- **Le contrat OpenAPI gonfle de ~3 200 lignes pour deux routes publiques.** L'union des 41
-  ressources est recopiée dans chaque membre de chaque réponse. Le correctif est le `$ref` partagé,
-  donc le modèle nommé `ErrorResponse` — impossible aujourd'hui : une union discriminée qui traverse
-  `.model()` d'Elysia ressort avec `resource: never` et rend les routes intypables. **À trancher
-  avant de migrer les modules suivants**, sinon le contrat public devient inexploitable.
+- **Le `$ref` partagé est acquis** : `ErrorResponse` est un modèle nommé, le contrat coûte
+  +1 607 lignes **une fois** et une route migrée n'ajoute plus que sa référence. Le premier
+  diagnostic — « `.model()` casse l'inférence » — était faux : la cause était `as const` sur la
+  constante de réponses, dont le `readonly` empêche le littéral de survivre au spread des helpers.
+  Restent deux contraintes réelles d'Elysia, documentées sur place : un `t.Union` construit par
+  `.map` se résout en `never`, et l'union des ressources ne peut pas être un modèle imbriqué sans
+  faire tomber les gardes de compilation.
 - **Les 401/403 ne sont pas migrés** : ils sont émis par le middleware d'authentification, pas par
   les routes. C'est leur propre tranche.
 

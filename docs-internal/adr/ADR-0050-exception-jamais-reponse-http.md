@@ -386,13 +386,25 @@ La forme est donc écrite deux fois. Le prix est payé une fois et **verrouillé
 compilation (`Equal<Static<schema>, EchoppeFault>`) : un code ajouté, un champ renommé ou une
 ressource déclarée par un paquet partagé cassent `type-check`.
 
-### Le `$ref` partagé est bloqué, et c'est le point à traiter avant d'élargir
+### Le `$ref` partagé est acquis, et le coût du contrat est constant
 
-Le contrat OpenAPI grossit de **~3 200 lignes pour deux routes publiques** : l'union des 41
-ressources est recopiée dans chaque membre de chaque réponse. Le correctif est le modèle nommé
-`ErrorResponse`, donc un `$ref` unique — impossible aujourd'hui : une union discriminée qui traverse
-`.model()` d'Elysia ressort avec `resource: never` côté inférence, et toute route qui la rend devient
-intypable. Même contrainte pour un `t.Union` construit par `.map` plutôt qu'écrit en tuple littéral.
+Le schéma est un **modèle nommé**, donc un `$ref` unique. Une première tentative avait conclu que
+c'était impossible : les routes devenaient intypables, avec des erreurs accusant l'union discriminée
+(`resource: never`). Le diagnostic était faux, et la cause bien plus petite.
 
-Le schéma reste donc **inline**, et le modèle n'est pas enregistré. À trancher avant de migrer les
-modules suivants : à l'échelle des 214 réponses, le contrat public deviendrait inexploitable.
+`as const` sur la constante partagée des réponses (`{ 404: 'ErrorResponse' }`) ajoute `readonly`, et
+le littéral ne survit alors pas au spread dans les helpers de `lib/response.ts` : il s'élargit en
+`string`, Elysia cesse d'y voir un nom de modèle et lit `404` comme un statut textuel. Une simple
+**annotation de type** à la place le préserve. Quatre représentations ont été comparées sur banc —
+modèle nommé, `t.Ref`, `$id` inline, inline nu — et deux formes de helper, avant de conclure.
+
+Ce qui reste vrai, et qui est une contrainte réelle d'Elysia :
+
+- un `t.Union` construit par `.map` sur un tableau se résout en `never` côté inférence de réponse ;
+  les littéraux doivent former un **tuple écrit à la main** ;
+- l'union des ressources ne peut pas être un modèle nommé imbriqué : un `t.Ref` ne se résout pas
+  dans `Static`, ce qui ferait tomber les gardes de compilation. Elle reste inline **dans** le
+  composant.
+
+Résultat mesuré : **+1 607 lignes de contrat, une fois**, dont 1 511 pour le composant lui-même. Une
+route migrée n'ajoute plus que son `$ref`. Le coût ne croît pas avec la migration.
