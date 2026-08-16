@@ -80,8 +80,12 @@ l'administration ; il n'est plus seulement déclaré dans les barrels.
   `undelegatable_grants`, `rank_reserved`, `self_only` —, `owner_only` retiré, et le contrat SDK
   **rétrécit de 222 lignes** puisque 401/403 passent au `$ref`.
 - **Les 404 sont migrés** (82 réponses, un seul code) : le contrat perd encore 254 lignes, et les
-  deux jeux de helpers fusionnent. Restent 65 réponses — 44 en 400, 9 en 409, 9 en 422, 3 en
-  503/500.
+  deux jeux de helpers fusionnent.
+- **Les 44 réponses 400 et les 9 réponses 409 sont migrées**, avec les trois chemins mal exposés
+  corrigés au passage — dont `checkout`, la violation qu'ADR-0050 nommait « la plus grave du lot »
+  depuis sa rédaction. **Restent 13 réponses** : 9 en 422, 3 en 503/500, 1 webhook. Le détail et
+  l'ordre de reprise vivent dans le [backlog Échoppe](docs-internal/backlog/echoppe.md), § Qualité
+  et exploitation.
 
 ## Jalon 1 — Fermer les vulnérabilités courtes et exposées
 

@@ -109,25 +109,48 @@ Détail : [ADR-0005](../adr/ADR-0005-panier-stock.md).
     quatre gardes qui émettent cette faute ont toutes l'identifiant sous la main, et deux servent un
     appelant qui ne peut pas le déduire de sa requête. `rank_reserved.grants` reste donc le seul
     opérande facultatif du contrat.
-  - [ ] **1 réponse dans le webhook** (`payment:374`) : conforme (détail au log, réponse
-    générique), reste en anglais parce que son destinataire est une machine. Elle ne migrera
-    probablement pas — à trancher avec le chantier des statuts.
-  - [ ] **Le chemin n°1 du tableau des violations d'ADR-0050 est toujours ouvert** :
-    `packages/pages/src/definition-service.ts:164` promeut `error.message` en
-    `{ outcome: 'incoherent' }` → 422 → toast. Relève du chantier des 422.
   - [x] **Les 9 réponses 409.** Six retombaient sans discussion sur `already_exists` et `in_use` ;
     trois cachaient autre chose. `asConflict` (`@repo/entities`) fusionnait deux causes de `23505`
-    faute de les distinguer — le discriminant est la CARDINALITÉ DÉCLARÉE, pas le nom de contrainte
-    généré par Postgres, puisque `slug` et `singleton` sont des colonnes mutuellement exclusives.
-    D'où `cardinality_exceeded`. Et le push destructif reçoit `destructive_plan`, dont les `kind`
-    sont dérivés des trois seuls sites destructifs du planificateur.
-  - [ ] Les 9 × 422 — analyse séparée : `validation_failed.details` transporte des chaînes TypeBox
-    anglaises, et `definition-service.ts:164` promeut encore un message d'exception (chemin n°1 du
-    tableau des violations d'ADR-0050).
-  - [ ] Les 3 × 503/500 des services externes.
-  - [ ] Chantier SÉPARÉ, jamais mêlé aux corps : les statuts HTTP discutables (de la validation
-    métier rendue en 400 plutôt qu'en 422).
-  - [ ] Retirer le champ `message` déprécié, une fois qu'aucune surface ne le lit plus.
+    faute de les distinguer — le discriminant retenu est la CARDINALITÉ DÉCLARÉE, pas le nom de
+    contrainte généré par Postgres, puisque `slug` et `singleton` sont des colonnes mutuellement
+    exclusives. D'où `cardinality_exceeded`. Le push destructif reçoit `destructive_plan`, dont les
+    trois `kind` sont dérivés des seuls sites destructifs du planificateur ; `PlanStep.destructive`
+    (booléen) devient `destroys?: { kind, target }` pour n'avoir qu'une source de vérité.
+
+  **RESTE À FAIRE — 13 réponses, dans cet ordre :**
+
+  - [ ] **Les 9 × 422** — la seule famille qui demande une analyse AVANT migration, pour deux
+    raisons distinctes :
+    - `validation_failed.details` est un `string[]` qui transporte des **chaînes TypeBox anglaises**
+      (`validateSectionData`, `@repo/entities/write-service`). Les structurer toucherait un code
+      déjà utilisé ailleurs — décider si `details` change de forme ou si un code distinct naît.
+    - `packages/pages/src/definition-service.ts:164` promeut encore `error.message` en
+      `{ outcome: 'incoherent' }` → 422 → toast. C'est le **chemin n°1** du tableau des violations
+      d'ADR-0050, jamais corrigé. Correction de fond, pas migration.
+    - Sites : `api-key:88`, `page/admin:138`, `entity/admin` ×4, `entity/index:83`, `menu/admin:116`.
+  - [ ] **Les 3 × 503/500** — services externes. Petite tranche, à faire après les 422.
+  - [ ] **1 × 400, le webhook** (`payment:374`) : déjà conforme (détail au log, réponse générique),
+    en anglais parce que son destinataire est une machine. Ne migrera probablement pas — à trancher
+    avec le chantier des statuts.
+  - [ ] **Retirer le champ `message` déprécié**, une fois qu'aucune surface ne le lit plus. Vérifier
+    les 8 vues de l'administration, puis supprimer le champ, `lib/fault-message.ts` et le repli
+    d'`apiError`.
+  - [ ] **Chantier SÉPARÉ, après la migration : les ~32 requalifications de statut HTTP.** Elles
+    changent le comportement observable des clients, donc jamais mêlées aux corps. Recensées lors du
+    classement des 400 : `configuration_missing` → 503 (13 sites), `invalid_state` /
+    `already_exists` / `in_use` → 409 (10), `insufficient_stock` → 409 (4), `not_found` déguisé en
+    400 → 404 (6). Un cas est déjà résolu au passage : `shipping` rend 422 depuis que son schéma
+    exige `provider`.
+
+  **Règles de découpage acquises**, à ne pas réapprendre :
+  - L'unité migrable est la **route**, pas la réponse : une route n'a qu'un schéma par statut, donc
+    elle bascule entière ou pas du tout.
+  - Toujours classer **par la garde qui produit le refus**, jamais par la formulation actuelle.
+  - Un opérande facultatif n'est admis que si la surface ne peut pas le reconstruire depuis sa
+    propre requête (ADR-0050 §5). `rank_reserved.grants` est le seul du contrat.
+  - Avant de créer un code, vérifier qu'aucun concept plus général n'existe déjà dans le dépôt ; et
+    ne pas réserver un nom général à un seul domaine.
+
 - [ ] 🟡 Inférer `Invoice` depuis le contrat dans l'admin.
 
 ### Documentation et expérience
