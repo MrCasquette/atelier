@@ -1,4 +1,5 @@
-import type { EchoppeFault, EchoppeResource } from './fault-resources';
+import type { UndelegatableReason } from '@repo/shared';
+import type { EchoppeFault, EchoppeRank, EchoppeResource } from './fault-resources';
 
 // Constructeurs de fautes d'Échoppe (ADR-0050).
 //
@@ -71,7 +72,27 @@ export const selfActionForbidden = (action: string): EchoppeFault => ({
   action,
 });
 
-export const ownerOnly = (action: string): EchoppeFault => ({ code: 'owner_only', action });
+export const selfOnly = (action: string): EchoppeFault => ({ code: 'self_only', action });
+
+/**
+ * `requires` est le seuil exigé, pas le rang de l'appelant : la faute dit ce qu'il aurait fallu
+ * détenir, jamais ce que l'appelant est. Remplace `ownerOnly`, qui ne savait nommer qu'une hauteur
+ * alors que les gardes en testent deux — `isTheOwner` et `isFirstRank`.
+ */
+export const rankReserved = (
+  action: string,
+  requires: EchoppeRank,
+  grants?: string[],
+): EchoppeFault => ({ code: 'rank_reserved', action, requires, ...(grants && { grants }) });
+
+/**
+ * Chaque droit refusé porte SON prédicat. `@repo/auth` les évaluait déjà séparément mais aplatissait
+ * le verdict en chaînes, dont l'une rédigeait sa raison en français — une phrase dans un opérande,
+ * intraduisible par la surface qui la reçoit.
+ */
+export const undelegatableGrants = (
+  grants: { grant: string; reason: UndelegatableReason }[],
+): EchoppeFault => ({ code: 'undelegatable_grants', grants });
 
 export const forbiddenResource = (resource: EchoppeResource): EchoppeFault => ({
   code: 'forbidden_resource',

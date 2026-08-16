@@ -14,6 +14,7 @@ export {
   type PermissionGrant,
   RANK_BOUND_RESOURCES,
   revokedByGrants,
+  type UndelegatableGrant,
   undelegatableGrants,
   undelegatableScopes,
 } from './permission';

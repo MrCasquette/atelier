@@ -31,8 +31,14 @@ const SAMPLES: Record<FaultCode, EchoppeFault> = {
   invalid_token: faults.invalidToken(),
   permission_denied: faults.permissionDenied('update', 'entity:article'),
   protected_subject: faults.protectedSubject('user'),
-  self_action_forbidden: faults.selfActionForbidden('se désactiver'),
-  owner_only: faults.ownerOnly('transférer la propriété'),
+  // Les actions sont des CODES, pas des verbes français : c'est la surface qui conjugue.
+  self_action_forbidden: faults.selfActionForbidden('deactivate'),
+  self_only: faults.selfOnly('update_password'),
+  rank_reserved: faults.rankReserved('transfer_ownership', 'owner'),
+  undelegatable_grants: faults.undelegatableGrants([
+    { grant: 'schema', reason: 'rank_bound' },
+    { grant: 'product:update', reason: 'not_held' },
+  ]),
   forbidden_resource: faults.forbiddenResource('address'),
   configuration_missing: faults.configurationMissing('STRIPE_SECRET_KEY'),
   required_data_missing: faults.requiredDataMissing('shippingAddress'),
@@ -101,10 +107,24 @@ describe('le vocabulaire est fermé', () => {
     faults.notFound('produit');
     // @ts-expect-error `usedBy` est une ressource, pas une phrase.
     faults.inUse('option', 'des variantes du produit');
+    // @ts-expect-error l'échelle de rang est fermée : `admin` est une clé de rôle, pas un rang.
+    faults.rankReserved('revoke', 'admin');
+    // @ts-expect-error la raison d'un refus de délégation est un code du contrat, pas une phrase.
+    faults.undelegatableGrants([{ grant: 'schema', reason: 'tient au rang' }]);
 
-    // Le test ne s'exécute pas vraiment : ce sont les deux `@ts-expect-error` ci-dessus qui portent
+    // Le test ne s'exécute pas vraiment : ce sont les `@ts-expect-error` ci-dessus qui portent
     // l'assertion. Si la fermeture tombait, `tsc` échouerait sur une directive devenue inutile.
     expect(true).toBe(true);
+  });
+
+  it('ferme aussi l’échelle des rangs, qui est du produit et non du socle', () => {
+    // `@repo/auth` ne sait décrire que des ÉTENDUES de droits ; le rang vit dans
+    // `FIRST_RANK_ROLE_KEYS`. Le contrat le porte donc en paramètre, comme les ressources.
+    expect(faults.rankReserved('revoke', 'first_rank')).toEqual({
+      code: 'rank_reserved',
+      action: 'revoke',
+      requires: 'first_rank',
+    });
   });
 
   it('laisse permission_denied ouvert, parce que le RBAC l’est', () => {

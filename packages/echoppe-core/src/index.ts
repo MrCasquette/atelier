@@ -92,6 +92,7 @@ export type {
   CommerceResource,
   EchoppeErrorResponse,
   EchoppeFault,
+  EchoppeRank,
   EchoppeResource,
   SharedResource,
 } from './constants/fault-resources';

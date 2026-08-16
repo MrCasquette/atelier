@@ -16,10 +16,31 @@
 // énumérer les ressources : ni le schéma qui sort sur le fil, ni un catalogue exhaustif de surface.
 // `= string` garde le socle utilisable tel quel par un paquet qui refuse sans connaître de produit.
 //
+// Le PARAMÈTRE `K` suit exactement le même raisonnement, pour l'échelle des rangs. Le socle n'en
+// connaît aucun : `@repo/auth` ne sait décrire que des ÉTENDUES de droits (`Authority`), et le rang
+// — qui gouverne, et à quelle hauteur — est une décision de produit. Échoppe le déclare dans
+// `FIRST_RANK_ROLE_KEYS`, un ensemble que le code annonce vouloir étendre à des rangs sur mesure.
+//
 // Ce fichier ne rend aucun texte. Le rendu appartient à la surface qui lit — administration,
 // boutique, CLI —, chacune avec son catalogue `code → message` et son repli.
 
-export type Fault<R extends string = string> =
+/**
+ * Pourquoi un droit ne peut pas être délégué.
+ *
+ * Trois prédicats DISTINCTS, que `undelegatableGrants` évaluait déjà séparément avant d'aplatir son
+ * verdict dans une liste de chaînes — dont une portait sa raison rédigée en français. Une phrase
+ * dans un opérande, c'est précisément ce que cet ADR interdit : la surface ne peut ni la traduire ni
+ * la reformater.
+ */
+export type UndelegatableReason =
+  /** Le droit n'est pas détenu par qui l'accorde. La règle de base d'ADR-0038. */
+  | 'not_held'
+  /** Le droit tient au rang, donc ne se transmet pas — même par qui le détient. */
+  | 'rank_bound'
+  /** Détenu, mais borné à ses propres lignes ; l'accorder sans la borne est l'élargir. */
+  | 'self_only_widened';
+
+export type Fault<R extends string = string, K extends string = string> =
   /** La chose désignée n'existe pas. Absorbe à elle seule la moitié des refus de l'API. */
   | { code: 'not_found'; resource: R }
   /** Une contrainte d'unicité refuse : `field` nomme la colonne qui collisionne. */
@@ -47,12 +68,30 @@ export type Fault<R extends string = string> =
    * porte l'espace ouvert `entity:<nom>` — inconnu à la compilation par nature.
    */
   | { code: 'permission_denied'; action: string; resource: string }
-  /** La cible est protégée par son rang : propriétaire, rôle système. */
+  /** La cible est protégée en elle-même : propriétaire de l'installation, rôle système. */
   | { code: 'protected_subject'; resource: R }
   /** L'acte est interdit sur soi-même (se désactiver, se supprimer). */
   | { code: 'self_action_forbidden'; action: string }
-  /** Réservé au propriétaire. */
-  | { code: 'owner_only'; action: string }
+  /** L'acte n'est permis QUE sur soi — le miroir exact du précédent (changer son mot de passe). */
+  | { code: 'self_only'; action: string }
+  /**
+   * L'acte demande un rang que l'appelant n'a pas. `requires` porte le seuil, sans quoi la surface
+   * ne pourrait pas distinguer « réservé au propriétaire » de « réservé au premier rang » — deux
+   * hauteurs que les gardes testent séparément (`isTheOwner` contre `isFirstRank`).
+   *
+   * Remplace un `owner_only` qui ne savait nommer qu'un seul seuil.
+   *
+   * `grants` est OPTIONNEL et ne concerne qu'un site : la révocation en masse, où la soumission est
+   * un remplacement et où l'appelant ne voit donc pas ce qu'il retire. Ailleurs, l'acte est explicite
+   * et la liste n'aurait rien à dire. Le champ existe parce que le refus le disait déjà avant la
+   * migration — le retirer aurait été une régression, pas une simplification.
+   */
+  | { code: 'rank_reserved'; action: string; requires: K; grants?: string[] }
+  /**
+   * Des droits refusés à la délégation, chacun avec son prédicat. La liste plutôt qu'un booléen :
+   * l'appelant doit pouvoir corriger sa soumission, donc savoir CE QUI est refusé.
+   */
+  | { code: 'undelegatable_grants'; grants: { grant: string; reason: UndelegatableReason }[] }
   /** La ressource existe mais n'appartient pas à l'appelant. */
   | { code: 'forbidden_resource'; resource: R }
   /** Une configuration manque : clé d'environnement, provider non branché. */
@@ -69,10 +108,11 @@ export type Fault<R extends string = string> =
 export type FaultCode = Fault['code'];
 
 /** Le membre d'une union de fautes qui porte un code donné — de quoi typer un catalogue par code. */
-export type FaultOf<C extends FaultCode, R extends string = string> = Extract<
-  Fault<R>,
-  { code: C }
->;
+export type FaultOf<
+  C extends FaultCode,
+  R extends string = string,
+  K extends string = string,
+> = Extract<Fault<R, K>, { code: C }>;
 
 /**
  * Ce qui part sur le fil.
@@ -89,8 +129,8 @@ export type FaultOf<C extends FaultCode, R extends string = string> = Extract<
  * @remarks `message` est le format hérité. Il reste rempli pendant la migration parce que
  * l'administration le lit dans huit vues, et disparaît quand elles auront leur catalogue.
  */
-export type ErrorResponse<R extends string = string> = {
-  fault: Fault<R>;
+export type ErrorResponse<R extends string = string, K extends string = string> = {
+  fault: Fault<R, K>;
   incident?: string;
   /** @deprecated Format hérité — lire `fault`. Retiré à la fin de la migration d'ADR-0050. */
   message: string;

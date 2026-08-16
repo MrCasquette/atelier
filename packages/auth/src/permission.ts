@@ -1,3 +1,4 @@
+import type { UndelegatableReason } from '@repo/shared';
 import type { Authority, Principal } from './principal';
 
 // Les RÈGLES de droits : qui peut quoi, qui peut déléguer quoi. Pures — aucune base, aucun
@@ -8,6 +9,20 @@ import type { Authority, Principal } from './principal';
 // Les gardes qui traduisent un refus en 403 sont du produit (ADR-0044).
 
 export type Action = 'create' | 'read' | 'update' | 'delete';
+
+/**
+ * Un droit refusé à la délégation, et POURQUOI.
+ *
+ * `grant` nomme ce qui est refusé, dans la forme que l'appelant a soumise — `product:update` pour un
+ * rôle, `write:product` pour un scope de clé. `reason` porte le prédicat qui a tranché, comme code
+ * et jamais comme phrase : ces listes finissent dans une réponse HTTP, et la rédaction appartient à
+ * la surface qui la lit (ADR-0050).
+ *
+ * Le vocabulaire des raisons vit dans `@repo/shared` avec le contrat de faute qui le transporte,
+ * plutôt qu'ici où il est produit : c'est le sens de flèche du socle, et un paquet qui déciderait
+ * d'une délégation sans jamais répondre en HTTP n'a pas à le connaître.
+ */
+export type UndelegatableGrant = { grant: string; reason: UndelegatableReason };
 
 const FLAG_OF: Record<Action, 'canCreate' | 'canRead' | 'canUpdate' | 'canDelete'> = {
   create: 'canCreate',
@@ -115,18 +130,20 @@ export function delegatableActions(principal: Principal<unknown>, resource: stri
  * principe. L'alternative écartée par l'ADR, une portée d'administration par catégories, laissait
  * justement passer cette élévation ; la délégation la rend structurellement impossible.
  *
- * Renvoie les droits demandés que le principal ne détient pas — vide s'il peut tout accorder.
- * Rendre la liste plutôt qu'un booléen permet de dire à l'appelant CE QUI est refusé.
+ * Renvoie les droits refusés — vide si le principal peut tout accorder. La liste plutôt qu'un
+ * booléen permet de dire à l'appelant CE QUI est refusé, et chaque entrée porte SON prédicat : trois
+ * règles distinctes se croisent ici, et « non détenu » ne se corrige pas comme « tient au rang ».
+ * La raison est un CODE, jamais une phrase — c'est la surface qui rédige (ADR-0050).
  */
 export function undelegatableGrants(
   principal: Principal<unknown>,
   grants: PermissionGrant[],
-): string[] {
+): UndelegatableGrant[] {
   // Le propriétaire court-circuite ICI, et pour une seule raison : la règle de rang ci-dessous, qui
   // refuse une ressource même à qui la détient. `holds` suffirait pour tout le reste.
   if (principal.authority.kind === 'total') return [];
 
-  const refused: string[] = [];
+  const refused: UndelegatableGrant[] = [];
 
   for (const grant of grants) {
     const grantsAnything = GRANTABLE_ACTIONS.some(([, flag]) => grant[flag]);
@@ -140,13 +157,13 @@ export function undelegatableGrants(
     // droit ne lui ouvre aucune capacité nouvelle. La règle vise l'ÉLÉVATION — obtenir plus que ce
     // qu'on a —, pas le don venu du sommet.
     if (grantsAnything && RANK_BOUND_RESOURCES.has(grant.resource)) {
-      refused.push(`${grant.resource} (tient au rang, non délégable)`);
+      refused.push({ grant: grant.resource, reason: 'rank_bound' });
       continue;
     }
 
     for (const [action, flag] of GRANTABLE_ACTIONS) {
       if (grant[flag] && !holds(principal.authority, grant.resource, action)) {
-        refused.push(`${grant.resource}:${action}`);
+        refused.push({ grant: `${grant.resource}:${action}`, reason: 'not_held' });
       }
     }
 
@@ -158,7 +175,7 @@ export function undelegatableGrants(
       isSelfOnly(principal.authority, grant.resource) &&
       grant.selfOnly !== true
     ) {
-      refused.push(`${grant.resource}:selfOnly`);
+      refused.push({ grant: `${grant.resource}:selfOnly`, reason: 'self_only_widened' });
     }
   }
 
@@ -177,13 +194,16 @@ const SCOPE_WRITE_ACTIONS = ['create', 'update', 'delete'] as const satisfies re
  * portant n'importe quel scope, y compris ce qu'il ne peut pas faire lui-même. La validation
  * existante ne vérifiait que le VOCABULAIRE : « ce scope existe-t-il », jamais « l'as-tu ».
  *
- * Renvoie les scopes refusés. Vide si l'émetteur peut tout déléguer.
+ * Renvoie les scopes refusés, chacun avec son prédicat. Vide si l'émetteur peut tout déléguer.
  */
-export function undelegatableScopes(principal: Principal<unknown>, scopes: string[]): string[] {
+export function undelegatableScopes(
+  principal: Principal<unknown>,
+  scopes: string[],
+): UndelegatableGrant[] {
   // Le propriétaire de l'installation court-circuite, comme partout ailleurs.
   if (principal.authority.kind === 'total') return [];
 
-  const refused: string[] = [];
+  const refused: UndelegatableGrant[] = [];
 
   for (const scope of scopes) {
     // Découpe sur le PREMIER `:` seulement : une ressource peut en contenir (`write:entity:article`).
@@ -196,7 +216,7 @@ export function undelegatableScopes(principal: Principal<unknown>, scopes: strin
         ? holds(principal.authority, resource, 'read')
         : SCOPE_WRITE_ACTIONS.every((write) => holds(principal.authority, resource, write));
     if (!covered) {
-      refused.push(scope);
+      refused.push({ grant: scope, reason: 'not_held' });
       continue;
     }
 
@@ -205,7 +225,7 @@ export function undelegatableScopes(principal: Principal<unknown>, scopes: strin
     // ne détient que borné le rendrait illimité entre ses mains. Refusé, faute de pouvoir le
     // restreindre.
     if (isSelfOnly(principal.authority, resource)) {
-      refused.push(scope);
+      refused.push({ grant: scope, reason: 'self_only_widened' });
     }
   }
 

@@ -66,14 +66,33 @@ export type CommerceResource =
 export type EchoppeResource = SharedResource | CommerceResource;
 
 /**
- * La forme du socle, instanciée sur le vocabulaire d'Échoppe.
+ * L'échelle des rangs d'Échoppe — qui gouverne, et à quelle hauteur.
+ *
+ * Le socle n'en connaît aucun, et pas par omission : `@repo/auth` ne sait décrire que des ÉTENDUES
+ * de droits (`Authority`, trois formes), qui disent ce qu'on détient, jamais si on gouverne. Le
+ * rang est ailleurs, dans `FIRST_RANK_ROLE_KEYS` (`apps/echoppe-api/src/modules/auth/rbac.ts`), et
+ * il tient à `key`, immuable et portée par le code — jamais aux permissions, qu'un rôle sur mesure
+ * peut recopier à l'identique sans pour autant gouverner (ADR-0047, décision 4).
+ *
+ * Deux valeurs aujourd'hui, parce que deux gardes seulement s'y réfèrent : `isTheOwner` et
+ * `isFirstRank`. L'union est additive, et `rbac.ts` annonce déjà qu'un rang sur mesure viendra —
+ * il s'ajoutera ici, sans que rien de ce qui lit n'ait à changer.
+ */
+export type EchoppeRank =
+  /** Le propriétaire de l'installation. `authority.kind === 'total'`, indépendant de tout rôle. */
+  | 'owner'
+  /** Le propriétaire, ou un rôle dont la `key` est du premier rang (`admin` aujourd'hui). */
+  | 'first_rank';
+
+/**
+ * La forme du socle, instanciée sur les deux vocabulaires d'Échoppe.
  *
  * C'est ce que les constructeurs RENDENT, et la raison pour laquelle `Fault` est paramétré : sans
  * cette instanciation, la fermeture ne vaudrait qu'à l'entrée, et tout ce qui vit en aval —
  * le schéma qui sort sur le fil, le catalogue d'une surface — retrouverait une `string` ouverte,
  * donc rien à énumérer ni à vérifier.
  */
-export type EchoppeFault = Fault<EchoppeResource>;
+export type EchoppeFault = Fault<EchoppeResource, EchoppeRank>;
 
 /** Ce qu'une route d'Échoppe met dans un corps d'erreur. */
-export type EchoppeErrorResponse = ErrorResponse<EchoppeResource>;
+export type EchoppeErrorResponse = ErrorResponse<EchoppeResource, EchoppeRank>;

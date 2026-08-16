@@ -100,8 +100,17 @@ describe('ressources de rang', () => {
 
     const refused = undelegatableGrants(admin, [grant('schema', { canUpdate: true })]);
 
-    expect(refused).toHaveLength(1);
-    expect(refused[0]).toContain('schema');
+    // La raison est un code, donc assertable : « tient au rang » ne se confond plus avec
+    // « non détenu », alors que la chaîne rédigée d'avant ne permettait que `toContain`.
+    expect(refused).toEqual([{ grant: 'schema', reason: 'rank_bound' }]);
+  });
+
+  test('un droit simplement non détenu porte une AUTRE raison', () => {
+    const admin = holder({ product: perm({ canRead: true }) });
+
+    expect(undelegatableGrants(admin, [grant('product', { canUpdate: true })])).toEqual([
+      { grant: 'product:update', reason: 'not_held' },
+    ]);
   });
 
   test('une ligne `schema` qui n’accorde rien passe — elle ne transmet rien', () => {
@@ -136,14 +145,18 @@ describe('délégation des scopes de clé', () => {
   test('refuse un scope sur une ressource que le principal ne détient pas du tout', () => {
     const principal = holder({ product: perm({ canRead: true }) });
 
-    expect(undelegatableScopes(principal, ['read:customer'])).toEqual(['read:customer']);
+    expect(undelegatableScopes(principal, ['read:customer'])).toEqual([
+      { grant: 'read:customer', reason: 'not_held' },
+    ]);
   });
 
   test('`write` est composite : lire ne suffit pas à déléguer l’écriture', () => {
     const principal = holder({ product: perm({ canRead: true, canUpdate: true }) });
 
     // canCreate et canDelete manquent → la clé aurait plus de pouvoir que son émetteur.
-    expect(undelegatableScopes(principal, ['write:product'])).toEqual(['write:product']);
+    expect(undelegatableScopes(principal, ['write:product'])).toEqual([
+      { grant: 'write:product', reason: 'not_held' },
+    ]);
   });
 
   test("refuse un droit détenu en `selfOnly` : une clé n'a pas de sujet sur lequel borner", () => {
@@ -157,8 +170,12 @@ describe('délégation des scopes de clé', () => {
       }),
     });
 
-    expect(undelegatableScopes(principal, ['read:order'])).toEqual(['read:order']);
-    expect(undelegatableScopes(principal, ['write:order'])).toEqual(['write:order']);
+    expect(undelegatableScopes(principal, ['read:order'])).toEqual([
+      { grant: 'read:order', reason: 'self_only_widened' },
+    ]);
+    expect(undelegatableScopes(principal, ['write:order'])).toEqual([
+      { grant: 'write:order', reason: 'self_only_widened' },
+    ]);
   });
 
   test("le propriétaire de l'installation court-circuite, comme partout", () => {
@@ -174,7 +191,7 @@ describe('délégation des scopes de clé', () => {
 
     expect(undelegatableScopes(principal, ['write:entity:article'])).toEqual([]);
     expect(undelegatableScopes(principal, ['read:entity:article'])).toEqual([
-      'read:entity:article',
+      { grant: 'read:entity:article', reason: 'not_held' },
     ]);
   });
 
@@ -182,8 +199,8 @@ describe('délégation des scopes de clé', () => {
     const principal = holder({ product: perm({ canRead: true }) });
 
     expect(undelegatableScopes(principal, ['read:product', 'write:product', 'read:user'])).toEqual([
-      'write:product',
-      'read:user',
+      { grant: 'write:product', reason: 'not_held' },
+      { grant: 'read:user', reason: 'not_held' },
     ]);
   });
 });
