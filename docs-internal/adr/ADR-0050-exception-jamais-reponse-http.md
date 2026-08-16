@@ -408,3 +408,71 @@ Ce qui reste vrai, et qui est une contrainte réelle d'Elysia :
 
 Résultat mesuré : **+1 607 lignes de contrat, une fois**, dont 1 511 pour le composant lui-même. Une
 route migrée n'ajoute plus que son `$ref`. Le coût ne croît pas avec la migration.
+
+## Note d'implémentation 2026-08-16 — la tranche 401/403
+
+Deuxième tranche verticale : les **40 réponses** d'authentification et de droits — 14 en 401, 26 en
+403 —, réparties dans `auth`, `user`, `role`, `api-key`, `cart`, `payment` et `content/entity`.
+
+### La tranche ne pouvait pas être découpée
+
+La roadmap annonçait « le middleware, dans sa propre tranche ». C'était faux, et pour une raison
+technique : le schéma d'un statut n'est pas déclaré par la route mais par les **helpers partagés**
+de `lib/response.ts`. Dès qu'un helper annonce `ErrorResponse` en 403, toute route qui l'utilise et
+rend encore `{ message }` échoue à la validation de réponse d'Elysia. Les 40 sites basculent
+ensemble ou pas du tout ; `unauthorizedResponse` et `forbiddenResponse` ont disparu.
+
+Effet de bord mesuré : 18 modules ont dû recevoir `.use(models)`. Un nom de modèle n'est visible que
+dans l'instance qui le monte — c'est une contrainte d'Elysia, pas un choix.
+
+### Trois codes ajoutés, un retiré
+
+Comme pour la taxonomie initiale, les 16 réponses sans code évident ont été **classées par la garde
+qui les produit**, jamais par leur formulation. Cinq d'entre elles retombaient sur des codes
+existants (`protected_subject` pour `existing.isOwner` et `existing.isSystem`, `invalid_state` pour
+`account-disabled`). Les onze autres ont fait apparaître trois prédicats réels :
+
+- **`undelegatable_grants`** — `!holds(...)` : on n'accorde que ce qu'on détient (ADR-0038) ;
+- **`rank_reserved`** — un seuil de RANG, pas une possession ; c'est ce qui autorise à retirer un
+  droit qu'on ne détient pas soi-même (ADR-0047) ;
+- **`self_only`** — l'acte n'est permis que sur soi, miroir exact de `self_action_forbidden`.
+
+`owner_only` est **retiré**, absorbé par `rank_reserved`, qui porte le seuil exigé et sait donc
+distinguer « réservé au propriétaire » de « réservé au premier rang ». Les gardes testent bien deux
+hauteurs — `isTheOwner` et `isFirstRank` — que le code précédent confondait.
+
+Un troisième seuil existe, `privileged` (`@repo/auth`), qui sépare l'admin et la clé machine du
+public et du client. Il n'est **pas** un rang : il dit qui est de confiance, pas qui gouverne. Ses
+trois sites continuent d'émettre `permission_denied`, comme le faisait déjà leur message.
+
+### L'échelle de rang est du produit, donc un second paramètre de type
+
+`Fault<R, K>`. Le socle ne connaît aucun rang : `@repo/auth` ne sait décrire que des **étendues de
+droits** (`Authority`, trois formes). Le rang vit dans `FIRST_RANK_ROLE_KEYS`, côté produit, et
+`rbac.ts` annonce déjà qu'un rang sur mesure viendra — l'union est additive, il s'ajoutera sans que
+rien de ce qui lit ne bouge. Même raisonnement, même mécanisme que pour les ressources.
+
+### Une prose voyageait dans un opérande
+
+`undelegatableGrants` (`packages/auth/src/permission.ts`) évaluait **trois** prédicats distincts et
+aplatissait son verdict dans une `string[]` dont un élément portait sa raison **rédigée en
+français** : `` `${resource} (tient au rang, non délégable)` ``. C'est exactement ce que cet ADR
+interdit — la surface ne peut ni la traduire ni la reformater. La fonction rend désormais
+`{ grant, reason }[]`, et ses tests peuvent enfin distinguer « non détenu » de « tient au rang »,
+ce que `toContain` sur une phrase ne permettait pas.
+
+### Deux formulations que la migration a corrigées
+
+- « Toucher au premier rang est réservé au propriétaire » serait devenu « Supprimer est réservé au
+  propriétaire », ce qui est **faux** : supprimer un utilisateur ordinaire reste permis. Le
+  catalogue écrit « Cet acte — supprimer — est réservé… », qui ne généralise pas.
+- `rank_reserved` porte un `grants?` **optionnel**, rempli par un seul site : la révocation en masse,
+  où la route remplace l'ensemble des droits et où l'appelant ne peut donc pas déduire de sa propre
+  soumission ce qu'il allait retirer. Un test d'intégration l'attestait déjà ; le retirer aurait été
+  une régression.
+
+### Le contrat rétrécit
+
+Le composant `ErrorResponse` existait déjà. 401 et 403 cessent d'inscrire leur `{ message }` inline
+dans chaque route pour ne plus porter qu'un `$ref` : **−222 lignes** de contrat SDK. La migration ne
+coûte plus rien au contrat, elle lui en rend.

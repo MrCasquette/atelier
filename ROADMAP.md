@@ -74,8 +74,11 @@ l'administration ; il n'est plus seulement déclaré dans les barrels.
   Restent deux contraintes réelles d'Elysia, documentées sur place : un `t.Union` construit par
   `.map` se résout en `never`, et l'union des ressources ne peut pas être un modèle imbriqué sans
   faire tomber les gardes de compilation.
-- **Les 401/403 ne sont pas migrés** : ils sont émis par le middleware d'authentification, pas par
-  les routes. C'est leur propre tranche.
+- **Les 401/403 sont migrés** (tranche du 2026-08-16, 40 réponses). L'annonce « c'est la tranche du
+  middleware » était fausse : le schéma d'un statut est déclaré par les helpers partagés de
+  `lib/response.ts`, donc les 40 sites basculent ensemble ou pas du tout. Trois codes ajoutés —
+  `undelegatable_grants`, `rank_reserved`, `self_only` —, `owner_only` retiré, et le contrat SDK
+  **rétrécit de 222 lignes** puisque 401/403 passent au `$ref`.
 
 ## Jalon 1 — Fermer les vulnérabilités courtes et exposées
 

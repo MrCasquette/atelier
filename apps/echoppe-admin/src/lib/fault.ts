@@ -32,9 +32,44 @@ const RESOURCES: Partial<Record<FaultResource, [string, Gender]>> = {
   product: ['produit', 'm'],
   product_media: ['média du produit', 'm'],
   product_option: ['option du produit', 'f'],
+  role: ['rôle', 'm'],
   tax_rate: ['taux de TVA', 'm'],
+  user: ['utilisateur', 'm'],
   variant: ['variante', 'f'],
 };
+
+/**
+ * Les actes, à l'infinitif.
+ *
+ * Une faute porte l'action comme CODE — `deactivate`, jamais « se désactiver ». Le français se
+ * décide ici, et une surface anglophone écrirait le sien sans que l'API bouge.
+ */
+const ACTIONS: Record<string, string> = {
+  create: 'créer',
+  read: 'consulter',
+  update: 'modifier',
+  delete: 'supprimer',
+  deactivate: 'désactiver',
+  update_password: 'changer le mot de passe',
+  transfer_ownership: 'transférer la propriété',
+  revoke: 'retirer un droit',
+  invite: 'réémettre une invitation',
+};
+
+/** Les rangs, tels qu'on les nomme au gestionnaire. */
+const RANKS: Record<string, string> = {
+  owner: 'au propriétaire de l’installation',
+  first_rank: 'au premier rang',
+};
+
+/** Pourquoi un droit ne peut pas être délégué. Trois règles distinctes, trois corrections. */
+const UNDELEGATABLE: Record<string, string> = {
+  not_held: 'que vous ne détenez pas',
+  rank_bound: 'qui tiennent au rang et ne se délèguent jamais',
+  self_only_widened: 'que vous ne détenez que sur vos propres lignes',
+};
+
+const verb = (action: string): string => ACTIONS[action] ?? action.replace(/_/g, ' ');
 
 function label(resource: FaultResource): [string, Gender] {
   return RESOURCES[resource] ?? [resource.replace(/_/g, ' '), 'm'];
@@ -66,6 +101,43 @@ export function faultText(fault: Fault): string | null {
       const used = gender === 'f' ? 'utilisée' : 'utilisé';
       const detach = gender === 'f' ? 'la' : 'le';
       return `${demonstrative(gender)} ${name} est ${used} par au moins un élément « ${by} » — détachez-${detach} d’abord`;
+    }
+    case 'unauthenticated':
+      return 'Votre session a expiré — reconnectez-vous';
+    case 'invalid_credentials':
+      return 'Identifiants incorrects';
+    case 'invalid_token':
+      return 'Lien invalide ou expiré';
+    case 'permission_denied':
+      return `Vous n’avez pas le droit de ${verb(fault.action)} « ${fault.resource} »`;
+    case 'protected_subject': {
+      const [name, gender] = label(fault.resource);
+      const suffix = gender === 'f' ? 'protégée' : 'protégé';
+      return `${demonstrative(gender)} ${name} est ${suffix} et ne peut pas être modifié${gender === 'f' ? 'e' : ''}`;
+    }
+    case 'self_action_forbidden':
+      return `Vous ne pouvez pas ${verb(fault.action)} votre propre compte`;
+    case 'self_only':
+      return `Vous ne pouvez ${verb(fault.action)} que sur votre propre compte`;
+    case 'rank_reserved':
+      // « Cet acte » plutôt que le verbe seul : la garde refuse CETTE tentative, pas l'acte en
+      // général. « Supprimer est réservé au propriétaire » serait faux.
+      return fault.grants?.length
+        ? `Cet acte — ${verb(fault.action)} — est réservé ${RANKS[fault.requires] ?? fault.requires} : ${fault.grants.join(', ')}`
+        : `Cet acte — ${verb(fault.action)} — est réservé ${RANKS[fault.requires] ?? fault.requires}`;
+    case 'undelegatable_grants': {
+      // Groupé par raison : trois règles se croisent, et chacune se corrige autrement. On ne peut
+      // pas accorder ce qu'on n'a pas, mais `rank_bound` ne s'obtient par aucune permission.
+      const byReason = new Map<string, string[]>();
+      for (const { grant, reason } of fault.grants) {
+        byReason.set(reason, [...(byReason.get(reason) ?? []), grant]);
+      }
+      return [...byReason]
+        .map(
+          ([reason, grants]) =>
+            `Droits ${UNDELEGATABLE[reason] ?? reason} : ${grants.join(', ')}`,
+        )
+        .join(' · ');
     }
     default:
       return null;

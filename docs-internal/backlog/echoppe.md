@@ -33,11 +33,12 @@ Détail : [audit sécurité](../audits/security-audit.md).
   `Content-Disposition` sûr.
 - [ ] 🟠 **Hasher les tokens de session** stockés en base.
 - [ ] 🟠 **Rate limiting des webhooks** Stripe et PayPal.
-- [ ] 🟡 **Handler d'erreur global et contrat 5xx commun** : message générique en production,
-  journalisation structurée et types SDK honnêtes. À traiter **avec** la migration
-  d'[ADR-0050](../adr/ADR-0050-exception-jamais-reponse-http.md), qui pose l'invariant dont ce
-  handler est le point d'application : l'API n'a aujourd'hui aucun `onError`, donc aucun point de
-  conversion garanti pour une exception non rattrapée.
+- [x] 🟡 **Handler d'erreur global et contrat 5xx commun** →
+  `apps/echoppe-api/src/error-handler.ts`, point de conversion garanti d'[ADR-0050](../adr/ADR-0050-exception-jamais-reponse-http.md).
+  Il ne traite que l'exception non rattrapée : le détail part au log avec un identifiant de
+  corrélation, la réponse ne porte que celui-ci. Validation, route inconnue et corps illisible
+  restent à Elysia — aucun message d'exception n'y transite. La journalisation reste à structurer
+  (cf. logger ci-dessous).
 - [x] 🟡 **Reset de mot de passe admin** : câbler le flux jeton déjà disponible. → ADR-0048, même
   jeton que l'invitation — inviter et débloquer sont le même acte.
 
@@ -72,8 +73,22 @@ Détail : [ADR-0005](../adr/ADR-0005-panier-stock.md).
 - [ ] 🟡 Uniformiser les messages d'erreur de l'API → **c'est la migration
   d'[ADR-0050](../adr/ADR-0050-exception-jamais-reponse-http.md)**, qui en fixe la forme : union
   discriminée plate sur `code`, rendue par chaque surface. 214 réponses, 80 messages distincts,
-  ~30 codes visés. Deux amorces existent déjà — le helper `notFound()` employé 11 fois sur 89, et
-  `errorSchema` déprécié mais employé 51 fois — à absorber, pas à corriger d'abord.
+  19 codes retenus. Deux amorces existent déjà — le helper `notFound()` employé 11 fois sur 89, et
+  `errorSchema` déprécié mais employé 51 fois — à absorber, pas à corriger d'abord. **Migration en
+  cours, par tranche verticale** (cf. [ROADMAP](../../ROADMAP.md) jalon 0) :
+  - [x] Le contrat et ses constructeurs, fermés en entrée **et en sortie** →
+    `packages/shared/src/fault.ts`, `packages/echoppe-core/src/constants/fault.ts`.
+  - [x] Le schéma de frontière, spécialisé par produit et verrouillé au type par trois gardes de
+    compilation → `apps/echoppe-api/src/lib/fault-schema.ts`. Modèle nommé `ErrorResponse`, donc un
+    `$ref` unique : le contrat coûte +1 607 lignes une fois, pas par route.
+  - [x] Première tranche : les 26 réponses de `catalog/product` et leur lecture côté administration
+    (`apps/echoppe-admin/src/lib/fault.ts`).
+  - [x] Les **40 réponses 401/403**, en une seule tranche — le schéma d'un statut vient des helpers
+    partagés, donc rien ne se découpait. `unauthorizedResponse` / `forbiddenResponse` retirés,
+    trois codes ajoutés (`undelegatable_grants`, `rank_reserved`, `self_only`), `owner_only`
+    absorbé, et la prose française sortie de `undelegatableGrants` (`@repo/auth`).
+  - [ ] Les ~148 réponses restantes des autres modules.
+  - [ ] Retirer le champ `message` déprécié, une fois qu'aucune surface ne le lit plus.
 - [ ] 🟡 Inférer `Invoice` depuis le contrat dans l'admin.
 
 ### Documentation et expérience
