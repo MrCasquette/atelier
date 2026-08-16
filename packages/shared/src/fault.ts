@@ -81,10 +81,14 @@ export type Fault<R extends string = string, K extends string = string> =
    *
    * Remplace un `owner_only` qui ne savait nommer qu'un seul seuil.
    *
-   * `grants` est OPTIONNEL et ne concerne qu'un site : la révocation en masse, où la soumission est
-   * un remplacement et où l'appelant ne voit donc pas ce qu'il retire. Ailleurs, l'acte est explicite
-   * et la liste n'aurait rien à dire. Le champ existe parce que le refus le disait déjà avant la
-   * migration — le retirer aurait été une régression, pas une simplification.
+   * `grants` est le SEUL champ facultatif du contrat, et il n'a le droit de l'être que parce que la
+   * surface ne peut pas reconstruire l'information depuis sa propre requête : la révocation en masse
+   * REMPLACE l'ensemble des droits, donc ce qui disparaît n'est pas ce que l'appelant a soumis.
+   * Ailleurs, l'acte est explicite et la liste n'aurait rien à dire.
+   *
+   * Avant d'ajouter un second champ facultatif ici ou ailleurs, relire le critère (ADR-0050 §5,
+   * « Quand un opérande a le droit d'être facultatif ») : sans lui, chaque membre de l'union finit
+   * par porter ses propres données de diagnostic, et `Fault` redevient un sac.
    */
   | { code: 'rank_reserved'; action: string; requires: K; grants?: string[] }
   /**

@@ -306,6 +306,41 @@ l'espace ouvert `entity:<nom>`, inconnu à la compilation par nature.
 - **`{ code: 'product.not_found' }`** — fusionner les deux dimensions demanderait une vingtaine de
   codes pour un seul concept, et autant d'entrées de catalogue ne différant que par un nom commun.
 
+#### Quand un opérande a le droit d'être facultatif
+
+**Un opérande facultatif n'est admis que lorsque la surface ne peut pas reconstruire l'information
+depuis sa propre requête. Sinon, l'opérande est soit obligatoire parce qu'il constitue la faute, soit
+absent.**
+
+Le risque que ce critère écarte est précis : voir chaque variante du contrat grossir de ses propres
+données de diagnostic, ajoutées par confort, jusqu'à ce que `Fault` redevienne un sac. Un champ
+facultatif est le point d'entrée naturel de cette dérive, parce qu'il ne casse rien en arrivant.
+
+La règle se vérifie en une question : **l'appelant sait-il déjà ?** S'il a soumis un identifiant, on
+ne le lui renvoie pas ; s'il a soumis une liste, on ne la lui répète pas. Ce qu'il ne peut pas
+savoir, en revanche, ne se déduit d'aucune requête.
+
+Deux familles en découlent, et elles couvrent tout le contrat :
+
+1. **La liste EST la faute** — `validation_failed.details`, `unknown_reference_targets.targets`,
+   `unknown_scopes.scopes`, `undelegatable_grants.grants`. Le code ne dit rien d'actionnable sans
+   elle : « validation échouée » sans ses détails est vide. Ces opérandes sont obligatoires.
+2. **La faute se lit sans l'opérande** — un seul membre sur 21, `rank_reserved.grants?`, et un seul
+   site qui le remplit : la révocation en masse. `PUT /roles/:id/permissions` **remplace** l'ensemble
+   des droits, donc ce qui disparaît n'est pas ce que l'appelant a soumis. Il ne peut pas le
+   reconstruire ; la faute doit donc le nommer.
+
+La cause n'est pas le rang, c'est la sémantique **remplace-tout**. Elle se répète — `PUT
+/content/entities` est explicitement « remplace-tout », et son refus destructif nomme lui aussi ce
+qu'il aurait détruit. La différence est que ce second cas tombe sur un code dont la liste est
+obligatoire : un plan qui détruit n'a aucun sens sans dire quoi. Le motif se reproduit donc, mais il
+ne produit pas un second champ facultatif.
+
+Mesuré avant de trancher, sur les réponses non encore migrées : 8 sites interpolent une liste dans
+leur message, 11 une valeur unique. **Aucun** n'ajoute du contexte à une faute qui existerait sans
+lui — tous tombent dans la première famille. Le champ facultatif reste donc un cas, pas un motif, et
+ce critère est ce qui l'empêche d'en devenir un.
+
 ### 6. Un catalogue par surface, avec repli obligatoire
 
 Chaque surface tient sa table `code → texte` : l'administration nomme le prestataire, la boutique
@@ -469,7 +504,9 @@ ce que `toContain` sur une phrase ne permettait pas.
 - `rank_reserved` porte un `grants?` **optionnel**, rempli par un seul site : la révocation en masse,
   où la route remplace l'ensemble des droits et où l'appelant ne peut donc pas déduire de sa propre
   soumission ce qu'il allait retirer. Un test d'intégration l'attestait déjà ; le retirer aurait été
-  une régression.
+  une régression. C'est le seul champ facultatif du contrat, et il a fait écrire le critère qui
+  l'autorise (§5, « Quand un opérande a le droit d'être facultatif ») — mesuré sur les réponses
+  restantes avant d'être figé, pour vérifier qu'il restait un cas et non un motif.
 
 ### Le contrat rétrécit
 
