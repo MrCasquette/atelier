@@ -2,6 +2,9 @@
 //
 // Aucun vocabulaire de produit : n'inscrire ici que les gabarits que le socle possède réellement.
 // L'envoi n'a pas de couture pour les tests — voir README.md avant d'y toucher.
+
+/** Ce que ce paquet possède, nommable dans une faute (ADR-0050). Un produit compose les siennes. */
+export type CommunicationResource = 'email_template' | 'communication_provider';
 export { BrevoAdapter } from './brevo';
 export {
   type BrevoCredentials,

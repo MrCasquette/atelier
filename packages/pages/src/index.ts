@@ -3,6 +3,9 @@
 //
 // Ni route, ni plugin Elysia. Ne pas réexporter la grammaire de `@repo/fields` d'ici : la frontière
 // n'existerait plus que dans l'arborescence. Voir README.md.
+
+/** Ce que ce paquet possède, nommable dans une faute (ADR-0050). Un produit compose les siennes. */
+export type PagesResource = 'page' | 'section' | 'definition';
 export { type Registry, registrySchema, type SerializedDefinition } from './definition-model';
 export {
   assertRegistryCoherent,

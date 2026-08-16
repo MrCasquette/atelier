@@ -2,6 +2,9 @@
 //
 // Ni route, ni plugin Elysia, et aucune entité nommée ici : le registre arrive en argument. Voir
 // README.md.
+
+/** Ce que ce paquet possède, nommable dans une faute (ADR-0050). Un produit compose les siennes. */
+export type MenusResource = 'menu';
 export { type MenuItemInput, menuItemsSchema } from './model';
 export { type MenuItem, type MenuLink, menu } from './schema';
 export {

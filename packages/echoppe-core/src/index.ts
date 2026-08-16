@@ -79,12 +79,20 @@ export {
   runMigrations,
   sql,
 } from '@repo/db';
+// Contrat de faute (ADR-0050) : la forme vient du socle, le vocabulaire se ferme ici.
+export type { ErrorResponse, Fault, FaultCode } from '@repo/shared';
 // Utils
 export { decrypt, encrypt, generateEncryptionKey, isEncryptionConfigured } from '@repo/shared';
 // Payment adapters
 export * from './adapters/payment';
 // Shipping adapters
 export * from './adapters/shipping';
+export * as faults from './constants/fault';
+export type {
+  CommerceResource,
+  EchoppeResource,
+  SharedResource,
+} from './constants/fault-resources';
 // RBAC constants
 export * from './constants/resources';
 export * from './db/schema/index';

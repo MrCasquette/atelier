@@ -3,6 +3,9 @@
 // Ni route, ni plugin Elysia : traduire un refus en code HTTP est du produit. Garder les règles de
 // droits séparées de leur lecture en base — sinon elles cessent d'être testables. Voir README.md.
 
+/** Ce que ce paquet possède, nommable dans une faute (ADR-0050). Un produit compose les siennes. */
+export type AuthResource = 'user' | 'role' | 'permission' | 'api_key' | 'session';
+
 export {
   type Action,
   delegatableActions,

@@ -3,6 +3,9 @@
 //
 // Aucune route. Les IDENTIFIANTS passent la liste blanche de `ddl.ts` — jamais d'échappement —, les
 // VALEURS sont toujours liées. Voir README.md.
+
+/** Ce que ce paquet possède, nommable dans une faute (ADR-0050). Un produit compose les siennes. */
+export type EntitiesResource = 'entity' | 'entity_row';
 export {
   addColumnSql,
   type ColumnSpec,

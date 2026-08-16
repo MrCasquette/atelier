@@ -30,6 +30,7 @@
     "@repo/identity": "workspace:*",
     "@repo/menus": "workspace:*",
     "@repo/pages": "workspace:*",
+    "@repo/references": "workspace:*",
     "@repo/shared": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "postgres": "^3.4.9",

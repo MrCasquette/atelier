@@ -1,0 +1,81 @@
+// Le contrat de faute d'ADR-0050 : ce qu'un domaine RÉPOND quand il refuse.
+//
+// Une union discriminée PLATE. Pas de sous-objet `params` : il serait présent dans 100 % des membres
+// avec un sens invariant, donc une profondeur qui ne distingue rien. Un moteur de rendu prend un sac
+// et ignore ce qu'il n'utilise pas — `t(fault.code, fault)` fonctionne tel quel.
+//
+// `resource` est une CHAÎNE ici, et c'est délibéré. Le socle ne connaît pas le vocabulaire d'un
+// produit : `product`, `order`, `variant` appartiennent au commerce, et les écrire ici referait ce
+// qu'ADR-0032 a corrigé pour les cibles référençables. Chaque paquet déclare les ressources qu'il
+// possède (`PagesResource`, `AssetsResource`…), chaque produit compose les siennes, et ce sont les
+// CONSTRUCTEURS du produit qui ferment le vocabulaire au point d'usage.
+//
+// Ce fichier ne rend aucun texte. Le rendu appartient à la surface qui lit — administration,
+// boutique, CLI —, chacune avec son catalogue `code → message` et son repli.
+
+export type Fault =
+  /** La chose désignée n'existe pas. Absorbe à elle seule la moitié des refus de l'API. */
+  | { code: 'not_found'; resource: string }
+  /** Une contrainte d'unicité refuse : `field` nomme la colonne qui collisionne. */
+  | { code: 'already_exists'; resource: string; field: string }
+  /** Suppression refusée parce que la chose est référencée. `usedBy` nomme ce qui la retient. */
+  | { code: 'in_use'; resource: string; usedBy: string }
+  /** L'état courant interdit la transition demandée. */
+  | { code: 'invalid_state'; resource: string; current: string; expected: string }
+  | { code: 'insufficient_stock'; available: number; requested: number }
+  /** Aucune identité présentée, ou session expirée — les deux sont indiscernables pour l'appelant. */
+  | { code: 'unauthenticated' }
+  /**
+   * Identifiants refusés.
+   *
+   * Volontairement indistinct entre « adresse inconnue » et « mot de passe faux » : les distinguer
+   * ferait de l'endpoint un oracle d'énumération. C'est le seul cas où le domaine émet SCIEMMENT
+   * une faute moins précise qu'il ne le pourrait, et c'est une propriété de sécurité — aucun
+   * catalogue de lecture ne pourrait rattraper la distinction si elle était émise.
+   */
+  | { code: 'invalid_credentials' }
+  /** Jeton de lien invalide ou expiré — même indistinction délibérée. */
+  | { code: 'invalid_token' }
+  | { code: 'permission_denied'; action: string; resource: string }
+  /** La cible est protégée par son rang : propriétaire, rôle système. */
+  | { code: 'protected_subject'; resource: string }
+  /** L'acte est interdit sur soi-même (se désactiver, se supprimer). */
+  | { code: 'self_action_forbidden'; action: string }
+  /** Réservé au propriétaire. */
+  | { code: 'owner_only'; action: string }
+  /** La ressource existe mais n'appartient pas à l'appelant. */
+  | { code: 'forbidden_resource'; resource: string }
+  /** Une configuration manque : clé d'environnement, provider non branché. */
+  | { code: 'configuration_missing'; target: string }
+  /** Un champ requis manque — typiquement une exigence CONDITIONNELLE que le schéma ne porte pas. */
+  | { code: 'required_data_missing'; field: string }
+  /** Validation structurelle : `details` liste les fautes, une par entrée, jamais jointes. */
+  | { code: 'validation_failed'; details: string[] }
+  | { code: 'unknown_reference_targets'; targets: string[] }
+  | { code: 'unknown_scopes'; scopes: string[] }
+  /** Un système tiers a échoué. `operation` le nomme sans exposer son diagnostic. */
+  | { code: 'external_operation_failed'; operation: string };
+
+export type FaultCode = Fault['code'];
+
+/**
+ * Ce qui part sur le fil.
+ *
+ * Les métadonnées de transport vivent À CÔTÉ de la faute, jamais dedans : ça évite qu'un champ
+ * d'enveloppe entre en collision avec un champ métier, sans payer une indirection sur le chemin de
+ * lecture, qui est le chemin fréquent.
+ *
+ * `incident` corrèle une réponse à sa trace de log. Il n'a de sens que lorsqu'une projection a
+ * RETIRÉ des champs pour l'audience : l'utilisateur le transmet au support, qui retrouve la cause
+ * réelle. Opaque par construction — c'est la seule chose qui doive l'être, les codes n'étant que des
+ * clés.
+ *
+ * @remarks `message` est le format hérité. Il reste rempli pendant la migration parce que
+ * l'administration le lit dans huit vues, et disparaît quand elles auront leur catalogue.
+ */
+export type ErrorResponse = {
+  fault: Fault;
+  incident?: string;
+  /** @deprecated Format hérité — lire `fault`. Retiré à la fin de la migration d'ADR-0050. */
+  message: string;
+};
