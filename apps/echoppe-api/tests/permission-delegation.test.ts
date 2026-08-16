@@ -191,10 +191,14 @@ describe('délégation des droits', () => {
     });
 
     expect(res.status).toBe(403);
-    const body = (await res.json()) as { message: string };
-    expect(body.message).toContain('premier rang');
-    expect(body.message).toContain('media:read');
-    expect(body.message).toContain('media:delete');
+    // `grants` survit à la migration : la route REMPLACE l'ensemble des droits, donc l'appelant ne
+    // peut pas déduire de sa propre soumission ce qu'il allait retirer.
+    const body = (await res.json()) as { fault: { grants: string[] } };
+    expect(body).toMatchObject({
+      fault: { code: 'rank_reserved', action: 'revoke', requires: 'first_rank' },
+    });
+    expect(body.fault.grants).toContain('media:read');
+    expect(body.fault.grants).toContain('media:delete');
   });
 
   it("refuse la révocation même sur une ressource qu'on détient", async () => {
@@ -211,8 +215,8 @@ describe('délégation des droits', () => {
     });
 
     expect(res.status).toBe(403);
-    expect((await res.json()) as { message: string }).toMatchObject({
-      message: expect.stringContaining('product:read'),
+    expect((await res.json()) as { fault: unknown }).toMatchObject({
+      fault: { code: 'rank_reserved', requires: 'first_rank', grants: ['product:read'] },
     });
   });
 

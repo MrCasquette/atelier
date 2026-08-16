@@ -1,7 +1,22 @@
-import { and, count, db, desc, eq, ilike, or, role, session, sql, user } from '@echoppe/core';
+import {
+  and,
+  count,
+  db,
+  desc,
+  eq,
+  faults,
+  ilike,
+  or,
+  role,
+  session,
+  sql,
+  user,
+} from '@echoppe/core';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../lib/fault';
 import { buildListResponse, listResponse, parseListQuery } from '../../lib/pagination';
 import { badRequestResponse, successSchema, withCrudErrors } from '../../lib/response';
+import { models } from '../../model';
 import { getClientIp, logAudit } from '../audit/service';
 import { type EchoppePrincipal, isFirstRankRoleKey, permissionGuard } from '../auth/rbac';
 import { inviteUser, unusablePasswordHash } from './invitation';
@@ -36,9 +51,14 @@ async function targetIsFirstRank(userId: string): Promise<boolean> {
   return found ? found.isOwner || isFirstRankRoleKey(found.roleKey) : false;
 }
 
-const RANK_REFUSAL = {
-  message: 'Toucher au premier rang est réservé au propriétaire de l’installation',
-};
+/**
+ * Le refus de rang, une fois par acte.
+ *
+ * `requires: 'owner'` est le seuil EXIGÉ, pas le rang de l'appelant : la faute dit ce qu'il aurait
+ * fallu détenir. Le rang du sujet — ce qui a déclenché la garde — ne voyage pas : aucune surface
+ * n'en ferait rien, et il dirait de la cible plus que ce que l'appelant a le droit de savoir.
+ */
+const rankRefusal = (action: string) => faultBody(faults.rankReserved(action, 'owner'));
 
 // Query schemas
 const userSearchQuery = t.Object({
@@ -130,6 +150,7 @@ const invitationSentSchema = t.Object({
 });
 
 export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['Users'] } })
+  .use(models)
 
   // === USER READ ===
   .use(permissionGuard('user', 'read'))
@@ -336,14 +357,14 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
 
       // Cannot modify owner (except owner themselves)
       if (existing.isOwner && currentUser?.id !== params.id) {
-        return status(403, { message: 'Impossible de modifier le propriétaire' });
+        return status(403, faultBody(faults.protectedSubject('user')));
       }
 
       // Modifier quelqu'un du rang : réservé au propriétaire. Se modifier SOI reste permis — un
       // administrateur doit pouvoir changer son propre nom ou son mot de passe.
       const isSelf = currentUser?.id === params.id;
       if (!isTheOwner(principal) && !isSelf && (await targetIsFirstRank(params.id))) {
-        return status(403, RANK_REFUSAL);
+        return status(403, rankRefusal('update'));
       }
 
       // Check if email already exists (if changing)
@@ -381,10 +402,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
       // pouvoir se connecter à sa place — et il n'existe pas d'autre route pour changer le sien.
       if (body.password) {
         if (!isSelf) {
-          return status(403, {
-            message:
-              'Le mot de passe ne se change que pour soi — utilisez le lien de réinitialisation',
-          });
+          return status(403, faultBody(faults.selfOnly('update_password')));
         }
         updates.passwordHash = await Bun.password.hash(body.password);
       }
@@ -427,18 +445,18 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
 
       // Cannot deactivate owner
       if (existing.isOwner) {
-        return status(403, { message: 'Impossible de désactiver le propriétaire' });
+        return status(403, faultBody(faults.protectedSubject('user')));
       }
 
       // Désactiver produit le même effet qu'une suppression : la garde porte sur l'ACTE, pas sur
       // le verbe HTTP.
       if (!isTheOwner(principal) && (await targetIsFirstRank(params.id))) {
-        return status(403, RANK_REFUSAL);
+        return status(403, rankRefusal('deactivate'));
       }
 
       // Cannot deactivate yourself
       if (currentUser?.id === params.id && !body.isActive) {
-        return status(403, { message: 'Impossible de vous désactiver vous-même' });
+        return status(403, faultBody(faults.selfActionForbidden('deactivate')));
       }
 
       await db.update(user).set({ isActive: body.isActive }).where(eq(user.id, params.id));
@@ -476,16 +494,16 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
 
       // Cannot delete owner
       if (existing.isOwner) {
-        return status(403, { message: 'Impossible de supprimer le propriétaire' });
+        return status(403, faultBody(faults.protectedSubject('user')));
       }
 
       if (!isTheOwner(principal) && (await targetIsFirstRank(params.id))) {
-        return status(403, RANK_REFUSAL);
+        return status(403, rankRefusal('delete'));
       }
 
       // Cannot delete yourself
       if (currentUser?.id === params.id) {
-        return status(403, { message: 'Impossible de vous supprimer vous-même' });
+        return status(403, faultBody(faults.selfActionForbidden('delete')));
       }
 
       // Delete sessions first
@@ -531,7 +549,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
       // Réémettre un lien vers l'adresse de quelqu'un, c'est agir sur son compte.
       const isSelf = currentUser?.id === params.id;
       if (!isTheOwner(principal) && !isSelf && (await targetIsFirstRank(params.id))) {
-        return status(403, RANK_REFUSAL);
+        return status(403, rankRefusal('invite'));
       }
 
       const delivery = await inviteUser({
@@ -570,7 +588,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
     '/:id/ownership',
     async ({ params, status, currentUser, request, principal }) => {
       if (!isTheOwner(principal)) {
-        return status(403, { message: 'Seul le propriétaire peut transférer la propriété' });
+        return status(403, rankRefusal('transfer_ownership'));
       }
 
       const [target] = await db

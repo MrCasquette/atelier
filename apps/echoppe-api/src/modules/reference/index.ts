@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia';
 import { errorSchema, withAuthErrors } from '../../lib/response';
+import { models } from '../../model';
 import { permissionGuard } from '../auth/rbac';
 import { listReferenceTargets, projectTarget, searchTarget } from './targets';
 
@@ -33,6 +34,7 @@ export const referenceRoutes = new Elysia({
   prefix: '/content/reference-targets',
   detail: { tags: ['Content'] },
 })
+  .use(models)
   .use(permissionGuard('content', 'read'))
 
   // GET /content/reference-targets - Les cibles inscrites, dans l'ordre du sélecteur.

@@ -11,6 +11,7 @@ import { loadRegistry } from '@repo/pages';
 import { Elysia, t } from 'elysia';
 import { getPaginationParams, paginationQuery } from '../../../lib/pagination';
 import { conflictResponse, successSchema, withCrudErrors } from '../../../lib/response';
+import { models } from '../../../model';
 import { entityPermissionGuard } from '../../auth/rbac';
 
 // Administration des OCCURRENCES d'une entité. La structure se pousse par la CLI (`schema`) ; ici
@@ -40,6 +41,7 @@ export const entityAdminRoutes = new Elysia({
   prefix: '/content/entities/:name/rows',
   detail: { tags: ['Content'] },
 })
+  .use(models)
   .use(entityPermissionGuard('read'))
   .get(
     '/',

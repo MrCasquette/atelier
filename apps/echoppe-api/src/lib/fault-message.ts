@@ -58,12 +58,46 @@ const RESOURCES: Record<string, [string, Gender]> = {
 };
 
 /**
+ * Les actes, à l'infinitif.
+ *
+ * Une faute porte l'action comme CODE — `deactivate`, jamais « se désactiver ». C'est ce qui permet
+ * à une surface anglophone d'exister un jour, et c'est ici que le français se décide.
+ */
+const ACTIONS: Record<string, string> = {
+  create: 'créer',
+  read: 'consulter',
+  update: 'modifier',
+  delete: 'supprimer',
+  deactivate: 'désactiver',
+  update_password: 'changer le mot de passe',
+  transfer_ownership: 'transférer la propriété',
+  revoke: 'retirer un droit',
+  invite: 'réémettre une invitation',
+};
+
+/** Les rangs, tels qu'on les nomme à l'utilisateur. */
+const RANKS: Record<string, string> = {
+  owner: 'au propriétaire de l’installation',
+  first_rank: 'au premier rang',
+};
+
+/** Pourquoi un droit ne peut pas être délégué — un code, une phrase. */
+const UNDELEGATABLE: Record<string, string> = {
+  not_held: 'non détenus',
+  rank_bound: 'tiennent au rang, donc non délégables',
+  self_only_widened: 'détenus seulement sur vos propres lignes',
+};
+
+/**
  * Repli obligatoire : l'API livrera un jour une ressource qu'un catalogue déployé plus tôt ne
  * connaît pas. Sans lui, l'utilisateur lirait une clé brute.
  */
 function label(resource: string): [string, Gender] {
   return RESOURCES[resource] ?? [resource.replace(/_/g, ' '), 'm'];
 }
+
+/** Même repli, pour les mêmes raisons : un acte inconnu se lit encore, faute de mieux. */
+const verb = (action: string): string => ACTIONS[action] ?? action.replace(/_/g, ' ');
 
 const capitalize = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
 
@@ -107,9 +141,27 @@ export function faultMessage(fault: Fault): string {
       return `${demonstrative(gender)} ${name} est ${suffix} et ne peut pas être modifié${gender === 'f' ? 'e' : ''}`;
     }
     case 'self_action_forbidden':
-      return `Impossible de ${fault.action} sur votre propre compte`;
-    case 'owner_only':
-      return `Seul le propriétaire peut ${fault.action}`;
+      return `Impossible de ${verb(fault.action)} sur votre propre compte`;
+    case 'self_only':
+      return `Vous ne pouvez ${verb(fault.action)} que sur votre propre compte`;
+    case 'rank_reserved':
+      // « Cet acte », et non « Supprimer » : la garde ne refuse pas l'acte en général — supprimer un
+      // utilisateur ordinaire reste permis — mais CETTE tentative-ci, sur ce sujet-là. Nommer le
+      // verbe seul retournerait le sens.
+      return fault.grants?.length
+        ? `Cet acte — ${verb(fault.action)} — est réservé ${RANKS[fault.requires] ?? fault.requires} : ${fault.grants.join(', ')}`
+        : `Cet acte — ${verb(fault.action)} — est réservé ${RANKS[fault.requires] ?? fault.requires}`;
+    case 'undelegatable_grants': {
+      // Groupé par raison : trois règles distinctes se croisent, et l'utilisateur doit savoir
+      // laquelle corriger. Le domaine, lui, n'a jamais eu à formuler ça.
+      const byReason = new Map<string, string[]>();
+      for (const { grant, reason } of fault.grants) {
+        byReason.set(reason, [...(byReason.get(reason) ?? []), grant]);
+      }
+      return [...byReason]
+        .map(([reason, grants]) => `${grants.join(', ')} : ${UNDELEGATABLE[reason] ?? reason}`)
+        .join(' · ');
+    }
     case 'forbidden_resource': {
       const [name, gender] = label(fault.resource);
       return `Accès non autorisé à ${gender === 'f' ? 'cette' : 'ce'} ${name}`;

@@ -9,6 +9,7 @@ import {
 import { storageOf } from '@repo/references';
 import { Elysia, t } from 'elysia';
 import { withCrudErrors } from '../../../lib/response';
+import { models } from '../../../model';
 import { permissionGuard } from '../../auth/rbac';
 import { syncEntityReferences } from '../../reference/sync';
 import { references } from '../../reference/targets';
@@ -50,6 +51,7 @@ export const entityRoutes = new Elysia({
   prefix: '/content/entities',
   detail: { tags: ['Content'] },
 })
+  .use(models)
   // Journal : quelles entités existent, sous quelle déclaration.
   .use(permissionGuard('schema', 'read'))
   .get('/', () => loadEntities(), {

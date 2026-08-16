@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia';
 import { errorSchema, successSchema, withAuthErrors } from '../../lib/response';
+import { models } from '../../model';
 import { getClientIp, logAudit } from '../audit/service';
 import { permissionGuard } from '../auth/rbac';
 import { folderBody, folderSchema, uuidParam } from './model';
@@ -12,6 +13,7 @@ import { createFolder, deleteFolder, listFolders, updateFolder } from './service
 // `/media/:id`.
 
 export const mediaFolderRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Media'] } })
+  .use(models)
   .use(permissionGuard('media', 'read'))
 
   // GET /media/folders - Liste plate des dossiers, pour reconstruire l'arbre côté client

@@ -1,4 +1,4 @@
-import { type Action, type ProtectedResource, RESOURCES } from '@echoppe/core';
+import { type Action, faults, type ProtectedResource, RESOURCES } from '@echoppe/core';
 import {
   type Authority,
   createPrincipalRegistry,
@@ -15,6 +15,7 @@ import {
   type SessionUser,
 } from '@repo/auth';
 import { Elysia } from 'elysia';
+import { faultBody } from '../../lib/fault';
 import { resolveApiKey } from '../api-key/service';
 import {
   CUSTOMER_COOKIE_NAME,
@@ -281,12 +282,12 @@ export function entityPermissionGuard(action: Action) {
         // Écrire dans une entité est un acte d'administration : le rôle Public peut détenir
         // `canRead` pour servir le front, il ne doit pas pour autant pouvoir écrire.
         if (!principal.privileged) {
-          return status(403, { message: `Permission refusée: ${action} sur entity:${name}` });
+          return status(403, faultBody(faults.permissionDenied(action, `entity:${name}`)));
         }
 
         const result = checkPermission(principal, `entity:${name}`, action);
         if (!result.allowed) {
-          return status(403, { message: `Permission refusée: ${action} sur entity:${name}` });
+          return status(403, faultBody(faults.permissionDenied(action, `entity:${name}`)));
         }
 
         return {
@@ -316,14 +317,18 @@ export function permissionGuard(
           headers.authorization,
         );
 
+        // `privileged` et `!allowed` rendent la MÊME faute, et c'était déjà le cas du message
+        // qu'ils remplacent : pour l'appelant, « tu n'as pas ce droit » dans les deux cas. Le
+        // seuil `privileged` n'est pas un rang — il ne dit pas qui gouverne, mais qui est de
+        // confiance —, donc `rank_reserved` ne lui conviendrait pas.
         if (options?.adminOnly && !principal.privileged) {
-          return status(403, { message: `Permission refusée: ${action} sur ${resource}` });
+          return status(403, faultBody(faults.permissionDenied(action, resource)));
         }
 
         const result = checkPermission(principal, resource, action);
 
         if (!result.allowed) {
-          return status(403, { message: `Permission refusée: ${action} sur ${resource}` });
+          return status(403, faultBody(faults.permissionDenied(action, resource)));
         }
 
         return {

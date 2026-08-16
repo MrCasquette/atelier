@@ -1,4 +1,4 @@
-import { and, db, eq, permission, RESOURCES, role, sql, user } from '@echoppe/core';
+import { and, db, eq, faults, permission, RESOURCES, role, sql, user } from '@echoppe/core';
 import {
   delegatableActions,
   invalidatePermissionCache,
@@ -8,7 +8,9 @@ import {
 } from '@repo/auth';
 import { entityResourceName, loadEntities } from '@repo/entities';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../lib/fault';
 import { errorSchema, successSchema, withAuthErrors } from '../../lib/response';
+import { models } from '../../model';
 import { getClientIp, logAudit } from '../audit/service';
 import { isFirstRank, permissionGuard } from '../auth/rbac';
 
@@ -100,6 +102,7 @@ const resourcesSchema = t.Object({
 });
 
 export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Roles'] } })
+  .use(models)
   // GET /roles/resources — ce qui est protégeable, framework ET entités déclarées, BORNÉ à ce que
   // le demandeur peut en accorder.
   //
@@ -226,7 +229,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
         return status(404, { message: 'Rôle non trouvé' });
       }
       if (existing.isSystem) {
-        return status(403, { message: 'Les rôles système ne peuvent pas être modifiés' });
+        return status(403, faultBody(faults.protectedSubject('role')));
       }
 
       const [updated] = await db
@@ -256,7 +259,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
       body: roleCreateBody,
       response: {
         200: roleSchema,
-        403: errorSchema,
+        403: 'ErrorResponse',
         404: errorSchema,
       },
     },
@@ -272,7 +275,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
         return status(404, { message: 'Rôle non trouvé' });
       }
       if (existing.isSystem) {
-        return status(403, { message: 'Les rôles système ne peuvent pas être supprimés' });
+        return status(403, faultBody(faults.protectedSubject('role')));
       }
 
       // Vérifier qu'aucun utilisateur n'utilise ce rôle
@@ -308,7 +311,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
       response: {
         200: successSchema,
         400: errorSchema,
-        403: errorSchema,
+        403: 'ErrorResponse',
         404: errorSchema,
       },
     },
@@ -342,16 +345,19 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
 
       const ungrantable = undelegatableGrants(principal, submitted);
       if (ungrantable.length > 0) {
-        return status(403, {
-          message: `Droits non détenus, donc non délégables : ${ungrantable.join(', ')}`,
-        });
+        // Chaque droit refusé porte son prédicat : « non détenu » ne se corrige pas comme
+        // « tient au rang ». `@repo/auth` les distinguait déjà, mais rédigeait la seconde raison
+        // en français dans la liste.
+        return status(403, faultBody(faults.undelegatableGrants(ungrantable)));
       }
 
       const revoked = revokedByGrants(unlocked, body.permissions);
       if (revoked.length > 0 && !isFirstRank(principal)) {
-        return status(403, {
-          message: `Retirer un droit est réservé au premier rang : ${revoked.join(', ')}`,
-        });
+        // Un SEUIL, pas une possession : le rang autorise à retirer un droit qu'on ne détient pas
+        // soi-même (ADR-0047). `revoked` voyage quand même, et c'est le seul site où il le fait :
+        // la route REMPLACE l'ensemble des droits, donc ce qui disparaît n'est pas ce que
+        // l'appelant a soumis — il ne peut pas le déduire de sa propre requête.
+        return status(403, faultBody(faults.rankReserved('revoke', 'first_rank', revoked)));
       }
 
       // Supprimer uniquement les permissions NON verrouillées
@@ -395,7 +401,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
       body: permissionsUpdateBody,
       response: {
         200: t.Object({ permissions: t.Array(permissionSchema) }),
-        403: errorSchema,
+        403: 'ErrorResponse',
         404: errorSchema,
       },
     },

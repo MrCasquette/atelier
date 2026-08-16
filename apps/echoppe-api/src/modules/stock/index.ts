@@ -7,6 +7,7 @@ import {
   paginationQuery,
 } from '../../lib/pagination';
 import { withCrudErrors } from '../../lib/response';
+import { models } from '../../model';
 import { permissionGuard } from '../auth/rbac';
 
 const stockMoveCreateBody = t.Object({
@@ -51,6 +52,7 @@ const stockVariantSchema = t.Object({
 const paginatedStockSchema = listResponse(stockMoveSchema);
 
 export const stockRoutes = new Elysia({ prefix: '/stock', detail: { tags: ['Stock'] } })
+  .use(models)
 
   // === STOCK READ ===
   .use(permissionGuard('stock', 'read'))

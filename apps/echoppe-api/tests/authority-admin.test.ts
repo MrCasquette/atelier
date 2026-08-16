@@ -388,7 +388,11 @@ describe('toucher au premier rang est un acte du propriétaire', () => {
     const res = await req('DELETE', `/users/${secondAdminId}`, { cookie: adminCookie });
 
     expect(res.status).toBe(403);
-    expect(((await res.json()) as { message: string }).message).toContain('premier rang');
+    // La FAUTE, pas la phrase : c'est le contrat qui est stable (ADR-0050), le message est du
+    // rendu et peut changer sans que la garde change.
+    expect((await res.json()) as { fault: unknown }).toMatchObject({
+      fault: { code: 'rank_reserved', action: 'delete', requires: 'owner' },
+    });
   });
 
   it('refuse aussi de le DÉSACTIVER — la garde porte sur l’acte, pas sur le verbe', async () => {

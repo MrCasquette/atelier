@@ -103,8 +103,16 @@ describe('exhaustivité du catalogue', () => {
       { code: 'invalid_token' },
       { code: 'permission_denied', action: 'update', resource: 'product' },
       { code: 'protected_subject', resource: 'user' },
-      { code: 'self_action_forbidden', action: 'vous désactiver' },
-      { code: 'owner_only', action: 'transférer la propriété' },
+      { code: 'self_action_forbidden', action: 'deactivate' },
+      { code: 'self_only', action: 'update_password' },
+      { code: 'rank_reserved', action: 'revoke', requires: 'first_rank' },
+      {
+        code: 'undelegatable_grants',
+        grants: [
+          { grant: 'schema', reason: 'rank_bound' },
+          { grant: 'product:update', reason: 'not_held' },
+        ],
+      },
       { code: 'forbidden_resource', resource: 'order' },
       { code: 'configuration_missing', target: 'ENCRYPTION_KEY' },
       { code: 'required_data_missing', field: 'billingAddress' },
@@ -117,6 +125,6 @@ describe('exhaustivité du catalogue', () => {
     for (const fault of samples) {
       expect(faultMessage(fault).length).toBeGreaterThan(0);
     }
-    expect(samples).toHaveLength(19);
+    expect(samples).toHaveLength(21);
   });
 });

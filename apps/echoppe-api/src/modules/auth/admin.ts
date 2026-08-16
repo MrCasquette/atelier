@@ -1,3 +1,4 @@
+import { faults } from '@echoppe/core';
 import {
   authenticateAdmin,
   destroyAdminSession,
@@ -6,13 +7,10 @@ import {
 } from '@repo/auth';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
+import { faultBody } from '../../lib/fault';
 import { authRateLimitOptions, invitationRateLimitOptions } from '../../lib/rate-limit';
-import {
-  forbiddenResponse,
-  rateLimitResponse,
-  successSchema,
-  unauthorizedResponse,
-} from '../../lib/response';
+import { rateLimitResponse, successSchema } from '../../lib/response';
+import { models } from '../../model';
 import { getClientIp, logAudit } from '../audit/service';
 import { consumePasswordToken } from '../user/invitation';
 import { COOKIE_NAME, cookieSchema } from './session';
@@ -92,75 +90,82 @@ const acceptInvitationRoute = new Elysia().use(rateLimit(invitationRateLimitOpti
 );
 
 // Rate-limited login route (separate instance for scoped rate limiting)
-const loginRoute = new Elysia().use(rateLimit(authRateLimitOptions)).post(
-  '/login',
-  async ({ body, cookie, request, status }) => {
-    const ipAddress =
-      request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
-    const userAgent = request.headers.get('user-agent') || 'unknown';
+const loginRoute = new Elysia()
+  .use(models)
+  .use(rateLimit(authRateLimitOptions))
+  .post(
+    '/login',
+    async ({ body, cookie, request, status }) => {
+      const ipAddress =
+        request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+      const userAgent = request.headers.get('user-agent') || 'unknown';
 
-    const result = await authenticateAdmin(body, { ipAddress, userAgent });
+      const result = await authenticateAdmin(body, { ipAddress, userAgent });
 
-    if (result.outcome === 'invalid-credentials') {
-      return status(401, { message: 'Email ou mot de passe incorrect' });
-    }
-    if (result.outcome === 'account-disabled') {
-      return status(403, { message: 'Compte désactivé' });
-    }
+      if (result.outcome === 'invalid-credentials') {
+        return status(401, faultBody(faults.invalidCredentials()));
+      }
+      if (result.outcome === 'account-disabled') {
+        // L'état du compte, pas les identifiants : `invalid_state` dit lequel et lequel il faudrait.
+        // Rendu APRÈS la vérification du mot de passe le jour où le jalon 1 fermera cet oracle —
+        // la faute ne changera pas, seulement le moment où elle sort.
+        return status(403, faultBody(faults.invalidState('user', 'disabled', 'active')));
+      }
 
-    cookie[COOKIE_NAME].set({
-      value: result.token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-      maxAge: SESSION_DURATION_DAYS * 24 * 60 * 60,
-    });
+      cookie[COOKIE_NAME].set({
+        value: result.token,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/',
+        maxAge: SESSION_DURATION_DAYS * 24 * 60 * 60,
+      });
 
-    logAudit({
-      userId: result.user.id,
-      action: 'user.login',
-      entityType: 'user',
-      entityId: result.user.id,
-      ipAddress: ipAddress !== 'unknown' ? ipAddress : undefined,
-    });
+      logAudit({
+        userId: result.user.id,
+        action: 'user.login',
+        entityType: 'user',
+        entityId: result.user.id,
+        ipAddress: ipAddress !== 'unknown' ? ipAddress : undefined,
+      });
 
-    return { user: result.user };
-  },
-  {
-    body: t.Object({
-      email: t.String({ format: 'email' }),
-      password: t.String({ minLength: 1 }),
-    }),
-    cookie: cookieSchema,
-    response: {
-      200: loginResponseSchema,
-      401: unauthorizedResponse,
-      403: forbiddenResponse,
-      429: rateLimitResponse,
+      return { user: result.user };
     },
-  },
-);
+    {
+      body: t.Object({
+        email: t.String({ format: 'email' }),
+        password: t.String({ minLength: 1 }),
+      }),
+      cookie: cookieSchema,
+      response: {
+        200: loginResponseSchema,
+        401: 'ErrorResponse',
+        403: 'ErrorResponse',
+        429: rateLimitResponse,
+      },
+    },
+  );
 
 export const authAdminRoutes = new Elysia({ prefix: '/auth', detail: { tags: ['Auth'] } })
+  .use(models)
 
   // GET /auth/me - NO rate limit
   .get(
     '/me',
     async ({ cookie, status }) => {
       const token = cookie[COOKIE_NAME].value;
-      if (!token) return status(401, { message: 'Non authentifié' });
+      if (!token) return status(401, faultBody(faults.unauthenticated()));
 
       const result = await readAdminSession(token);
 
       // Une session refusée ne doit pas laisser traîner son cookie : le client repart propre.
       if (result.outcome === 'invalid') {
         cookie[COOKIE_NAME].remove();
-        return status(401, { message: 'Session invalide ou expirée' });
+        return status(401, faultBody(faults.invalidToken()));
       }
       if (result.outcome === 'account-disabled') {
         cookie[COOKIE_NAME].remove();
-        return status(403, { message: 'Compte désactivé' });
+        return status(403, faultBody(faults.invalidState('user', 'disabled', 'active')));
       }
 
       return { user: result.user, role: result.role };
@@ -169,8 +174,8 @@ export const authAdminRoutes = new Elysia({ prefix: '/auth', detail: { tags: ['A
       cookie: cookieSchema,
       response: {
         200: meResponseSchema,
-        401: unauthorizedResponse,
-        403: forbiddenResponse,
+        401: 'ErrorResponse',
+        403: 'ErrorResponse',
       },
     },
   )

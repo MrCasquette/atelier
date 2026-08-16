@@ -18,6 +18,7 @@ import {
 import { Elysia, t } from 'elysia';
 import { buildListResponse, listResponse, parseListQuery } from '../../lib/pagination';
 import { successSchema, withCrudErrors } from '../../lib/response';
+import { models } from '../../model';
 import { permissionGuard } from '../auth/rbac';
 
 // Query schemas
@@ -111,6 +112,7 @@ const customerDetailSchema = t.Object({
 });
 
 export const customersRoutes = new Elysia({ prefix: '/customers', detail: { tags: ['Customers'] } })
+  .use(models)
 
   // === CUSTOMER READ ===
   .use(permissionGuard('customer', 'read'))

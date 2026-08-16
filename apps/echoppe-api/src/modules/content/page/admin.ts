@@ -8,6 +8,7 @@ import {
 } from '@repo/pages';
 import { Elysia, t } from 'elysia';
 import { conflictResponse, successSchema, withCrudErrors } from '../../../lib/response';
+import { models } from '../../../model';
 import { permissionGuard } from '../../auth/rbac';
 import { sectionInputSchema } from './model';
 
@@ -65,6 +66,7 @@ const pagePatchBody = t.Object({
 });
 
 export const pageAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: ['Content'] } })
+  .use(models)
   // === READ ===
   .use(permissionGuard('content', 'read'))
 

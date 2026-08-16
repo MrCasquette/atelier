@@ -7,6 +7,7 @@ import {
   customerSession,
   db,
   eq,
+  faults,
   gt,
   inArray,
   isNull,
@@ -18,13 +19,8 @@ import {
   variantOptionValue,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import {
-  badRequestResponse,
-  forbiddenResponse,
-  notFoundResponse,
-  successSchema,
-  unauthorizedResponse,
-} from '../../lib/response';
+import { faultBody } from '../../lib/fault';
+import { badRequestResponse, notFoundResponse, successSchema } from '../../lib/response';
 import { models } from '../../model';
 import {
   calculateAddonPrice,
@@ -417,7 +413,7 @@ export const cartRoutes = new Elysia({
         : cartData.sessionId === cartSessionId;
 
       if (!isOwner) {
-        return status(403, { message: 'Accès non autorisé' });
+        return status(403, faultBody(faults.forbiddenResource('cart')));
       }
 
       // Check stock
@@ -447,7 +443,7 @@ export const cartRoutes = new Elysia({
       response: {
         200: 'Cart',
         400: badRequestResponse,
-        403: forbiddenResponse,
+        403: 'ErrorResponse',
         404: notFoundResponse,
       },
     },
@@ -482,7 +478,7 @@ export const cartRoutes = new Elysia({
         : cartData.sessionId === cartSessionId;
 
       if (!isOwner) {
-        return status(403, { message: 'Accès non autorisé' });
+        return status(403, faultBody(faults.forbiddenResource('cart')));
       }
 
       // Delete item
@@ -499,7 +495,7 @@ export const cartRoutes = new Elysia({
       cookie: cookieSchema,
       response: {
         200: 'Cart',
-        403: forbiddenResponse,
+        403: 'ErrorResponse',
         404: notFoundResponse,
       },
     },
@@ -552,7 +548,7 @@ export const cartRoutes = new Elysia({
       const cartSessionId = cookie[CART_COOKIE_NAME].value;
 
       if (!customerId) {
-        return status(401, { message: 'Non authentifié' });
+        return status(401, faultBody(faults.unauthenticated()));
       }
 
       if (!cartSessionId) {
@@ -636,7 +632,7 @@ export const cartRoutes = new Elysia({
       cookie: cookieSchema,
       response: {
         200: 'CartMerge',
-        401: unauthorizedResponse,
+        401: 'ErrorResponse',
       },
     },
   );

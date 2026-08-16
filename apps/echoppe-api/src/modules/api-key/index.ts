@@ -1,8 +1,10 @@
-import { apiKey, asc, db, eq } from '@echoppe/core';
+import { apiKey, asc, db, eq, faults } from '@echoppe/core';
 import { undelegatableScopes } from '@repo/auth';
 import { listEntityNames } from '@repo/entities';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../lib/fault';
 import { successSchema, withCrudErrors } from '../../lib/response';
+import { models } from '../../model';
 import { permissionGuard } from '../auth/rbac';
 import { type ApiKeyScope, generateApiKey, isValidScopeFor } from './service';
 
@@ -47,6 +49,7 @@ const createBody = t.Object({
 });
 
 export const apiKeyRoutes = new Elysia({ prefix: '/api-keys', detail: { tags: ['API Keys'] } })
+  .use(models)
 
   // === READ ===
   .use(permissionGuard('api_key', 'read'))
@@ -89,9 +92,7 @@ export const apiKeyRoutes = new Elysia({ prefix: '/api-keys', detail: { tags: ['
       // (ADR-0038, amendement). Sans ça, `api_key:create` serait un droit universel déguisé.
       const ungrantable = undelegatableScopes(principal, body.scopes);
       if (ungrantable.length > 0) {
-        return status(403, {
-          message: `Portées que vous ne détenez pas : ${ungrantable.join(', ')}`,
-        });
+        return status(403, faultBody(faults.undelegatableGrants(ungrantable)));
       }
 
       const { plaintext, hash } = generateApiKey();

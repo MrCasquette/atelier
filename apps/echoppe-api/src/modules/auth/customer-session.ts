@@ -1,5 +1,6 @@
-import { and, customer, customerSession, db, eq, gt } from '@echoppe/core';
+import { and, customer, customerSession, db, eq, faults, gt } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../lib/fault';
 
 export const CUSTOMER_COOKIE_NAME = 'echoppe_customer_session';
 
@@ -81,7 +82,7 @@ export const customerAuthPlugin = new Elysia({ name: 'customerAuth' }).macro({
       const session = await getCustomerSessionFromToken(token);
 
       if (!session.isAuthenticated) {
-        return status(401, { message: 'Non authentifié' });
+        return status(401, faultBody(faults.unauthenticated()));
       }
 
       // Verify User-Agent matches (strict check for session hijacking)
@@ -92,7 +93,7 @@ export const customerAuthPlugin = new Elysia({ name: 'customerAuth' }).macro({
           stored: session.storedUserAgent?.substring(0, 50),
           current: currentUserAgent.substring(0, 50),
         });
-        return status(401, { message: 'Session invalide' });
+        return status(401, faultBody(faults.invalidToken()));
       }
 
       // Log IP changes (warning only, don't block - IPs change on mobile)

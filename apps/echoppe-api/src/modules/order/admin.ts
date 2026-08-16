@@ -29,6 +29,7 @@ import {
 import { Elysia, t } from 'elysia';
 import { buildListResponse, listResponse, parseListQuery } from '../../lib/pagination';
 import { successSchema, withCrudErrors } from '../../lib/response';
+import { models } from '../../model';
 import { permissionGuard } from '../auth/rbac';
 import { UPLOAD_DIR } from '../media/storage';
 
@@ -204,6 +205,7 @@ const invoiceCreatedSchema = t.Object({
 });
 
 export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Orders'] } })
+  .use(models)
 
   // === ORDER READ ===
   .use(permissionGuard('order', 'read'))

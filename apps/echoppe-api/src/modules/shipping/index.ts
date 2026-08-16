@@ -17,6 +17,7 @@ import {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { errorSchema, successSchema, withAuthErrors } from '../../lib/response';
+import { models } from '../../model';
 import { permissionGuard } from '../auth/rbac';
 
 const colissimoConfigBody = t.Object({
@@ -157,6 +158,7 @@ const providerMeta: Record<
 };
 
 export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: ['Shipping'] } })
+  .use(models)
 
   // === SHIPPING PROVIDER READ ===
   .use(permissionGuard('shipping_provider', 'read'))

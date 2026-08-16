@@ -1,4 +1,9 @@
-import type { EchoppeErrorResponse, EchoppeFault, EchoppeResource } from '@echoppe/core';
+import type {
+  EchoppeErrorResponse,
+  EchoppeFault,
+  EchoppeRank,
+  EchoppeResource,
+} from '@echoppe/core';
 import { type Static, t } from 'elysia';
 
 // La forme du contrat de faute telle qu'elle SORT SUR LE FIL (ADR-0050).
@@ -92,6 +97,16 @@ const resourceSchema = t.Union(
 );
 
 /**
+ * L'échelle des rangs, en valeurs.
+ *
+ * Deux littéraux seulement, mais la même règle que ci-dessus : écrits à la main, jamais dérivés
+ * d'une liste. Ils énumèrent `EchoppeRank`, et la garde de compilation le vérifie.
+ */
+const rankSchema = t.Union([t.Literal('owner'), t.Literal('first_rank')], {
+  description: 'Rang exigé pour cet acte',
+});
+
+/**
  * Union discriminée sur `code`, plate — la forme d'ADR-0050.
  *
  * `additionalProperties: false` n'est PAS demandé : Elysia valide les réponses, et un membre plus
@@ -129,7 +144,27 @@ export const faultSchema = t.Union(
     }),
     t.Object({ code: t.Literal('protected_subject'), resource: resourceSchema }),
     t.Object({ code: t.Literal('self_action_forbidden'), action: t.String() }),
-    t.Object({ code: t.Literal('owner_only'), action: t.String() }),
+    t.Object({ code: t.Literal('self_only'), action: t.String() }),
+    t.Object({
+      code: t.Literal('rank_reserved'),
+      action: t.String(),
+      requires: rankSchema,
+      // Rempli par la seule révocation en masse, où l'appelant ne voit pas ce qu'il retire.
+      grants: t.Optional(t.Array(t.String())),
+    }),
+    t.Object({
+      code: t.Literal('undelegatable_grants'),
+      grants: t.Array(
+        t.Object({
+          grant: t.String(),
+          reason: t.Union([
+            t.Literal('not_held'),
+            t.Literal('rank_bound'),
+            t.Literal('self_only_widened'),
+          ]),
+        }),
+      ),
+    }),
     t.Object({ code: t.Literal('forbidden_resource'), resource: resourceSchema }),
     t.Object({ code: t.Literal('configuration_missing'), target: t.String() }),
     t.Object({ code: t.Literal('required_data_missing'), field: t.String() }),
@@ -178,6 +213,8 @@ type Expect<T extends true> = T;
 export type ContractGuards = [
   /** Les littéraux couvrent EXACTEMENT le vocabulaire déclaré par les paquets et le commerce. */
   Expect<Equal<Static<typeof resourceSchema>, EchoppeResource>>,
+  /** Et l'échelle de rang, qui grandira le jour où un rang sur mesure arrivera. */
+  Expect<Equal<Static<typeof rankSchema>, EchoppeRank>>,
   /** Le schéma décrit EXACTEMENT la faute qu'Échoppe émet. */
   Expect<Equal<Static<typeof faultSchema>, EchoppeFault>>,
   /** Et l'enveloppe, de même. */

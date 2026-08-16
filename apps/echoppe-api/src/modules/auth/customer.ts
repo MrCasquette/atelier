@@ -1,12 +1,13 @@
+import { faults } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
+import { faultBody } from '../../lib/fault';
 import { authRateLimitOptions, strictRateLimitOptions } from '../../lib/rate-limit';
 import {
   conflictResponse,
   errorSchema,
   rateLimitResponse,
   successSchema,
-  unauthorizedResponse,
 } from '../../lib/response';
 import { models } from '../../model';
 import {
@@ -94,7 +95,7 @@ const loginRoute = new Elysia()
       const result = await authenticateCustomer(body, sessionContext(request));
 
       if (result.outcome === 'invalid-credentials') {
-        return status(401, { message: 'Email ou mot de passe incorrect' });
+        return status(401, faultBody(faults.invalidCredentials()));
       }
 
       cookie[CUSTOMER_COOKIE_NAME].set({ value: result.token, ...SESSION_COOKIE });
@@ -109,7 +110,7 @@ const loginRoute = new Elysia()
       cookie: customerCookieSchema,
       response: {
         200: 'LoginResult',
-        401: unauthorizedResponse,
+        401: 'ErrorResponse',
         429: rateLimitResponse,
       },
     },
@@ -187,13 +188,13 @@ export const customerAuthRoutes = new Elysia({
     '/me',
     async ({ cookie, status }) => {
       const token = cookie[CUSTOMER_COOKIE_NAME].value;
-      if (!token) return status(401, { message: 'Non authentifié' });
+      if (!token) return status(401, faultBody(faults.unauthenticated()));
 
       const found = await readCustomerSession(token);
 
       if (!found) {
         cookie[CUSTOMER_COOKIE_NAME].remove();
-        return status(401, { message: 'Session invalide ou expirée' });
+        return status(401, faultBody(faults.invalidToken()));
       }
 
       return { customer: found };
@@ -202,7 +203,7 @@ export const customerAuthRoutes = new Elysia({
       cookie: customerCookieSchema,
       response: {
         200: 'CustomerAuth',
-        401: unauthorizedResponse,
+        401: 'ErrorResponse',
       },
     },
   )
@@ -212,13 +213,13 @@ export const customerAuthRoutes = new Elysia({
     '/refresh',
     async ({ cookie, request, status }) => {
       const token = cookie[CUSTOMER_COOKIE_NAME].value;
-      if (!token) return status(401, { message: 'Non authentifié' });
+      if (!token) return status(401, faultBody(faults.unauthenticated()));
 
       const newToken = await refreshCustomerSession(token, sessionContext(request));
 
       if (!newToken) {
         cookie[CUSTOMER_COOKIE_NAME].remove();
-        return status(401, { message: 'Session invalide ou expirée' });
+        return status(401, faultBody(faults.invalidToken()));
       }
 
       cookie[CUSTOMER_COOKIE_NAME].set({ value: newToken, ...SESSION_COOKIE });
@@ -229,7 +230,7 @@ export const customerAuthRoutes = new Elysia({
       cookie: customerCookieSchema,
       response: {
         200: successSchema,
-        401: unauthorizedResponse,
+        401: 'ErrorResponse',
       },
     },
   )
@@ -244,7 +245,7 @@ export const customerAuthRoutes = new Elysia({
       const result = await changeCustomerPassword(c.id, body, cookie[CUSTOMER_COOKIE_NAME].value);
 
       return result.outcome === 'wrong-password'
-        ? status(401, { message: 'Mot de passe actuel incorrect' })
+        ? status(401, faultBody(faults.invalidCredentials()))
         : { success: true };
     },
     {
@@ -256,7 +257,7 @@ export const customerAuthRoutes = new Elysia({
       }),
       response: {
         200: successSchema,
-        401: unauthorizedResponse,
+        401: 'ErrorResponse',
       },
     },
   );

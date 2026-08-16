@@ -1,5 +1,7 @@
+import { faults } from '@echoppe/core';
 import { getSessionFromToken } from '@repo/auth';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../lib/fault';
 
 // Ce qui reste du transport : le nom du cookie, son schéma, et la macro qui refuse en 401. La
 // lecture de session vit dans `@repo/auth` (ADR-0044).
@@ -23,7 +25,7 @@ export const authPlugin = new Elysia({ name: 'auth' }).macro({
       const sessionData = await getSessionFromToken(token);
 
       if (!sessionData.isAuthenticated) {
-        return status(401, { message: 'Non authentifié' });
+        return status(401, faultBody(faults.unauthenticated()));
       }
 
       // Verify User-Agent matches (strict check for session hijacking)
@@ -34,7 +36,9 @@ export const authPlugin = new Elysia({ name: 'auth' }).macro({
           stored: sessionData.storedUserAgent?.substring(0, 50),
           current: currentUserAgent.substring(0, 50),
         });
-        return status(401, { message: 'Session invalide' });
+        // Le jeton porté ne vaut plus : l'empreinte du client a changé. Indistinct d'un jeton
+        // expiré pour l'appelant, et c'est délibéré.
+        return status(401, faultBody(faults.invalidToken()));
       }
 
       // Log IP changes (warning only, don't block)

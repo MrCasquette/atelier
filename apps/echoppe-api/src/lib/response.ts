@@ -41,22 +41,6 @@ export const badRequestResponse = t.Object(
   { description: 'Requête invalide - Données manquantes ou incorrectes' },
 );
 
-/** 401 Unauthorized - Non authentifié */
-export const unauthorizedResponse = t.Object(
-  {
-    message: t.String({ description: "Raison du refus d'authentification" }),
-  },
-  { description: 'Non authentifié - Session invalide ou expirée' },
-);
-
-/** 403 Forbidden - Permission refusée */
-export const forbiddenResponse = t.Object(
-  {
-    message: t.String({ description: 'Permission manquante' }),
-  },
-  { description: 'Permission refusée - Droits insuffisants' },
-);
-
 /** 404 Not Found - Ressource non trouvée */
 export const notFoundResponse = t.Object(
   {
@@ -128,9 +112,27 @@ type ResponseMap = Record<number, TSchema | ModelName>;
 // NOTE : les shapes d'erreur HÉRITÉES restent inline — elles sont triviales (`{ message }`), donc
 // la dédup ne rapporterait rien. Les routes migrées sur ADR-0050 utilisent, elles, le modèle nommé
 // (cf. `FAULT_ERRORS` plus bas), parce que leur schéma est gros et partagé.
+//
+// 401 et 403 sont, eux, TOUJOURS contractuels, dans les helpers hérités comme dans les migrés. Ils
+// ne pouvaient pas basculer module par module : le schéma d'un statut est déclaré par ces helpers
+// partagés, donc une route non migrée qui aurait continué de rendre `{ message }` aurait échoué à
+// la validation de réponse dès que le helper aurait annoncé `ErrorResponse`. Les 40 sites ont
+// basculé ensemble, et `unauthorizedResponse`/`forbiddenResponse` ont disparu.
 
 /** Socle d'erreurs universel : validation d'input (422) + erreur serveur (500). */
 const COMMON_ERRORS = { 422: unprocessableResponse, 500: serverErrorResponse };
+
+/**
+ * Les refus d'identité et de droits, contractuels partout (ADR-0050).
+ *
+ * Même remarque que pour `FAULT_ERRORS` plus bas : annotation de type, jamais `as const`. Le
+ * `readonly` qu'ajoute `as const` empêche le littéral de survivre au spread, Elysia cesse d'y voir
+ * un nom de modèle et lit le statut comme du texte.
+ */
+const AUTH_ERRORS: { 401: 'ErrorResponse'; 403: 'ErrorResponse' } = {
+  401: 'ErrorResponse',
+  403: 'ErrorResponse',
+};
 
 /** Routes publiques de lecture (liste/détail sans not-found) : uniquement le socle. */
 export function withReadErrors<const T extends ResponseMap>(responses: T) {
@@ -139,7 +141,7 @@ export function withReadErrors<const T extends ResponseMap>(responses: T) {
 
 /** Routes protégées par auth : 401 + 403 (+ socle). */
 export function withAuthErrors<const T extends ResponseMap>(responses: T) {
-  return { ...responses, ...COMMON_ERRORS, 401: unauthorizedResponse, 403: forbiddenResponse };
+  return { ...responses, ...COMMON_ERRORS, ...AUTH_ERRORS };
 }
 
 /** Routes avec rate limiting : 429 (+ socle). */
@@ -152,8 +154,7 @@ export function withLoginErrors<const T extends ResponseMap>(responses: T) {
   return {
     ...responses,
     ...COMMON_ERRORS,
-    401: unauthorizedResponse,
-    403: forbiddenResponse,
+    ...AUTH_ERRORS,
     429: rateLimitResponse,
   };
 }
@@ -163,8 +164,7 @@ export function withCrudErrors<const T extends ResponseMap>(responses: T) {
   return {
     ...responses,
     ...COMMON_ERRORS,
-    401: unauthorizedResponse,
-    403: forbiddenResponse,
+    ...AUTH_ERRORS,
     404: notFoundResponse,
   };
 }
@@ -188,8 +188,6 @@ export function withServiceErrors<const T extends ResponseMap>(responses: T) {
 // tranche verticale, et une route non migrée qui déclarerait `ErrorResponse` échouerait à la
 // validation de réponse d'Elysia — il lui manquerait `fault`.
 //
-// Les 401/403 restent hérités même sur une route migrée : ils ne sont pas émis par la route mais par
-// le middleware d'authentification, qui suivra dans sa propre tranche.
 //
 // `...responses` passe EN DERNIER, à l'inverse des helpers hérités : une route migrée ajoute ses
 // propres codes (409 sur un conflit) sans que le socle les écrase.
@@ -206,15 +204,9 @@ export function withServiceErrors<const T extends ResponseMap>(responses: T) {
  */
 const FAULT_ERRORS: { 404: 'ErrorResponse' } = { 404: 'ErrorResponse' };
 
-/** Routes CRUD protégées, migrées : 404 contractuel, 401/403 hérités du middleware. */
+/** Routes CRUD protégées, migrées : 401, 403 et 404 contractuels. */
 export function withCrudFaults<const T extends ResponseMap>(responses: T) {
-  return {
-    ...COMMON_ERRORS,
-    401: unauthorizedResponse,
-    403: forbiddenResponse,
-    ...FAULT_ERRORS,
-    ...responses,
-  };
+  return { ...COMMON_ERRORS, ...AUTH_ERRORS, ...FAULT_ERRORS, ...responses };
 }
 
 /** Routes publiques migrées pouvant ne pas trouver la ressource. */
@@ -227,8 +219,7 @@ export function withFullErrors<const T extends ResponseMap>(responses: T) {
   return {
     ...responses,
     ...COMMON_ERRORS,
-    401: unauthorizedResponse,
-    403: forbiddenResponse,
+    ...AUTH_ERRORS,
     404: notFoundResponse,
     429: rateLimitResponse,
   };

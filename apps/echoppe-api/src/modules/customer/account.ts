@@ -1,6 +1,5 @@
 import { customer, db, eq } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { unauthorizedResponse } from '../../lib/response';
 import { models } from '../../model';
 import {
   customerAuthPlugin,
@@ -63,7 +62,7 @@ export const customerAccountRoutes = new Elysia({
       }),
       response: {
         200: 'CustomerAuth',
-        401: unauthorizedResponse,
+        401: 'ErrorResponse',
       },
     },
   );

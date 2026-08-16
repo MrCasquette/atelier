@@ -1,6 +1,7 @@
 import { loadRegistry, registrySchema, syncRegistry } from '@repo/pages';
 import { Elysia } from 'elysia';
 import { successSchema, withCrudErrors } from '../../../lib/response';
+import { models } from '../../../model';
 import { permissionGuard } from '../../auth/rbac';
 import { references } from '../../reference/targets';
 
@@ -9,6 +10,7 @@ import { references } from '../../reference/targets';
 // Protégé par RBAC `content`.
 
 export const definitionRoutes = new Elysia({ prefix: '/content', detail: { tags: ['Content'] } })
+  .use(models)
   // Registre des définitions (pour le générateur de formulaires admin et le type-gen front).
   .use(permissionGuard('content', 'read'))
   .get('/registry', () => loadRegistry(), {

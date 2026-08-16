@@ -1098,8 +1098,22 @@ export interface components {
                 action: string;
             } | {
                 /** @constant */
-                code: "owner_only";
+                code: "self_only";
                 action: string;
+            } | {
+                /** @constant */
+                code: "rank_reserved";
+                action: string;
+                /** @description Rang exigé pour cet acte */
+                requires: "owner" | "first_rank";
+                grants?: string[];
+            } | {
+                /** @constant */
+                code: "undelegatable_grants";
+                grants: {
+                    grant: string;
+                    reason: "not_held" | "rank_bound" | "self_only_widened";
+                }[];
             } | {
                 /** @constant */
                 code: "forbidden_resource";
@@ -3100,16 +3114,13 @@ export interface operations {
                     "application/json": components["schemas"]["Cart"];
                 };
             };
-            /** @description Permission refusée - Droits insuffisants */
+            /** @description Réponse d’erreur (ADR-0050) */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Ressource non trouvée */
@@ -3173,16 +3184,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Permission refusée - Droits insuffisants */
+            /** @description Réponse d’erreur (ADR-0050) */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Ressource non trouvée */
@@ -3220,16 +3228,13 @@ export interface operations {
                     "application/json": components["schemas"]["CartMerge"];
                 };
             };
-            /** @description Non authentifié - Session invalide ou expirée */
+            /** @description Réponse d’erreur (ADR-0050) */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -3629,16 +3634,13 @@ export interface operations {
                     "application/json": components["schemas"]["LoginResult"];
                 };
             };
-            /** @description Non authentifié - Session invalide ou expirée */
+            /** @description Réponse d’erreur (ADR-0050) */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Trop de requêtes - Limite de débit dépassée */
@@ -3709,16 +3711,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Non authentifié - Session invalide ou expirée */
+            /** @description Réponse d’erreur (ADR-0050) */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -3743,16 +3742,13 @@ export interface operations {
                     "application/json": components["schemas"]["CustomerAuth"];
                 };
             };
-            /** @description Non authentifié - Session invalide ou expirée */
+            /** @description Réponse d’erreur (ADR-0050) */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -3798,16 +3794,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Non authentifié - Session invalide ou expirée */
+            /** @description Réponse d’erreur (ADR-0050) */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -3971,16 +3964,13 @@ export interface operations {
                     "application/json": components["schemas"]["CustomerAuth"];
                 };
             };
-            /** @description Non authentifié - Session invalide ou expirée */
+            /** @description Réponse d’erreur (ADR-0050) */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -4292,28 +4282,22 @@ export interface operations {
                     "application/json": components["schemas"]["OrderList"];
                 };
             };
-            /** @description Non authentifié - Session invalide ou expirée */
+            /** @description Réponse d’erreur (ADR-0050) */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission refusée - Droits insuffisants */
+            /** @description Réponse d’erreur (ADR-0050) */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Entité non traitable - Règle métier non respectée */
@@ -4366,28 +4350,22 @@ export interface operations {
                     "application/json": components["schemas"]["Order"];
                 };
             };
-            /** @description Non authentifié - Session invalide ou expirée */
+            /** @description Réponse d’erreur (ADR-0050) */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Raison du refus d'authentification */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Permission refusée - Droits insuffisants */
+            /** @description Réponse d’erreur (ADR-0050) */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Permission manquante */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Ressource non trouvée */
@@ -4751,16 +4729,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Response for status 403 */
+            /** @description Réponse d’erreur (ADR-0050) */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Response for status 404 */

@@ -1,7 +1,9 @@
+import { faults } from '@echoppe/core';
 import type { Action } from '@repo/auth';
 import { entityDeclarationSchema, loadEntities } from '@repo/entities';
 import { Elysia, t } from 'elysia';
-import { forbiddenResponse } from '../../../lib/response';
+import { faultBody } from '../../../lib/fault';
+import { models } from '../../../model';
 import { checkPermission, getPrincipal } from '../../auth/rbac';
 
 // Ce que l'administration a le droit d'éditer — la question de la NAVIGATION, pas celle du journal.
@@ -34,34 +36,38 @@ const grantedEntitySchema = t.Object({
 export const entityMineRoutes = new Elysia({
   prefix: '/content/entities',
   detail: { tags: ['Content'] },
-}).get(
-  '/mine',
-  async ({ cookie, headers, status }) => {
-    const principal = await getPrincipal(
-      cookie as Record<string, { value?: string }>,
-      headers.authorization,
-    );
-
-    // Le rôle Public peut détenir `entity:<nom>` en lecture pour servir le front (ADR-0027) : ce
-    // n'est pas une raison pour lui rendre la déclaration, qui est de l'administration.
-    if (!principal.privileged) {
-      return status(403, { message: 'Permission refusée' });
-    }
-
-    const declarations = Object.values(await loadEntities());
-    const granted = declarations.flatMap((declaration) => {
-      const actions = ACTIONS.filter(
-        (action) => checkPermission(principal, `entity:${declaration.name}`, action).allowed,
+})
+  .use(models)
+  .get(
+    '/mine',
+    async ({ cookie, headers, status }) => {
+      const principal = await getPrincipal(
+        cookie as Record<string, { value?: string }>,
+        headers.authorization,
       );
-      return actions.includes('read') ? [{ ...declaration, actions }] : [];
-    });
 
-    return { entities: granted };
-  },
-  {
-    response: {
-      200: t.Object({ entities: t.Array(grantedEntitySchema) }),
-      403: forbiddenResponse,
+      // Le rôle Public peut détenir `entity:<nom>` en lecture pour servir le front (ADR-0027) : ce
+      // n'est pas une raison pour lui rendre la déclaration, qui est de l'administration.
+      if (!principal.privileged) {
+        // Même faute que les gardes de `rbac.ts` : le seuil `privileged` refuse un droit, il ne
+        // parle pas de rang. La déclaration d'entités est de l'administration (ADR-0027).
+        return status(403, faultBody(faults.permissionDenied('read', 'entity')));
+      }
+
+      const declarations = Object.values(await loadEntities());
+      const granted = declarations.flatMap((declaration) => {
+        const actions = ACTIONS.filter(
+          (action) => checkPermission(principal, `entity:${declaration.name}`, action).allowed,
+        );
+        return actions.includes('read') ? [{ ...declaration, actions }] : [];
+      });
+
+      return { entities: granted };
     },
-  },
-);
+    {
+      response: {
+        200: t.Object({ entities: t.Array(grantedEntitySchema) }),
+        403: 'ErrorResponse',
+      },
+    },
+  );

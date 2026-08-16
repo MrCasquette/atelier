@@ -2527,21 +2527,11 @@
             }
           },
           "403": {
-            "description": "Permission refusée - Droits insuffisants",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Permission refusée - Droits insuffisants",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Permission manquante",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2612,21 +2602,11 @@
             }
           },
           "403": {
-            "description": "Permission refusée - Droits insuffisants",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Permission refusée - Droits insuffisants",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Permission manquante",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2690,21 +2670,11 @@
             }
           },
           "401": {
-            "description": "Non authentifié - Session invalide ou expirée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Non authentifié - Session invalide ou expirée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Raison du refus d'authentification",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -3463,21 +3433,11 @@
             }
           },
           "401": {
-            "description": "Non authentifié - Session invalide ou expirée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Non authentifié - Session invalide ou expirée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Raison du refus d'authentification",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -3583,21 +3543,11 @@
             }
           },
           "401": {
-            "description": "Non authentifié - Session invalide ou expirée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Non authentifié - Session invalide ou expirée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Raison du refus d'authentification",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -3633,21 +3583,11 @@
             }
           },
           "401": {
-            "description": "Non authentifié - Session invalide ou expirée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Non authentifié - Session invalide ou expirée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Raison du refus d'authentification",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -3755,21 +3695,11 @@
             }
           },
           "401": {
-            "description": "Non authentifié - Session invalide ou expirée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Non authentifié - Session invalide ou expirée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Raison du refus d'authentification",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -4134,21 +4064,11 @@
             }
           },
           "401": {
-            "description": "Non authentifié - Session invalide ou expirée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Non authentifié - Session invalide ou expirée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Raison du refus d'authentification",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -4940,41 +4860,21 @@
             }
           },
           "401": {
-            "description": "Non authentifié - Session invalide ou expirée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Non authentifié - Session invalide ou expirée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Raison du refus d'authentification",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
           },
           "403": {
-            "description": "Permission refusée - Droits insuffisants",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Permission refusée - Droits insuffisants",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Permission manquante",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -5063,41 +4963,21 @@
             }
           },
           "401": {
-            "description": "Non authentifié - Session invalide ou expirée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Non authentifié - Session invalide ou expirée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Raison du refus d'authentification",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
           },
           "403": {
-            "description": "Permission refusée - Droits insuffisants",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Permission refusée - Droits insuffisants",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Permission manquante",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -6024,20 +5904,11 @@
             }
           },
           "403": {
-            "description": "Response for status 403",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Description de l'erreur",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -8345,11 +8216,91 @@
                 ],
                 "properties": {
                   "code": {
-                    "const": "owner_only",
+                    "const": "self_only",
                     "type": "string"
                   },
                   "action": {
                     "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "code",
+                  "action",
+                  "requires"
+                ],
+                "properties": {
+                  "code": {
+                    "const": "rank_reserved",
+                    "type": "string"
+                  },
+                  "action": {
+                    "type": "string"
+                  },
+                  "requires": {
+                    "description": "Rang exigé pour cet acte",
+                    "anyOf": [
+                      {
+                        "const": "owner",
+                        "type": "string"
+                      },
+                      {
+                        "const": "first_rank",
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "grants": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "code",
+                  "grants"
+                ],
+                "properties": {
+                  "code": {
+                    "const": "undelegatable_grants",
+                    "type": "string"
+                  },
+                  "grants": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "grant",
+                        "reason"
+                      ],
+                      "properties": {
+                        "grant": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "anyOf": [
+                            {
+                              "const": "not_held",
+                              "type": "string"
+                            },
+                            {
+                              "const": "rank_bound",
+                              "type": "string"
+                            },
+                            {
+                              "const": "self_only_widened",
+                              "type": "string"
+                            }
+                          ]
+                        }
+                      }
+                    }
                   }
                 }
               },

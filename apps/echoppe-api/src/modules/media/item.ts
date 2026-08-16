@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { buildListResponse, getPaginationParams, listResponse } from '../../lib/pagination';
 import { errorSchema, successSchema, withAuthErrors } from '../../lib/response';
+import { models } from '../../model';
 import { getClientIp, logAudit } from '../audit/service';
 import { permissionGuard } from '../auth/rbac';
 import {
@@ -28,6 +29,7 @@ import {
 // passe par `asset.ts` (`/assets/:id`).
 
 export const mediaItemRoutes = new Elysia({ prefix: '/media', detail: { tags: ['Media'] } })
+  .use(models)
   .use(permissionGuard('media', 'read'))
 
   // GET /media - Liste avec recherche, filtre, tri et pagination

@@ -5,6 +5,7 @@ import {
   customer,
   db,
   eq,
+  faults,
   getPaymentAdapter,
   getProviderStatus,
   gte,
@@ -23,8 +24,10 @@ import {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
+import { faultBody } from '../../lib/fault';
 import { webhookRateLimitOptions } from '../../lib/rate-limit';
 import { errorSchema, successSchema } from '../../lib/response';
+import { models } from '../../model';
 import { customerAuthPlugin, type SessionCustomer } from '../auth/customer-session';
 import { permissionGuard } from '../auth/rbac';
 import { validateCheckoutUrls } from '../checkout/url-validation';
@@ -126,6 +129,7 @@ const providerMeta: Record<
 };
 
 export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: ['Payments'] } })
+  .use(models)
 
   // === PAYMENT CONFIG READ ===
   .use(permissionGuard('payment_config', 'read'))
@@ -247,7 +251,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
 
       // SECURITY: Verify order belongs to the authenticated customer
       if (orderData.customer !== customerData.id) {
-        return status(403, { message: 'Accès non autorisé à cette commande' });
+        return status(403, faultBody(faults.forbiddenResource('order')));
       }
 
       // Vérifier qu'il n'y a pas déjà un paiement complété
@@ -321,7 +325,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
       response: {
         200: checkoutSessionSchema,
         400: errorSchema,
-        403: errorSchema,
+        403: 'ErrorResponse',
         404: errorSchema,
       },
     },
