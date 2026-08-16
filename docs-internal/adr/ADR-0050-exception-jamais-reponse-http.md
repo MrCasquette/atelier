@@ -248,8 +248,51 @@ type Fault =
 type ErrorResponse = { fault: Fault; incident?: string };
 ```
 
-`code` est le discriminant. `Resource` est une **union fermée** : le contrat expose son vocabulaire
-et reste exhaustivement typable ; ajouter une valeur est additif.
+`code` est le discriminant.
+
+#### Où le vocabulaire se ferme — et pourquoi pas dans le socle
+
+`Resource` est une **union fermée**, mais **pas ici**. Dans le socle, `Fault.resource` est une
+`string`.
+
+La raison est celle d'[ADR-0032](./ADR-0032-cibles-referencables.md), et l'ignorer referait la même
+faute : `product`, `order`, `variant` sont du vocabulaire de commerce, et `Fault` doit vivre **sous**
+`@repo/pages`, `@repo/entities`, `@repo/menus` et `@repo/communication`, qui émettent tous des
+fautes. Écrire le commerce dans le socle, c'est le faire entrer dans ce que Prisme doit consommer —
+exactement ce qu'ADR-0032 a dû retirer de sept endroits.
+
+**La fermeture se fait par COMPOSITION, jamais par héritage entre produits :**
+
+1. **Chaque paquet partagé déclare les ressources qu'il possède** — `AssetsResource`,
+   `AuthResource`, `PagesResource`… Même règle que `pageReferenceTarget()`, qui vit dans
+   `@repo/pages` « parce que la TABLE vit ici ».
+2. **Chaque produit compose** : `EchoppeResource = SharedResource | CommerceResource`. Prisme
+   composera le même `SharedResource` avec le sien.
+3. **Les constructeurs du produit ferment le vocabulaire** au point d'usage
+   (`echoppe-core/src/constants/fault.ts`). Une faute de frappe y échoue à la compilation — c'est ce
+   que la fermeture achète, sans que le socle connaisse le commerce.
+
+**Aucune flèche entre produits.** Échoppe est conceptuellement Prisme plus le commerce, mais
+`echoppe-core` n'importe rien de `prisme-core` : les deux prennent le même socle. La flèche
+d'[ADR-0025](./ADR-0025-deux-produits-un-repo.md) reste intacte, et Échoppe reste correct sans que
+Prisme existe.
+
+#### Ce vocabulaire est distinct de celui du RBAC
+
+`EchoppeResource` n'est **pas** `ProtectedResource`
+([ADR-0038](./ADR-0038-ressources-ouvertes-delegation.md)), et ce n'est pas un oubli. Le RBAC est
+volontairement **grossier** — sa granularité est celle de la permission : `content` protège les pages
+**et** les menus (9 gardes), `media` protège les dossiers (8 gardes).
+
+Une faute doit distinguer « Page introuvable » de « Menu introuvable » de « Dossier non trouvé ». Les
+fusionner coupleraient la granularité des messages à celle des droits : il faudrait soit grossir tous
+les messages, soit faire exploser la matrice de permissions pour satisfaire des besoins de rédaction.
+
+Deux vocabulaires, donc, parce qu'ils répondent à deux questions : « qu'est-ce que je protège » et
+« de quoi je parle à l'utilisateur ».
+
+Seule exception : `permission_denied.resource` reste une `string` libre, parce que le RBAC porte
+l'espace ouvert `entity:<nom>`, inconnu à la compilation par nature.
 
 #### Pourquoi pas les trois autres formes
 
