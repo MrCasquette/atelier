@@ -80,10 +80,10 @@ async function runCheck(): Promise<never> {
   if (plan.length > 0) {
     console.error('\nCe que « content push » appliquerait :\n');
     for (const step of plan) {
-      console.error(`  ${step.destructive ? '⚠ ' : '· '}${step.summary}`);
+      console.error(`  ${step.destroys ? '⚠ ' : '· '}${step.summary}`);
       console.error(`      ${step.sql.replace(/\n/g, '\n      ')}`);
     }
-    if (plan.some((step) => step.destructive)) {
+    if (plan.some((step) => step.destroys)) {
       console.error('\n  ⚠ Des opérations détruisent des données : « content push --force ».');
     }
     console.error('');

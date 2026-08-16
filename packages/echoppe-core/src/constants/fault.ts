@@ -111,6 +111,17 @@ export const personalizationRejected = (
   reason: 'unknown' | 'required' | 'too_long',
 ): EchoppeFault => ({ code: 'personalization_rejected', field, reason });
 
+/** La forme de l'entité borne ses lignes — aucun champ n'est en collision. */
+export const cardinalityExceeded = (resource: EchoppeResource): EchoppeFault => ({
+  code: 'cardinality_exceeded',
+  resource,
+});
+
+/** `steps` nomme ce qui serait détruit, en codes — la phrase reste au terminal. */
+export const destructivePlan = (
+  steps: { kind: 'recreate_table' | 'drop_column' | 'drop_table'; target: string }[],
+): EchoppeFault => ({ code: 'destructive_plan', steps });
+
 export const configurationMissing = (target: string): EchoppeFault => ({
   code: 'configuration_missing',
   target,

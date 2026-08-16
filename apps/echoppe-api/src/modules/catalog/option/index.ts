@@ -11,7 +11,7 @@ import {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../../lib/fault';
-import { conflictResponse, successSchema, withCrudErrors } from '../../../lib/response';
+import { successSchema, withCrudErrors } from '../../../lib/response';
 import { models } from '../../../model';
 import { permissionGuard } from '../../auth/rbac';
 import { colorMetadataSchema, optionSchema, optionTypeSchema, optionValueSchema } from '../model';
@@ -93,7 +93,7 @@ export const optionsRoutes = new Elysia({ prefix: '/option-axes', detail: { tags
     '/',
     async ({ body, status }) => {
       const [dup] = await db.select().from(option).where(ilike(option.name, body.name));
-      if (dup) return status(409, { message: 'Une option porte déjà ce nom' });
+      if (dup) return status(409, faultBody(faults.alreadyExists('option', 'name')));
 
       const [created] = await db
         .insert(option)
@@ -104,7 +104,7 @@ export const optionsRoutes = new Elysia({ prefix: '/option-axes', detail: { tags
     {
       permission: true,
       body: axisCreateBody,
-      response: withCrudErrors({ 200: 'Option', 409: conflictResponse }),
+      response: withCrudErrors({ 200: 'Option', 409: 'ErrorResponse' }),
     },
   )
 
@@ -235,7 +235,7 @@ export const optionsRoutes = new Elysia({ prefix: '/option-axes', detail: { tags
         .where(eq(variantOptionValue.optionValue, params.valueId))
         .limit(1);
       if (used) {
-        return status(409, { message: 'Valeur utilisée par des variantes — détachez-la d’abord' });
+        return status(409, faultBody(faults.inUse('option_value', 'variant')));
       }
 
       await db.delete(optionValue).where(eq(optionValue.id, params.valueId));
@@ -244,7 +244,7 @@ export const optionsRoutes = new Elysia({ prefix: '/option-axes', detail: { tags
     {
       permission: true,
       params: valueParams,
-      response: withCrudErrors({ 200: successSchema, 409: conflictResponse }),
+      response: withCrudErrors({ 200: successSchema, 409: 'ErrorResponse' }),
     },
   )
 
@@ -263,9 +263,7 @@ export const optionsRoutes = new Elysia({ prefix: '/option-axes', detail: { tags
         .where(eq(optionValue.option, params.optionId))
         .limit(1);
       if (used) {
-        return status(409, {
-          message: 'Des variantes utilisent cette option — détachez-les d’abord',
-        });
+        return status(409, faultBody(faults.inUse('option', 'variant')));
       }
 
       await db.delete(option).where(eq(option.id, params.optionId));
@@ -274,6 +272,6 @@ export const optionsRoutes = new Elysia({ prefix: '/option-axes', detail: { tags
     {
       permission: true,
       params: optionOnlyParams,
-      response: withCrudErrors({ 200: successSchema, 409: conflictResponse }),
+      response: withCrudErrors({ 200: successSchema, 409: 'ErrorResponse' }),
     },
   );

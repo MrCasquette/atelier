@@ -9,7 +9,7 @@ import {
 } from '@repo/pages';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../../lib/fault';
-import { conflictResponse, successSchema, withCrudErrors } from '../../../lib/response';
+import { successSchema, withCrudErrors } from '../../../lib/response';
 import { models } from '../../../model';
 import { permissionGuard } from '../../auth/rbac';
 import { sectionInputSchema } from './model';
@@ -97,14 +97,14 @@ export const pageAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: 
       const result = await createPage(body);
 
       if (result.outcome === 'slug-taken') {
-        return status(409, { message: 'Une page existe déjà avec ce slug' });
+        return status(409, faultBody(faults.alreadyExists('page', 'slug')));
       }
       return result.page;
     },
     {
       permission: true,
       body: pageCreateBody,
-      response: withCrudErrors({ 200: adminPageDetail, 409: conflictResponse }),
+      response: withCrudErrors({ 200: adminPageDetail, 409: 'ErrorResponse' }),
     },
   )
 

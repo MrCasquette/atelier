@@ -75,6 +75,13 @@ const ACTIONS: Record<string, string> = {
   invite: 'réémettre une invitation',
 };
 
+/** Ce qu'une étape destructive ferait, en français. Les `kind` viennent de `@repo/entities`. */
+const DESTRUCTIVE: Record<string, string> = {
+  recreate_table: 'refaire la table de',
+  drop_column: 'supprimer la colonne',
+  drop_table: 'supprimer la table de',
+};
+
 /** Les rangs, tels qu'on les nomme à l'utilisateur. */
 const RANKS: Record<string, string> = {
   owner: 'au propriétaire de l’installation',
@@ -211,6 +218,16 @@ export function faultMessage(fault: Fault): string {
         required: `Champ de personnalisation requis : ${fault.field}`,
         too_long: `Champ de personnalisation trop long : ${fault.field}`,
       }[fault.reason];
+    case 'cardinality_exceeded': {
+      const [name, gender] = label(fault.resource);
+      return `${demonstrative(gender, name)} ${name} n’admet qu’une seule occurrence, et elle existe déjà`;
+    }
+    case 'destructive_plan':
+      // Les `kind` deviennent des phrases ICI. La CLI a son propre `summary`, plus riche, qui ne
+      // traverse jamais HTTP.
+      return `Ce push détruirait des données : ${fault.steps
+        .map((step) => `${DESTRUCTIVE[step.kind] ?? step.kind} « ${step.target} »`)
+        .join(' · ')} — relancez avec confirmation si c’est voulu`;
     case 'configuration_missing':
       return `${fault.target} n’est pas configuré`;
     case 'required_data_missing':

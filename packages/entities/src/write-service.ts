@@ -15,8 +15,11 @@ export type WriteOutcome =
   | { outcome: 'written'; row: EntityRow }
   /** La donnée ne respecte pas la déclaration : dit quels champs, et pourquoi. */
   | { outcome: 'invalid'; errors: string[] }
-  /** Slug déjà pris, ou seconde ligne d'un singleton refusée par la base. */
-  | { outcome: 'conflict'; message: string }
+  /**
+   * La base a refusé l'écriture pour une contrainte d'identité. `reason` dit LAQUELLE — ce que
+   * l'ancien message fusionnait faute de savoir distinguer.
+   */
+  | { outcome: 'conflict'; reason: 'slug_taken' | 'cardinality' }
   | { outcome: 'absent' };
 
 // Les validateurs sont compilés une fois par déclaration. La clé inclut les champs eux-mêmes :
@@ -113,16 +116,26 @@ function postgresCode(error: unknown): string | undefined {
  * derrière un message d'utilisateur. Erreur attendue et erreur exceptionnelle ne se traitent pas
  * pareil (typescript.md §6).
  */
-function asConflict(error: unknown): { outcome: 'conflict'; message: string } {
+function asConflict(
+  error: unknown,
+  declaration: EntityDeclaration,
+): { outcome: 'conflict'; reason: 'slug_taken' | 'cardinality' } {
   const code = postgresCode(error);
   if (!code || !CONFLICT_CODES.has(code)) throw error;
-  return {
-    outcome: 'conflict',
-    message:
-      code === '23505'
-        ? 'Ce slug est déjà pris, ou cette entité est un singleton déjà renseigné.'
-        : 'La cardinalité de cette entité interdit cette écriture.',
-  };
+
+  // Le discriminant est NOTRE déclaration, pas le nom que Postgres a donné à la contrainte.
+  //
+  // `identityColumns` (ddl.ts) rend les deux colonnes MUTUELLEMENT EXCLUSIVES : une entité de liste
+  // porte `slug ... unique` et pas de colonne `singleton` ; un singleton porte
+  // `singleton ... unique check (singleton)` et pas de slug. Un 23505 n'a donc qu'une cause
+  // possible de chaque côté, et le seul CHECK du schéma est celui du singleton.
+  //
+  // Lire `error.constraint` aurait marché aussi, mais nos migrations ne NOMMENT pas ces contraintes
+  // — les noms viennent de la convention de Postgres, donc d'un contrat que nous ne maîtrisons pas.
+  // La cardinalité, elle, est à nous.
+  if (code === '23505' && !declaration.singleton)
+    return { outcome: 'conflict', reason: 'slug_taken' };
+  return { outcome: 'conflict', reason: 'cardinality' };
 }
 
 export async function createEntityRow(
@@ -151,7 +164,7 @@ export async function createEntityRow(
     );
     return { outcome: 'written', row: projectRow(rows[0]) };
   } catch (error) {
-    return asConflict(error);
+    return asConflict(error, declaration);
   }
 }
 
@@ -180,7 +193,7 @@ export async function updateEntityRow(
     );
     return rows[0] ? { outcome: 'written', row: projectRow(rows[0]) } : { outcome: 'absent' };
   } catch (error) {
-    return asConflict(error);
+    return asConflict(error, declaration);
   }
 }
 

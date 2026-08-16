@@ -2,7 +2,7 @@ import { asc, db, eq, faults, menu } from '@echoppe/core';
 import { menuItemsSchema, unknownTargets } from '@repo/menus';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../lib/fault';
-import { conflictResponse, successSchema, withCrudErrors } from '../../lib/response';
+import { successSchema, withCrudErrors } from '../../lib/response';
 import { models } from '../../model';
 import { permissionGuard } from '../auth/rbac';
 import { references } from '../reference/targets';
@@ -83,7 +83,7 @@ export const menuAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: 
         .from(menu)
         .where(eq(menu.handle, body.handle));
       if (existing) {
-        return status(409, { message: 'Un menu existe déjà avec ce handle' });
+        return status(409, faultBody(faults.alreadyExists('menu', 'handle')));
       }
       const [created] = await db
         .insert(menu)
@@ -94,7 +94,7 @@ export const menuAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: 
     {
       permission: true,
       body: menuCreateBody,
-      response: withCrudErrors({ 200: adminMenuDetail, 409: conflictResponse }),
+      response: withCrudErrors({ 200: adminMenuDetail, 409: 'ErrorResponse' }),
     },
   )
 

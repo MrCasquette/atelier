@@ -32,12 +32,33 @@ const registryCheck = TypeCompiler.Compile(entityRegistrySchema);
 // La source d'autorité, ce sont les fichiers du dev. Le DDL n'est pas un acte d'écriture, c'est la
 // conséquence d'une déclaration versionnée en git.
 
-/** Une opération du plan. `destructive` décide à elle seule si `push` peut passer sans aval. */
+/**
+ * Ce qu'une étape destructive détruit. Trois formes, et pas une de plus : elles sont DÉRIVÉES des
+ * trois seuls endroits du planificateur qui posent une étape destructive, pas inventées d'avance.
+ */
+export type DestructiveKind =
+  /** La cardinalité change : la table est refaite, donc vidée. */
+  | 'recreate_table'
+  /** Une colonne disparaît, et les données qu'elle portait avec elle. */
+  | 'drop_column'
+  /** L'entité n'est plus déclarée : sa table part. */
+  | 'drop_table';
+
+/**
+ * Une opération du plan.
+ *
+ * `destroys` remplace l'ancien booléen `destructive`, et c'est la SEULE source de vérité sur le
+ * sujet : sa présence dit qu'on détruit, son contenu dit quoi. Un booléen à côté d'un `kind` aurait
+ * été deux vérités pour une question, avec la dérive que ça promet.
+ *
+ * `summary` reste, mais n'est PAS contractuel : c'est du diagnostic, lu par un développeur dans un
+ * terminal — la seule surface qu'ADR-0050 exempte (§4). Il ne traverse jamais HTTP ; ce qui part sur
+ * le fil, c'est `destroys`.
+ */
 export type PlanStep = {
   sql: string;
-  destructive: boolean;
-  /** Ce que l'opération fait, en clair — c'est ce qu'un dev lit avant de dire oui. */
   summary: string;
+  destroys?: { kind: DestructiveKind; target: string };
 };
 
 export type EntityPlan = {
@@ -143,7 +164,6 @@ function planCreate(declaration: EntityDeclaration, tables: ReferenceTables): Pl
   return [
     {
       sql: createTableSql(declaration.name, declaration.singleton, declaration.fields, tables),
-      destructive: false,
       summary: `Créer la table de « ${declaration.name} »`,
     },
   ];
@@ -233,14 +253,12 @@ async function planForeignKeys(
     if (existing) {
       plan.steps.push({
         sql: `alter table ${table} drop constraint ${existing.constraint};`,
-        destructive: false,
         summary: `Remplacer la contrainte de « ${column} » sur « ${declaration.name} »`,
       });
     }
 
     plan.steps.push({
       sql: `alter table ${table} add ${foreignKeyDdl(key)};`,
-      destructive: false,
       summary: `Contraindre « ${column} » de « ${declaration.name} » à ${key.table} (${key.onDelete})`,
     });
   }
@@ -252,7 +270,6 @@ async function planForeignKeys(
     if (declared.has(column)) continue;
     plan.steps.push({
       sql: `alter table ${table} drop constraint ${existing.constraint};`,
-      destructive: false,
       summary: `Retirer la contrainte de « ${column} » sur « ${declaration.name} » — la déclaration ne la demande plus`,
     });
   }
@@ -284,7 +301,7 @@ async function planAlter(
     plan.steps.push(
       {
         sql: dropTableSql(declaration.name),
-        destructive: true,
+        destroys: { kind: 'recreate_table', target: declaration.name },
         summary: `Refaire la table de « ${declaration.name} » : changement de cardinalité`,
       },
       ...planCreate(declaration, tables),
@@ -299,7 +316,6 @@ async function planAlter(
       added.add(name);
       plan.steps.push({
         sql: addColumnSql(declaration.name, column),
-        destructive: false,
         summary: `Ajouter « ${name} » à « ${declaration.name} »`,
       });
     }
@@ -315,7 +331,7 @@ async function planAlter(
     }
     plan.steps.push({
       sql: dropColumnSql(declaration.name, name),
-      destructive: true,
+      destroys: { kind: 'drop_column', target: `${declaration.name}.${name}` },
       summary: `Supprimer « ${name} » de « ${declaration.name} » — et les données de cette colonne`,
     });
   }
@@ -425,7 +441,7 @@ export async function planEntities(
 
     plan.steps.push({
       sql: dropTableSql(known.name),
-      destructive: true,
+      destroys: { kind: 'drop_table', target: known.name },
       summary: `Supprimer l'entité « ${known.name} » et sa table`,
     });
   }
@@ -459,7 +475,7 @@ export async function pushEntities(
     return { outcome: 'blocked', blockers: plan.blockers };
   }
 
-  const destructive = plan.steps.filter((step) => step.destructive);
+  const destructive = plan.steps.filter((step) => step.destroys !== undefined);
   if (destructive.length > 0 && !confirmDestructive) {
     return { outcome: 'destructive', steps: destructive };
   }

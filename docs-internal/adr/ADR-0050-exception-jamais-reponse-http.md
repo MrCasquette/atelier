@@ -701,3 +701,45 @@ qui voyageait dans un message. La surface a affiché le panier ; elle retrouve l
 `body.quantity` comme quantité demandée. L'écart était invisible tant que le message n'affichait que
 le stock disponible. Exposer l'opérande l'a fait apparaître : `requested` porte désormais
 `newQuantity`, ce que la garde compare réellement.
+
+## Note d'implémentation 2026-08-16 — la tranche 409
+
+Six des neuf réponses retombaient sur `already_exists` et `in_use` sans discussion. Les trois autres
+ont demandé de remonter plus haut que la route.
+
+### Le discriminant d'`asConflict` est notre cardinalité, pas un nom Postgres
+
+`asConflict` (`@repo/entities`) traduisait `23505` en « Ce slug est déjà pris, **ou** cette entité est
+un singleton déjà renseigné » — deux causes fusionnées non par choix mais par **ignorance** : la
+fonction ne lisait pas de quoi les séparer.
+
+La tentation était de lire `error.constraint`. Elle a été écartée après vérification :
+`identityColumns` (`ddl.ts`) écrit `slug varchar(150) not null unique` et
+`singleton boolean not null default true unique check (singleton)` **sans clause `CONSTRAINT`**. Les
+noms viennent donc de la convention de Postgres, pas de nos migrations — un contrat que nous ne
+maîtrisons pas.
+
+Le discriminant retenu est **notre propre invariant** : les deux colonnes sont mutuellement
+exclusives par construction. Une entité de liste porte `slug` et pas de `singleton` ; un singleton
+l'inverse. Un `23505` n'a donc qu'une cause possible de chaque côté, et le seul `CHECK` du schéma est
+celui du singleton. `declaration.singleton` suffit, et il est déjà sous la main.
+
+D'où `cardinality_exceeded`, distinct d'`already_exists` : ici aucun champ ne collisionne, c'est la
+**forme** de l'entité qui borne ses lignes.
+
+### `destructive_plan` — et une source de vérité, pas deux
+
+`PlanStep` portait `destructive: boolean` et un `summary` rédigé. Ajouter un `kind` à côté du booléen
+aurait fait deux vérités pour une question. Le booléen est donc **remplacé** par
+`destroys?: { kind, target }` : sa présence dit qu'on détruit, son contenu dit quoi.
+
+Les trois `kind` sont **dérivés** des trois seuls endroits du planificateur qui posent une étape
+destructive — `recreate_table`, `drop_column`, `drop_table` —, pas inventés d'avance. Il n'y a pas de
+quatrième cas à couvrir.
+
+`summary` reste, mais explicitement **non contractuel** : c'est du diagnostic de terminal, lu par un
+développeur via la CLI — la seule surface que cet ADR exempte (§4). Il ne traverse plus HTTP.
+
+Le changement traverse trois paquets — `@repo/entities` le produit, `@repo/content` le consomme dans
+sa CLI, l'API le publie dans `planSchema`. C'est le prix d'avoir eu deux représentations parallèles
+du même plan.

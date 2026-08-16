@@ -24,11 +24,16 @@ export interface PushResult {
   message?: string;
 }
 
-/** Une opération que le push appliquerait aux tables d'entités. */
+/**
+ * Une opération que le push appliquerait aux tables d'entités.
+ *
+ * Miroir de `PlanStep` de `@repo/entities`, tel qu'il sort de `/content/entities/check`.
+ * `destroys` remplace l'ancien booléen : sa présence dit qu'on détruit, son contenu dit quoi.
+ */
 export interface PlanStep {
   sql: string;
-  destructive: boolean;
   summary: string;
+  destroys?: { kind: 'recreate_table' | 'drop_column' | 'drop_table'; target: string };
 }
 
 // Résultat de `checkRegistry`. `ok` = les appels ont abouti ; `synced` = rien à pousser, ni

@@ -3,7 +3,7 @@ import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
 import { faultBody } from '../../lib/fault';
 import { authRateLimitOptions, strictRateLimitOptions } from '../../lib/rate-limit';
-import { conflictResponse, rateLimitResponse, successSchema } from '../../lib/response';
+import { rateLimitResponse, successSchema } from '../../lib/response';
 import { models } from '../../model';
 import {
   authenticateCustomer,
@@ -55,7 +55,7 @@ const registerRoute = new Elysia()
       const result = await registerCustomer(body, sessionContext(request));
 
       if (result.outcome === 'email-taken') {
-        return status(409, { message: 'Un compte existe déjà avec cet email' });
+        return status(409, faultBody(faults.alreadyExists('customer', 'email')));
       }
 
       cookie[CUSTOMER_COOKIE_NAME].set({ value: result.token, ...SESSION_COOKIE });
@@ -74,7 +74,7 @@ const registerRoute = new Elysia()
       cookie: customerCookieSchema,
       response: {
         200: 'CustomerAuth',
-        409: conflictResponse,
+        409: 'ErrorResponse',
         429: rateLimitResponse,
       },
     },

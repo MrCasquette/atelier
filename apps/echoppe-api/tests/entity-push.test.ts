@@ -19,7 +19,9 @@ let editorCookie: string;
 /** Forme d'écriture des fixtures : lisible. La déclaration poussée, elle, est une séquence. */
 type Fields = Record<string, Record<string, unknown>>;
 type Declaration = { name: string; singleton: boolean; fields: unknown[]; label?: string };
-type Plan = { steps: Array<{ sql: string; destructive: boolean; summary: string }> };
+type Plan = {
+  steps: Array<{ sql: string; summary: string; destroys?: { kind: string; target: string } }>;
+};
 
 // Le champ PORTE son nom depuis ADR-0049 — la conversion tient ici pour que les cas de test
 // restent lisibles, et parce que l'ordre déclaré n'a pas d'importance dans ce fichier-ci.
@@ -148,7 +150,7 @@ describe('pousser une entité dérive sa table', () => {
     ]);
     const plan = (await planned.json()) as Plan;
     expect(plan.steps).toHaveLength(1);
-    expect(plan.steps[0].destructive).toBe(false);
+    expect(plan.steps[0].destroys).toBeUndefined();
     expect(plan.steps[0].sql).toContain('add column chapo');
 
     const res = await push([
@@ -174,8 +176,12 @@ describe('pousser une entité dérive sa table', () => {
     ]);
 
     expect(res.status).toBe(409);
-    const body = (await res.json()) as { message: string };
-    expect(body.message).toContain('chapo');
+    // La faute nomme ce qui serait détruit — en CODES, plus dans une phrase (ADR-0050).
+    const body = (await res.json()) as {
+      fault: { code: string; steps: Array<{ kind: string; target: string }> };
+    };
+    expect(body.fault.code).toBe('destructive_plan');
+    expect(body.fault.steps).toContainEqual({ kind: 'drop_column', target: 'article.chapo' });
     expect(await columnsOf('entity_article')).toContain('chapo');
   });
 

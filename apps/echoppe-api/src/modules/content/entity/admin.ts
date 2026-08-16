@@ -12,7 +12,7 @@ import { loadRegistry } from '@repo/pages';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../../lib/fault';
 import { getPaginationParams, paginationQuery } from '../../../lib/pagination';
-import { conflictResponse, successSchema, withCrudErrors } from '../../../lib/response';
+import { successSchema, withCrudErrors } from '../../../lib/response';
 import { models } from '../../../model';
 import { entityPermissionGuard } from '../../auth/rbac';
 
@@ -86,7 +86,15 @@ export const entityAdminRoutes = new Elysia({
       if (written.outcome === 'invalid') {
         return status(422, { message: written.errors.join(' · ') });
       }
-      if (written.outcome === 'conflict') return status(409, { message: written.message });
+      if (written.outcome === 'conflict')
+        return status(
+          409,
+          faultBody(
+            written.reason === 'slug_taken'
+              ? faults.alreadyExists('entity_row', 'slug')
+              : faults.cardinalityExceeded('entity'),
+          ),
+        );
       if (written.outcome === 'absent') return status(404, notDeclared);
 
       return written.row;
@@ -95,7 +103,7 @@ export const entityAdminRoutes = new Elysia({
       entityPermission: true,
       params: nameParam,
       body: rowBody,
-      response: withCrudErrors({ 200: rowSchema, 409: conflictResponse }),
+      response: withCrudErrors({ 200: rowSchema, 409: 'ErrorResponse' }),
     },
   )
 
@@ -114,7 +122,15 @@ export const entityAdminRoutes = new Elysia({
       if (written.outcome === 'invalid') {
         return status(422, { message: written.errors.join(' · ') });
       }
-      if (written.outcome === 'conflict') return status(409, { message: written.message });
+      if (written.outcome === 'conflict')
+        return status(
+          409,
+          faultBody(
+            written.reason === 'slug_taken'
+              ? faults.alreadyExists('entity_row', 'slug')
+              : faults.cardinalityExceeded('entity'),
+          ),
+        );
       if (written.outcome === 'absent')
         return status(404, faultBody(faults.notFound('entity_row')));
 
@@ -124,7 +140,7 @@ export const entityAdminRoutes = new Elysia({
       entityPermission: true,
       params: rowParam,
       body: rowBody,
-      response: withCrudErrors({ 200: rowSchema, 409: conflictResponse }),
+      response: withCrudErrors({ 200: rowSchema, 409: 'ErrorResponse' }),
     },
   )
 

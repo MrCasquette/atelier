@@ -1,4 +1,4 @@
-import { getTableName, media } from '@echoppe/core';
+import { faults, getTableName, media } from '@echoppe/core';
 import {
   entityRegistrySchema,
   loadEntities,
@@ -8,6 +8,7 @@ import {
 } from '@repo/entities';
 import { storageOf } from '@repo/references';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../../lib/fault';
 import { withCrudErrors } from '../../../lib/response';
 import { models } from '../../../model';
 import { permissionGuard } from '../../auth/rbac';
@@ -36,12 +37,24 @@ const referenceTables = (): ReferenceTables => ({
   targets: storageOf(references),
 });
 
+// `destroys` remplace le booléen `destructive` : sa présence dit qu'on détruit, son contenu dit
+// quoi. Une seule source de vérité, ici comme dans `@repo/entities`. `summary` reste — c'est du
+// diagnostic pour la CLI, qui l'affiche dans un terminal (ADR-0050 §4).
 const planSchema = t.Object({
   steps: t.Array(
     t.Object({
       sql: t.String(),
-      destructive: t.Boolean(),
       summary: t.String(),
+      destroys: t.Optional(
+        t.Object({
+          kind: t.Union([
+            t.Literal('recreate_table'),
+            t.Literal('drop_column'),
+            t.Literal('drop_table'),
+          ]),
+          target: t.String(),
+        }),
+      ),
     }),
   ),
   blockers: t.Array(t.String()),
@@ -85,11 +98,16 @@ export const entityRoutes = new Elysia({
       // Jamais de destruction implicite (ADR-0027) : un plan qui détruit est REFUSÉ, et il nomme
       // ce qu'il aurait détruit. Le dev relance avec `confirmDestructive` s'il le veut vraiment.
       if (result.outcome === 'destructive') {
-        return status(409, {
-          message: `Ce push détruirait des données : ${result.steps
-            .map((step) => step.summary)
-            .join(' · ')}. Relancez avec confirmation si c'est voulu.`,
-        });
+        // `destroys` est la donnée canonique, `summary` reste au terminal (ADR-0050 §4) : ce qui
+        // part sur le fil, ce sont des codes, pas la phrase que la CLI affiche.
+        return status(
+          409,
+          faultBody(
+            faults.destructivePlan(
+              result.steps.map((step) => step.destroys).filter((d) => d !== undefined),
+            ),
+          ),
+        );
       }
       // La déclaration vient de changer : le registre de cibles en est le miroir, il se réaligne
       // ici. Même événement que celui qui fait naître la ressource RBAC d'une entité (ADR-0038) —
@@ -106,7 +124,7 @@ export const entityRoutes = new Elysia({
       }),
       response: withCrudErrors({
         200: t.Object({ applied: t.Array(t.String()) }),
-        409: t.Object({ message: t.String() }),
+        409: 'ErrorResponse',
       }),
     },
   );

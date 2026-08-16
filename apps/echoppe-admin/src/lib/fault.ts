@@ -175,6 +175,10 @@ export function faultText(fault: Fault): string | null {
         required: `Ce champ de personnalisation est requis : ${fault.field}`,
         too_long: `Ce champ de personnalisation est trop long : ${fault.field}`,
       }[fault.reason];
+    case 'cardinality_exceeded': {
+      const [name, gender] = label(fault.resource);
+      return `${demonstrative(gender, name)} ${name} n’admet qu’une seule occurrence, et elle existe déjà`;
+    }
     case 'unauthenticated':
       return 'Votre session a expiré — reconnectez-vous';
     case 'invalid_credentials':

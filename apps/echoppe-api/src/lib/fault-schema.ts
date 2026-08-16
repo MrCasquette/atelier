@@ -173,6 +173,20 @@ export const faultSchema = t.Union(
       field: t.String(),
       reason: t.Union([t.Literal('unknown'), t.Literal('required'), t.Literal('too_long')]),
     }),
+    t.Object({ code: t.Literal('cardinality_exceeded'), resource: resourceSchema }),
+    t.Object({
+      code: t.Literal('destructive_plan'),
+      steps: t.Array(
+        t.Object({
+          kind: t.Union([
+            t.Literal('recreate_table'),
+            t.Literal('drop_column'),
+            t.Literal('drop_table'),
+          ]),
+          target: t.String(),
+        }),
+      ),
+    }),
     t.Object({ code: t.Literal('configuration_missing'), target: t.String() }),
     t.Object({ code: t.Literal('required_data_missing'), field: t.String() }),
     t.Object({ code: t.Literal('validation_failed'), details: t.Array(t.String()) }),

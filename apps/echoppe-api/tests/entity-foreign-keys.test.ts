@@ -138,7 +138,7 @@ describe('une table déjà poussée se met à niveau', () => {
       body: { entities: { dossier, archive: ancienne } },
     });
     const plan = (await planned.json()) as {
-      steps: Array<{ sql: string; destructive: boolean }>;
+      steps: Array<{ sql: string; destroys?: { kind: string; target: string } }>;
       blockers: string[];
     };
 
@@ -146,7 +146,7 @@ describe('une table déjà poussée se met à niveau', () => {
     const step = plan.steps.find((s) => s.sql.includes('entity_archive'));
     expect(step?.sql).toContain('add foreign key (visuel) references media(id)');
     // Poser une garantie ne détruit rien : ça passe sans confirmation.
-    expect(step?.destructive).toBe(false);
+    expect(step?.destroys).toBeUndefined();
   });
 
   it('applique la contrainte, qui protège ensuite pour de bon', async () => {

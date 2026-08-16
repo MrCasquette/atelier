@@ -3142,21 +3142,11 @@
             }
           },
           "409": {
-            "description": "Conflit - La ressource existe déjà ou est en conflit",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Conflit - La ressource existe déjà ou est en conflit",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail du conflit",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -8277,6 +8267,232 @@
                         "type": "string"
                       }
                     ]
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "code",
+                  "resource"
+                ],
+                "properties": {
+                  "code": {
+                    "const": "cardinality_exceeded",
+                    "type": "string"
+                  },
+                  "resource": {
+                    "description": "Ressource concernée par la faute",
+                    "anyOf": [
+                      {
+                        "const": "media",
+                        "type": "string"
+                      },
+                      {
+                        "const": "folder",
+                        "type": "string"
+                      },
+                      {
+                        "const": "file",
+                        "type": "string"
+                      },
+                      {
+                        "const": "user",
+                        "type": "string"
+                      },
+                      {
+                        "const": "role",
+                        "type": "string"
+                      },
+                      {
+                        "const": "permission",
+                        "type": "string"
+                      },
+                      {
+                        "const": "api_key",
+                        "type": "string"
+                      },
+                      {
+                        "const": "session",
+                        "type": "string"
+                      },
+                      {
+                        "const": "email_template",
+                        "type": "string"
+                      },
+                      {
+                        "const": "communication_provider",
+                        "type": "string"
+                      },
+                      {
+                        "const": "entity",
+                        "type": "string"
+                      },
+                      {
+                        "const": "entity_row",
+                        "type": "string"
+                      },
+                      {
+                        "const": "site",
+                        "type": "string"
+                      },
+                      {
+                        "const": "legal_entity",
+                        "type": "string"
+                      },
+                      {
+                        "const": "country",
+                        "type": "string"
+                      },
+                      {
+                        "const": "menu",
+                        "type": "string"
+                      },
+                      {
+                        "const": "page",
+                        "type": "string"
+                      },
+                      {
+                        "const": "section",
+                        "type": "string"
+                      },
+                      {
+                        "const": "definition",
+                        "type": "string"
+                      },
+                      {
+                        "const": "reference_target",
+                        "type": "string"
+                      },
+                      {
+                        "const": "product",
+                        "type": "string"
+                      },
+                      {
+                        "const": "product_media",
+                        "type": "string"
+                      },
+                      {
+                        "const": "product_option",
+                        "type": "string"
+                      },
+                      {
+                        "const": "category",
+                        "type": "string"
+                      },
+                      {
+                        "const": "collection",
+                        "type": "string"
+                      },
+                      {
+                        "const": "variant",
+                        "type": "string"
+                      },
+                      {
+                        "const": "option",
+                        "type": "string"
+                      },
+                      {
+                        "const": "option_value",
+                        "type": "string"
+                      },
+                      {
+                        "const": "personalization_field",
+                        "type": "string"
+                      },
+                      {
+                        "const": "tax_rate",
+                        "type": "string"
+                      },
+                      {
+                        "const": "order",
+                        "type": "string"
+                      },
+                      {
+                        "const": "invoice",
+                        "type": "string"
+                      },
+                      {
+                        "const": "cart",
+                        "type": "string"
+                      },
+                      {
+                        "const": "cart_item",
+                        "type": "string"
+                      },
+                      {
+                        "const": "wishlist",
+                        "type": "string"
+                      },
+                      {
+                        "const": "customer",
+                        "type": "string"
+                      },
+                      {
+                        "const": "address",
+                        "type": "string"
+                      },
+                      {
+                        "const": "payment",
+                        "type": "string"
+                      },
+                      {
+                        "const": "payment_provider",
+                        "type": "string"
+                      },
+                      {
+                        "const": "shipping_provider",
+                        "type": "string"
+                      },
+                      {
+                        "const": "stock",
+                        "type": "string"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "code",
+                  "steps"
+                ],
+                "properties": {
+                  "code": {
+                    "const": "destructive_plan",
+                    "type": "string"
+                  },
+                  "steps": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "kind",
+                        "target"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "anyOf": [
+                            {
+                              "const": "recreate_table",
+                              "type": "string"
+                            },
+                            {
+                              "const": "drop_column",
+                              "type": "string"
+                            },
+                            {
+                              "const": "drop_table",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "target": {
+                          "type": "string"
+                        }
+                      }
+                    }
                   }
                 }
               },

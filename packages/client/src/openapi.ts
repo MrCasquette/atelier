@@ -1131,6 +1131,18 @@ export interface components {
                 reason: "unknown" | "required" | "too_long";
             } | {
                 /** @constant */
+                code: "cardinality_exceeded";
+                /** @description Ressource concernée par la faute */
+                resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
+            } | {
+                /** @constant */
+                code: "destructive_plan";
+                steps: {
+                    kind: "recreate_table" | "drop_column" | "drop_table";
+                    target: string;
+                }[];
+            } | {
+                /** @constant */
                 code: "configuration_missing";
                 target: string;
             } | {
@@ -3532,16 +3544,13 @@ export interface operations {
                     "application/json": components["schemas"]["CustomerAuth"];
                 };
             };
-            /** @description Conflit - La ressource existe déjà ou est en conflit */
+            /** @description Réponse d’erreur (ADR-0050) */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail du conflit */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Trop de requêtes - Limite de débit dépassée */

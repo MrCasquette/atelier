@@ -115,8 +115,15 @@ Détail : [ADR-0005](../adr/ADR-0005-panier-stock.md).
   - [ ] **Le chemin n°1 du tableau des violations d'ADR-0050 est toujours ouvert** :
     `packages/pages/src/definition-service.ts:164` promeut `error.message` en
     `{ outcome: 'incoherent' }` → 422 → toast. Relève du chantier des 422.
-  - [ ] Les 9 × 409 et 9 × 422, familles déjà nommées (`already_exists`, `in_use`,
-    `validation_failed`, `unknown_scopes`).
+  - [x] **Les 9 réponses 409.** Six retombaient sans discussion sur `already_exists` et `in_use` ;
+    trois cachaient autre chose. `asConflict` (`@repo/entities`) fusionnait deux causes de `23505`
+    faute de les distinguer — le discriminant est la CARDINALITÉ DÉCLARÉE, pas le nom de contrainte
+    généré par Postgres, puisque `slug` et `singleton` sont des colonnes mutuellement exclusives.
+    D'où `cardinality_exceeded`. Et le push destructif reçoit `destructive_plan`, dont les `kind`
+    sont dérivés des trois seuls sites destructifs du planificateur.
+  - [ ] Les 9 × 422 — analyse séparée : `validation_failed.details` transporte des chaînes TypeBox
+    anglaises, et `definition-service.ts:164` promeut encore un message d'exception (chemin n°1 du
+    tableau des violations d'ADR-0050).
   - [ ] Les 3 × 503/500 des services externes.
   - [ ] Chantier SÉPARÉ, jamais mêlé aux corps : les statuts HTTP discutables (de la validation
     métier rendue en 400 plutôt qu'en 422).

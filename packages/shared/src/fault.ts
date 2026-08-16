@@ -132,6 +132,25 @@ export type Fault<R extends string = string, K extends string = string> =
       field: string;
       reason: 'unknown' | 'required' | 'too_long';
     }
+  /**
+   * La cardinalité déclarée d'une entité interdit cette écriture : un singleton a déjà sa ligne.
+   *
+   * Distinct d'`already_exists`, qui nomme un CHAMP en collision. Ici rien ne collisionne : c'est la
+   * forme de l'entité qui borne le nombre de lignes, et aucun champ n'y est pour quelque chose.
+   */
+  | { code: 'cardinality_exceeded'; resource: R }
+  /**
+   * Un push de schéma détruirait des données, et il est refusé tant qu'on ne le confirme pas
+   * (ADR-0027). `steps` nomme ce qui aurait été détruit — sans quoi le développeur ne peut pas
+   * décider s'il relance.
+   *
+   * `kind` et `target`, jamais la phrase que la CLI affiche : celle-ci reste dans `@repo/entities`
+   * comme diagnostic de terminal, la seule surface que cet ADR exempte.
+   */
+  | {
+      code: 'destructive_plan';
+      steps: { kind: 'recreate_table' | 'drop_column' | 'drop_table'; target: string }[];
+    }
   /** Une configuration manque : clé d'environnement, provider non branché. */
   | { code: 'configuration_missing'; target: string }
   /** Un champ requis manque — typiquement une exigence CONDITIONNELLE que le schéma ne porte pas. */

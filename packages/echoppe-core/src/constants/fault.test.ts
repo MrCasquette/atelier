@@ -42,6 +42,8 @@ const SAMPLES: Record<FaultCode, EchoppeFault> = {
   forbidden_resource: faults.forbiddenResource('address'),
   redirect_url_rejected: faults.redirectUrlRejected('successUrl'),
   personalization_rejected: faults.personalizationRejected('gravure', 'too_long'),
+  cardinality_exceeded: faults.cardinalityExceeded('entity'),
+  destructive_plan: faults.destructivePlan([{ kind: 'drop_column', target: 'article.prix' }]),
   configuration_missing: faults.configurationMissing('STRIPE_SECRET_KEY'),
   required_data_missing: faults.requiredDataMissing('shippingAddress'),
   validation_failed: faults.validationFailed(['name est requis']),
