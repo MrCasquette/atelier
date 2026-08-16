@@ -1,6 +1,7 @@
-import { getAvailablePaymentProviders, getPaymentAdapter } from '@echoppe/core';
+import { faults, getAvailablePaymentProviders, getPaymentAdapter } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
+import { faultMessage } from '../../lib/fault-message';
 import { checkoutRateLimitOptions } from '../../lib/rate-limit';
 import { errorSchema, withReadErrors } from '../../lib/response';
 import { models } from '../../model';
@@ -16,7 +17,7 @@ import {
   rollbackOrder,
   validateStock,
 } from './service';
-import { validateCheckoutUrls } from './url-validation';
+import { rejectedRedirectField } from './url-validation';
 
 // ============================================================================
 // SCHEMAS
@@ -79,8 +80,13 @@ export const checkoutRoutes = new Elysia({
       const customer = currentCustomer as SessionCustomer;
 
       // 1. Validate URLs
-      const urlError = validateCheckoutUrls(body.successUrl, body.cancelUrl);
-      if (urlError) return status(400, { message: urlError });
+      // Cette route ne bascule PAS sur le contrat : elle porte encore `checkout:146`, qui promeut
+      // une exception d'adapter, et une route n'a qu'un schéma par statut. Le corps garde donc sa
+      // forme héritée — mais son texte vient désormais du catalogue, seule source de phrases.
+      const rejectedUrl = rejectedRedirectField(body.successUrl, body.cancelUrl);
+      if (rejectedUrl) {
+        return status(400, { message: faultMessage(faults.redirectUrlRejected(rejectedUrl)) });
+      }
 
       // 2. Get cart
       const cartData = await getActiveCart(customer.id);

@@ -52,8 +52,20 @@ export async function getPersonalizationFieldsByProduct(
   return byProduct;
 }
 
+/**
+ * Pourquoi une valeur de personnalisation est refusée.
+ *
+ * Trois prédicats distincts, qui étaient aplatis dans une phrase française interpolant `field.label`
+ * — donc du texte administré par le marchand, dans un opérande. Le libellé ne voyage plus : la
+ * surface a la déclaration et le retrouve depuis l'identifiant (ADR-0050).
+ */
+export type PersonalizationRefusal = {
+  field: string;
+  reason: 'unknown' | 'required' | 'too_long';
+};
+
 export interface ResolvedPersonalization {
-  error?: string; // erreur métier (validation) → 400 à la frontière
+  error?: PersonalizationRefusal; // erreur métier (validation) → 400 à la frontière
   value: Record<string, string> | null; // { <fieldId>: valeur } normalisé, null si aucune
   addonPriceHt: number; // supplément total (somme des champs remplis)
 }
@@ -67,7 +79,7 @@ export function resolvePersonalization(
   const fieldIds = new Set(fields.map((f) => f.id));
   for (const key of Object.keys(provided)) {
     if (!fieldIds.has(key)) {
-      return { error: 'Champ de personnalisation inconnu', value: null, addonPriceHt: 0 };
+      return { error: { field: key, reason: 'unknown' }, value: null, addonPriceHt: 0 };
     }
   }
 
@@ -78,16 +90,12 @@ export function resolvePersonalization(
     const val = typeof raw === 'string' ? raw.trim() : '';
     if (!val) {
       if (field.required) {
-        return { error: `Le champ « ${field.label} » est requis`, value: null, addonPriceHt: 0 };
+        return { error: { field: field.id, reason: 'required' }, value: null, addonPriceHt: 0 };
       }
       continue;
     }
     if (field.maxLength !== null && val.length > field.maxLength) {
-      return {
-        error: `Le champ « ${field.label} » dépasse ${field.maxLength} caractères`,
-        value: null,
-        addonPriceHt: 0,
-      };
+      return { error: { field: field.id, reason: 'too_long' }, value: null, addonPriceHt: 0 };
     }
     result[field.id] = val;
     addonPriceHt += parseFloat(field.priceHt);

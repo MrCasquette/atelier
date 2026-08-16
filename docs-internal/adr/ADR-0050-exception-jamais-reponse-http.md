@@ -586,3 +586,48 @@ Le premier `invalid_state` servi aurait affiché : « Action impossible : **ce**
 C'est la démonstration de ce que le contrat achète : ces deux corrections se font **à un endroit**,
 et profitent à tous les codes qui nomment une ressource ou un état. Avec des phrases écrites dans
 les routes, il aurait fallu les chercher dans 44 fichiers.
+
+## Note d'implémentation 2026-08-16 — les cas ouverts du 400
+
+Trois gardes restaient à trancher. Chacune a été vérifiée contre le reste du dépôt avant qu'un code
+ne soit créé : **un code général réservé à un seul domaine est moins honnête qu'un code spécifique.**
+
+### `redirect_url_rejected` — la fusion est la décision
+
+`isAllowedRedirectUrl` fusionne quatre prédicats en un booléen : URL non parsable, protocole non web,
+http en production, hôte hors whitelist. La fusion est **maintenue sur le fil**, au titre de §4 : les
+distinguer renseignerait un attaquant sur la configuration de l'installation. Seul le CHAMP voyage,
+parce que l'intégrateur connaît déjà ses propres URL.
+
+Le nom a été choisi contre un `value_not_allowed` général, qui aurait menti : l'un des quatre
+prédicats refuse une valeur qui n'est même pas syntaxiquement valide. Et la mesure ne trouve **aucune
+autre garde de ce genre** dans le dépôt — la whitelist MIME annoncée au backlog n'existe pas encore.
+
+### `personalization_rejected` — l'identifiant, jamais le libellé
+
+Trois prédicats — clé non déclarée, champ requis vide, dépassement de `maxLength` — aplatis dans une
+phrase qui interpolait `field.label`, du texte **saisi par le marchand**. Le libellé ne voyage plus :
+la surface a affiché le formulaire, donc elle a la déclaration, donc elle retrouve seule le libellé
+**et** le `maxLength`. Le critère §5 tranche ainsi un opérande facultatif avant qu'il n'existe.
+
+Vérifié avant de créer le code : `@repo/fields` valide bien des valeurs contre des champs déclarés,
+mais par **TypeBox compilé**, et ses fautes alimentent les 9 réponses 422. Le triplet n'existe qu'ici.
+
+### Le provider requis — le schéma mentait
+
+`shipping:223` teste `if (!provider)` sur un paramètre que son propre schéma déclare
+`t.Optional(t.String())`, puis le caste vers l'union des transporteurs. Le corps passe à
+`required_data_missing`, code existant. La vraie correction — un schéma non optionnel sur une union
+de littéraux, qui ferait rendre un 422 par Elysia et supprimerait garde et cast — appartient au
+chantier des statuts.
+
+### Ce que la règle « une route, un schéma » a produit ici
+
+Trancher ces gardes débloque **trois routes sur cinq** : `POST /payments/initiate`,
+`POST /cart/items` et `GET /shipping/tracking`, soit 9 réponses de plus. Les deux autres restent
+bloquées par un chemin mal exposé, pas par un cas ouvert.
+
+`POST /checkout` en est l'illustration : son corps `redirect_url_rejected` est prêt, mais la route
+porte encore une exception promue. Elle rend donc la forme héritée — dont le **texte vient désormais
+du catalogue**, seule source de phrases. C'est la bonne façon d'attendre : le contenu est déjà
+conforme, seule l'enveloppe ne l'est pas.

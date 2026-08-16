@@ -98,6 +98,31 @@ export type Fault<R extends string = string, K extends string = string> =
   | { code: 'undelegatable_grants'; grants: { grant: string; reason: UndelegatableReason }[] }
   /** La ressource existe mais n'appartient pas à l'appelant. */
   | { code: 'forbidden_resource'; resource: R }
+  /**
+   * Une URL de redirection est refusée. `field` nomme laquelle (`successUrl`, `cancelUrl`).
+   *
+   * La RAISON ne voyage pas, et c'est délibéré : la garde fusionne quatre prédicats — URL non
+   * parsable, protocole non web, http en production, hôte hors whitelist — et les distinguer
+   * renseignerait un attaquant sur la configuration de l'installation. Même arbitrage
+   * qu'`invalid_credentials` (§4) : on fusionne contre un oracle, pas par commodité.
+   *
+   * Code SPÉCIFIQUE et non un `value_not_allowed` général : un concept général serait un mensonge
+   * ici, puisque l'un des quatre prédicats refuse une valeur qui n'est même pas syntaxiquement
+   * valide. Et la mesure ne montre aucune autre garde de ce genre dans le dépôt.
+   */
+  | { code: 'redirect_url_rejected'; field: string }
+  /**
+   * Une valeur de personnalisation est refusée (ADR-0010). `field` est l'IDENTIFIANT du champ,
+   * jamais son libellé : celui-ci est saisi par le marchand, et la surface qui rend le message a
+   * déjà la déclaration — elle a affiché le formulaire — donc elle retrouve seule le libellé et le
+   * `maxLength`. Rien de ce que le marchand administre ne traverse le contrat, et aucun opérande
+   * facultatif n'est nécessaire (cf. le critère plus haut).
+   */
+  | {
+      code: 'personalization_rejected';
+      field: string;
+      reason: 'unknown' | 'required' | 'too_long';
+    }
   /** Une configuration manque : clé d'environnement, provider non branché. */
   | { code: 'configuration_missing'; target: string }
   /** Un champ requis manque — typiquement une exigence CONDITIONNELLE que le schéma ne porte pas. */

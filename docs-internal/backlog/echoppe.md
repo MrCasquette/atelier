@@ -93,16 +93,18 @@ Détail : [ADR-0005](../adr/ADR-0005-panier-stock.md).
     disparaissent, ils n'existaient que pour la coexistence.
   - [x] **23 des 44 réponses 400**, celles dont la garde détermine déjà le code et dont la route ne
     contient aucun cas ouvert. Statuts HTTP inchangés : tranche strictement contractuelle.
-  - [ ] **14 réponses 400 bloquées** par cohabitation : leur route contient aussi un cas ouvert, et
-    une route n'a qu'un schéma par statut. Elles se débloquent en tranchant les 4 cas ci-dessous.
-  - [ ] **4 cas ouverts** : les URL de redirection (`checkout:83`, `payment:228` — garde de sécurité
-    anti open-redirect, aucun code existant), la personnalisation (`cart:309` — trois prédicats
-    aplatis en une chaîne française), le provider requis (`shipping:223` — paramètre que le schéma
-    devrait déclarer).
-  - [ ] **3 chemins mal exposés**, corrections de fond et non migration : `checkout:146` promeut
-    `error.message` d'un adapter **à l'acheteur** (la violation qu'ADR-0050 nommait « la plus grave
-    du lot »), `payment:426` expose un invariant interne en 400, `payment:374` est conforme mais
-    reste en anglais.
+  - [x] **Les 4 cas ouverts tranchés**, plus les 9 réponses que leurs routes bloquaient. Deux codes
+    ajoutés après vérification qu'aucun concept plus général n'existait dans le dépôt :
+    `redirect_url_rejected` (garde unique de son genre, quatre prédicats fusionnés contre un oracle
+    de configuration) et `personalization_rejected` (triplet inconnu/requis/trop long, présent une
+    seule fois — `@repo/fields` valide par TypeBox compilé, pas par ce triplet). Le provider requis
+    retombe sur `required_data_missing`.
+  - [ ] **11 réponses 400 encore bloquées**, toutes par un des 3 chemins mal exposés ci-dessous :
+    8 dans `POST /checkout`, 3 dans `payment`.
+  - [ ] **3 chemins mal exposés**, corrections de fond et non migration — ils débloquent les 11 :
+    `checkout:152` promeut `error.message` d'un adapter **à l'acheteur** (la violation qu'ADR-0050
+    nommait « la plus grave du lot »), `payment:426` expose un invariant interne en 400,
+    `payment:374` est conforme mais reste en anglais.
   - [ ] Les 9 × 409 et 9 × 422, familles déjà nommées (`already_exists`, `in_use`,
     `validation_failed`, `unknown_scopes`).
   - [ ] Les 3 × 503/500 des services externes.

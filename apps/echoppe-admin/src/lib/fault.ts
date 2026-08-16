@@ -163,6 +163,16 @@ export function faultText(fault: Fault): string | null {
     case 'external_operation_failed':
       // Le tiers a répondu, mal. On nomme l'opération sans relayer son diagnostic.
       return `L’opération « ${fault.operation} » a échoué — réessayez ou vérifiez la configuration`;
+    case 'redirect_url_rejected':
+      return `Cette URL de redirection n’est pas autorisée : ${fault.field}`;
+    case 'personalization_rejected':
+      // L'identifiant suffit ici : l'écran qui a affiché le formulaire connaît le libellé du champ
+      // et son `maxLength`. Rien de ce que le marchand administre ne traverse le contrat.
+      return {
+        unknown: `Champ de personnalisation inconnu : ${fault.field}`,
+        required: `Ce champ de personnalisation est requis : ${fault.field}`,
+        too_long: `Ce champ de personnalisation est trop long : ${fault.field}`,
+      }[fault.reason];
     case 'unauthenticated':
       return 'Votre session a expiré — reconnectez-vous';
     case 'invalid_credentials':

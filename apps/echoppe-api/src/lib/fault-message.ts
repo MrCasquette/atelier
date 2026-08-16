@@ -199,6 +199,16 @@ export function faultMessage(fault: Fault): string {
       const [name, gender] = label(fault.resource);
       return `Accès non autorisé à ${demonstrative(gender, name).toLowerCase()} ${name}`;
     }
+    case 'redirect_url_rejected':
+      return `URL de redirection refusée : ${fault.field}`;
+    case 'personalization_rejected':
+      // Le libellé du champ n'est pas ici : ce catalogue ne connaît pas la déclaration du produit.
+      // C'est la surface qui l'a affichée qui sait le retrouver depuis l'identifiant.
+      return {
+        unknown: `Champ de personnalisation inconnu : ${fault.field}`,
+        required: `Champ de personnalisation requis : ${fault.field}`,
+        too_long: `Champ de personnalisation trop long : ${fault.field}`,
+      }[fault.reason];
     case 'configuration_missing':
       return `${fault.target} n’est pas configuré`;
     case 'required_data_missing':

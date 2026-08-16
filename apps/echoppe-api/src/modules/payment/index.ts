@@ -30,7 +30,7 @@ import { errorSchema, successSchema } from '../../lib/response';
 import { models } from '../../model';
 import { customerAuthPlugin, type SessionCustomer } from '../auth/customer-session';
 import { permissionGuard } from '../auth/rbac';
-import { validateCheckoutUrls } from '../checkout/url-validation';
+import { rejectedRedirectField } from '../checkout/url-validation';
 
 const checkoutBody = t.Object({
   orderId: t.String({ format: 'uuid' }),
@@ -223,15 +223,15 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
       const customerData = currentCustomer as SessionCustomer;
 
       // Validate redirect URLs (prevent open redirect)
-      const urlError = validateCheckoutUrls(body.successUrl, body.cancelUrl);
-      if (urlError) {
-        return status(400, { message: urlError });
+      const rejectedUrl = rejectedRedirectField(body.successUrl, body.cancelUrl);
+      if (rejectedUrl) {
+        return status(400, faultBody(faults.redirectUrlRejected(rejectedUrl)));
       }
 
       const adapter = getPaymentAdapter(body.provider);
 
       if (!(await adapter.isConfigured())) {
-        return status(400, { message: `Provider ${body.provider} non configuré` });
+        return status(400, faultBody(faults.configurationMissing(body.provider)));
       }
 
       // Récupérer la commande
@@ -261,7 +261,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
         .where(eq(payment.order, body.orderId));
 
       if (existingPayment?.status === 'completed') {
-        return status(400, { message: 'Cette commande a déjà été payée' });
+        return status(400, faultBody(faults.invalidState('order', 'paid', 'unpaid')));
       }
 
       // Montant en centimes
@@ -324,7 +324,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
       body: checkoutBody,
       response: {
         200: checkoutSessionSchema,
-        400: errorSchema,
+        400: 'ErrorResponse',
         403: 'ErrorResponse',
         404: 'ErrorResponse',
       },

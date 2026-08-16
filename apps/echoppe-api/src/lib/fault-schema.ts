@@ -166,6 +166,12 @@ export const faultSchema = t.Union(
       ),
     }),
     t.Object({ code: t.Literal('forbidden_resource'), resource: resourceSchema }),
+    t.Object({ code: t.Literal('redirect_url_rejected'), field: t.String() }),
+    t.Object({
+      code: t.Literal('personalization_rejected'),
+      field: t.String(),
+      reason: t.Union([t.Literal('unknown'), t.Literal('required'), t.Literal('too_long')]),
+    }),
     t.Object({ code: t.Literal('configuration_missing'), target: t.String() }),
     t.Object({ code: t.Literal('required_data_missing'), field: t.String() }),
     t.Object({ code: t.Literal('validation_failed'), details: t.Array(t.String()) }),

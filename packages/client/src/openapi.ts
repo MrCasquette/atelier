@@ -1121,6 +1121,15 @@ export interface components {
                 resource: "media" | "folder" | "file" | "user" | "role" | "permission" | "api_key" | "session" | "email_template" | "communication_provider" | "entity" | "entity_row" | "site" | "legal_entity" | "country" | "menu" | "page" | "section" | "definition" | "reference_target" | "product" | "product_media" | "product_option" | "category" | "collection" | "variant" | "option" | "option_value" | "personalization_field" | "tax_rate" | "order" | "invoice" | "cart" | "cart_item" | "wishlist" | "customer" | "address" | "payment" | "payment_provider" | "shipping_provider" | "stock";
             } | {
                 /** @constant */
+                code: "redirect_url_rejected";
+                field: string;
+            } | {
+                /** @constant */
+                code: "personalization_rejected";
+                field: string;
+                reason: "unknown" | "required" | "too_long";
+            } | {
+                /** @constant */
                 code: "configuration_missing";
                 target: string;
             } | {
@@ -3032,16 +3041,13 @@ export interface operations {
                     "application/json": components["schemas"]["Cart"];
                 };
             };
-            /** @description Requête invalide - Données manquantes ou incorrectes */
+            /** @description Réponse d’erreur (ADR-0050) */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur de validation */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Réponse d’erreur (ADR-0050) */
@@ -4648,16 +4654,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Response for status 400 */
+            /** @description Réponse d’erreur (ADR-0050) */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Réponse d’erreur (ADR-0050) */

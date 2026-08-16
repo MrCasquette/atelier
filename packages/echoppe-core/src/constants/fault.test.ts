@@ -40,6 +40,8 @@ const SAMPLES: Record<FaultCode, EchoppeFault> = {
     { grant: 'product:update', reason: 'not_held' },
   ]),
   forbidden_resource: faults.forbiddenResource('address'),
+  redirect_url_rejected: faults.redirectUrlRejected('successUrl'),
+  personalization_rejected: faults.personalizationRejected('gravure', 'too_long'),
   configuration_missing: faults.configurationMissing('STRIPE_SECRET_KEY'),
   required_data_missing: faults.requiredDataMissing('shippingAddress'),
   validation_failed: faults.validationFailed(['name est requis']),

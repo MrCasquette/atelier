@@ -2264,21 +2264,11 @@
             }
           },
           "400": {
-            "description": "Requête invalide - Données manquantes ou incorrectes",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Requête invalide - Données manquantes ou incorrectes",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur de validation",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -5663,20 +5653,11 @@
             }
           },
           "400": {
-            "description": "Response for status 400",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Description de l'erreur",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -8249,6 +8230,55 @@
                       },
                       {
                         "const": "stock",
+                        "type": "string"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "code",
+                  "field"
+                ],
+                "properties": {
+                  "code": {
+                    "const": "redirect_url_rejected",
+                    "type": "string"
+                  },
+                  "field": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "code",
+                  "field",
+                  "reason"
+                ],
+                "properties": {
+                  "code": {
+                    "const": "personalization_rejected",
+                    "type": "string"
+                  },
+                  "field": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "anyOf": [
+                      {
+                        "const": "unknown",
+                        "type": "string"
+                      },
+                      {
+                        "const": "required",
+                        "type": "string"
+                      },
+                      {
+                        "const": "too_long",
                         "type": "string"
                       }
                     ]

@@ -114,6 +114,8 @@ describe('exhaustivité du catalogue', () => {
         ],
       },
       { code: 'forbidden_resource', resource: 'order' },
+      { code: 'redirect_url_rejected', field: 'successUrl' },
+      { code: 'personalization_rejected', field: 'gravure', reason: 'required' },
       { code: 'configuration_missing', target: 'ENCRYPTION_KEY' },
       { code: 'required_data_missing', field: 'billingAddress' },
       { code: 'validation_failed', details: ['x'] },
@@ -125,6 +127,6 @@ describe('exhaustivité du catalogue', () => {
     for (const fault of samples) {
       expect(faultMessage(fault).length).toBeGreaterThan(0);
     }
-    expect(samples).toHaveLength(21);
+    expect(samples).toHaveLength(23);
   });
 });

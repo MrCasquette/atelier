@@ -60,17 +60,18 @@ export function isAllowedRedirectUrl(url: string): boolean {
 }
 
 /**
- * Validate successUrl and cancelUrl for checkout.
- * Returns an error message if validation fails, null otherwise.
+ * Laquelle des deux URL de redirection est refusée — `null` si les deux passent.
+ *
+ * Rend le NOM DU CHAMP, pas une phrase : c'est la seule chose dont la surface ait besoin, et la
+ * raison exacte du refus reste volontairement interne (ADR-0050, `redirect_url_rejected`). Les
+ * quatre prédicats d'`isAllowedRedirectUrl` ne se distinguent pas sur le fil : les séparer
+ * renseignerait un attaquant sur la configuration de l'installation.
  */
-export function validateCheckoutUrls(successUrl: string, cancelUrl: string): string | null {
-  if (!isAllowedRedirectUrl(successUrl)) {
-    return 'URL de redirection succès non autorisée';
-  }
-
-  if (!isAllowedRedirectUrl(cancelUrl)) {
-    return 'URL de redirection annulation non autorisée';
-  }
-
+export function rejectedRedirectField(
+  successUrl: string,
+  cancelUrl: string,
+): 'successUrl' | 'cancelUrl' | null {
+  if (!isAllowedRedirectUrl(successUrl)) return 'successUrl';
+  if (!isAllowedRedirectUrl(cancelUrl)) return 'cancelUrl';
   return null;
 }

@@ -20,7 +20,7 @@ import {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../lib/fault';
-import { badRequestResponse, successSchema } from '../../lib/response';
+import { successSchema } from '../../lib/response';
 import { models } from '../../model';
 import {
   calculateAddonPrice,
@@ -293,12 +293,15 @@ export const cartRoutes = new Elysia({
       }
 
       if (variantData.status !== 'published') {
-        return status(400, { message: 'Variante non disponible' });
+        return status(
+          400,
+          faultBody(faults.invalidState('variant', variantData.status, 'published')),
+        );
       }
 
       const availableStock = variantData.quantity;
       if (availableStock < body.quantity) {
-        return status(400, { message: `Stock insuffisant (${availableStock} disponible)` });
+        return status(400, faultBody(faults.insufficientStock(availableStock, body.quantity)));
       }
 
       // Personnalisation (ADR-0010) : valide contre les champs déclarés du produit ; le supplément
@@ -306,7 +309,10 @@ export const cartRoutes = new Elysia({
       const fields = await getPersonalizationFields(variantData.product);
       const resolved = resolvePersonalization(fields, body.personalization);
       if (resolved.error) {
-        return status(400, { message: resolved.error });
+        return status(
+          400,
+          faultBody(faults.personalizationRejected(resolved.error.field, resolved.error.reason)),
+        );
       }
 
       // Get or create cart
@@ -340,7 +346,7 @@ export const cartRoutes = new Elysia({
         // Update quantity
         const newQuantity = existingItem.quantity + body.quantity;
         if (newQuantity > availableStock) {
-          return status(400, { message: `Stock insuffisant (${availableStock} disponible)` });
+          return status(400, faultBody(faults.insufficientStock(availableStock, body.quantity)));
         }
 
         await db
@@ -374,7 +380,7 @@ export const cartRoutes = new Elysia({
       cookie: cookieSchema,
       response: {
         200: 'Cart',
-        400: badRequestResponse,
+        400: 'ErrorResponse',
         404: 'ErrorResponse',
       },
     },

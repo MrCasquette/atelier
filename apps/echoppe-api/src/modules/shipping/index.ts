@@ -18,7 +18,7 @@ import {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../lib/fault';
-import { errorSchema, successSchema, withAuthErrors } from '../../lib/response';
+import { successSchema, withAuthErrors } from '../../lib/response';
 import { models } from '../../model';
 import { permissionGuard } from '../auth/rbac';
 
@@ -220,13 +220,16 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
       const provider = query.provider as ShippingProvider | undefined;
 
       if (!provider) {
-        return status(400, { message: 'Provider requis (?provider=colissimo)' });
+        // Le schéma déclare `provider` OPTIONNEL puis la route l'exige, et le caste vers l'union
+        // des transporteurs. Corriger le schéma ferait rendre un 422 par Elysia et supprimerait
+        // cette garde — c'est le chantier des statuts, pas celui des corps.
+        return status(400, faultBody(faults.requiredDataMissing('provider')));
       }
 
       const adapter = getShippingAdapter(provider);
 
       if (!(await adapter.isConfigured())) {
-        return status(400, { message: `Provider ${provider} non configuré` });
+        return status(400, faultBody(faults.configurationMissing(provider)));
       }
 
       const events = await adapter.getTracking(params.trackingNumber);
@@ -236,7 +239,7 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
       permission: true,
       params: t.Object({ trackingNumber: t.String() }),
       query: t.Object({ provider: t.Optional(t.String()) }),
-      response: { 200: t.Array(trackingEventSchema), 400: errorSchema },
+      response: { 200: t.Array(trackingEventSchema), 400: 'ErrorResponse' },
     },
   )
 

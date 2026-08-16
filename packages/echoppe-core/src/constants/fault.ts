@@ -99,6 +99,18 @@ export const forbiddenResource = (resource: EchoppeResource): EchoppeFault => ({
   resource,
 });
 
+/** `field` nomme l'URL refusée, jamais la raison — la fusion est une propriété de sécurité. */
+export const redirectUrlRejected = (field: string): EchoppeFault => ({
+  code: 'redirect_url_rejected',
+  field,
+});
+
+/** `field` est l'identifiant du champ ; son libellé appartient au marchand et ne voyage pas. */
+export const personalizationRejected = (
+  field: string,
+  reason: 'unknown' | 'required' | 'too_long',
+): EchoppeFault => ({ code: 'personalization_rejected', field, reason });
+
 export const configurationMissing = (target: string): EchoppeFault => ({
   code: 'configuration_missing',
   target,
