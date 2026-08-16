@@ -99,12 +99,18 @@ Détail : [ADR-0005](../adr/ADR-0005-panier-stock.md).
     de configuration) et `personalization_rejected` (triplet inconnu/requis/trop long, présent une
     seule fois — `@repo/fields` valide par TypeBox compilé, pas par ce triplet). Le provider requis
     retombe sur `required_data_missing`.
-  - [ ] **11 réponses 400 encore bloquées**, toutes par un des 3 chemins mal exposés ci-dessous :
-    8 dans `POST /checkout`, 3 dans `payment`.
-  - [ ] **3 chemins mal exposés**, corrections de fond et non migration — ils débloquent les 11 :
-    `checkout:152` promeut `error.message` d'un adapter **à l'acheteur** (la violation qu'ADR-0050
-    nommait « la plus grave du lot »), `payment:426` expose un invariant interne en 400,
-    `payment:374` est conforme mais reste en anglais.
+  - [x] **Les 3 chemins mal exposés corrigés.** `checkout` relance après rollback au lieu de
+    promouvoir `error.message` **à l'acheteur** — la violation qu'ADR-0050 nommait « la plus grave
+    du lot » depuis sa rédaction. `payment` lève sur un paiement `completed` sans
+    `providerTransactionId` : un état impossible n'est pas une faute client. `shipping` remonte
+    l'exigence de `provider` au schéma, ce qui supprime la garde **et** le cast `as`.
+  - [ ] **7 réponses 400 dans `POST /checkout`**, en attente d'un arbitrage sur `validateStock` :
+    son message nomme le produit en rupture, et `insufficient_stock` n'a pas d'opérande pour dire
+    QUELLE ligne du panier est concernée. L'acheteur ne peut pas le déduire — le stock est côté
+    serveur —, donc le critère §5 autoriserait un opérande, mais ce serait le second champ
+    facultatif du contrat.
+  - [ ] **1 réponse dans le webhook** (`payment:374`) : conforme (détail au log, réponse
+    générique), reste en anglais parce que son destinataire est une machine.
   - [ ] Les 9 × 409 et 9 × 422, familles déjà nommées (`already_exists`, `in_use`,
     `validation_failed`, `unknown_scopes`).
   - [ ] Les 3 × 503/500 des services externes.

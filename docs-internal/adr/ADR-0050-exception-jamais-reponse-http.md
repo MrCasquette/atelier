@@ -631,3 +631,42 @@ bloquées par un chemin mal exposé, pas par un cas ouvert.
 porte encore une exception promue. Elle rend donc la forme héritée — dont le **texte vient désormais
 du catalogue**, seule source de phrases. C'est la bonne façon d'attendre : le contenu est déjà
 conforme, seule l'enveloppe ne l'est pas.
+
+## Note d'implémentation 2026-08-16 — les trois chemins mal exposés
+
+### `checkout` — la violation nommée dans cet ADR est fermée
+
+Le tableau des « chemins qui violent l'invariant » désignait
+`apps/echoppe-api/src/modules/checkout/index.ts` comme **le plus grave du lot** : le message d'une
+exception d'adapter rendu en 400 **à l'acheteur**, capable de lui servir `Stripe is not configured.`.
+Il est fermé.
+
+Le correctif n'est pas une faute structurée, et l'analyse des causes explique pourquoi. `createCheckout`
+peut lever trois natures : configuration absente (déjà gardée en amont), invariant du prestataire
+violé (« session created without URL »), échec réseau. **Aucune n'est actionnable par un acheteur** —
+il ne configure rien et ne corrige rien. La route relance donc, une fois la commande annulée, et le
+`onError` global fait ce pour quoi il a été écrit : détail au log sous un identifiant de corrélation,
+réponse qui ne porte que celui-ci.
+
+Le rollback reste **avant** la relance : annuler la commande est une décision de domaine, la
+conversion en réponse n'en est pas une.
+
+### `payment` — un état impossible n'est pas une faute client
+
+Un paiement `completed` sans `providerTransactionId` était rendu en 400, comme si l'appelant avait
+mal demandé. Il n'a rien à corriger : ce sont **nos** données qui sont incohérentes. La garde lève
+désormais, et rejoint le même point de conversion.
+
+C'est le pendant de la décision §2 : ce qui est inactionnable ne se structure pas, et surtout ne se
+déguise pas en faute métier.
+
+### `shipping` — l'exigence remonte au schéma
+
+`query: t.Optional(t.String())` puis `if (!provider)` puis `as ShippingProvider` : le schéma mentait
+deux fois, et le cast rattrapait le mensonge. Le schéma déclare maintenant l'union des trois
+transporteurs, non optionnelle. La garde disparaît, le cast aussi, et **Elysia refuse lui-même**
+l'absence comme la valeur hors liste.
+
+Seul changement de statut observable de ce lot, et il est la conséquence directe du correctif : ce
+chemin rend désormais 422 au lieu de 400. Les autres requalifications de statut restent groupées
+dans leur propre chantier.

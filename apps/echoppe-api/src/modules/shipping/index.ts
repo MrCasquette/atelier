@@ -217,19 +217,13 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
   .get(
     '/tracking/:trackingNumber',
     async ({ params, query, status }) => {
-      const provider = query.provider as ShippingProvider | undefined;
-
-      if (!provider) {
-        // Le schéma déclare `provider` OPTIONNEL puis la route l'exige, et le caste vers l'union
-        // des transporteurs. Corriger le schéma ferait rendre un 422 par Elysia et supprimerait
-        // cette garde — c'est le chantier des statuts, pas celui des corps.
-        return status(400, faultBody(faults.requiredDataMissing('provider')));
-      }
-
-      const adapter = getShippingAdapter(provider);
+      // `provider` est requis ET fermé PAR LE SCHÉMA (voir plus bas) : Elysia refuse lui-même
+      // l'absence et la valeur hors liste. Plus de garde à la main, et plus de cast — le type vient
+      // du schéma au lieu d'être affirmé après coup.
+      const adapter = getShippingAdapter(query.provider);
 
       if (!(await adapter.isConfigured())) {
-        return status(400, faultBody(faults.configurationMissing(provider)));
+        return status(400, faultBody(faults.configurationMissing(query.provider)));
       }
 
       const events = await adapter.getTracking(params.trackingNumber);
@@ -238,7 +232,15 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
     {
       permission: true,
       params: t.Object({ trackingNumber: t.String() }),
-      query: t.Object({ provider: t.Optional(t.String()) }),
+      // Littéraux écrits un par un : un `t.Union` construit par `.map` se résout en `never` dans
+      // l'inférence d'Elysia (cf. `lib/fault-schema.ts`).
+      query: t.Object({
+        provider: t.Union([
+          t.Literal('colissimo'),
+          t.Literal('mondialrelay'),
+          t.Literal('sendcloud'),
+        ]),
+      }),
       response: { 200: t.Array(trackingEventSchema), 400: 'ErrorResponse' },
     },
   )

@@ -419,11 +419,19 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
       }
 
       if (paymentData.status !== 'completed') {
-        return status(400, { message: 'Seuls les paiements complétés peuvent être remboursés' });
+        return status(
+          400,
+          faultBody(faults.invalidState('payment', paymentData.status, 'completed')),
+        );
       }
 
       if (!paymentData.providerTransactionId) {
-        return status(400, { message: 'Transaction ID manquant' });
+        // Un paiement « completed » sans identifiant de transaction est un état IMPOSSIBLE : nos
+        // données sont incohérentes, l'appelant n'y peut rien et n'a rien à corriger. Ce n'était
+        // donc pas une faute client. Levée, elle rejoint le `onError` global, qui rend 500 avec un
+        // incident et garde le détail au log — ADR-0050 refuse explicitement de structurer
+        // l'infrastructure.
+        throw new Error(`Completed payment ${paymentData.id} has no providerTransactionId`);
       }
 
       const adapter = getPaymentAdapter(paymentData.provider as PaymentProvider);
@@ -458,7 +466,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
       body: t.Object({
         amount: t.Optional(t.Number({ minimum: 0 })),
       }),
-      response: { 200: refundResultSchema, 400: errorSchema, 404: 'ErrorResponse' },
+      response: { 200: refundResultSchema, 400: 'ErrorResponse', 404: 'ErrorResponse' },
     },
   );
 

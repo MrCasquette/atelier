@@ -147,9 +147,18 @@ export const checkoutRoutes = new Elysia({
         };
       } catch (error) {
         await rollbackOrder(createdOrder.id);
-        const message =
-          error instanceof Error ? error.message : 'Erreur lors de la création du paiement';
-        return status(400, { message });
+
+        // ADR-0050, l'invariant lui-même : le `message` d'une exception n'entre jamais dans un
+        // corps de réponse. Ce chemin le faisait, VERS L'ACHETEUR — un adapter mal configuré lui
+        // servait « Stripe is not configured. ».
+        //
+        // Le prestataire a trois façons d'échouer ici : configuration absente (déjà gardée plus
+        // haut), invariant du prestataire violé (« session created without URL »), échec réseau.
+        // AUCUNE n'est actionnable par un acheteur — il ne configure rien et ne corrige rien. Donc
+        // pas de faute structurée : on relance, une fois la commande annulée, et le `onError`
+        // global fait ce pour quoi il existe — détail au log sous un identifiant de corrélation,
+        // réponse qui ne porte que celui-ci.
+        throw error;
       }
     },
     {
