@@ -743,3 +743,113 @@ développeur via la CLI — la seule surface que cet ADR exempte (§4). Il ne tr
 Le changement traverse trois paquets — `@repo/entities` le produit, `@repo/content` le consomme dans
 sa CLI, l'API le publie dans `planSchema`. C'est le prix d'avoir eu deux représentations parallèles
 du même plan.
+
+---
+
+## Note d'implémentation 2026-08-16 — la tranche 422, et le producteur qu'on n'avait pas vu
+
+La dernière famille. Elle a coûté plus que les précédentes parce qu'elle a révélé, en cours de route,
+que le 422 ne venait pas d'où on croyait.
+
+### Le 422 avait six producteurs, pas neuf sites
+
+Le recensement initial listait neuf réponses dans nos handlers. Il en manquait l'essentiel : Elysia
+produit lui-même un 422 sur **chaque** échec de validation de requête, donc sur presque toutes les
+routes. La prose anglaise de TypeBox voyageait là, massivement, et pas dans les neuf sites qu'on
+s'apprêtait à corriger.
+
+`COMMON_ERRORS` ne déclare qu'un schéma par statut. Migrer les neuf sans traiter Elysia aurait donc
+publié un contrat faux pour l'autre moitié des réponses — la règle « une route, un schéma par statut »
+appliquée cette fois au socle. La conversion se fait donc **dans le `onError` global**, avec la même
+fonction de traduction que le domaine (`issuesFrom`) : une seule source d'autorité, deux appelants.
+
+### `VALIDATION` n'est pas homogène — le piège à inscrire
+
+```
+VALIDATION (Elysia) — la source est dans `error.type`
+├── body      ┐
+├── query     │
+├── params    ├─→ 422 `validation_failed`
+├── headers   │
+├── cookie    ┘
+└── response  ─→ 500 + incident   ❌ PAS un 422
+```
+
+`response` signale qu'une **réponse de ce serveur** ne respecte pas le schéma qu'elle déclare. Elysia
+le classe sous `VALIDATION` comme les cinq autres, et c'est trompeur : ce n'est pas la requête de
+l'appelant qui est fautive, c'est notre code. Le rendre en 422 lui envoyait `property` et `found` —
+la structure interne de notre propre corps.
+
+Il emprunte donc le chemin des exceptions non rattrapées : log complet, 500, incident. **Le prochain
+lecteur verra `error.type === 'response'` rangé sous `VALIDATION` et sera tenté de l'aligner sur ses
+voisins. C'est écrit ici pour qu'il ne le fasse pas.**
+
+Disparaissent au passage `expected` et `found`, qui réfléchissaient les valeurs soumises. Aucun
+consommateur ne les lisait — vérifié dans l'admin, le SDK et les tests.
+
+### `ValidationReason` — quinze types mesurés, six raisons
+
+L'échelle n'est pas dérivée des noms de TypeBox mais d'une **mesure** : chaque `kind` de champ
+construit avec toutes ses contraintes, puis mis en échec de toutes les façons que la grammaire
+autorise. Quinze `ValueErrorType` sur les soixante-quatre déclarés — parce que le générateur n'emploie
+que neuf constructions.
+
+Le regroupement suit le **geste de correction**, pas le mot-clé JSON Schema : `StringMinLength`,
+`NumberMinimum` et `ArrayMinItems` disent tous « agrandis ». D'où six raisons — `required`, `type`,
+`not_allowed`, `too_small`, `too_large`, `format` — et le nom TypeBox qui n'entre pas dans le
+contrat : changer de version du validateur ne doit pas être un changement de contrat.
+
+Un seul type était ambigu. `Union` recouvre l'`enum` hors liste et l'entier invalide (le `t.Integer`
+d'Elysia est une union de coercition). Le discriminant retenu est la **forme du schéma** — tous les
+membres portent `const` ⇒ liste close —, pas un nom.
+
+Les bornes restent **deux** raisons et non une. La fusion se défendait par « la surface connaît déjà
+`min`/`max` », ce qui n'est vrai que de l'administration : lire la déclaration exige `schema:read`,
+écrire une occurrence exige `entity:<nom>:update`, et une clé d'API d'intégration a le second sans le
+premier. Elle recevrait « hors bornes » sans savoir de quel côté.
+
+C'est `issues.test.ts` qui tient tout cela, et non une déclaration de version : il remesure
+l'inventaire à chaque exécution.
+
+### Deux promotions d'exception fermées, dont une non recensée
+
+Le tableau de violations de cet ADR n'en listait qu'une (`definition-service.ts`). La seconde a été
+trouvée en lisant les gardes : `service.ts` attrapait toute exception de `readLiveTable` pour en faire
+un blocage. Or cette fonction ne lit que le catalogue Postgres — une exception y est une panne, pas un
+refus. Le `catch` transformait une base indisponible en « votre déclaration est refusée », avec le
+diagnostic du driver. **Faux deux fois : le statut, et la fuite.** Il est supprimé, pas remplacé.
+
+### Quinze prédicats, deux codes — dont un qui existait déjà
+
+Les blockers du planificateur d'entités semblaient valoir quinze codes. Remontés à leurs prédicats,
+ils n'en valent aucun de neuf :
+
+- les **sept** `push` de `link.ts` n'expriment que **trois** prédicats. « Un singleton dont la route
+  attend un slug » et « une liste dont la route n'en a pas » sont la même faute vue des deux côtés ;
+  les paires ne différaient que par la formulation ;
+- la moitié du reste **est** `registry_incoherent`, le code créé pour le registre de sections. Les
+  deux moteurs partagent leur grammaire de champs (ADR-0026), donc leurs façons d'être mal déclarés —
+  `duplicate_field` leur était déjà commun. Cinq raisons s'ajoutent à une échelle existante ;
+- seule reste une famille réellement distincte : la déclaration est **bonne**, c'est l'état de la base
+  qui empêche. Elle devient `blocked_plan`, jumeau de `destructive_plan` — l'un refuse ce qui
+  détruirait, l'autre ce qui ne peut pas s'exécuter.
+
+`blocked_plan` est une **union discriminée sur `reason`**, pas une forme plate : `still_referenced`
+doit dire qui retient — ce sont d'autres entités que celle soumise, donc introuvables depuis la
+requête —, quand `rows_present` n'a besoin que de sa cible. Le compte de lignes, lui, ne traverse
+pas : il ne change aucun geste (§5).
+
+### Ce que la tranche a nettoyé au passage
+
+Trois fonctions composaient de la ponctuation dans leurs opérandes : `duplicateFieldNames`,
+`incomingReferences` et `unknownRefTargets`. Les chemins sortent désormais **nus** — `hero.titre`,
+`lecteur_externe.cible` —, la surface décidant seule de ses guillemets.
+
+`unknownRefTargets` rendait `hero.lien → « produit »` pour dire aussi où corriger. Le besoin était
+réel, la forme non — et §5 le rend inutile : l'appelant vient de soumettre le registre entier, donc il
+retrouve seul quels champs citent une cible refusée. Elle rend maintenant la même chose que son
+homologue des menus, qui alimente le même code.
+
+Deux cas rangés sous « validation » n'en étaient pas : un type de bloc inconnu (`not_found`, la donnée
+n'a jamais été examinée) et un patch vide (`empty_patch`, la requête ne demande rien). Ni l'un ni
+l'autre ne décrit une donnée fautive.

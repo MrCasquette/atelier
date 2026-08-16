@@ -1,5 +1,7 @@
+import { faults } from '@echoppe/core';
 import { loadRegistry, registrySchema, syncRegistry } from '@repo/pages';
 import { Elysia } from 'elysia';
+import { faultBody } from '../../../lib/fault';
 import { successSchema, withCrudErrors } from '../../../lib/response';
 import { models } from '../../../model';
 import { permissionGuard } from '../../auth/rbac';
@@ -31,9 +33,14 @@ export const definitionRoutes = new Elysia({ prefix: '/content', detail: { tags:
     async ({ body, status }) => {
       const result = await syncRegistry(body, references.names());
 
-      return result.outcome === 'incoherent'
-        ? status(422, { message: result.message })
-        : { success: true };
+      switch (result.outcome) {
+        case 'incoherent':
+          return status(422, faultBody(faults.registryIncoherent(result.issues)));
+        case 'unknown_targets':
+          return status(422, faultBody(faults.unknownReferenceTargets(result.targets)));
+        case 'synced':
+          return { success: true };
+      }
     },
     { permission: true, body: registrySchema, response: withCrudErrors({ 200: successSchema }) },
   );

@@ -43,14 +43,6 @@ export const conflictResponse = t.Object(
   { description: 'Conflit - La ressource existe déjà ou est en conflit' },
 );
 
-/** 422 Unprocessable Entity - Erreur de validation métier */
-export const unprocessableResponse = t.Object(
-  {
-    message: t.String({ description: "Détail de l'erreur métier" }),
-  },
-  { description: 'Entité non traitable - Règle métier non respectée' },
-);
-
 /** 429 Too Many Requests - Rate limit dépassé */
 export const rateLimitResponse = t.Object(
   {
@@ -102,11 +94,23 @@ type ResponseMap = Record<number, TSchema | ModelName>;
 // `withCrudErrors` et `withNotFound` le jour où le dernier des 82 sites 404 a basculé. Deux jeux
 // n'avaient de raison d'être que pendant la coexistence.
 //
-// Restent hérités, en `{ message }`, les statuts dont aucune tranche n'est encore passée : 400, 409,
-// 422, 429, 500 et 503.
+// Restent hérités, en `{ message }`, les statuts dont aucune tranche n'est encore passée : 429, 500
+// et 503.
 
-/** Socle d'erreurs universel : validation d'input (422) + erreur serveur (500). */
-const COMMON_ERRORS = { 422: unprocessableResponse, 500: serverErrorResponse };
+/**
+ * Socle d'erreurs universel : validation d'entrée (422) + erreur serveur (500).
+ *
+ * Le 422 est contractuel depuis que le `onError` global convertit les erreurs de validation
+ * d'Elysia. Il fallait qu'il le devienne : ce statut a SIX producteurs — les cinq sources de requête
+ * validées par Elysia, plus nos propres handlers —, et un statut ne déclare qu'un schéma. Tant que
+ * les deux formes coexistaient, celle qu'annonçait le contrat était fausse pour l'autre moitié.
+ *
+ * Le 500, lui, reste `{ message }` : il s'adresse à un opérateur, pas à un appelant capable d'agir.
+ */
+const COMMON_ERRORS: { 422: 'ErrorResponse'; 500: typeof serverErrorResponse } = {
+  422: 'ErrorResponse',
+  500: serverErrorResponse,
+};
 
 /**
  * Les codes contractuels, par MODÈLE NOMMÉ.

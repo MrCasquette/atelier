@@ -40,6 +40,108 @@ export type UndelegatableReason =
   /** Détenu, mais borné à ses propres lignes ; l'accorder sans la borne est l'élargir. */
   | 'self_only_widened';
 
+/**
+ * Pourquoi une valeur est refusée par le schéma qui la décrit.
+ *
+ * DÉRIVÉE, pas inventée : le générateur de `@repo/fields` n'émet que quinze `ValueErrorType` sur les
+ * soixante-quatre de TypeBox — inventaire mesuré en faisant échouer chaque `kind` de champ de toutes
+ * les façons que la grammaire autorise. Ces quinze se regroupent par GESTE DE CORRECTION, pas par
+ * mot-clé JSON Schema : `StringMinLength`, `NumberMinimum` et `ArrayMinItems` demandent la même
+ * chose — agrandir —, et c'est cela que l'appelant a besoin de savoir.
+ *
+ * Le nom TypeBox lui-même n'entre pas dans le contrat : changer de version du validateur ne doit pas
+ * être un changement de contrat.
+ *
+ * Les bornes restent DEUX raisons et non une. La fusion ne tenait que pour l'administration, qui
+ * génère son formulaire depuis le registre et connaît donc déjà `min`/`max`. Mais lire la
+ * déclaration exige `schema:read`, quand écrire une occurrence exige `entity:<nom>:update` : une clé
+ * d'API d'intégration a le second sans le premier. Elle recevrait « hors bornes » sans jamais
+ * pouvoir savoir de quel côté.
+ */
+export type ValidationReason =
+  /** Un champ requis est absent. Le cas dominant, et de loin. */
+  | 'required'
+  /** Le type ne correspond pas : une chaîne là où un nombre est attendu, et réciproquement. */
+  | 'type'
+  /** La valeur est hors de la liste close que le champ déclare (`enum`). */
+  | 'not_allowed'
+  /** Trop court, trop petit, trop peu d'éléments — selon ce que le champ mesure. */
+  | 'too_small'
+  /** Trop long, trop grand, trop d'éléments. */
+  | 'too_large'
+  /** La forme attendue n'est pas respectée : `uuid`, `date`, `date-time`. */
+  | 'format';
+
+/**
+ * Une faute de validation, localisée.
+ *
+ * `path` est un pointeur JSON (`/titre`, `/blocs/0/lien`, `` `` à la racine) — une DONNÉE, pas de la
+ * prose : la surface s'en sert pour surligner le champ fautif, ce qu'une phrase ne permettait pas.
+ *
+ * Aucune borne n'accompagne `too_small`/`too_large`, et aucune liste n'accompagne `not_allowed` :
+ * ce sont des attributs de la DÉCLARATION, pas de la faute. Qui peut lire la déclaration les a ;
+ * qui ne le peut pas sait au moins dans quel sens corriger.
+ */
+export type ValidationIssue = { path: string; reason: ValidationReason };
+
+/**
+ * Pourquoi un registre de définitions poussé est refusé.
+ *
+ * DÉRIVÉE des trois seuls prédicats qui refusaient un registre — `assertRegistryCoherent` les
+ * évaluait déjà séparément avant d'aplatir son verdict dans le `message` d'une exception, que la
+ * route promouvait ensuite en réponse HTTP. C'est le premier chemin du tableau de violations
+ * d'ADR-0050 ; les prédicats, eux, n'ont pas bougé.
+ */
+export type RegistryIncoherence =
+  /** Deux champs de même nom dans une même définition (ADR-0049). */
+  | 'duplicate_field'
+  /** Un `component`/`list` cite un nom absent du registre. */
+  | 'unknown_component'
+  /** Un `component` se contient lui-même, directement ou non. */
+  | 'circular_component'
+  /** Le nom déclaré ne respecte pas la grammaire des identifiants. */
+  | 'invalid_name'
+  /** La clé sous laquelle une entité est rangée diffère du nom qu'elle déclare. */
+  | 'name_mismatch'
+  /** Le mode de lien contredit la cardinalité : un singleton n'a pas de slug (ADR-0039). */
+  | 'link_cardinality'
+  /** Le lien cite un champ que la déclaration ne contient pas. */
+  | 'link_unknown_field'
+  /** Le champ cité par le lien existe, mais son type ne peut pas porter ce que le lien attend. */
+  | 'link_field_type';
+
+/** Une incohérence de registre, localisée dans la déclaration : `hero.encart`, `page.blocs.lien`. */
+export type RegistryIssue = { path: string; reason: RegistryIncoherence };
+
+/**
+ * Ce qui empêche un plan de migration de s'appliquer — l'ÉTAT de la base, pas la déclaration.
+ *
+ * À ne pas confondre avec `RegistryIncoherence`, et la distinction n'est pas cosmétique : là, le dev
+ * corrige ses fichiers ; ici, sa déclaration est bonne et c'est la base qui n'est pas prête. Deux
+ * gestes, deux destinataires — ils étaient pourtant rendus par la même liste de phrases.
+ *
+ * Union discriminée plutôt que forme plate : chaque membre porte EXACTEMENT ce que l'appelant ne
+ * peut pas reconstruire. Il a soumis la déclaration, donc il la connaît ; ce qu'il ignore, c'est
+ * l'état de la base. Rien de plus ne traverse — pas de compte de lignes, qui ne change aucun geste.
+ */
+export type PlanBlocker =
+  /** La table contient des lignes, et l'opération demandée les perdrait. Videz-la d'abord. */
+  | { reason: 'rows_present'; target: string }
+  /**
+   * Des valeurs ne désignent plus rien dans la table visée : de la donnée DÉJÀ cassée, que l'absence
+   * de contrainte laissait passer. `references` nomme la table visée — l'appelant ne peut pas la
+   * déduire, la déclaration ne dit pas où pointent les valeurs réellement stockées.
+   */
+  | { reason: 'dangling_rows'; target: string; references: string }
+  /**
+   * L'entité n'est plus déclarée, mais d'autres la référencent encore. `holders` dit LESQUELLES :
+   * sans elles, le dev sait qu'il est bloqué sans savoir où retirer les champs. Jamais de cascade
+   * (ADR-0028), donc c'est bien à lui d'agir.
+   */
+  | { reason: 'still_referenced'; target: string; holders: string[] }
+  /** Une colonne que ce mécanisme n'a pas pu créer, donc qu'il ne supprimera pas. */
+  | { reason: 'unmanaged_column'; target: string };
+
 export type Fault<R extends string = string, K extends string = string> =
   /** La chose désignée n'existe pas. Absorbe à elle seule la moitié des refus de l'API. */
   | { code: 'not_found'; resource: R }
@@ -156,7 +258,23 @@ export type Fault<R extends string = string, K extends string = string> =
   /** Un champ requis manque — typiquement une exigence CONDITIONNELLE que le schéma ne porte pas. */
   | { code: 'required_data_missing'; field: string }
   /** Validation structurelle : `details` liste les fautes, une par entrée, jamais jointes. */
-  | { code: 'validation_failed'; details: string[] }
+  | { code: 'validation_failed'; details: ValidationIssue[] }
+  /**
+   * La requête ne demande rien : aucun champ à écrire.
+   *
+   * Ce n'est PAS une donnée invalide — il n'y a ni chemin ni champ fautif à nommer. Le distinguer
+   * de `validation_failed` évite de ranger sous « donnée refusée » une requête simplement vide.
+   */
+  | { code: 'empty_patch' }
+  /** Une déclaration poussée — registre de sections ou d'entités — ne tient pas debout. */
+  | { code: 'registry_incoherent'; issues: RegistryIssue[] }
+  /**
+   * La déclaration est bonne, mais l'état de la base empêche de l'appliquer.
+   *
+   * Jumeau de `destructive_plan`, produit par le même planificateur : l'un refuse ce qui détruirait,
+   * l'autre ce qui ne peut pas s'exécuter. Aucun des deux ne s'applique à moitié.
+   */
+  | { code: 'blocked_plan'; blockers: PlanBlocker[] }
   | { code: 'unknown_reference_targets'; targets: string[] }
   | { code: 'unknown_scopes'; scopes: string[] }
   /** Un système tiers a échoué. `operation` le nomme sans exposer son diagnostic. */

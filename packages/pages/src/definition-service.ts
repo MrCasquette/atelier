@@ -15,8 +15,11 @@ import {
   type Components,
   duplicateFieldNames,
   fieldsToSchema,
+  issuesOf,
   type SerializedField,
+  unresolvedComponents,
 } from '@repo/fields';
+import type { RegistryIssue, ValidationIssue } from '@repo/shared';
 import type { TSchema } from 'elysia';
 import { type TypeCheck, TypeCompiler } from 'elysia/type-system';
 import { type Registry, registrySchema, type SerializedDefinition } from './definition-model';
@@ -82,20 +85,33 @@ export async function loadRegistry(): Promise<Registry> {
 }
 
 /**
- * Vérifie qu'un registre est COHÉRENT (toutes les refs `component`/`list` résolvent, pas de cycle)
- * en tentant de compiler toutes ses sections. Lève si incohérent. Appelé avant de persister un push.
+ * Ce qui empêche un registre de tenir debout : champs en double, `component` introuvable, cycle.
+ *
+ * Rendait naguère son verdict en LEVANT — le doublon avec sa propre phrase, les deux autres depuis
+ * la compilation —, et la route promouvait le `message` en réponse HTTP. C'était le premier chemin
+ * du tableau de violations d'ADR-0050. Les trois prédicats sont les mêmes ; seul le verdict a cessé
+ * d'être une exception.
+ *
+ * Rend TOUTES les incohérences : un dev corrige son registre une fois, pas trois.
+ *
+ * Ne compile plus rien pour vérifier. Détecter en tentant de compiler faisait dépendre le diagnostic
+ * de ce qui se trouvait lever en premier — et coûtait une compilation jetée à chaque push.
  */
-export function assertRegistryCoherent(registry: Registry): void {
-  const duplicates = [
+export function registryIssues(registry: Registry): RegistryIssue[] {
+  const definitions = [
     ...Object.entries(registry.sections),
     ...Object.entries(registry.components),
-  ].flatMap(([name, def]) => duplicateFieldNames(name, def.fields));
+  ];
 
-  if (duplicates.length > 0) {
-    throw new Error(`Champs en double : ${duplicates.join(', ')}.`);
-  }
+  const duplicates: RegistryIssue[] = definitions
+    .flatMap(([name, def]) => duplicateFieldNames(name, def.fields))
+    .map((path) => ({ path, reason: 'duplicate_field' }));
 
-  compileSections(registry);
+  const unresolved: RegistryIssue[] = definitions
+    .flatMap(([name, def]) => unresolvedComponents(name, def.fields, registry.components))
+    .map(({ path, kind }) => ({ path, reason: kind }));
+
+  return [...duplicates, ...unresolved];
 }
 
 // Aplati le registre (sections + components) en lignes `content_definition` (une par définition).
@@ -118,32 +134,46 @@ function registryToRows(registry: Registry): (typeof contentDefinition.$inferIns
  * inexistante, et c'est ici que ça se joue. `knownTargets` vient de l'appelant — le socle ne
  * connaît pas les entités du produit, il ne fait que comparer des noms.
  *
- * Rend les noms fautifs, dédupliqués, chacun avec le champ qui le cite : un dev qui pousse un
- * registre fautif doit savoir OÙ corriger.
+ * Rend les noms de CIBLES fautives, dédupliqués — et rien d'autre.
+ *
+ * Elle rendait naguère `hero.lien → « produit »`, pour dire aussi OÙ corriger. Le besoin était réel,
+ * la forme non : c'était une phrase composée dans un opérande, que la surface ne pouvait ni
+ * traduire ni remettre en forme. Et le critère d'ADR-0050 §5 le rend inutile — l'appelant vient de
+ * soumettre le registre ENTIER, donc il retrouve seul quels champs citent une cible refusée. Ce
+ * qu'il ne peut pas deviner, c'est la liste des cibles inscrites : c'est cela, et cela seul, qui
+ * doit traverser.
+ *
+ * Même forme que ce que rend `unknownTargets` pour les menus, qui alimente le même code de faute.
  */
 export function unknownRefTargets(registry: Registry, knownTargets: string[]): string[] {
   const known = new Set(knownTargets);
   const faults = new Set<string>();
 
-  const walkFields = (owner: string, fields: readonly SerializedField[]): void => {
+  const walkFields = (fields: readonly SerializedField[]): void => {
     for (const field of fields) {
-      if (field.kind === 'ref' && !known.has(field.to)) {
-        faults.add(`${owner}.${field.name} → « ${field.to} »`);
-      }
-      if (field.kind === 'repeater') walkFields(`${owner}.${field.name}`, field.fields);
+      if (field.kind === 'ref' && !known.has(field.to)) faults.add(field.to);
+      if (field.kind === 'repeater') walkFields(field.fields);
     }
   };
 
-  for (const [name, def] of Object.entries(registry.sections)) walkFields(name, def.fields);
-  for (const [name, def] of Object.entries(registry.components)) walkFields(name, def.fields);
+  for (const def of Object.values(registry.sections)) walkFields(def.fields);
+  for (const def of Object.values(registry.components)) walkFields(def.fields);
 
   return [...faults];
 }
 
 export type SyncRegistryOutcome =
   | { outcome: 'synced' }
-  /** Référence de component introuvable, cycle, ou cible de `ref` non inscrite : refusé AVANT de persister quoi que ce soit. */
-  | { outcome: 'incoherent'; message: string };
+  /** Champs en double, `component` introuvable ou cycle : refusé AVANT de persister quoi que ce soit. */
+  | { outcome: 'incoherent'; issues: RegistryIssue[] }
+  /**
+   * Une cible de `ref` que le produit n'a pas inscrite (ADR-0032).
+   *
+   * Séparée de `incoherent`, et pas par goût du détail : le registre est bien formé, c'est son
+   * ENVIRONNEMENT qui ne fournit pas la cible. Le dev corrige ailleurs, et le contrat a déjà un code
+   * pour ça — `unknown_reference_targets`.
+   */
+  | { outcome: 'unknown_targets'; targets: string[] };
 
 /**
  * Remplace le registre stocké d'un bloc. La source d'autorité, ce sont les fichiers du dev ; la
@@ -156,22 +186,11 @@ export async function syncRegistry(
   registry: Registry,
   knownTargets: string[],
 ): Promise<SyncRegistryOutcome> {
-  try {
-    assertRegistryCoherent(registry);
-  } catch (error) {
-    return {
-      outcome: 'incoherent',
-      message: error instanceof Error ? error.message : 'Registre de contenu invalide',
-    };
-  }
+  const issues = registryIssues(registry);
+  if (issues.length > 0) return { outcome: 'incoherent', issues };
 
-  const faults = unknownRefTargets(registry, knownTargets);
-  if (faults.length > 0) {
-    return {
-      outcome: 'incoherent',
-      message: `Cibles référençables inconnues : ${faults.join(', ')}`,
-    };
-  }
+  const targets = unknownRefTargets(registry, knownTargets);
+  if (targets.length > 0) return { outcome: 'unknown_targets', targets };
 
   await db.transaction(async (tx) => {
     await tx.delete(contentDefinition);
@@ -185,18 +204,23 @@ export async function syncRegistry(
   return { outcome: 'synced' };
 }
 
-type ValidationResult = { ok: true } | { ok: false; errors: string[] };
+/**
+ * Le verdict d'une validation de section — TROIS issues, là où il n'y en avait que deux.
+ *
+ * `unknown_type` était rangé sous « données invalides », avec une phrase pour tout signalement. Ce
+ * n'en est pas : la donnée n'a pas été examinée, faute de définition à quoi la comparer. C'est une
+ * section introuvable, et le contrat a déjà un code pour ça.
+ */
+export type ValidationResult =
+  | { ok: true }
+  | { ok: false; reason: 'unknown_type' }
+  | { ok: false; reason: 'invalid'; issues: ValidationIssue[] };
 
 /** Valide le `data` d'une section contre la définition de son `type` dans le registre. */
 export async function validateSectionData(type: string, data: unknown): Promise<ValidationResult> {
   const { sectionChecks } = await ensureLoaded();
   const check = sectionChecks.get(type);
-  if (!check) {
-    return { ok: false, errors: [`Type de bloc inconnu : « ${type} »`] };
-  }
-  if (check.Check(data)) {
-    return { ok: true };
-  }
-  const errors = [...check.Errors(data)].map((error) => `${error.path || '/'} ${error.message}`);
-  return { ok: false, errors };
+  if (!check) return { ok: false, reason: 'unknown_type' };
+  if (check.Check(data)) return { ok: true };
+  return { ok: false, reason: 'invalid', issues: issuesOf(check, data) };
 }

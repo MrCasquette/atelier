@@ -67,8 +67,14 @@ describe('les listes restent des listes jusqu’au rendu', () => {
   // séparateur.
   it('joint les détails de validation au moment du rendu seulement', () => {
     expect(
-      faultMessage({ code: 'validation_failed', details: ['/titre requis', '/vues entier'] }),
-    ).toBe('/titre requis · /vues entier');
+      faultMessage({
+        code: 'validation_failed',
+        details: [
+          { path: '/titre', reason: 'required' },
+          { path: '/vues', reason: 'type' },
+        ],
+      }),
+    ).toBe('/titre est requis · /vues n’a pas le type attendu');
     expect(
       faultMessage({ code: 'unknown_reference_targets', targets: ['article', 'auteur'] }),
     ).toBe('Cibles référençables inconnues : article, auteur');
@@ -118,7 +124,10 @@ describe('exhaustivité du catalogue', () => {
       { code: 'personalization_rejected', field: 'gravure', reason: 'required' },
       { code: 'configuration_missing', target: 'ENCRYPTION_KEY' },
       { code: 'required_data_missing', field: 'billingAddress' },
-      { code: 'validation_failed', details: ['x'] },
+      { code: 'validation_failed', details: [{ path: '/x', reason: 'required' }] },
+      { code: 'empty_patch' },
+      { code: 'registry_incoherent', issues: [{ path: 'hero.x', reason: 'duplicate_field' }] },
+      { code: 'blocked_plan', blockers: [{ reason: 'rows_present', target: 'article' }] },
       { code: 'unknown_reference_targets', targets: ['x'] },
       { code: 'unknown_scopes', scopes: ['x'] },
       { code: 'external_operation_failed', operation: 'webhook' },
@@ -127,6 +136,6 @@ describe('exhaustivité du catalogue', () => {
     for (const fault of samples) {
       expect(faultMessage(fault).length).toBeGreaterThan(0);
     }
-    expect(samples).toHaveLength(23);
+    expect(samples).toHaveLength(26);
   });
 });

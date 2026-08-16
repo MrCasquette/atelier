@@ -85,7 +85,7 @@ export const apiKeyRoutes = new Elysia({ prefix: '/api-keys', detail: { tags: ['
       const entityNames = await listEntityNames();
       const invalid = body.scopes.filter((scope) => !isValidScopeFor(scope, entityNames));
       if (invalid.length > 0) {
-        return status(422, { message: `Portées inconnues : ${invalid.join(', ')}` });
+        return status(422, faultBody(faults.unknownScopes(invalid)));
       }
 
       // Une clé est une DÉLÉGATION D'AUTORITÉ : on ne peut lui donner que ce qu'on détient

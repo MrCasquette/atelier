@@ -1,6 +1,7 @@
 import { permission } from '@repo/auth';
 import { db, inArray, sql } from '@repo/db';
 import { duplicateFieldNames } from '@repo/fields';
+import type { PlanBlocker, RegistryIssue } from '@repo/shared';
 import { TypeCompiler } from 'elysia/type-system';
 import {
   addColumnSql,
@@ -63,8 +64,22 @@ export type PlanStep = {
 
 export type EntityPlan = {
   steps: PlanStep[];
-  /** Refus définitifs : rien ne les débloque, pas même une confirmation. */
-  blockers: string[];
+  /**
+   * La DÉCLARATION est fautive : le dev corrige ses fichiers, la base n'est pas en cause.
+   *
+   * Même vocabulaire que le registre de sections, et ce n'est pas un rapprochement de circonstance :
+   * les deux moteurs partagent leur grammaire de champs (ADR-0026), donc leurs façons d'être mal
+   * déclarés. `duplicate_field` était déjà commun aux deux.
+   */
+  issues: RegistryIssue[];
+  /**
+   * La déclaration est bonne, mais l'ÉTAT de la base empêche de l'appliquer.
+   *
+   * Distinct d'`issues`, parce que le geste de correction l'est : vider une table, retirer un champ
+   * qui référence. Les deux voyageaient naguère dans une seule liste de phrases, ce qui obligeait le
+   * lecteur à deviner, à chaque ligne, laquelle des deux choses on lui demandait.
+   */
+  blockers: PlanBlocker[];
 };
 
 // ── Lecture du schéma RÉEL ────────────────────────────────────────────────────────────────────
@@ -209,7 +224,10 @@ async function incomingReferences(name: string): Promise<string[]> {
       and ccu.table_name = ${table}
       and tc.table_name <> ${table}
   `);
-  return rows.map((row) => `« ${row.source} ».${row.column_name}`);
+  // Chemins NUS — `lecteur_externe.cible`. Ces noms entourent un opérande de faute jusqu'à la
+  // surface qui l'affiche (ADR-0050 §3) : la ponctuation appartient à celle-ci, qui ne saurait pas
+  // la retirer si on la posait ici. Même règle que `duplicateFieldNames`.
+  return rows.map((row) => `${row.source}.${row.column_name}`);
 }
 
 /**
@@ -240,9 +258,14 @@ async function planForeignKeys(
     if (!added.has(column)) {
       const pending = await danglingRows(table, column, key.table);
       if (pending > 0) {
-        plan.blockers.push(
-          `« ${declaration.name} ».${column} porte ${pending} valeur(s) qui ne désignent plus rien dans « ${key.table} ». Corrigez-les avant de poser la contrainte : les effacer d'office serait une destruction implicite.`,
-        );
+        // Le COMPTE ne traverse pas : il ne change pas le geste — corriger ces valeurs — et
+        // l'appelant ne pourrait rien en faire de plus (ADR-0050 §5). La table visée, si : elle ne
+        // se déduit pas de la déclaration, qui ne dit pas où pointent les valeurs stockées.
+        plan.blockers.push({
+          reason: 'dangling_rows',
+          target: `${declaration.name}.${column}`,
+          references: key.table,
+        });
         continue;
       }
     }
@@ -293,9 +316,7 @@ async function planAlter(
   // au-delà, plutôt que d'inventer des slugs ou d'en jeter. Jamais de destruction implicite.
   if (live.singleton !== declaration.singleton) {
     if (live.rows > 0) {
-      plan.blockers.push(
-        `« ${declaration.name} » change de cardinalité mais sa table contient ${live.rows} ligne(s). Videz-la d'abord : le slug d'une liste n'a pas d'équivalent sur un singleton.`,
-      );
+      plan.blockers.push({ reason: 'rows_present', target: declaration.name });
       return;
     }
     plan.steps.push(
@@ -324,9 +345,10 @@ async function planAlter(
   for (const name of live.columns.keys()) {
     if (IDENTITY_COLUMNS.includes(name) || declared.has(name)) continue;
     if (!isValidIdentifier(name)) {
-      plan.blockers.push(
-        `La table de « ${declaration.name} » porte une colonne « ${name} » que ce mécanisme n'a pas pu créer. Intervention manuelle requise.`,
-      );
+      plan.blockers.push({
+        reason: 'unmanaged_column',
+        target: `${declaration.name}.${name}`,
+      });
       continue;
     }
     plan.steps.push({
@@ -373,11 +395,11 @@ export async function planEntities(
   declaredTables: ReferenceTables,
 ): Promise<EntityPlan> {
   const tables = withDeclaredEntities(registry, declaredTables);
-  const plan: EntityPlan = { steps: [], blockers: [] };
+  const plan: EntityPlan = { steps: [], issues: [], blockers: [] };
 
   // Un lien qui cite un champ inexistant ne se résoudra jamais. Le DSL le refuse déjà au dev, mais
   // rien ne garantit qu'un registre poussé soit passé par ce chemin (ADR-0046).
-  plan.blockers.push(...incoherentLinks(registry));
+  plan.issues.push(...incoherentLinks(registry));
 
   // Deux champs de même nom (ADR-0049). Postgres refuserait le DDL de toute façon — mais au PUSH,
   // après qu'un `check` a dit que tout allait bien, et sans nommer l'entité fautive. Un blocage ici
@@ -385,31 +407,35 @@ export async function planEntities(
   for (const declaration of Object.values(registry)) {
     const duplicates = duplicateFieldNames(declaration.name, declaration.fields);
     if (duplicates.length > 0) {
-      plan.blockers.push(`Champs en double : ${duplicates.join(', ')}.`);
+      plan.issues.push(
+        ...duplicates.map((path): RegistryIssue => ({ path, reason: 'duplicate_field' })),
+      );
     }
   }
 
   for (const [key, declaration] of Object.entries(registry)) {
     if (key !== declaration.name) {
-      plan.blockers.push(`Entité « ${key} » déclarée sous le nom « ${declaration.name} ».`);
+      plan.issues.push({ path: key, reason: 'name_mismatch' });
       continue;
     }
     if (!isValidIdentifier(declaration.name)) {
-      plan.blockers.push(
-        `Nom d'entité refusé : « ${declaration.name} ». Minuscules, chiffres et « _ », commençant par une lettre.`,
-      );
+      plan.issues.push({ path: declaration.name, reason: 'invalid_name' });
       continue;
     }
 
-    try {
-      const live = await readLiveTable(declaration.name);
-      if (!live) {
-        plan.steps.push(...planCreate(declaration, tables));
-      } else {
-        await planAlter(declaration, live, plan, tables);
-      }
-    } catch (error) {
-      plan.blockers.push(error instanceof Error ? error.message : String(error));
+    // PAS de try/catch ici, et c'est délibéré (ADR-0050). Ce qui suit ne lit que le catalogue
+    // Postgres et compte des lignes : une exception y est une panne d'infrastructure, jamais un
+    // refus métier. Le nom d'entité, seule chose qui pourrait être refusée en aval, vient d'être
+    // validé juste au-dessus.
+    //
+    // L'attraper la transformait en blocage : l'appelant recevait un 422 « votre déclaration est
+    // refusée » portant le diagnostic brut du driver. Faux deux fois — le statut, et la fuite. Une
+    // base indisponible doit remonter à la frontière et devenir un 500.
+    const live = await readLiveTable(declaration.name);
+    if (!live) {
+      plan.steps.push(...planCreate(declaration, tables));
+    } else {
+      await planAlter(declaration, live, plan, tables);
     }
   }
 
@@ -421,9 +447,7 @@ export async function planEntities(
     if (registry[known.name]) continue;
     const live = await readLiveTable(known.name);
     if (live && live.rows > 0) {
-      plan.blockers.push(
-        `« ${known.name} » n'est plus déclarée mais sa table contient ${live.rows} lignes. Videz-la avant de la supprimer.`,
-      );
+      plan.blockers.push({ reason: 'rows_present', target: known.name });
       continue;
     }
 
@@ -433,9 +457,9 @@ export async function planEntities(
     // partout (ADR-0028).
     const holders = await incomingReferences(known.name);
     if (holders.length > 0) {
-      plan.blockers.push(
-        `« ${known.name} » n'est plus déclarée mais ${holders.join(', ')} la référence(nt) encore. Retirez ces champs avant de la supprimer : jamais de cascade.`,
-      );
+      // `holders` traverse : sans elles, le dev sait qu'il est bloqué sans savoir où retirer les
+      // champs, et il ne peut pas les déduire — ce sont d'AUTRES entités que la sienne.
+      plan.blockers.push({ reason: 'still_referenced', target: known.name, holders });
       continue;
     }
 
@@ -453,8 +477,10 @@ export async function planEntities(
 
 export type PushOutcome =
   | { outcome: 'applied'; steps: PlanStep[] }
-  /** Refus définitif — le plan ne peut pas être appliqué en l'état. */
-  | { outcome: 'blocked'; blockers: string[] }
+  /** La déclaration poussée est fautive : rien à faire côté base. */
+  | { outcome: 'incoherent'; issues: RegistryIssue[] }
+  /** Refus définitif — l'état de la base ne permet pas d'appliquer le plan. */
+  | { outcome: 'blocked'; blockers: PlanBlocker[] }
   /** Le plan détruit des données : il faut le vouloir explicitement. */
   | { outcome: 'destructive'; steps: PlanStep[] };
 
@@ -471,9 +497,9 @@ export async function pushEntities(
   confirmDestructive = false,
 ): Promise<PushOutcome> {
   const plan = await planEntities(registry, tables);
-  if (plan.blockers.length > 0) {
-    return { outcome: 'blocked', blockers: plan.blockers };
-  }
+  // La déclaration d'abord : inutile de reprocher à la base son état si les fichiers sont fautifs.
+  if (plan.issues.length > 0) return { outcome: 'incoherent', issues: plan.issues };
+  if (plan.blockers.length > 0) return { outcome: 'blocked', blockers: plan.blockers };
 
   const destructive = plan.steps.filter((step) => step.destroys !== undefined);
   if (destructive.length > 0 && !confirmDestructive) {

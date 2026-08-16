@@ -88,6 +88,28 @@ const RANKS: Record<string, string> = {
   first_rank: 'au premier rang',
 };
 
+/** Ce qu'une donnée refusée demande de corriger. Les raisons viennent de `@repo/fields`. */
+const VALIDATION: Record<string, string> = {
+  required: 'est requis',
+  type: 'n’a pas le type attendu',
+  not_allowed: 'porte une valeur non permise',
+  too_small: 'est trop petit',
+  too_large: 'est trop grand',
+  format: 'n’a pas la forme attendue',
+};
+
+/** Ce qui empêche une déclaration poussée de tenir debout. */
+const INCOHERENCE: Record<string, string> = {
+  duplicate_field: 'est déclaré deux fois',
+  unknown_component: 'cite un composant absent du registre',
+  circular_component: 'entre dans une référence circulaire',
+  invalid_name: 'porte un nom refusé (minuscules, chiffres et « _ », commençant par une lettre)',
+  name_mismatch: 'est rangée sous une clé qui ne correspond pas à son nom',
+  link_cardinality: 'a un lien qui contredit sa cardinalité',
+  link_unknown_field: 'est cité par un lien mais n’est pas déclaré',
+  link_field_type: 'n’a pas le type que son lien exige',
+};
+
 /** Pourquoi un droit ne peut pas être délégué — un code, une phrase. */
 const UNDELEGATABLE: Record<string, string> = {
   not_held: 'non détenus',
@@ -144,6 +166,23 @@ const elides = (word: string): boolean => /^[aeiouyàâéèêëîïôöùûü]/i
 const demonstrative = (gender: Gender, word: string): string =>
   gender === 'f' ? 'Cette' : elides(word) ? 'Cet' : 'Ce';
 const indefinite = (gender: Gender): string => (gender === 'f' ? 'Une' : 'Un');
+
+/**
+ * Ce qu'un blocage de plan demande de faire. Chaque raison porte des opérandes différents, donc
+ * chacune a sa phrase — c'est précisément ce que l'union discriminée permet de dire sans deviner.
+ */
+function blocker(item: Extract<Fault, { code: 'blocked_plan' }>['blockers'][number]): string {
+  switch (item.reason) {
+    case 'rows_present':
+      return `« ${item.target} » contient des lignes — videz la table d’abord`;
+    case 'dangling_rows':
+      return `« ${item.target} » porte des valeurs qui ne désignent plus rien dans « ${item.references} »`;
+    case 'still_referenced':
+      return `« ${item.target} » est encore référencée par ${item.holders.join(', ')} — retirez ces champs, jamais de cascade`;
+    case 'unmanaged_column':
+      return `« ${item.target} » n’a pas été créée par ce mécanisme : intervention manuelle requise`;
+  }
+}
 
 export function faultMessage(fault: Fault): string {
   switch (fault.code) {
@@ -233,7 +272,19 @@ export function faultMessage(fault: Fault): string {
     case 'required_data_missing':
       return `Champ requis manquant : ${fault.field}`;
     case 'validation_failed':
-      return fault.details.join(' · ');
+      // Le chemin est un pointeur JSON : on le rend tel quel, c'est ce que l'auteur reconnaît dans
+      // son formulaire. La raison, elle, se dit en français — le domaine ne l'a jamais formulée.
+      return fault.details
+        .map((issue) => `${issue.path} ${VALIDATION[issue.reason] ?? issue.reason}`)
+        .join(' · ');
+    case 'empty_patch':
+      return 'Aucun champ à modifier';
+    case 'registry_incoherent':
+      return `Déclaration refusée : ${fault.issues
+        .map((issue) => `« ${issue.path} » ${INCOHERENCE[issue.reason] ?? issue.reason}`)
+        .join(' · ')}`;
+    case 'blocked_plan':
+      return `Migration impossible en l’état : ${fault.blockers.map(blocker).join(' · ')}`;
     case 'unknown_reference_targets':
       return `Cibles référençables inconnues : ${fault.targets.join(', ')}`;
     case 'unknown_scopes':

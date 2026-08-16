@@ -125,6 +125,63 @@ export function compileFields(
 }
 
 /**
+ * Ce qu'un `component`/`list` peut avoir de fautif : deux prédicats, deux corrections.
+ *
+ * Ce sont EXACTEMENT les deux cas que `resolveComponent` lève. Les nommer ici permet de les
+ * détecter avant de compiler, donc de les rendre au lieu de les faire remonter en exception — ce
+ * qu'ADR-0050 interdit dès lors que le verdict traverse HTTP.
+ */
+export type ComponentFault = {
+  kind: 'unknown_component' | 'circular_component';
+  /** Où, dans la déclaration : `hero.encart`, `page.blocs.lien`. */
+  path: string;
+};
+
+/**
+ * Les `component`/`list` d'une séquence de champs qui ne résoudront jamais.
+ *
+ * Même forme et même intention que `duplicateFieldNames` et `unknownRefTargets` : rendre TOUTES les
+ * fautes, localisées, plutôt que d'échouer sur la première. Un dev qui pousse un registre fautif
+ * corrige une fois, pas trois.
+ *
+ * Ne compile rien : la traversée seule suffit, et elle n'a pas d'effet de bord sur le registre de
+ * formats.
+ */
+export function unresolvedComponents(
+  owner: string,
+  fields: readonly SerializedField[],
+  components: Components,
+  seen: Set<string> = new Set(),
+): ComponentFault[] {
+  const faults: ComponentFault[] = [];
+
+  for (const field of fields) {
+    const path = `${owner}.${field.name}`;
+
+    if (field.kind === 'repeater') {
+      faults.push(...unresolvedComponents(path, field.fields, components, seen));
+      continue;
+    }
+    if (field.kind !== 'component' && field.kind !== 'list') continue;
+
+    if (seen.has(field.of)) {
+      faults.push({ kind: 'circular_component', path });
+      continue;
+    }
+    const definition = components[field.of];
+    if (!definition) {
+      faults.push({ kind: 'unknown_component', path });
+      continue;
+    }
+    faults.push(
+      ...unresolvedComponents(path, definition.fields, components, new Set(seen).add(field.of)),
+    );
+  }
+
+  return faults;
+}
+
+/**
  * Noms de champs déclarés deux fois dans une même définition, en descendant les répéteurs.
  *
  * L'objet donnait cette garantie gratuitement — deux clés identiques ne coexistent pas. La séquence
@@ -138,14 +195,18 @@ export function compileFields(
  * refuse le DDL (« column specified more than once ») — mais au push, alors que `check` a déjà dit
  * que tout allait bien, et sans nommer l'entité fautive.
  *
- * Rend TOUTES les fautes, en clair. Même forme qu'`unknownRefTargets`.
+ * Rend TOUTES les fautes, localisées. Même forme qu'`unknownRefTargets`.
+ *
+ * Les chemins sortent NUS — `hero.titre`, sans guillemets. Ils entourent un opérande de faute
+ * jusqu'à la surface qui l'affiche (ADR-0050 §3) : la ponctuation appartient à celle-ci, qui ne
+ * saurait pas la retirer si le domaine la posait.
  */
 export function duplicateFieldNames(owner: string, fields: readonly SerializedField[]): string[] {
   const faults: string[] = [];
   const seen = new Set<string>();
 
   for (const field of fields) {
-    if (seen.has(field.name)) faults.push(`« ${owner}.${field.name} »`);
+    if (seen.has(field.name)) faults.push(`${owner}.${field.name}`);
     seen.add(field.name);
     if (field.kind === 'repeater') {
       faults.push(...duplicateFieldNames(`${owner}.${field.name}`, field.fields));

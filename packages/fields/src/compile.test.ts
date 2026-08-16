@@ -199,7 +199,7 @@ describe('les doublons de noms se voient, à tous les étages', () => {
       { name: 'titre', kind: 'richText' },
     ];
 
-    expect(duplicateFieldNames('hero', fields)).toEqual(['« hero.titre »']);
+    expect(duplicateFieldNames('hero', fields)).toEqual(['hero.titre']);
   });
 
   it('descend dans un répéteur et donne le chemin complet', () => {
@@ -214,7 +214,7 @@ describe('les doublons de noms se voient, à tous les étages', () => {
       },
     ];
 
-    expect(duplicateFieldNames('article', fields)).toEqual(['« article.lignes.x »']);
+    expect(duplicateFieldNames('article', fields)).toEqual(['article.lignes.x']);
   });
 
   it('descend dans un répéteur imbriqué', () => {
@@ -235,7 +235,7 @@ describe('les doublons de noms se voient, à tous les étages', () => {
       },
     ];
 
-    expect(duplicateFieldNames('article', fields)).toEqual(['« article.lignes.sous.x »']);
+    expect(duplicateFieldNames('article', fields)).toEqual(['article.lignes.sous.x']);
   });
 
   it('laisse un répéteur redéclarer un nom du niveau au-dessus — les portées sont distinctes', () => {
@@ -273,9 +273,9 @@ describe('les doublons de noms se voient, à tous les étages', () => {
     ];
 
     expect(duplicateFieldNames('article', fields)).toEqual([
-      '« article.titre »',
-      '« article.corps »',
-      '« article.lignes.x »',
+      'article.titre',
+      'article.corps',
+      'article.lignes.x',
     ]);
   });
 
@@ -286,6 +286,6 @@ describe('les doublons de noms se voient, à tous les étages', () => {
       { name: 'titre', kind: 'text' },
     ];
 
-    expect(duplicateFieldNames('hero', fields)).toEqual(['« hero.titre »', '« hero.titre »']);
+    expect(duplicateFieldNames('hero', fields)).toEqual(['hero.titre', 'hero.titre']);
   });
 });

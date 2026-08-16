@@ -13,6 +13,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@repo/shared": "workspace:*",
+    "@sinclair/typebox": "^0.34.49",
     "elysia": "^1.4.29"
   },
   "devDependencies": {

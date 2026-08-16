@@ -80,12 +80,13 @@ export const entityAdminRoutes = new Elysia({
       // components viennent du registre de définitions — un champ `list` d'une entité les cite.
       const registry = await loadRegistry();
       const valid = validateEntityData(found.declaration, body.data, registry.components);
-      if (!valid.ok) return status(422, { message: valid.errors.join(' · ') });
+      if (!valid.ok) return status(422, faultBody(faults.validationFailed(valid.issues)));
 
       const written = await createEntityRow(found.declaration, body);
       if (written.outcome === 'invalid') {
-        return status(422, { message: written.errors.join(' · ') });
+        return status(422, faultBody(faults.validationFailed(written.issues)));
       }
+      if (written.outcome === 'empty') return status(422, faultBody(faults.emptyPatch()));
       if (written.outcome === 'conflict')
         return status(
           409,
@@ -116,12 +117,13 @@ export const entityAdminRoutes = new Elysia({
 
       const registry = await loadRegistry();
       const valid = validateEntityData(found.declaration, body.data, registry.components);
-      if (!valid.ok) return status(422, { message: valid.errors.join(' · ') });
+      if (!valid.ok) return status(422, faultBody(faults.validationFailed(valid.issues)));
 
       const written = await updateEntityRow(found.declaration, params.id, body);
       if (written.outcome === 'invalid') {
-        return status(422, { message: written.errors.join(' · ') });
+        return status(422, faultBody(faults.validationFailed(written.issues)));
       }
+      if (written.outcome === 'empty') return status(422, faultBody(faults.emptyPatch()));
       if (written.outcome === 'conflict')
         return status(
           409,

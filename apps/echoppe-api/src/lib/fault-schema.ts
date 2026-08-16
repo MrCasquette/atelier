@@ -189,7 +189,60 @@ export const faultSchema = t.Union(
     }),
     t.Object({ code: t.Literal('configuration_missing'), target: t.String() }),
     t.Object({ code: t.Literal('required_data_missing'), field: t.String() }),
-    t.Object({ code: t.Literal('validation_failed'), details: t.Array(t.String()) }),
+    t.Object({
+      code: t.Literal('validation_failed'),
+      details: t.Array(
+        t.Object({
+          path: t.String(),
+          reason: t.Union([
+            t.Literal('required'),
+            t.Literal('type'),
+            t.Literal('not_allowed'),
+            t.Literal('too_small'),
+            t.Literal('too_large'),
+            t.Literal('format'),
+          ]),
+        }),
+      ),
+    }),
+    t.Object({ code: t.Literal('empty_patch') }),
+    t.Object({
+      code: t.Literal('registry_incoherent'),
+      issues: t.Array(
+        t.Object({
+          path: t.String(),
+          reason: t.Union([
+            t.Literal('duplicate_field'),
+            t.Literal('unknown_component'),
+            t.Literal('circular_component'),
+            t.Literal('invalid_name'),
+            t.Literal('name_mismatch'),
+            t.Literal('link_cardinality'),
+            t.Literal('link_unknown_field'),
+            t.Literal('link_field_type'),
+          ]),
+        }),
+      ),
+    }),
+    t.Object({
+      code: t.Literal('blocked_plan'),
+      blockers: t.Array(
+        t.Union([
+          t.Object({ reason: t.Literal('rows_present'), target: t.String() }),
+          t.Object({
+            reason: t.Literal('dangling_rows'),
+            target: t.String(),
+            references: t.String(),
+          }),
+          t.Object({
+            reason: t.Literal('still_referenced'),
+            target: t.String(),
+            holders: t.Array(t.String()),
+          }),
+          t.Object({ reason: t.Literal('unmanaged_column'), target: t.String() }),
+        ]),
+      ),
+    }),
     t.Object({ code: t.Literal('unknown_reference_targets'), targets: t.Array(t.String()) }),
     t.Object({ code: t.Literal('unknown_scopes'), scopes: t.Array(t.String()) }),
     t.Object({ code: t.Literal('external_operation_failed'), operation: t.String() }),

@@ -136,8 +136,12 @@ export const pageAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: 
       switch (result.outcome) {
         case 'page-not-found':
           return status(404, faultBody(faults.notFound('page')));
+        case 'unknown-type':
+          // Le type de bloc n'existe pas : la donnée n'a pas été examinée, faute de définition à
+          // quoi la comparer. Ce n'est pas une validation qui échoue, c'est une section introuvable.
+          return status(422, faultBody(faults.notFound('section')));
         case 'invalid':
-          return status(422, { message: result.errors.join(' ; ') });
+          return status(422, faultBody(faults.validationFailed(result.issues)));
         case 'replaced':
           return result.sections;
       }

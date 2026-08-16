@@ -41,28 +41,38 @@ describe('cohérence du lien déclaré', () => {
   test('refuse une route de liste sans slug', () => {
     // Toutes les occurrences porteraient la même URL — un lien qui ne distingue rien.
     const link = { mode: 'route', route: '/blog' } as const;
-    expect(incoherentLinks(registryOf(article({ link })))[0]).toContain(':slug');
+    expect(incoherentLinks(registryOf(article({ link })))).toEqual([
+      { path: 'article', reason: 'link_cardinality' },
+    ]);
   });
 
   test("refuse un slug sur un singleton, qui n'en a pas", () => {
     const link = { mode: 'route', route: '/cgv/:slug' } as const;
     const cgv = article({ name: 'cgv', singleton: true, link });
-    expect(incoherentLinks(registryOf(cgv))[0]).toContain('singleton');
+    // Même faute que la précédente, vue de l'autre côté : le mode de lien contredit la
+    // cardinalité. Deux phrases distinctes la disaient, un seul prédicat la produit.
+    expect(incoherentLinks(registryOf(cgv))).toEqual([{ path: 'cgv', reason: 'link_cardinality' }]);
   });
 
   test('refuse un href qui cite un champ non déclaré', () => {
     const link = { mode: 'href', field: 'lien' } as const;
-    expect(incoherentLinks(registryOf(article({ link })))[0]).toContain('lien');
+    expect(incoherentLinks(registryOf(article({ link })))).toEqual([
+      { path: 'article.lien', reason: 'link_unknown_field' },
+    ]);
   });
 
   test("refuse un href sur un champ qui ne peut pas porter d'URL", () => {
     const link = { mode: 'href', field: 'page' } as const;
-    expect(incoherentLinks(registryOf(article({ link })))[0]).toContain('texte');
+    expect(incoherentLinks(registryOf(article({ link })))).toEqual([
+      { path: 'article.page', reason: 'link_field_type' },
+    ]);
   });
 
   test("refuse une ancre dont le parent n'est pas un ref", () => {
     const link = { mode: 'anchor', parent: 'titre' } as const;
-    expect(incoherentLinks(registryOf(article({ link })))[0]).toContain('ref');
+    expect(incoherentLinks(registryOf(article({ link })))).toEqual([
+      { path: 'article.titre', reason: 'link_field_type' },
+    ]);
   });
 
   test('accepte une ancre vers un champ ref', () => {

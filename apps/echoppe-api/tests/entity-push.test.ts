@@ -265,8 +265,8 @@ describe('cardinalité', () => {
     const res = await push([entity('cgv', { corps: { kind: 'richText' } }, false)], true);
 
     expect(res.status).toBe(422);
-    expect((await res.json()) as { message: string }).toMatchObject({
-      message: expect.stringContaining('cardinalité'),
+    expect(await res.json()).toMatchObject({
+      fault: { code: 'blocked_plan', blockers: [{ reason: 'rows_present', target: 'cgv' }] },
     });
   });
 });

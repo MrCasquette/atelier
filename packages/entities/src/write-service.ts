@@ -1,5 +1,6 @@
 import { db, sql } from '@repo/db';
-import { type Components, compileFields, type SerializedField } from '@repo/fields';
+import { type Components, compileFields, issuesOf, type SerializedField } from '@repo/fields';
+import type { ValidationIssue } from '@repo/shared';
 import { entityTableName, fieldColumns } from './ddl';
 import type { EntityDeclaration } from './model';
 import { type EntityRow, projectRow, selectionOf } from './row-service';
@@ -14,7 +15,14 @@ export type EntityInput = { slug?: string; data: Record<string, unknown> };
 export type WriteOutcome =
   | { outcome: 'written'; row: EntityRow }
   /** La donnée ne respecte pas la déclaration : dit quels champs, et pourquoi. */
-  | { outcome: 'invalid'; errors: string[] }
+  | { outcome: 'invalid'; issues: ValidationIssue[] }
+  /**
+   * La requête ne demande RIEN — aucun champ à écrire.
+   *
+   * Distinct d'`invalid` : il n'y a ni chemin ni raison à donner, puisque rien n'a été soumis. Le
+   * ranger sous « donnée refusée » obligeait à inventer une faute qui n'existe pas.
+   */
+  | { outcome: 'empty' }
   /**
    * La base a refusé l'écriture pour une contrainte d'identité. `reason` dit LAQUELLE — ce que
    * l'ancien message fusionnait faute de savoir distinguer.
@@ -50,13 +58,10 @@ export function validateEntityData(
   declaration: EntityDeclaration,
   data: unknown,
   components: Components,
-): { ok: true } | { ok: false; errors: string[] } {
+): { ok: true } | { ok: false; issues: ValidationIssue[] } {
   const check = checkFor(declaration, components);
   if (check.Check(data)) return { ok: true };
-  return {
-    ok: false,
-    errors: [...check.Errors(data)].map((error) => `${error.path || '/'} ${error.message}`),
-  };
+  return { ok: false, issues: issuesOf(check, data) };
 }
 
 // Un champ dont la colonne est `jsonb` doit voyager en texte JSON : le driver ne peut pas deviner
@@ -147,7 +152,9 @@ export async function createEntityRow(
 
   if (!declaration.singleton) {
     if (!input.slug) {
-      return { outcome: 'invalid', errors: ['/slug est requis pour une entité de liste'] };
+      // Même prédicat qu'un champ requis manquant — `slug` est simplement une colonne d'identité
+      // du moteur plutôt qu'un champ déclaré. Le chemin le désigne comme n'importe quel autre.
+      return { outcome: 'invalid', issues: [{ path: '/slug', reason: 'required' }] };
     }
     assignments.unshift({ column: 'slug', value: input.slug });
   }
@@ -179,7 +186,7 @@ export async function updateEntityRow(
     assignments.unshift({ column: 'slug', value: input.slug });
   }
   if (assignments.length === 0) {
-    return { outcome: 'invalid', errors: ['Aucun champ à modifier'] };
+    return { outcome: 'empty' };
   }
 
   const setters = sql.join(

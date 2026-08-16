@@ -117,21 +117,30 @@ Détail : [ADR-0005](../adr/ADR-0005-panier-stock.md).
     trois `kind` sont dérivés des seuls sites destructifs du planificateur ; `PlanStep.destructive`
     (booléen) devient `destroys?: { kind, target }` pour n'avoir qu'une source de vérité.
 
-  **RESTE À FAIRE — 13 réponses, dans cet ordre :**
+  - [x] Les 9 réponses **422** et les six producteurs du statut. La bascule ne pouvait pas être
+    partielle : `COMMON_ERRORS` ne déclare qu'un schéma par statut, et Elysia produit lui-même un 422
+    sur chaque validation de requête. Le `onError` global convertit désormais `body`/`query`/
+    `params`/`headers`/`cookie` en `validation_failed`, avec la MÊME fonction de traduction que le
+    domaine. `response`, lui, part en 500 + incident : c'est un bug serveur, pas une faute
+    d'appelant, et il renvoyait la structure interne de nos propres corps.
+  - [x] `ValidationReason` (6 raisons) **dérivée d'une mesure** : 15 `ValueErrorType` sur 64 émis par
+    le générateur, regroupés par geste de correction. `issues.test.ts` remesure l'inventaire à
+    chaque exécution — c'est lui le verrou, pas une version épinglée.
+  - [x] Les **deux** promotions d'exception fermées, dont une que le tableau de l'ADR ne listait pas
+    (`service.ts` attrapait les pannes de `readLiveTable` pour en faire un blocage 422).
+  - [x] Les blockers du planificateur : 15 prédicats → **1 code neuf**. Les 7 `push` de `link.ts`
+    n'exprimaient que 3 prédicats ; la moitié du reste EST `registry_incoherent` (les deux moteurs
+    partagent leur grammaire de champs) ; seule la famille « l'état de la base empêche » méritait
+    `blocked_plan`, jumeau de `destructive_plan`.
+  - [x] Trois fonctions cessent de composer de la ponctuation dans leurs opérandes
+    (`duplicateFieldNames`, `incomingReferences`, `unknownRefTargets`).
 
-  - [ ] **Les 9 × 422** — la seule famille qui demande une analyse AVANT migration, pour deux
-    raisons distinctes :
-    - `validation_failed.details` est un `string[]` qui transporte des **chaînes TypeBox anglaises**
-      (`validateSectionData`, `@repo/entities/write-service`). Les structurer toucherait un code
-      déjà utilisé ailleurs — décider si `details` change de forme ou si un code distinct naît.
-    - `packages/pages/src/definition-service.ts:164` promeut encore `error.message` en
-      `{ outcome: 'incoherent' }` → 422 → toast. C'est le **chemin n°1** du tableau des violations
-      d'ADR-0050, jamais corrigé. Correction de fond, pas migration.
-    - Sites : `api-key:88`, `page/admin:138`, `entity/admin` ×4, `entity/index:83`, `menu/admin:116`.
-  - [ ] **Les 3 × 503/500** — services externes. Petite tranche, à faire après les 422.
+  **RESTE À FAIRE — 4 réponses :**
+
+  - [ ] **Les 3 × 503/500** — services externes. Petite tranche, la dernière du contrat.
   - [ ] **1 × 400, le webhook** (`payment:374`) : déjà conforme (détail au log, réponse générique),
-    en anglais parce que son destinataire est une machine. Ne migrera probablement pas — à trancher
-    avec le chantier des statuts.
+    en anglais parce que son destinataire est une machine. Seul 4xx du dépôt encore en `{ message }`.
+    Ne migrera probablement pas — à trancher avec le chantier des statuts.
   - [ ] **Retirer le champ `message` déprécié**, une fois qu'aucune surface ne le lit plus. Vérifier
     les 8 vues de l'administration, puis supprimer le champ, `lib/fault-message.ts` et le repli
     d'`apiError`.
@@ -139,8 +148,8 @@ Détail : [ADR-0005](../adr/ADR-0005-panier-stock.md).
     changent le comportement observable des clients, donc jamais mêlées aux corps. Recensées lors du
     classement des 400 : `configuration_missing` → 503 (13 sites), `invalid_state` /
     `already_exists` / `in_use` → 409 (10), `insufficient_stock` → 409 (4), `not_found` déguisé en
-    400 → 404 (6). Un cas est déjà résolu au passage : `shipping` rend 422 depuis que son schéma
-    exige `provider`.
+    400 → 404 (6). Deux cas sont déjà résolus au passage : `shipping` rend 422 depuis que son schéma
+    exige `provider`, et la validation de RÉPONSE d'Elysia rend 500 au lieu de 422.
 
   **Règles de découpage acquises**, à ne pas réapprendre :
   - L'unité migrable est la **route**, pas la réponse : une route n'a qu'un schéma par statut, donc
@@ -150,6 +159,14 @@ Détail : [ADR-0005](../adr/ADR-0005-panier-stock.md).
     propre requête (ADR-0050 §5). `rank_reserved.grants` est le seul du contrat.
   - Avant de créer un code, vérifier qu'aucun concept plus général n'existe déjà dans le dépôt ; et
     ne pas réserver un nom général à un seul domaine.
+  - **Cartographier TOUS les producteurs d'un statut avant de toucher au socle.** Le 422 en avait
+    six, dont un — la validation de réponse d'Elysia — que le recensement par `status(422, …)` ne
+    pouvait pas voir. Un producteur découvert après coup fait refaire la tranche entière.
+  - **Dériver une échelle d'une mesure, pas d'une documentation.** `ValidationReason` vient d'un
+    inventaire exécuté (15 `ValueErrorType` sur 64), regroupé par geste de correction. Un test qui
+    remesure vaut mieux qu'une version épinglée.
+  - Un compte, un libellé, une borne : si l'appelant ne peut pas AGIR dessus, l'opérande ne
+    traverse pas — même quand il ne peut pas le reconstruire.
 
 - [ ] 🟡 Inférer `Invoice` depuis le contrat dans l'admin.
 

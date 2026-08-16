@@ -8,12 +8,13 @@
 export type PagesResource = 'page' | 'section' | 'definition';
 export { type Registry, registrySchema, type SerializedDefinition } from './definition-model';
 export {
-  assertRegistryCoherent,
   invalidateRegistryCache,
   loadRegistry,
+  registryIssues,
   type SyncRegistryOutcome,
   syncRegistry,
   unknownRefTargets,
+  type ValidationResult,
   validateSectionData,
 } from './definition-service';
 export {

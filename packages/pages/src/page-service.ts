@@ -1,4 +1,5 @@
 import { and, asc, db, eq } from '@repo/db';
+import type { ValidationIssue } from '@repo/shared';
 import { validateSectionData } from './definition-service';
 import { page, section } from './schema';
 
@@ -123,8 +124,10 @@ export async function updatePage(id: string, patch: PagePatch) {
 export type ReplaceSectionsOutcome =
   | { outcome: 'replaced'; sections: Awaited<ReturnType<typeof loadSections>> }
   | { outcome: 'page-not-found' }
+  /** Un bloc cite un type que le registre ne déclare pas : rien n'a pu être validé. */
+  | { outcome: 'unknown-type' }
   /** Un ou plusieurs blocs ne satisfont pas la définition de leur type. */
-  | { outcome: 'invalid'; errors: string[] };
+  | { outcome: 'invalid'; issues: ValidationIssue[] };
 
 /**
  * Remplace toutes les sections d'une page d'un bloc — façon « save de la dynamic zone » : plus
@@ -138,14 +141,19 @@ export async function replaceSections(
   if (!existing) return { outcome: 'page-not-found' };
 
   // Valide chaque bloc contre sa définition dans le registre (validateur générique P2b).
-  const errors: string[] = [];
+  //
+  // Le rang du bloc PRÉFIXE le chemin — `/2/titre` — au lieu d'être rédigé devant la faute
+  // (« bloc 2 « hero » : … »). C'est le même pointeur JSON que le corps soumis, donc une surface
+  // peut désigner le champ fautif dans le formulaire ; une phrase ne le permettait pas. Le type du
+  // bloc n'y est plus : l'appelant a soumis le tableau, il sait ce qu'il y a au rang 2.
+  const issues: ValidationIssue[] = [];
   for (const [index, block] of blocks.entries()) {
     const result = await validateSectionData(block.type, block.data);
-    if (!result.ok) {
-      errors.push(...result.errors.map((error) => `bloc ${index} « ${block.type} » : ${error}`));
-    }
+    if (result.ok) continue;
+    if (result.reason === 'unknown_type') return { outcome: 'unknown-type' };
+    issues.push(...result.issues.map((issue) => ({ ...issue, path: `/${index}${issue.path}` })));
   }
-  if (errors.length > 0) return { outcome: 'invalid', errors };
+  if (issues.length > 0) return { outcome: 'invalid', issues };
 
   await db.transaction(async (tx) => {
     await tx.delete(section).where(eq(section.page, pageId));

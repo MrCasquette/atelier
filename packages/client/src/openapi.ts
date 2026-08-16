@@ -1152,7 +1152,42 @@ export interface components {
             } | {
                 /** @constant */
                 code: "validation_failed";
-                details: string[];
+                details: {
+                    path: string;
+                    reason: "required" | "type" | "not_allowed" | "too_small" | "too_large" | "format";
+                }[];
+            } | {
+                /** @constant */
+                code: "empty_patch";
+            } | {
+                /** @constant */
+                code: "registry_incoherent";
+                issues: {
+                    path: string;
+                    reason: "duplicate_field" | "unknown_component" | "circular_component" | "invalid_name" | "name_mismatch" | "link_cardinality" | "link_unknown_field" | "link_field_type";
+                }[];
+            } | {
+                /** @constant */
+                code: "blocked_plan";
+                blockers: ({
+                    /** @constant */
+                    reason: "rows_present";
+                    target: string;
+                } | {
+                    /** @constant */
+                    reason: "dangling_rows";
+                    target: string;
+                    references: string;
+                } | {
+                    /** @constant */
+                    reason: "still_referenced";
+                    target: string;
+                    holders: string[];
+                } | {
+                    /** @constant */
+                    reason: "unmanaged_column";
+                    target: string;
+                })[];
             } | {
                 /** @constant */
                 code: "unknown_reference_targets";
@@ -1977,16 +2012,13 @@ export interface operations {
                     "application/json": components["schemas"]["ProductList"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -2034,16 +2066,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -2091,16 +2120,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -2247,16 +2273,13 @@ export interface operations {
                     "application/json": components["schemas"]["CategoryList"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -2304,16 +2327,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -2361,16 +2381,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -2423,16 +2440,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -2472,16 +2486,13 @@ export interface operations {
                     "application/json": components["schemas"]["CollectionList"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -2529,16 +2540,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -2586,16 +2594,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -2648,16 +2653,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -2694,16 +2696,13 @@ export interface operations {
                     "application/json": components["schemas"]["PageList"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -2751,16 +2750,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -2811,16 +2807,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -2869,16 +2862,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -2926,16 +2916,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -3231,16 +3218,13 @@ export interface operations {
                     "application/json": components["schemas"]["PaymentProviderList"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -3277,16 +3261,13 @@ export interface operations {
                     "application/json": components["schemas"]["Identity"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -3323,16 +3304,13 @@ export interface operations {
                     "application/json": components["schemas"]["TaxRateList"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -3369,16 +3347,13 @@ export interface operations {
                     "application/json": components["schemas"]["CountryList"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -3442,16 +3417,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Trop de requêtes - Limite de débit dépassée */
@@ -4253,16 +4225,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */
@@ -4330,16 +4299,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Entité non traitable - Règle métier non respectée */
+            /** @description Réponse d’erreur (ADR-0050) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur métier */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Erreur serveur interne */

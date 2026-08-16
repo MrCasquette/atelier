@@ -158,7 +158,7 @@ describe('une table déjà poussée se met à niveau', () => {
     ]);
   });
 
-  it('refuse de poser la contrainte sur des valeurs pendantes, et dit combien', async () => {
+  it('refuse de poser la contrainte sur des valeurs pendantes, en nommant la cible', async () => {
     await asBeforeAdr0045();
     // Donnée DÉJÀ cassée, que l'absence de contrainte laissait passer. On ne l'efface pas d'office :
     // ce serait exactement la destruction implicite que le mécanisme refuse partout (ADR-0028).
@@ -169,10 +169,15 @@ describe('une table déjà poussée se met à niveau', () => {
     const res = await push([dossier, ancienne]);
 
     expect(res.status).toBe(422);
-    const body = (await res.json()) as { message: string };
-    expect(body.message).toContain('archive');
-    expect(body.message).toContain('visuel');
-    expect(body.message).toContain('1 valeur');
+    // Le COMPTE de lignes ne traverse plus : il ne changeait pas le geste — corriger ces valeurs —
+    // et l'appelant n'en pouvait rien faire de plus (ADR-0050 §5). La table VISÉE, si : elle ne se
+    // déduit pas de la déclaration soumise.
+    expect(await res.json()).toMatchObject({
+      fault: {
+        code: 'blocked_plan',
+        blockers: [{ reason: 'dangling_rows', target: 'archive.visuel', references: 'media' }],
+      },
+    });
     // Rien n'a été touché : la ligne fautive est toujours là, à corriger.
     const rows = await db.execute<{ total: number }>(
       sql`select count(*)::int as total from entity_archive`,
@@ -207,11 +212,17 @@ describe("une entité que l'on référence ne se supprime pas", () => {
     const res = await push([dossier]);
 
     expect(res.status).toBe(422);
-    const body = (await res.json()) as { message: string };
-    // Le refus doit dire QUI retient — sans quoi la seule issue trouvable serait la cascade.
-    expect(body.message).toContain('lecteur_externe');
-    expect(body.message).toContain('cible');
-    expect(body.message).toContain('jamais de cascade');
+    // Le refus doit dire QUI retient — sans quoi la seule issue trouvable serait la cascade. C'est
+    // la raison pour laquelle `still_referenced` porte `holders` là où ses voisines n'ont qu'une
+    // cible : ce sont d'AUTRES tables que celle soumise, donc introuvables depuis la requête.
+    expect(await res.json()).toMatchObject({
+      fault: {
+        code: 'blocked_plan',
+        blockers: [
+          { reason: 'still_referenced', target: 'citee', holders: ['lecteur_externe.cible'] },
+        ],
+      },
+    });
 
     await db.execute(sql`drop table lecteur_externe`);
   });

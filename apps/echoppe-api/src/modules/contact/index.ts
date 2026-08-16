@@ -2,6 +2,7 @@ import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
 import { strictRateLimitOptions } from '../../lib/rate-limit';
 import { messageSchema, withRateLimitErrors, withServiceErrors } from '../../lib/response';
+import { models } from '../../model';
 import { sendContactMessage } from './service';
 
 const contactBody = t.Object({
@@ -12,6 +13,7 @@ const contactBody = t.Object({
 });
 
 export const contactRoutes = new Elysia({ prefix: '/contact' })
+  .use(models)
   .use(rateLimit(strictRateLimitOptions))
   .post(
     '/',

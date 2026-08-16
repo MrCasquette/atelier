@@ -4,11 +4,14 @@
 // Frontière, dépendances et pièges : voir README.md.
 
 export {
+  type ComponentFault,
   type Components,
   compileFields,
   duplicateFieldNames,
   fieldsToSchema,
+  unresolvedComponents,
 } from './compile';
+export { issuesFrom, issuesOf } from './issues';
 export {
   type SerializedField,
   serializedFieldSchema,

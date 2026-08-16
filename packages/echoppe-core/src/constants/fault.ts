@@ -1,4 +1,9 @@
-import type { UndelegatableReason } from '@repo/shared';
+import type {
+  PlanBlocker,
+  RegistryIssue,
+  UndelegatableReason,
+  ValidationIssue,
+} from '@repo/shared';
 import type { EchoppeFault, EchoppeRank, EchoppeResource } from './fault-resources';
 
 // Constructeurs de fautes d'Échoppe (ADR-0050).
@@ -133,9 +138,24 @@ export const requiredDataMissing = (field: string): EchoppeFault => ({
 });
 
 /** `details` reste une LISTE : joindre est une décision de langue, donc de la surface qui rend. */
-export const validationFailed = (details: string[]): EchoppeFault => ({
+export const validationFailed = (details: ValidationIssue[]): EchoppeFault => ({
   code: 'validation_failed',
   details,
+});
+
+/** Aucun champ à écrire. Sans opérande : il n'y a précisément rien à nommer. */
+export const emptyPatch = (): EchoppeFault => ({ code: 'empty_patch' });
+
+/** Les prédicats qui refusent une déclaration, structurés — plus jamais un `error.message`. */
+export const registryIncoherent = (issues: RegistryIssue[]): EchoppeFault => ({
+  code: 'registry_incoherent',
+  issues,
+});
+
+/** Ce que l'état de la base empêche, par opposition à ce que la déclaration a de fautif. */
+export const blockedPlan = (blockers: PlanBlocker[]): EchoppeFault => ({
+  code: 'blocked_plan',
+  blockers,
 });
 
 export const unknownReferenceTargets = (targets: string[]): EchoppeFault => ({

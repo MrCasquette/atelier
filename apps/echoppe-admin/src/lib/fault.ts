@@ -85,6 +85,39 @@ const UNDELEGATABLE: Record<string, string> = {
   self_only_widened: 'que vous ne détenez que sur vos propres lignes',
 };
 
+/**
+ * Ce qu'une donnée refusée demande de corriger.
+ *
+ * Formulé pour un gestionnaire qui corrige SON formulaire : on peut lui dire quoi faire, là où le
+ * catalogue de l'API reste descriptif.
+ */
+const VALIDATION: Record<string, string> = {
+  required: 'est obligatoire',
+  type: 'n’a pas le format attendu',
+  not_allowed: 'contient une valeur qui n’est pas proposée',
+  too_small: 'est trop court ou trop petit',
+  too_large: 'est trop long ou trop grand',
+  format: 'n’est pas écrit dans la forme attendue',
+};
+
+/**
+ * Ce qui empêche une déclaration poussée de tenir debout.
+ *
+ * Ces fautes s'adressent au DÉVELOPPEUR — elles arrivent en poussant un registre depuis la CLI.
+ * L'administration les rend quand même : elle peut afficher la réponse d'une route qu'elle
+ * n'appelle pas elle-même.
+ */
+const INCOHERENCE: Record<string, string> = {
+  duplicate_field: 'est déclaré deux fois',
+  unknown_component: 'cite un composant qui n’existe pas',
+  circular_component: 'entre dans une référence circulaire',
+  invalid_name: 'porte un nom refusé',
+  name_mismatch: 'est rangée sous une clé qui ne correspond pas à son nom',
+  link_cardinality: 'a un lien incompatible avec sa cardinalité',
+  link_unknown_field: 'est cité par un lien sans être déclaré',
+  link_field_type: 'n’a pas le type que son lien exige',
+};
+
 const verb = (action: string): string => ACTIONS[action] ?? action.replace(/_/g, ' ');
 
 function label(resource: FaultResource): [string, Gender] {
@@ -136,6 +169,20 @@ const indefinite = (gender: Gender): string => (gender === 'f' ? 'Une' : 'Un');
  * `null` plutôt qu'un texte générique : c'est l'appelant qui décide de son repli, et il en a un
  * meilleur — `message`, encore rempli par l'API pendant la transition.
  */
+/** Ce qu'un blocage de plan demande de faire — chaque raison porte ses propres opérandes. */
+function blocker(item: Extract<Fault, { code: 'blocked_plan' }>['blockers'][number]): string {
+  switch (item.reason) {
+    case 'rows_present':
+      return `« ${item.target} » contient des lignes — videz la table d’abord`;
+    case 'dangling_rows':
+      return `« ${item.target} » porte des valeurs qui ne désignent plus rien dans « ${item.references} »`;
+    case 'still_referenced':
+      return `« ${item.target} » est encore référencée par ${item.holders.join(', ')}`;
+    case 'unmanaged_column':
+      return `« ${item.target} » n’a pas été créée par ce mécanisme`;
+  }
+}
+
 export function faultText(fault: Fault): string | null {
   switch (fault.code) {
     case 'not_found':
@@ -175,6 +222,20 @@ export function faultText(fault: Fault): string | null {
         required: `Ce champ de personnalisation est requis : ${fault.field}`,
         too_long: `Ce champ de personnalisation est trop long : ${fault.field}`,
       }[fault.reason];
+    case 'validation_failed':
+      // Le chemin reste un pointeur JSON : c'est ce qui permet à l'écran de surligner le champ.
+      // Aucune borne ne l'accompagne — le formulaire tient la déclaration, donc il les connaît.
+      return fault.details
+        .map((issue) => `${issue.path} ${VALIDATION[issue.reason] ?? issue.reason}`)
+        .join(' · ');
+    case 'empty_patch':
+      return 'Aucune modification à enregistrer';
+    case 'registry_incoherent':
+      return `Déclaration refusée : ${fault.issues
+        .map((issue) => `« ${issue.path} » ${INCOHERENCE[issue.reason] ?? issue.reason}`)
+        .join(' · ')}`;
+    case 'blocked_plan':
+      return `Migration impossible en l’état : ${fault.blockers.map(blocker).join(' · ')}`;
     case 'cardinality_exceeded': {
       const [name, gender] = label(fault.resource);
       return `${demonstrative(gender, name)} ${name} n’admet qu’une seule occurrence, et elle existe déjà`;

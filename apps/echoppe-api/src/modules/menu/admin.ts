@@ -114,7 +114,7 @@ export const menuAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: 
       // contre le registre.
       const unknown = body.items ? unknownTargets(body.items, references) : [];
       if (unknown.length > 0) {
-        return status(422, { message: `Cibles référençables inconnues : ${unknown.join(', ')}` });
+        return status(422, faultBody(faults.unknownReferenceTargets(unknown)));
       }
 
       const [updated] = await db

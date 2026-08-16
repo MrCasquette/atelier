@@ -57,7 +57,35 @@ const planSchema = t.Object({
       ),
     }),
   ),
-  blockers: t.Array(t.String()),
+  // Deux listes, deux gestes de correction — la déclaration est fautive, ou l'état de la base
+  // empêche. Une seule liste de phrases obligeait le lecteur à deviner laquelle à chaque ligne.
+  issues: t.Array(
+    t.Object({
+      path: t.String(),
+      reason: t.Union([
+        t.Literal('duplicate_field'),
+        t.Literal('unknown_component'),
+        t.Literal('circular_component'),
+        t.Literal('invalid_name'),
+        t.Literal('name_mismatch'),
+        t.Literal('link_cardinality'),
+        t.Literal('link_unknown_field'),
+        t.Literal('link_field_type'),
+      ]),
+    }),
+  ),
+  blockers: t.Array(
+    t.Union([
+      t.Object({ reason: t.Literal('rows_present'), target: t.String() }),
+      t.Object({ reason: t.Literal('dangling_rows'), target: t.String(), references: t.String() }),
+      t.Object({
+        reason: t.Literal('still_referenced'),
+        target: t.String(),
+        holders: t.Array(t.String()),
+      }),
+      t.Object({ reason: t.Literal('unmanaged_column'), target: t.String() }),
+    ]),
+  ),
 });
 
 export const entityRoutes = new Elysia({
@@ -92,8 +120,13 @@ export const entityRoutes = new Elysia({
         body.confirmDestructive === true,
       );
 
+      // Deux refus, deux gestes : la déclaration est fautive, ou c'est l'état de la base qui
+      // empêche. Ils voyageaient dans une seule liste de phrases, où rien ne les distinguait.
+      if (result.outcome === 'incoherent') {
+        return status(422, faultBody(faults.registryIncoherent(result.issues)));
+      }
       if (result.outcome === 'blocked') {
-        return status(422, { message: result.blockers.join(' · ') });
+        return status(422, faultBody(faults.blockedPlan(result.blockers)));
       }
       // Jamais de destruction implicite (ADR-0027) : un plan qui détruit est REFUSÉ, et il nomme
       // ce qu'il aurait détruit. Le dev relance avec `confirmDestructive` s'il le veut vraiment.

@@ -295,21 +295,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -379,21 +369,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -464,21 +444,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -804,21 +774,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -889,21 +849,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -973,21 +923,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1127,21 +1067,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1237,21 +1167,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1322,21 +1242,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1406,21 +1316,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1560,21 +1460,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1624,21 +1514,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1708,21 +1588,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1836,21 +1706,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1928,21 +1788,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2012,21 +1862,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2541,21 +2381,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2605,21 +2435,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2669,21 +2489,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2733,21 +2543,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2909,21 +2709,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -4657,21 +4447,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -4770,21 +4550,11 @@
             }
           },
           "422": {
-            "description": "Entité non traitable - Règle métier non respectée",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Entité non traitable - Règle métier non respectée",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur métier",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -8542,7 +8312,215 @@
                   "details": {
                     "type": "array",
                     "items": {
-                      "type": "string"
+                      "type": "object",
+                      "required": [
+                        "path",
+                        "reason"
+                      ],
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "anyOf": [
+                            {
+                              "const": "required",
+                              "type": "string"
+                            },
+                            {
+                              "const": "type",
+                              "type": "string"
+                            },
+                            {
+                              "const": "not_allowed",
+                              "type": "string"
+                            },
+                            {
+                              "const": "too_small",
+                              "type": "string"
+                            },
+                            {
+                              "const": "too_large",
+                              "type": "string"
+                            },
+                            {
+                              "const": "format",
+                              "type": "string"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "code"
+                ],
+                "properties": {
+                  "code": {
+                    "const": "empty_patch",
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "code",
+                  "issues"
+                ],
+                "properties": {
+                  "code": {
+                    "const": "registry_incoherent",
+                    "type": "string"
+                  },
+                  "issues": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "path",
+                        "reason"
+                      ],
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "anyOf": [
+                            {
+                              "const": "duplicate_field",
+                              "type": "string"
+                            },
+                            {
+                              "const": "unknown_component",
+                              "type": "string"
+                            },
+                            {
+                              "const": "circular_component",
+                              "type": "string"
+                            },
+                            {
+                              "const": "invalid_name",
+                              "type": "string"
+                            },
+                            {
+                              "const": "name_mismatch",
+                              "type": "string"
+                            },
+                            {
+                              "const": "link_cardinality",
+                              "type": "string"
+                            },
+                            {
+                              "const": "link_unknown_field",
+                              "type": "string"
+                            },
+                            {
+                              "const": "link_field_type",
+                              "type": "string"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "code",
+                  "blockers"
+                ],
+                "properties": {
+                  "code": {
+                    "const": "blocked_plan",
+                    "type": "string"
+                  },
+                  "blockers": {
+                    "type": "array",
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "reason",
+                            "target"
+                          ],
+                          "properties": {
+                            "reason": {
+                              "const": "rows_present",
+                              "type": "string"
+                            },
+                            "target": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "reason",
+                            "target",
+                            "references"
+                          ],
+                          "properties": {
+                            "reason": {
+                              "const": "dangling_rows",
+                              "type": "string"
+                            },
+                            "target": {
+                              "type": "string"
+                            },
+                            "references": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "reason",
+                            "target",
+                            "holders"
+                          ],
+                          "properties": {
+                            "reason": {
+                              "const": "still_referenced",
+                              "type": "string"
+                            },
+                            "target": {
+                              "type": "string"
+                            },
+                            "holders": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "reason",
+                            "target"
+                          ],
+                          "properties": {
+                            "reason": {
+                              "const": "unmanaged_column",
+                              "type": "string"
+                            },
+                            "target": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      ]
                     }
                   }
                 }

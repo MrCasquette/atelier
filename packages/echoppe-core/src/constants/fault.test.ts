@@ -46,7 +46,14 @@ const SAMPLES: Record<FaultCode, EchoppeFault> = {
   destructive_plan: faults.destructivePlan([{ kind: 'drop_column', target: 'article.prix' }]),
   configuration_missing: faults.configurationMissing('STRIPE_SECRET_KEY'),
   required_data_missing: faults.requiredDataMissing('shippingAddress'),
-  validation_failed: faults.validationFailed(['name est requis']),
+  validation_failed: faults.validationFailed([{ path: '/name', reason: 'required' }]),
+  empty_patch: faults.emptyPatch(),
+  registry_incoherent: faults.registryIncoherent([
+    { path: 'hero.titre', reason: 'duplicate_field' },
+  ]),
+  blocked_plan: faults.blockedPlan([
+    { reason: 'still_referenced', target: 'article', holders: ['recette.source'] },
+  ]),
   unknown_reference_targets: faults.unknownReferenceTargets(['page']),
   unknown_scopes: faults.unknownScopes(['catalog']),
   external_operation_failed: faults.externalOperationFailed('payment.capture'),
@@ -86,13 +93,37 @@ describe('les opérandes traversent intactes', () => {
     });
   });
 
-  it('garde `details` en LISTE : joindre est une décision de langue', () => {
-    // Le domaine ne choisit pas le séparateur. `faultMessage` le fait, et pourrait en changer sans
-    // qu'aucune garde ne bouge ici.
-    const fault = faults.validationFailed(['name est requis', 'price doit être positif']);
+  it('garde `details` en LISTE de fautes LOCALISÉES, jamais de phrases', () => {
+    // Le domaine ne choisit ni le séparateur ni les mots : il rend un chemin et un code. La forme
+    // précédente — `${path} ${message}` — servait la prose anglaise de TypeBox à un écran français.
+    const fault = faults.validationFailed([
+      { path: '/name', reason: 'required' },
+      { path: '/price', reason: 'too_small' },
+    ]);
     expect(fault).toEqual({
       code: 'validation_failed',
-      details: ['name est requis', 'price doit être positif'],
+      details: [
+        { path: '/name', reason: 'required' },
+        { path: '/price', reason: 'too_small' },
+      ],
+    });
+  });
+
+  it('ne transporte QUE ce que l’appelant ne peut pas reconstruire (ADR-0050 §5)', () => {
+    // `still_referenced` porte `holders` : ce sont d'AUTRES entités que celle soumise, donc
+    // introuvables depuis la requête. Les autres raisons ne portent que leur cible — le compte de
+    // lignes, lui, ne changerait aucun geste.
+    expect(
+      faults.blockedPlan([
+        { reason: 'rows_present', target: 'article' },
+        { reason: 'still_referenced', target: 'auteur', holders: ['article.auteur'] },
+      ]),
+    ).toEqual({
+      code: 'blocked_plan',
+      blockers: [
+        { reason: 'rows_present', target: 'article' },
+        { reason: 'still_referenced', target: 'auteur', holders: ['article.auteur'] },
+      ],
     });
   });
 
