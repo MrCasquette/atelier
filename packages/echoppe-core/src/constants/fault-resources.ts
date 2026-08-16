@@ -6,6 +6,7 @@ import type { IdentityResource } from '@repo/identity';
 import type { MenusResource } from '@repo/menus';
 import type { PagesResource } from '@repo/pages';
 import type { ReferencesResource } from '@repo/references';
+import type { ErrorResponse, Fault } from '@repo/shared';
 
 // Le vocabulaire de ressources d'Échoppe, tel qu'une faute le nomme (ADR-0050).
 //
@@ -63,3 +64,16 @@ export type CommerceResource =
  * la compilation, ce qui est ce que la fermeture achète.
  */
 export type EchoppeResource = SharedResource | CommerceResource;
+
+/**
+ * La forme du socle, instanciée sur le vocabulaire d'Échoppe.
+ *
+ * C'est ce que les constructeurs RENDENT, et la raison pour laquelle `Fault` est paramétré : sans
+ * cette instanciation, la fermeture ne vaudrait qu'à l'entrée, et tout ce qui vit en aval —
+ * le schéma qui sort sur le fil, le catalogue d'une surface — retrouverait une `string` ouverte,
+ * donc rien à énumérer ni à vérifier.
+ */
+export type EchoppeFault = Fault<EchoppeResource>;
+
+/** Ce qu'une route d'Échoppe met dans un corps d'erreur. */
+export type EchoppeErrorResponse = ErrorResponse<EchoppeResource>;

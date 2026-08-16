@@ -1,0 +1,119 @@
+import { describe, expect, it } from 'bun:test';
+import type { FaultCode } from '@repo/shared';
+import * as faults from './fault';
+import type { EchoppeFault } from './fault-resources';
+
+// Ce qu'on vérifie ici n'est pas que `notFound('product')` rend `{ code: 'not_found' }` — le type le
+// dit déjà. Ce sont les deux propriétés que le contrat achète et que rien d'autre ne garantit :
+//
+// 1. l'union et les constructeurs ne divergent pas — ajouter un code sans son constructeur doit
+//    casser quelque chose, ici et tout de suite ;
+// 2. le vocabulaire est réellement FERMÉ, en entrée comme en sortie.
+//
+// Le reste — l'accord en genre, la ponctuation — appartient au catalogue de la surface qui rend, et
+// se teste là-bas (`apps/echoppe-api/src/lib/fault-message.test.ts`).
+
+/**
+ * Un échantillon par code, produit PAR le constructeur correspondant.
+ *
+ * `Record<FaultCode, …>` est le verrou : ajouter un membre à l'union sans lui donner de constructeur
+ * ne compile plus. C'est la seule façon de tenir l'exhaustivité — une liste écrite à la main se
+ * périme en silence.
+ */
+const SAMPLES: Record<FaultCode, EchoppeFault> = {
+  not_found: faults.notFound('product'),
+  already_exists: faults.alreadyExists('product', 'slug'),
+  in_use: faults.inUse('option', 'variant'),
+  invalid_state: faults.invalidState('order', 'paid', 'pending'),
+  insufficient_stock: faults.insufficientStock(2, 5),
+  unauthenticated: faults.unauthenticated(),
+  invalid_credentials: faults.invalidCredentials(),
+  invalid_token: faults.invalidToken(),
+  permission_denied: faults.permissionDenied('update', 'entity:article'),
+  protected_subject: faults.protectedSubject('user'),
+  self_action_forbidden: faults.selfActionForbidden('se désactiver'),
+  owner_only: faults.ownerOnly('transférer la propriété'),
+  forbidden_resource: faults.forbiddenResource('address'),
+  configuration_missing: faults.configurationMissing('STRIPE_SECRET_KEY'),
+  required_data_missing: faults.requiredDataMissing('shippingAddress'),
+  validation_failed: faults.validationFailed(['name est requis']),
+  unknown_reference_targets: faults.unknownReferenceTargets(['page']),
+  unknown_scopes: faults.unknownScopes(['catalog']),
+  external_operation_failed: faults.externalOperationFailed('payment.capture'),
+};
+
+describe('le catalogue de constructeurs couvre l’union', () => {
+  it('range chaque échantillon sous son propre code', () => {
+    // Le `Record` garantit qu'il existe une entrée par code ; ceci garantit que l'entrée a bien été
+    // produite par le constructeur de CE code, et non recopiée d'une ligne voisine.
+    for (const [code, fault] of Object.entries(SAMPLES)) {
+      expect(fault.code).toBe(code as FaultCode);
+    }
+  });
+
+  it('n’émet aucune prose — ni phrase, ni ponctuation d’affichage', () => {
+    // ADR-0050 §3 : un paquet de domaine n'écrit pas d'interface. Les opérandes sont des noms et des
+    // valeurs ; la mise en forme appartient à la surface. Le test gèle l'intention, pas un texte.
+    const rendered = Object.values(SAMPLES).flatMap((fault) =>
+      Object.entries(fault)
+        .filter(([key]) => key !== 'code')
+        .flatMap(([, value]) => (Array.isArray(value) ? value : [value]))
+        .filter((value): value is string => typeof value === 'string'),
+    );
+
+    for (const value of rendered) {
+      expect(value).not.toMatch(/[«»—·]/);
+    }
+  });
+});
+
+describe('les opérandes traversent intactes', () => {
+  it('transporte les deux ressources d’une faute in_use', () => {
+    expect(faults.inUse('tax_rate', 'product')).toEqual({
+      code: 'in_use',
+      resource: 'tax_rate',
+      usedBy: 'product',
+    });
+  });
+
+  it('garde `details` en LISTE : joindre est une décision de langue', () => {
+    // Le domaine ne choisit pas le séparateur. `faultMessage` le fait, et pourrait en changer sans
+    // qu'aucune garde ne bouge ici.
+    const fault = faults.validationFailed(['name est requis', 'price doit être positif']);
+    expect(fault).toEqual({
+      code: 'validation_failed',
+      details: ['name est requis', 'price doit être positif'],
+    });
+  });
+
+  it('rend les quantités d’un stock insuffisant en NOMBRES', () => {
+    expect(faults.insufficientStock(2, 5)).toEqual({
+      code: 'insufficient_stock',
+      available: 2,
+      requested: 5,
+    });
+  });
+});
+
+describe('le vocabulaire est fermé', () => {
+  it('refuse une ressource hors vocabulaire à la compilation', () => {
+    // @ts-expect-error `produit` est du français, pas du vocabulaire de ressources.
+    faults.notFound('produit');
+    // @ts-expect-error `usedBy` est une ressource, pas une phrase.
+    faults.inUse('option', 'des variantes du produit');
+
+    // Le test ne s'exécute pas vraiment : ce sont les deux `@ts-expect-error` ci-dessus qui portent
+    // l'assertion. Si la fermeture tombait, `tsc` échouerait sur une directive devenue inutile.
+    expect(true).toBe(true);
+  });
+
+  it('laisse permission_denied ouvert, parce que le RBAC l’est', () => {
+    // ADR-0038 : l'espace `entity:<nom>` est déclaré par le développeur, donc inconnu à la
+    // compilation. C'est la seule exception, et elle est délibérée.
+    expect(faults.permissionDenied('read', 'entity:recette')).toEqual({
+      code: 'permission_denied',
+      action: 'read',
+      resource: 'entity:recette',
+    });
+  });
+});

@@ -90,6 +90,8 @@ export * from './adapters/shipping';
 export * as faults from './constants/fault';
 export type {
   CommerceResource,
+  EchoppeErrorResponse,
+  EchoppeFault,
   EchoppeResource,
   SharedResource,
 } from './constants/fault-resources';
