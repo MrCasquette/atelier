@@ -1,7 +1,7 @@
 import { address, and, country, db, eq, faults } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../../lib/fault';
-import { errorSchema, successSchema } from '../../../lib/response';
+import { successSchema } from '../../../lib/response';
 import { models } from '../../../model';
 import {
   customerAuthPlugin,
@@ -130,7 +130,7 @@ export const customerAddressesRoutes = new Elysia({
         .where(eq(country.id, body.countryId));
 
       if (!countryData) {
-        return status(400, { message: 'Pays introuvable' });
+        return status(400, faultBody(faults.notFound('country')));
       }
 
       // If this is set as default, unset other defaults of same type
@@ -181,7 +181,7 @@ export const customerAddressesRoutes = new Elysia({
       customerAuth: true,
       cookie: customerCookieSchema,
       body: addressBodySchema,
-      response: { 200: 'Address', 400: errorSchema },
+      response: { 200: 'Address', 400: 'ErrorResponse' },
     },
   )
 
@@ -208,7 +208,7 @@ export const customerAddressesRoutes = new Elysia({
         .where(eq(country.id, body.countryId));
 
       if (!countryData) {
-        return status(400, { message: 'Pays introuvable' });
+        return status(400, faultBody(faults.notFound('country')));
       }
 
       // If this is set as default, unset other defaults of same type
@@ -260,7 +260,7 @@ export const customerAddressesRoutes = new Elysia({
       cookie: customerCookieSchema,
       params: t.Object({ id: t.String({ format: 'uuid' }) }),
       body: addressBodySchema,
-      response: { 200: 'Address', 400: errorSchema, 404: 'ErrorResponse' },
+      response: { 200: 'Address', 400: 'ErrorResponse', 404: 'ErrorResponse' },
     },
   )
 

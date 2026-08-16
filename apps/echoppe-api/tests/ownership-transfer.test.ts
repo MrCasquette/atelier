@@ -79,7 +79,9 @@ describe('ce que le transfert refuse', () => {
     const res = await transfer(inactiveId, ownerCookie);
 
     expect(res.status).toBe(400);
-    expect(((await res.json()) as { message: string }).message).toContain('désactivé');
+    expect((await res.json()) as { fault: unknown }).toMatchObject({
+      fault: { code: 'invalid_state', resource: 'user', current: 'disabled', expected: 'active' },
+    });
   });
 
   it('refuse une cible qui est déjà le propriétaire', async () => {

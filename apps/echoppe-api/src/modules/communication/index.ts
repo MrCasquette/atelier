@@ -1,5 +1,8 @@
+import { faults } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { errorSchema, successSchema } from '../../lib/response';
+import { faultBody } from '../../lib/fault';
+import { successSchema } from '../../lib/response';
+import { models } from '../../model';
 import { permissionGuard } from '../auth/rbac';
 import {
   brevoConfigBody,
@@ -18,12 +21,13 @@ import { listProviderStatuses, saveProvider, sendTestEmail } from './service';
 // Les trois routes de configuration ne diffèrent que par la forme des identifiants ; c'est
 // précisément ce que leur schéma de corps exprime, et tout ce qu'elles ajoutent au service.
 
-const ENCRYPTION_MISSING = { message: 'ENCRYPTION_KEY non configurée' } as const;
+const ENCRYPTION_MISSING = faultBody(faults.configurationMissing('ENCRYPTION_KEY'));
 
 export const communicationsRoutes = new Elysia({
   prefix: '/communications',
   detail: { tags: ['Communications'] },
 })
+  .use(models)
 
   // === COMMUNICATION CONFIG READ ===
   .use(permissionGuard('communication_config', 'read'))
@@ -55,7 +59,7 @@ export const communicationsRoutes = new Elysia({
     {
       permission: true,
       body: resendConfigBody,
-      response: { 200: successSchema, 400: errorSchema },
+      response: { 200: successSchema, 400: 'ErrorResponse' },
     },
   )
 
@@ -74,7 +78,11 @@ export const communicationsRoutes = new Elysia({
         ? status(400, ENCRYPTION_MISSING)
         : { success: true };
     },
-    { permission: true, body: brevoConfigBody, response: { 200: successSchema, 400: errorSchema } },
+    {
+      permission: true,
+      body: brevoConfigBody,
+      response: { 200: successSchema, 400: 'ErrorResponse' },
+    },
   )
 
   // PUT /communications/providers/smtp - Configure SMTP
@@ -98,7 +106,11 @@ export const communicationsRoutes = new Elysia({
         ? status(400, ENCRYPTION_MISSING)
         : { success: true };
     },
-    { permission: true, body: smtpConfigBody, response: { 200: successSchema, 400: errorSchema } },
+    {
+      permission: true,
+      body: smtpConfigBody,
+      response: { 200: successSchema, 400: 'ErrorResponse' },
+    },
   )
 
   // POST /communications/test - Envoyer un email de test
@@ -109,11 +121,11 @@ export const communicationsRoutes = new Elysia({
 
       switch (result.outcome) {
         case 'not-configured':
-          return status(400, { message: `Provider ${body.provider} non configuré` });
+          return status(400, faultBody(faults.configurationMissing(body.provider)));
         case 'unreachable':
-          return status(400, {
-            message: 'Impossible de se connecter au provider. Vérifiez vos identifiants.',
-          });
+          // Le tiers a répondu, mal : ce n'est ni une absence de configuration ni une faute de
+          // l'appelant. `operation` le nomme sans exposer le diagnostic du prestataire.
+          return status(400, faultBody(faults.externalOperationFailed('communication.test')));
         case 'sent':
           return result.result;
       }
@@ -121,6 +133,6 @@ export const communicationsRoutes = new Elysia({
     {
       permission: true,
       body: testEmailBody,
-      response: { 200: testResultSchema, 400: errorSchema },
+      response: { 200: testResultSchema, 400: 'ErrorResponse' },
     },
   );

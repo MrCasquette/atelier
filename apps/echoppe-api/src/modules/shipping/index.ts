@@ -248,7 +248,7 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
     '/providers/colissimo',
     async ({ body, status }) => {
       if (!isEncryptionConfigured()) {
-        return status(400, { message: 'ENCRYPTION_KEY non configurée' });
+        return status(400, faultBody(faults.configurationMissing('ENCRYPTION_KEY')));
       }
 
       const credentials: ColissimoCredentials = {
@@ -264,7 +264,7 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
     {
       permission: true,
       body: colissimoConfigBody,
-      response: { 200: successSchema, 400: errorSchema },
+      response: { 200: successSchema, 400: 'ErrorResponse' },
     },
   )
 
@@ -273,7 +273,7 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
     '/providers/mondialrelay',
     async ({ body, status }) => {
       if (!isEncryptionConfigured()) {
-        return status(400, { message: 'ENCRYPTION_KEY non configurée' });
+        return status(400, faultBody(faults.configurationMissing('ENCRYPTION_KEY')));
       }
 
       const credentials: MondialRelayCredentials = {
@@ -290,7 +290,7 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
     {
       permission: true,
       body: mondialrelayConfigBody,
-      response: { 200: successSchema, 400: errorSchema },
+      response: { 200: successSchema, 400: 'ErrorResponse' },
     },
   )
 
@@ -299,7 +299,7 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
     '/providers/sendcloud',
     async ({ body, status }) => {
       if (!isEncryptionConfigured()) {
-        return status(400, { message: 'ENCRYPTION_KEY non configurée' });
+        return status(400, faultBody(faults.configurationMissing('ENCRYPTION_KEY')));
       }
 
       const credentials: SendcloudCredentials = {
@@ -315,7 +315,7 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
     {
       permission: true,
       body: sendcloudConfigBody,
-      response: { 200: successSchema, 400: errorSchema },
+      response: { 200: successSchema, 400: 'ErrorResponse' },
     },
   )
 
@@ -329,7 +329,7 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
       const adapter = getShippingAdapter(body.provider);
 
       if (!(await adapter.isConfigured())) {
-        return status(400, { message: `Provider ${body.provider} non configuré` });
+        return status(400, faultBody(faults.configurationMissing(body.provider)));
       }
 
       // Vérifier que la commande existe
@@ -385,6 +385,6 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
     {
       permission: true,
       body: labelBody,
-      response: { 200: labelSchema, 400: errorSchema, 404: 'ErrorResponse' },
+      response: { 200: labelSchema, 400: 'ErrorResponse', 404: 'ErrorResponse' },
     },
   );

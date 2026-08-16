@@ -3133,16 +3133,13 @@ export interface operations {
                     "application/json": components["schemas"]["Cart"];
                 };
             };
-            /** @description Requête invalide - Données manquantes ou incorrectes */
+            /** @description Réponse d’erreur (ADR-0050) */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Détail de l'erreur de validation */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Réponse d’erreur (ADR-0050) */
@@ -3855,16 +3852,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Response for status 400 */
+            /** @description Réponse d’erreur (ADR-0050) */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Trop de requêtes - Limite de débit dépassée */
@@ -4026,16 +4020,13 @@ export interface operations {
                     "application/json": components["schemas"]["Address"];
                 };
             };
-            /** @description Response for status 400 */
+            /** @description Réponse d’erreur (ADR-0050) */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -4146,16 +4137,13 @@ export interface operations {
                     "application/json": components["schemas"]["Address"];
                 };
             };
-            /** @description Response for status 400 */
+            /** @description Réponse d’erreur (ADR-0050) */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Réponse d’erreur (ADR-0050) */

@@ -2388,21 +2388,11 @@
             }
           },
           "400": {
-            "description": "Requête invalide - Données manquantes ou incorrectes",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Requête invalide - Données manquantes ou incorrectes",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Détail de l'erreur de validation",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -3755,20 +3745,11 @@
             }
           },
           "400": {
-            "description": "Response for status 400",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Description de l'erreur",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -4211,20 +4192,11 @@
             }
           },
           "400": {
-            "description": "Response for status 400",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Description de l'erreur",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -4534,20 +4506,11 @@
             }
           },
           "400": {
-            "description": "Response for status 400",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Description de l'erreur",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }

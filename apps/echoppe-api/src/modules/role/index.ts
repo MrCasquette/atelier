@@ -9,7 +9,7 @@ import {
 import { entityResourceName, loadEntities } from '@repo/entities';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../lib/fault';
-import { errorSchema, successSchema, withAuthErrors } from '../../lib/response';
+import { successSchema, withAuthErrors } from '../../lib/response';
 import { models } from '../../model';
 import { getClientIp, logAudit } from '../audit/service';
 import { isFirstRank, permissionGuard } from '../auth/rbac';
@@ -286,7 +286,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
         .limit(1);
 
       if (userWithRole) {
-        return status(400, { message: 'Ce rôle est utilisé par un ou plusieurs utilisateurs' });
+        return status(400, faultBody(faults.inUse('role', 'user')));
       }
 
       // Supprimer les permissions puis le rôle
@@ -310,7 +310,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
       params: t.Object({ id: t.String({ format: 'uuid' }) }),
       response: {
         200: successSchema,
-        400: errorSchema,
+        400: 'ErrorResponse',
         403: 'ErrorResponse',
         404: 'ErrorResponse',
       },

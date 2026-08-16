@@ -15,7 +15,7 @@ import {
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../lib/fault';
 import { buildListResponse, listResponse, parseListQuery } from '../../lib/pagination';
-import { badRequestResponse, successSchema, withCrudErrors } from '../../lib/response';
+import { successSchema, withCrudErrors } from '../../lib/response';
 import { models } from '../../model';
 import { getClientIp, logAudit } from '../audit/service';
 import { type EchoppePrincipal, isFirstRankRoleKey, permissionGuard } from '../auth/rbac';
@@ -284,7 +284,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
         .where(eq(user.email, body.email));
 
       if (existing) {
-        return status(400, { message: 'Un utilisateur avec cet email existe déjà' });
+        return status(400, faultBody(faults.alreadyExists('user', 'email')));
       }
 
       // Check if role exists
@@ -294,7 +294,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
         .where(eq(role.id, body.role));
 
       if (!roleExists) {
-        return status(400, { message: 'Rôle introuvable' });
+        return status(400, faultBody(faults.notFound('role')));
       }
 
       // Le compte naît sans secret utilisable : il ne sert à rien tant que son titulaire n'a pas
@@ -335,7 +335,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
     {
       permission: true,
       body: userCreateBody,
-      response: withCrudErrors({ 200: userCreatedSchema, 400: badRequestResponse }),
+      response: withCrudErrors({ 200: userCreatedSchema, 400: 'ErrorResponse' }),
     },
   )
 
@@ -375,7 +375,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
           .where(and(eq(user.email, body.email), sql`${user.id} != ${params.id}`));
 
         if (emailExists) {
-          return status(400, { message: 'Un utilisateur avec cet email existe déjà' });
+          return status(400, faultBody(faults.alreadyExists('user', 'email')));
         }
       }
 
@@ -387,7 +387,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
           .where(eq(role.id, body.role));
 
         if (!roleExists) {
-          return status(400, { message: 'Rôle introuvable' });
+          return status(400, faultBody(faults.notFound('role')));
         }
       }
 
@@ -426,7 +426,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
       permission: true,
       params: uuidParam,
       body: userUpdateBody,
-      response: withCrudErrors({ 200: successSchema, 400: badRequestResponse }),
+      response: withCrudErrors({ 200: successSchema, 400: 'ErrorResponse' }),
     },
   )
 
@@ -600,12 +600,12 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
         return status(404, faultBody(faults.notFound('user')));
       }
       if (target.isOwner) {
-        return status(400, { message: 'Cet utilisateur est déjà le propriétaire' });
+        return status(400, faultBody(faults.invalidState('user', 'owner', 'not_owner')));
       }
       // Transférer vers un compte qui ne peut pas se connecter perdrait l'installation — et le
       // transfert est sans retour, donc définitivement.
       if (!target.isActive) {
-        return status(400, { message: 'Impossible de transférer vers un compte désactivé' });
+        return status(400, faultBody(faults.invalidState('user', 'disabled', 'active')));
       }
 
       // Atomique, et dans cet ORDRE : l'index unique partiel n'admet qu'un propriétaire, donc le
@@ -632,6 +632,6 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
     {
       permission: true,
       params: uuidParam,
-      response: withCrudErrors({ 200: successSchema, 400: badRequestResponse }),
+      response: withCrudErrors({ 200: successSchema, 400: 'ErrorResponse' }),
     },
   );

@@ -56,38 +56,41 @@ const loginResponseSchema = t.Object({
 // Rate-limitée comme une surface d'authentification — un jeton de 32 octets ne se devine pas, mais
 // on ne laisse pas essayer. Compteur SÉPARÉ de la connexion : les partager rendrait les deux
 // solidaires, et dix échecs de connexion empêcheraient un invité d'ouvrir son compte.
-const acceptInvitationRoute = new Elysia().use(rateLimit(invitationRateLimitOptions)).post(
-  '/accept-invitation',
-  async ({ body, status }) => {
-    const result = await consumePasswordToken(body.token, body.password);
+const acceptInvitationRoute = new Elysia()
+  .use(models)
+  .use(rateLimit(invitationRateLimitOptions))
+  .post(
+    '/accept-invitation',
+    async ({ body, status }) => {
+      const result = await consumePasswordToken(body.token, body.password);
 
-    // Inconnu, consommé, périmé : une seule réponse. Distinguer dirait à un attaquant lequel des
-    // trois, donc si le jeton a existé.
-    if (result.outcome === 'invalid-token') {
-      return status(400, { message: 'Lien invalide ou expiré' });
-    }
+      // Inconnu, consommé, périmé : une seule réponse. Distinguer dirait à un attaquant lequel des
+      // trois, donc si le jeton a existé.
+      if (result.outcome === 'invalid-token') {
+        return status(400, faultBody(faults.invalidToken()));
+      }
 
-    logAudit({
-      userId: result.userId,
-      action: 'user.password_set',
-      entityType: 'user',
-      entityId: result.userId,
-    });
+      logAudit({
+        userId: result.userId,
+        action: 'user.password_set',
+        entityType: 'user',
+        entityId: result.userId,
+      });
 
-    return { success: true };
-  },
-  {
-    body: t.Object({
-      token: t.String({ minLength: 32, maxLength: 128 }),
-      password: t.String({ minLength: 6 }),
-    }),
-    response: {
-      200: successSchema,
-      400: t.Object({ message: t.String() }),
-      429: rateLimitResponse,
+      return { success: true };
     },
-  },
-);
+    {
+      body: t.Object({
+        token: t.String({ minLength: 32, maxLength: 128 }),
+        password: t.String({ minLength: 6 }),
+      }),
+      response: {
+        200: successSchema,
+        400: 'ErrorResponse',
+        429: rateLimitResponse,
+      },
+    },
+  );
 
 // Rate-limited login route (separate instance for scoped rate limiting)
 const loginRoute = new Elysia()

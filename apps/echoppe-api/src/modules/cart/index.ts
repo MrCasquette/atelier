@@ -424,7 +424,7 @@ export const cartRoutes = new Elysia({
 
       const availableStock = variantData?.quantity ?? 0;
       if (body.quantity > availableStock) {
-        return status(400, { message: `Stock insuffisant (${availableStock} disponible)` });
+        return status(400, faultBody(faults.insufficientStock(availableStock, body.quantity)));
       }
 
       // Update quantity
@@ -442,7 +442,7 @@ export const cartRoutes = new Elysia({
       cookie: cookieSchema,
       response: {
         200: 'Cart',
-        400: badRequestResponse,
+        400: 'ErrorResponse',
         403: 'ErrorResponse',
         404: 'ErrorResponse',
       },

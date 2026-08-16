@@ -91,8 +91,18 @@ Détail : [ADR-0005](../adr/ADR-0005-panier-stock.md).
     arbitrage métier. Corrige au passage 5 messages restés en anglais et trois orthographes
     concurrentes. Les deux jeux de helpers fusionnent — `withCrudFaults` / `withNotFoundFault`
     disparaissent, ils n'existaient que pour la coexistence.
-  - [ ] Les **44 réponses 400** — repartir des gardes AVANT de décider le découpage : c'est la
-    famille hétérogène, celle qui peut réclamer des codes.
+  - [x] **23 des 44 réponses 400**, celles dont la garde détermine déjà le code et dont la route ne
+    contient aucun cas ouvert. Statuts HTTP inchangés : tranche strictement contractuelle.
+  - [ ] **14 réponses 400 bloquées** par cohabitation : leur route contient aussi un cas ouvert, et
+    une route n'a qu'un schéma par statut. Elles se débloquent en tranchant les 4 cas ci-dessous.
+  - [ ] **4 cas ouverts** : les URL de redirection (`checkout:83`, `payment:228` — garde de sécurité
+    anti open-redirect, aucun code existant), la personnalisation (`cart:309` — trois prédicats
+    aplatis en une chaîne française), le provider requis (`shipping:223` — paramètre que le schéma
+    devrait déclarer).
+  - [ ] **3 chemins mal exposés**, corrections de fond et non migration : `checkout:146` promeut
+    `error.message` d'un adapter **à l'acheteur** (la violation qu'ADR-0050 nommait « la plus grave
+    du lot »), `payment:426` expose un invariant interne en 400, `payment:374` est conforme mais
+    reste en anglais.
   - [ ] Les 9 × 409 et 9 × 422, familles déjà nommées (`already_exists`, `in_use`,
     `validation_failed`, `unknown_scopes`).
   - [ ] Les 3 × 503/500 des services externes.

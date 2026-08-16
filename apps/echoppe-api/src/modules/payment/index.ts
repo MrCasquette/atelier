@@ -166,7 +166,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
     '/providers/stripe',
     async ({ body, status }) => {
       if (!isEncryptionConfigured()) {
-        return status(400, { message: 'ENCRYPTION_KEY non configurée' });
+        return status(400, faultBody(faults.configurationMissing('ENCRYPTION_KEY')));
       }
 
       const credentials: StripeCredentials = {
@@ -182,7 +182,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
     {
       permission: true,
       body: stripeConfigBody,
-      response: { 200: successSchema, 400: errorSchema },
+      response: { 200: successSchema, 400: 'ErrorResponse' },
     },
   )
 
@@ -191,7 +191,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
     '/providers/paypal',
     async ({ body, status }) => {
       if (!isEncryptionConfigured()) {
-        return status(400, { message: 'ENCRYPTION_KEY non configurée' });
+        return status(400, faultBody(faults.configurationMissing('ENCRYPTION_KEY')));
       }
 
       const credentials: PayPalCredentials = {
@@ -209,7 +209,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
     {
       permission: true,
       body: paypalConfigBody,
-      response: { 200: successSchema, 400: errorSchema },
+      response: { 200: successSchema, 400: 'ErrorResponse' },
     },
   )
 

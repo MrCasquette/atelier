@@ -551,3 +551,38 @@ en §5 (« l'appelant sait-il déjà ? »), appliqué pour la première fois à 
 
 **−254 lignes** de contrat SDK. Les 404 cessent d'inscrire leur `{ message }` dans chaque route pour
 ne porter qu'un `$ref`. Cumulé avec la tranche 401/403 : −476 lignes depuis que le composant existe.
+
+## Note d'implémentation 2026-08-16 — la tranche 400, et ce qu'une route peut porter
+
+Les 44 réponses en 400, classées par garde : **37 tombent sur des codes existants**, aucun nouveau
+code n'était requis pour elles. Deux prédictions de l'amendement se vérifient, dont une largement
+sous-estimée — « Pays de livraison invalide » est bien un `not_found` déguisé, mais il y en a **six**
+et non un ; et « Provider non configuré » / « Mode de paiement non disponible » sont bien la même
+garde, écrite **treize** fois avec `!isEncryptionConfigured()`.
+
+### Une route n'a qu'un schéma par statut
+
+Sur les 37, **23 seulement** ont pu être migrées. Les 14 autres partagent leur route avec un cas
+laissé ouvert : le `POST /checkout` porte à lui seul sept réponses migrables, une garde anti
+open-redirect et une exception promue. Migrer leur corps aurait imposé de basculer le 400 de la
+route entière, donc de trancher les cas exclus dans le même diff.
+
+C'est une contrainte que le découpage par famille ne montre pas, et qu'il faut anticiper pour la
+suite : **l'unité migrable n'est pas la réponse, c'est la route.** Une famille homogène ne se migre
+d'un bloc que si aucune de ses routes n'est mixte.
+
+### Deux défauts de rendu que la tranche a fait sortir
+
+Le premier `invalid_state` servi aurait affiché : « Action impossible : **ce** utilisateur est
+« **disabled** », il doit être « **active** » ».
+
+- **L'élision manquait.** `demonstrative(gender)` ne connaissait que le genre ; il lui faut la
+  première lettre du mot. Corrigé dans les deux catalogues, ce qui répare aussi `in_use`,
+  `protected_subject` et `forbidden_resource`, qui produisaient la même faute en silence.
+- **Les états sortaient bruts, en anglais.** `invalid_state` porte `current` et `expected` comme
+  codes — c'est correct, le domaine ne parle aucune langue —, mais aucune surface ne les traduisait.
+  Une table `STATES` s'ajoute aux tables `ACTIONS` et `RANKS` déjà là, pour la même raison.
+
+C'est la démonstration de ce que le contrat achète : ces deux corrections se font **à un endroit**,
+et profitent à tous les codes qui nomment une ressource ou un état. Avec des phrases écrites dans
+les routes, il aurait fallu les chercher dans 44 fichiers.

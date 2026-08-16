@@ -99,10 +99,43 @@ function label(resource: string): [string, Gender] {
 /** Même repli, pour les mêmes raisons : un acte inconnu se lit encore, faute de mieux. */
 const verb = (action: string): string => ACTIONS[action] ?? action.replace(/_/g, ' ');
 
+/**
+ * Les états, tels qu'on les nomme à l'utilisateur.
+ *
+ * `invalid_state` porte `current` et `expected` comme CODES — `disabled`, `published` — parce que le
+ * domaine ne parle aucune langue. Sans cette table, le rendu servait « est « disabled », il doit
+ * être « active » » : la moitié de la phrase en anglais, sur un écran français.
+ */
+const STATES: Record<string, string> = {
+  active: 'actif',
+  disabled: 'désactivé',
+  draft: 'brouillon',
+  published: 'publié',
+  archived: 'archivé',
+  paid: 'payée',
+  unpaid: 'non payée',
+  completed: 'abouti',
+  pending: 'en attente',
+  failed: 'échoué',
+  refunded: 'remboursé',
+  owner: 'déjà propriétaire',
+  not_owner: 'un compte ordinaire',
+  empty: 'vide',
+};
+
+const state = (code: string): string => STATES[code] ?? code;
+
 const capitalize = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
 
 /** L'accord se règle ICI. Le domaine n'a jamais à savoir que « commande » est féminin. */
-const demonstrative = (gender: Gender): string => (gender === 'f' ? 'Cette' : 'Ce');
+/**
+ * L'élision se décide ici aussi : « ce utilisateur » est la faute que le premier rendu de
+ * `invalid_state` a produite. Le genre ne suffit pas — il faut la première lettre du mot.
+ */
+const elides = (word: string): boolean => /^[aeiouyàâéèêëîïôöùûü]/i.test(word);
+
+const demonstrative = (gender: Gender, word: string): string =>
+  gender === 'f' ? 'Cette' : elides(word) ? 'Cet' : 'Ce';
 const indefinite = (gender: Gender): string => (gender === 'f' ? 'Une' : 'Un');
 
 export function faultMessage(fault: Fault): string {
@@ -118,12 +151,12 @@ export function faultMessage(fault: Fault): string {
       const [name, gender] = label(fault.resource);
       const [by, byGender] = label(fault.usedBy);
       const used = gender === 'f' ? 'utilisée' : 'utilisé';
-      return `${demonstrative(gender)} ${name} est ${used} par au moins ${indefinite(byGender).toLowerCase()} ${by} — détachez-${gender === 'f' ? 'la' : 'le'} d’abord`;
+      return `${demonstrative(gender, name)} ${name} est ${used} par au moins ${indefinite(byGender).toLowerCase()} ${by} — détachez-${gender === 'f' ? 'la' : 'le'} d’abord`;
     }
     case 'invalid_state': {
       const [name, gender] = label(fault.resource);
       const pronoun = gender === 'f' ? 'elle' : 'il';
-      return `Action impossible : ${demonstrative(gender).toLowerCase()} ${name} est « ${fault.current} », ${pronoun} doit être « ${fault.expected} »`;
+      return `Action impossible : ${demonstrative(gender, name).toLowerCase()} ${name} est « ${state(fault.current)} », ${pronoun} doit être « ${state(fault.expected)} »`;
     }
     case 'insufficient_stock':
       return `Stock insuffisant : ${fault.available} disponible(s) pour ${fault.requested} demandé(s)`;
@@ -138,7 +171,7 @@ export function faultMessage(fault: Fault): string {
     case 'protected_subject': {
       const [name, gender] = label(fault.resource);
       const suffix = gender === 'f' ? 'protégée' : 'protégé';
-      return `${demonstrative(gender)} ${name} est ${suffix} et ne peut pas être modifié${gender === 'f' ? 'e' : ''}`;
+      return `${demonstrative(gender, name)} ${name} est ${suffix} et ne peut pas être modifié${gender === 'f' ? 'e' : ''}`;
     }
     case 'self_action_forbidden':
       return `Impossible de ${verb(fault.action)} sur votre propre compte`;
@@ -164,7 +197,7 @@ export function faultMessage(fault: Fault): string {
     }
     case 'forbidden_resource': {
       const [name, gender] = label(fault.resource);
-      return `Accès non autorisé à ${gender === 'f' ? 'cette' : 'ce'} ${name}`;
+      return `Accès non autorisé à ${demonstrative(gender, name).toLowerCase()} ${name}`;
     }
     case 'configuration_missing':
       return `${fault.target} n’est pas configuré`;

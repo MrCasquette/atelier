@@ -3,12 +3,7 @@ import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
 import { faultBody } from '../../lib/fault';
 import { authRateLimitOptions, strictRateLimitOptions } from '../../lib/rate-limit';
-import {
-  conflictResponse,
-  errorSchema,
-  rateLimitResponse,
-  successSchema,
-} from '../../lib/response';
+import { conflictResponse, rateLimitResponse, successSchema } from '../../lib/response';
 import { models } from '../../model';
 import {
   authenticateCustomer,
@@ -122,6 +117,7 @@ const loginRoute = new Elysia()
 // - reset : consomme le jeton (usage unique, non expiré) → change le mdp, révoque toutes
 //   les sessions du client.
 const passwordResetRoutes = new Elysia()
+  .use(models)
   .use(rateLimit(strictRateLimitOptions))
   .post(
     '/password/forgot',
@@ -142,7 +138,7 @@ const passwordResetRoutes = new Elysia()
       const result = await resetPassword(body.token, body.newPassword);
 
       return result.outcome === 'invalid-token'
-        ? status(400, { message: 'Lien de réinitialisation invalide ou expiré' })
+        ? status(400, faultBody(faults.invalidToken()))
         : { success: true };
     },
     {
@@ -150,7 +146,7 @@ const passwordResetRoutes = new Elysia()
         token: t.String({ minLength: 1 }),
         newPassword: t.String({ minLength: 8 }),
       }),
-      response: { 200: successSchema, 400: errorSchema, 429: rateLimitResponse },
+      response: { 200: successSchema, 400: 'ErrorResponse', 429: rateLimitResponse },
     },
   );
 
