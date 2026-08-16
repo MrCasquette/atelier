@@ -6,6 +6,10 @@ import { cleanupExpiredOrders } from './jobs/cleanup-expired-orders';
 import { initAdmin } from './modules/auth/init-admin';
 import { syncEntityReferences } from './modules/reference/sync';
 
+// Le contrat de faute sort par la même porte que le type de l'application : une surface qui lit une
+// réponse d'erreur en a besoin pour la RENDRE, et le réécrire chez elle serait exactement
+// l'interface manuelle que le projet s'interdit.
+export type { EchoppeErrorResponse as ErrorResponse, EchoppeFault as Fault } from '@echoppe/core';
 export type { App } from './app';
 
 const port = process.env.API_PORT ?? 7532;

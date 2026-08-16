@@ -1,6 +1,7 @@
-import { and, db, eq, product, productMedia } from '@echoppe/core';
+import { and, db, eq, faults, product, productMedia } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { successSchema, withCrudErrors } from '../../../lib/response';
+import { faultBody } from '../../../lib/fault';
+import { successSchema, withCrudFaults } from '../../../lib/response';
 import { models } from '../../../model';
 import { permissionGuard } from '../../auth/rbac';
 import { productMediaSchema } from '../model';
@@ -49,7 +50,7 @@ export const productMediaRoutes = new Elysia()
     '/:id/media',
     async ({ params, body, status }) => {
       const [productExists] = await db.select().from(product).where(eq(product.id, params.id));
-      if (!productExists) return status(404, { message: 'Product not found' });
+      if (!productExists) return status(404, faultBody(faults.notFound('product')));
 
       if (body.isFeatured) {
         await db
@@ -74,7 +75,7 @@ export const productMediaRoutes = new Elysia()
       permission: true,
       params: productParams,
       body: productMediaBody,
-      response: withCrudErrors({ 200: 'ProductMedia' }),
+      response: withCrudFaults({ 200: 'ProductMedia' }),
     },
   )
 
@@ -106,14 +107,14 @@ export const productMediaRoutes = new Elysia()
         .where(and(eq(productMedia.product, params.id), eq(productMedia.media, params.mediaId)))
         .returning();
 
-      if (!updated) return status(404, { message: 'Product media not found' });
+      if (!updated) return status(404, faultBody(faults.notFound('product_media')));
       return updated;
     },
     {
       permission: true,
       params: mediaParams,
       body: productMediaUpdateBody,
-      response: withCrudErrors({ 200: 'ProductMedia' }),
+      response: withCrudFaults({ 200: 'ProductMedia' }),
     },
   )
 
@@ -126,8 +127,8 @@ export const productMediaRoutes = new Elysia()
         .delete(productMedia)
         .where(and(eq(productMedia.product, params.id), eq(productMedia.media, params.mediaId)))
         .returning();
-      if (!deleted) return status(404, { message: 'Product media not found' });
+      if (!deleted) return status(404, faultBody(faults.notFound('product_media')));
       return { success: true };
     },
-    { permission: true, params: mediaParams, response: withCrudErrors({ 200: successSchema }) },
+    { permission: true, params: mediaParams, response: withCrudFaults({ 200: successSchema }) },
   );

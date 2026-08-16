@@ -1,5 +1,6 @@
 import { type TSchema, t } from 'elysia';
 import type { ModelName } from '../model';
+import { errorResponseSchema } from './fault-schema';
 
 // ============================================
 // Schemas de réponse communs
@@ -93,6 +94,8 @@ export const rateLimitResponse = t.Object(
 export const serverErrorResponse = t.Object(
   {
     message: t.String({ description: 'Erreur interne' }),
+    // Rempli par le `onError` global : le détail reste au log, l'appelant n'a que la corrélation.
+    incident: t.Optional(t.String({ description: 'Corrélation opaque vers la trace serveur' })),
   },
   { description: 'Erreur serveur interne' },
 );
@@ -175,6 +178,46 @@ export function withNotFound<const T extends ResponseMap>(responses: T) {
 /** Routes dépendant de services externes : 503 (+ socle, qui inclut déjà 500). */
 export function withServiceErrors<const T extends ResponseMap>(responses: T) {
   return { ...responses, ...COMMON_ERRORS, 503: serviceUnavailableResponse };
+}
+
+// ============================================
+// Routes migrées sur le contrat de faute (ADR-0050)
+// ============================================
+//
+// Les helpers ci-dessus rendent `{ message }` ; ceux-ci rendent `ErrorResponse`, le modèle nommé du
+// contrat. Les deux jeux COEXISTENT le temps de la migration, et c'est délibéré : elle avance par
+// tranche verticale, et une route non migrée qui déclarerait `ErrorResponse` échouerait à la
+// validation de réponse d'Elysia — il lui manquerait `fault`.
+//
+// Les 401/403 restent hérités même sur une route migrée : ils ne sont pas émis par la route mais par
+// le middleware d'authentification, qui suivra dans sa propre tranche.
+//
+// `...responses` passe EN DERNIER, à l'inverse des helpers hérités : une route migrée ajoute ses
+// propres codes (409 sur un conflit) sans que le socle les écrase.
+
+// Le schéma est INLINE, et non le modèle nommé `ErrorResponse` : une union discriminée qui traverse
+// `.model()` ressort avec `resource: never` côté inférence, et les routes deviennent intypables.
+// C'est la même contrainte que la note ci-dessus — le flip vers le modèle nommé attend que toutes
+// les routes soient sur `.use(models)`. Le modèle reste enregistré pour l'OpenAPI ; ici on garde
+// l'inférence.
+
+/** Les codes que la route migrée émet elle-même portent la faute. */
+const FAULT_ERRORS = { 404: errorResponseSchema };
+
+/** Routes CRUD protégées, migrées : 404 contractuel, 401/403 hérités du middleware. */
+export function withCrudFaults<const T extends ResponseMap>(responses: T) {
+  return {
+    ...COMMON_ERRORS,
+    401: unauthorizedResponse,
+    403: forbiddenResponse,
+    ...FAULT_ERRORS,
+    ...responses,
+  };
+}
+
+/** Routes publiques migrées pouvant ne pas trouver la ressource. */
+export function withNotFoundFault<const T extends ResponseMap>(responses: T) {
+  return { ...COMMON_ERRORS, ...FAULT_ERRORS, ...responses };
 }
 
 /** Combinaison complète CRUD + rate limit : 401 + 403 + 404 + 429 (+ socle). */

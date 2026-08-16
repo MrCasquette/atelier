@@ -2,6 +2,7 @@ import {
   and,
   db,
   eq,
+  faults,
   ilike,
   option,
   optionValue,
@@ -11,7 +12,9 @@ import {
   variantOptionValue,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { conflictResponse, successSchema, withCrudErrors } from '../../../lib/response';
+import { faultBody } from '../../../lib/fault';
+import { errorResponseSchema } from '../../../lib/fault-schema';
+import { successSchema, withCrudFaults } from '../../../lib/response';
 import { models } from '../../../model';
 import { permissionGuard } from '../../auth/rbac';
 import { colorMetadataSchema, optionSchema, optionTypeSchema, optionValueSchema } from '../model';
@@ -88,7 +91,7 @@ export const productOptionRoutes = new Elysia()
     '/:id/option-axes',
     async ({ params, body, status }) => {
       const [productExists] = await db.select().from(product).where(eq(product.id, params.id));
-      if (!productExists) return status(404, { message: 'Product not found' });
+      if (!productExists) return status(404, faultBody(faults.notFound('product')));
 
       let opt = await db
         .select()
@@ -110,7 +113,8 @@ export const productOptionRoutes = new Elysia()
         .where(and(eq(productOption.product, params.id), eq(productOption.option, opt.id)));
 
       if (existing) {
-        return status(409, { message: 'Option already associated with this product' });
+        // `field` nomme ce qui collisionne : l'association porte sur l'option, pas sur son nom.
+        return status(409, faultBody(faults.alreadyExists('product_option', 'option')));
       }
 
       await db.insert(productOption).values({
@@ -125,7 +129,7 @@ export const productOptionRoutes = new Elysia()
       permission: true,
       params: t.Object({ id: t.String({ format: 'uuid' }) }),
       body: optionBody,
-      response: withCrudErrors({ 200: 'Option', 409: conflictResponse }),
+      response: withCrudFaults({ 200: 'Option', 409: errorResponseSchema }),
     },
   )
 
@@ -134,7 +138,7 @@ export const productOptionRoutes = new Elysia()
     '/:id/option-axes/:optionId/values',
     async ({ params, body, status }) => {
       const [optionExists] = await db.select().from(option).where(eq(option.id, params.optionId));
-      if (!optionExists) return status(404, { message: 'Option not found' });
+      if (!optionExists) return status(404, faultBody(faults.notFound('option')));
 
       const [existing] = await db
         .select()
@@ -163,7 +167,7 @@ export const productOptionRoutes = new Elysia()
       permission: true,
       params: optionParams,
       body: optionValueBody,
-      response: withCrudErrors({ 200: 'OptionValue' }),
+      response: withCrudFaults({ 200: 'OptionValue' }),
     },
   )
 
@@ -173,7 +177,7 @@ export const productOptionRoutes = new Elysia()
     '/:id/option-axes/:optionId',
     async ({ params, body, status }) => {
       const [existing] = await db.select().from(option).where(eq(option.id, params.optionId));
-      if (!existing) return status(404, { message: 'Option not found' });
+      if (!existing) return status(404, faultBody(faults.notFound('option')));
 
       const nextType = body.type ?? existing.type;
       const [updated] = await db
@@ -200,7 +204,7 @@ export const productOptionRoutes = new Elysia()
       permission: true,
       params: optionParams,
       body: optionUpdateBody,
-      response: withCrudErrors({ 200: 'Option' }),
+      response: withCrudFaults({ 200: 'Option' }),
     },
   )
 
@@ -209,13 +213,13 @@ export const productOptionRoutes = new Elysia()
     '/:id/option-axes/:optionId/values/:valueId',
     async ({ params, body, status }) => {
       const [opt] = await db.select().from(option).where(eq(option.id, params.optionId));
-      if (!opt) return status(404, { message: 'Option not found' });
+      if (!opt) return status(404, faultBody(faults.notFound('option')));
 
       const [existing] = await db
         .select()
         .from(optionValue)
         .where(and(eq(optionValue.id, params.valueId), eq(optionValue.option, params.optionId)));
-      if (!existing) return status(404, { message: 'Option value not found' });
+      if (!existing) return status(404, faultBody(faults.notFound('option_value')));
 
       // Frontière discriminée par le type PARENT : couleur seulement pour type=color (null sinon).
       let metadata: (typeof existing)['metadata'] = null;
@@ -239,7 +243,7 @@ export const productOptionRoutes = new Elysia()
       permission: true,
       params: optionValueParams,
       body: optionValueUpdateBody,
-      response: withCrudErrors({ 200: 'OptionValue' }),
+      response: withCrudFaults({ 200: 'OptionValue' }),
     },
   )
 
@@ -252,7 +256,7 @@ export const productOptionRoutes = new Elysia()
         .select()
         .from(optionValue)
         .where(and(eq(optionValue.id, params.valueId), eq(optionValue.option, params.optionId)));
-      if (!existing) return status(404, { message: 'Option value not found' });
+      if (!existing) return status(404, faultBody(faults.notFound('option_value')));
 
       // Refuse si des variantes portent encore cette valeur (ne réécrit jamais une variante).
       const [used] = await db
@@ -261,7 +265,9 @@ export const productOptionRoutes = new Elysia()
         .where(eq(variantOptionValue.optionValue, params.valueId))
         .limit(1);
       if (used) {
-        return status(409, { message: 'Valeur utilisée par des variantes — détachez-la d’abord' });
+        // Le « — détachez-la d'abord » appartenait au domaine ; il appartient désormais au
+        // catalogue, avec l'accord qui va avec.
+        return status(409, faultBody(faults.inUse('option_value', 'variant')));
       }
 
       await db.delete(optionValue).where(eq(optionValue.id, params.valueId));
@@ -270,7 +276,7 @@ export const productOptionRoutes = new Elysia()
     {
       permission: true,
       params: optionValueParams,
-      response: withCrudErrors({ 200: successSchema, 409: conflictResponse }),
+      response: withCrudFaults({ 200: successSchema, 409: errorResponseSchema }),
     },
   )
 
@@ -284,7 +290,7 @@ export const productOptionRoutes = new Elysia()
         .where(
           and(eq(productOption.product, params.id), eq(productOption.option, params.optionId)),
         );
-      if (!assoc) return status(404, { message: 'Option non associée au produit' });
+      if (!assoc) return status(404, faultBody(faults.notFound('product_option')));
 
       const [used] = await db
         .select({ v: variantOptionValue.variant })
@@ -294,9 +300,7 @@ export const productOptionRoutes = new Elysia()
         .where(and(eq(variant.product, params.id), eq(optionValue.option, params.optionId)))
         .limit(1);
       if (used) {
-        return status(409, {
-          message: 'Des variantes du produit utilisent cette option — détachez-les d’abord',
-        });
+        return status(409, faultBody(faults.inUse('product_option', 'variant')));
       }
 
       await db
@@ -309,6 +313,6 @@ export const productOptionRoutes = new Elysia()
     {
       permission: true,
       params: optionParams,
-      response: withCrudErrors({ 200: successSchema, 409: conflictResponse }),
+      response: withCrudFaults({ 200: successSchema, 409: errorResponseSchema }),
     },
   );

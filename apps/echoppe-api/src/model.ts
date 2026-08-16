@@ -24,6 +24,11 @@ import { wishlistModels } from './modules/wishlist/model';
 // Les routes font `.use(models)` puis référencent un modèle par son nom
 // (ex. `response: { 200: 'ProductDetail' }`).
 
+// ADR-0050 voudrait que le contrat de faute soit ici, comme modèle nommé : il deviendrait un
+// composant réutilisable de l'OpenAPI, donc un `$ref` unique au lieu de l'union recopiée dans chaque
+// réponse. Il n'y est PAS, et pas par oubli — une union discriminée qui traverse `.model()` ressort
+// avec `resource: never` côté inférence, et toute route qui la rend devient intypable. Le schéma
+// reste donc inline (`lib/response.ts`), au prix d'un contrat verbeux, jusqu'au flip décrit là-bas.
 export const allModels = {
   ...catalogModels,
   ...categoryModels,

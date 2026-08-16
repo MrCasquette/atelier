@@ -1,6 +1,7 @@
-import { and, db, eq, personalizationField, product } from '@echoppe/core';
+import { and, db, eq, faults, personalizationField, product } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { successSchema, withCrudErrors } from '../../../../lib/response';
+import { faultBody } from '../../../../lib/fault';
+import { successSchema, withCrudFaults } from '../../../../lib/response';
 import { models } from '../../../../model';
 import { permissionGuard } from '../../../auth/rbac';
 import { productParams } from '../shared';
@@ -29,7 +30,7 @@ export const personalizationRoutes = new Elysia()
     '/:id/personalization-fields',
     async ({ params, body, status }) => {
       const [productExists] = await db.select().from(product).where(eq(product.id, params.id));
-      if (!productExists) return status(404, { message: 'Product not found' });
+      if (!productExists) return status(404, faultBody(faults.notFound('product')));
 
       const [created] = await db
         .insert(personalizationField)
@@ -49,7 +50,7 @@ export const personalizationRoutes = new Elysia()
       permission: true,
       params: productParams,
       body: personalizationFieldBody,
-      response: withCrudErrors({ 200: 'PersonalizationField' }),
+      response: withCrudFaults({ 200: 'PersonalizationField' }),
     },
   )
 
@@ -74,14 +75,14 @@ export const personalizationRoutes = new Elysia()
           ),
         )
         .returning();
-      if (!updated) return status(404, { message: 'Personalization field not found' });
+      if (!updated) return status(404, faultBody(faults.notFound('personalization_field')));
       return updated;
     },
     {
       permission: true,
       params: personalizationFieldParams,
       body: personalizationFieldBody,
-      response: withCrudErrors({ 200: 'PersonalizationField' }),
+      response: withCrudFaults({ 200: 'PersonalizationField' }),
     },
   )
 
@@ -98,12 +99,12 @@ export const personalizationRoutes = new Elysia()
           ),
         )
         .returning();
-      if (!deleted) return status(404, { message: 'Personalization field not found' });
+      if (!deleted) return status(404, faultBody(faults.notFound('personalization_field')));
       return { success: true };
     },
     {
       permission: true,
       params: personalizationFieldParams,
-      response: withCrudErrors({ 200: successSchema }),
+      response: withCrudFaults({ 200: successSchema }),
     },
   );

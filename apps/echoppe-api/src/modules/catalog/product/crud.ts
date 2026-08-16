@@ -1,6 +1,7 @@
 import {
   db,
   eq,
+  faults,
   option,
   optionValue,
   personalizationField,
@@ -11,11 +12,12 @@ import {
 } from '@echoppe/core';
 import { slugify } from '@repo/shared';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../../lib/fault';
 import {
   successSchema,
   withAuthErrors,
-  withCrudErrors,
-  withNotFound,
+  withCrudFaults,
+  withNotFoundFault,
   withReadErrors,
 } from '../../../lib/response';
 import { models } from '../../../model';
@@ -125,7 +127,7 @@ export const productCrudRoutes = new Elysia()
         })
         .where(eq(product.id, params.id))
         .returning();
-      if (!updated) return status(404, { message: 'Product not found' });
+      if (!updated) return status(404, faultBody(faults.notFound('product')));
 
       // Tags (B3) : remplace l'ensemble si fourni (absent = inchangé).
       if (body.tags !== undefined) await setProductTags(params.id, body.tags);
@@ -147,7 +149,7 @@ export const productCrudRoutes = new Elysia()
       permission: true,
       params: productParams,
       body: productUpdateBody,
-      response: withCrudErrors({ 200: 'Product' }),
+      response: withCrudFaults({ 200: 'Product' }),
     },
   )
 
@@ -172,7 +174,7 @@ export const productCrudRoutes = new Elysia()
         .where(eq(product.id, params.id))
         .returning();
 
-      if (!updated) return status(404, { message: 'Product not found' });
+      if (!updated) return status(404, faultBody(faults.notFound('product')));
 
       // Tags (B3) : remplace l'ensemble si fourni (absent = inchangé).
       if (body.tags !== undefined) await setProductTags(params.id, body.tags);
@@ -185,7 +187,7 @@ export const productCrudRoutes = new Elysia()
       permission: true,
       params: productParams,
       body: productPatchBody,
-      response: withCrudErrors({ 200: 'Product' }),
+      response: withCrudFaults({ 200: 'Product' }),
     },
   )
 
@@ -195,7 +197,7 @@ export const productCrudRoutes = new Elysia()
     '/:id',
     async ({ params, status, currentUser, request }) => {
       const [deleted] = await db.delete(product).where(eq(product.id, params.id)).returning();
-      if (!deleted) return status(404, { message: 'Product not found' });
+      if (!deleted) return status(404, faultBody(faults.notFound('product')));
 
       logAudit({
         userId: currentUser?.id,
@@ -208,7 +210,7 @@ export const productCrudRoutes = new Elysia()
 
       return { success: true };
     },
-    { permission: true, params: productParams, response: withCrudErrors({ 200: successSchema }) },
+    { permission: true, params: productParams, response: withCrudFaults({ 200: successSchema }) },
   )
 
   // === LECTURE ADMIN ===
@@ -233,7 +235,7 @@ export const productCrudRoutes = new Elysia()
     '/:id/full',
     async ({ params, status }) => {
       const [found] = await db.select().from(product).where(eq(product.id, params.id));
-      if (!found) return status(404, { message: 'Product not found' });
+      if (!found) return status(404, faultBody(faults.notFound('product')));
 
       const variants = await db
         .select()
@@ -291,6 +293,6 @@ export const productCrudRoutes = new Elysia()
     {
       permission: true,
       params: productParams,
-      response: withNotFound({ 200: 'ProductAdminWithVariants' }),
+      response: withNotFoundFault({ 200: 'ProductAdminWithVariants' }),
     },
   );

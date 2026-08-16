@@ -1,6 +1,7 @@
 import { cors } from '@elysiajs/cors';
 import { openapi } from '@elysiajs/openapi';
 import { Elysia } from 'elysia';
+import { errorHandler } from './error-handler';
 import { apiKeyRoutes } from './modules/api-key';
 import { auditLogsRoutes } from './modules/audit';
 import { authRoutes } from './modules/auth';
@@ -38,6 +39,8 @@ import { securityHeaders } from './security-headers';
 // bootstrap (pas de listen, migrations, initAdmin ni intervals — cf. index.ts). Importable
 // tel quel dans les tests via `app.handle(request)`.
 export const app = new Elysia()
+  // En premier : le gestionnaire doit couvrir tout ce qui est monté ensuite.
+  .use(errorHandler)
   .use(securityHeaders)
   .use(
     cors({

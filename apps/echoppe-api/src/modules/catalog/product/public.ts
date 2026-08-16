@@ -2,6 +2,7 @@ import {
   and,
   db,
   eq,
+  faults,
   inArray,
   isNotNull,
   option,
@@ -13,7 +14,8 @@ import {
   variantOptionValue,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { withNotFound, withReadErrors } from '../../../lib/response';
+import { faultBody } from '../../../lib/fault';
+import { withNotFoundFault, withReadErrors } from '../../../lib/response';
 import { models } from '../../../model';
 import { type ImageRef, imageRef, loadMediaDimensions } from '../../media/image-ref';
 import { variantPublicSchema } from '../model';
@@ -42,7 +44,7 @@ export const publicProductRoutes = new Elysia()
         .select()
         .from(product)
         .where(and(eq(product.slug, params.slug), eq(product.status, 'published')));
-      if (!found) return status(404, { message: 'Product not found' });
+      if (!found) return status(404, faultBody(faults.notFound('product')));
 
       const variants = await db
         .select()
@@ -145,7 +147,7 @@ export const publicProductRoutes = new Elysia()
     },
     {
       params: t.Object({ slug: t.String() }),
-      response: withNotFound({ 200: 'ProductDetail' }),
+      response: withNotFoundFault({ 200: 'ProductDetail' }),
     },
   )
 
@@ -157,7 +159,7 @@ export const publicProductRoutes = new Elysia()
         .select()
         .from(product)
         .where(and(eq(product.id, params.id), eq(product.status, 'published')));
-      if (!found) return status(404, { message: 'Product not found' });
+      if (!found) return status(404, faultBody(faults.notFound('product')));
 
       const variants = await db
         .select()
@@ -218,7 +220,7 @@ export const publicProductRoutes = new Elysia()
 
       return { ...found, variants: variantsWithOptions, options: optionsWithValues, tags };
     },
-    { params: productParams, response: withNotFound({ 200: 'ProductWithVariants' }) },
+    { params: productParams, response: withNotFoundFault({ 200: 'ProductWithVariants' }) },
   )
 
   // GET /products/:id/related (public) — produits liés curés, sinon fallback voisinage (B8).
