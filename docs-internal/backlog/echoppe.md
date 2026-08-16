@@ -162,28 +162,12 @@ Détail : [ADR-0005](../adr/ADR-0005-panier-stock.md).
     `rank_bound` nomme la ressource seule. Les deux sont exacts, mais un consommateur qui découpe sur
     `:` obtient deux formes. À trancher si le besoin apparaît — ce n'est pas une fuite.
 
-  **Règles de découpage acquises**, à ne pas réapprendre :
-  - L'unité migrable est la **route**, pas la réponse : une route n'a qu'un schéma par statut, donc
-    elle bascule entière ou pas du tout.
-  - Toujours classer **par la garde qui produit le refus**, jamais par la formulation actuelle.
-  - Un opérande facultatif n'est admis que si la surface ne peut pas le reconstruire depuis sa
-    propre requête (ADR-0050 §5). `rank_reserved.grants` est le seul du contrat.
-  - Avant de créer un code, vérifier qu'aucun concept plus général n'existe déjà dans le dépôt ; et
-    ne pas réserver un nom général à un seul domaine.
-  - **Cartographier TOUS les producteurs d'un statut avant de toucher au socle.** Le 422 en avait
-    six, dont un — la validation de réponse d'Elysia — que le recensement par `status(422, …)` ne
-    pouvait pas voir. Un producteur découvert après coup fait refaire la tranche entière.
-  - **Dériver une échelle d'une mesure, pas d'une documentation.** `ValidationReason` vient d'un
-    inventaire exécuté (15 `ValueErrorType` sur 64), regroupé par geste de correction. Un test qui
-    remesure vaut mieux qu'une version épinglée.
-  - Un compte, un libellé, une borne : si l'appelant ne peut pas AGIR dessus, l'opérande ne
-    traverse pas — même quand il ne peut pas le reconstruire.
-  - **L'audience peut trancher contre le prédicat.** Le code juste par la garde
-    (`configuration_missing`) est refusé sur une frontière anonyme : le domaine garde sa précision, la
-    frontière réduit. Réduction sémantique, au même titre que la fusion anti-énumération.
-  - **Un contrat typé ne protège que ses consommateurs typés.** `@mrcasquette/content` reparse le
-    contrat à la main (paquet publié sans dépendance) : un changement de forme y casse en silence,
-    sans que `tsc` ni les tests ne bronchent. Inventorier ces frontières à chaque évolution.
+  Les règles de conception nées de cette migration sont **consolidées hors backlog**, pour survivre
+  à sa purge : [ADR-0050 §7](../adr/ADR-0050-exception-jamais-reponse-http.md) pour les huit règles
+  de faute, [conventions § Fermer un vocabulaire](../reference/conventions.md) pour la méthode de
+  dérivation d'une échelle, [contraintes d'outillage](../reference/contraintes-outillage.md) pour le
+  point de rupture silencieux de `@mrcasquette/content`. La question ouverte — une faute doit-elle
+  être rattachée à HTTP ? — est inscrite dans l'ADR avec son critère de réouverture.
 
 - [ ] 🟡 Inférer `Invoice` depuis le contrat dans l'admin.
 

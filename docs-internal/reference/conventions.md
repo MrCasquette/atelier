@@ -38,6 +38,34 @@ un registre.
 `permissionGuard('medai', 'read')`. Préférer un espace **préfixé** à un `| string` nu — le préfixe
 sert aussi à la maintenance (`LIKE 'entity:%'` pour purger).
 
+## Fermer un vocabulaire : le dériver d'une mesure, jamais d'une documentation
+
+**Quand une échelle de valeurs doit être close, on l'obtient en observant ce que le code produit
+réellement — pas en recopiant ce que la bibliothèque sous-jacente déclare pouvoir produire.**
+
+Le cas d'école est `ValidationReason` ([ADR-0050](../adr/ADR-0050-exception-jamais-reponse-http.md)
+§7). TypeBox déclare **64** types d'erreur. Le générateur de `@repo/fields` n'en émet que **15**,
+parce qu'il n'emploie que neuf constructions de schéma. Le vocabulaire retenu en compte **6** — les
+15 mesurés regroupés par *geste de correction*, `StringMinLength` / `NumberMinimum` / `ArrayMinItems`
+disant tous « agrandis ».
+
+La méthode, en trois temps :
+
+1. **Mesurer** — un script jetable qui exerce chaque cas que la grammaire autorise et relève ce qui
+   sort. Le même travail avait déjà servi aux 401/403 (16 réponses → 3 concepts) et aux 409.
+2. **Regrouper par le geste attendu**, pas par le mot-clé technique. Le lecteur doit savoir quoi
+   corriger, pas quel prédicat a échoué.
+3. **Verrouiller par un test qui remesure** — c'est lui la garantie, pas une version épinglée. Si la
+   dépendance change ses codes ou si le générateur gagne une construction, le test tombe.
+
+**Le nom de la bibliothèque n'entre pas dans le contrat** : changer de version d'un validateur ne
+doit pas être un changement de contrat.
+
+**Deux pièges rencontrés.** Un même code technique peut recouvrir deux prédicats opposés — le `Union`
+de TypeBox vaut « valeur hors liste » pour un `enum` et « mauvais type » pour un entier : on le
+discrimine alors par la **forme** de la donnée, jamais par un nom. Et une échelle mesurée reste
+**additive** : on l'étend quand un cas neuf apparaît, on ne l'élargit pas d'avance.
+
 ## Où vit un fichier
 
 **Un fichier appartient au module de son concept, pas à celui qui l'utilise.** Plusieurs
@@ -156,8 +184,16 @@ actions}`.
 - **Le `message` d'une exception n'entre jamais dans un corps de réponse**
   ([ADR-0050](../adr/ADR-0050-exception-jamais-reponse-http.md)). Une faute qui traverse HTTP est une
   valeur structurée — union discriminée plate sur `code` — dont chaque surface rend le texte. Le
-  domaine n'écrit pas d'interface. *Contrat acté, migration non lancée : le code actuel ne s'y
-  conforme pas encore.*
+  domaine n'écrit pas d'interface. **Migration terminée** : le contrat ne porte plus de champ
+  `message`, et le serveur n'écrit plus de français. Trois surfaces tiennent leur catalogue —
+  administration, CLI `@mrcasquette/content`, et le repli de chacune.
+- **Un `try` ne couvre que ce qui peut échouer de la faute de l'appelant.** Une portée trop large
+  requalifie nos pannes en fautes client : le webhook rendait 400 sur une panne de base, ce qu'un
+  provider de paiement lit comme un refus définitif — il cessait de réessayer. Ce qui échoue de notre
+  côté doit remonter au gestionnaire global et sortir en 5xx.
+- **Les règles de conception d'une faute** (unité migrable, classement par la garde, opérandes
+  minimaux, réduction selon l'audience) sont consolidées en
+  [ADR-0050 §7](../adr/ADR-0050-exception-jamais-reponse-http.md).
 
 ## Frontière de validation
 

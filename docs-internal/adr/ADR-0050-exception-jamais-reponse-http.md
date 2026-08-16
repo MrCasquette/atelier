@@ -940,3 +940,160 @@ sur `:` obtiendra deux formes. À trancher si le besoin apparaît ; ce n'est pas
 
 **ADR-0050 est clos.** Reste le chantier séparé des requalifications de statut, qui n'a jamais fait
 partie de cette migration.
+
+---
+
+## §7 — Règles de conception, consolidées
+
+Les sections précédentes portent la décision ; les notes d'implémentation racontent comment elle
+s'est appliquée, tranche par tranche. Cette section-ci extrait ce qui **survit à la migration** :
+les règles qu'un lecteur doit connaître sans avoir à relire huit notes datées.
+
+Elles ne sont pas des principes posés d'avance. Chacune a été payée par un défaut trouvé en chemin, et
+la ligne « ce qu'elle a coûté » n'est pas décorative : c'est ce qui distingue une règle d'une opinion.
+
+### 7.1 — L'unité migrable est la route, pas la réponse
+
+Une route ne déclare **qu'un schéma par statut**. Elle bascule donc entière, ou pas du tout — on ne
+migre pas « les 404 » puis « les 409 » d'une même route, et deux producteurs d'un même statut ne
+peuvent pas rendre deux formes.
+
+*Ce qu'elle a coûté* : découverte au milieu de la tranche 400, sur une route dont deux réponses
+partageaient un statut. Généralisée au socle par la tranche 422 (cf. 7.3).
+
+### 7.2 — Classer par la garde, jamais par la formulation
+
+Le code d'une faute se dérive du **prédicat qui produit le refus**, pas de la phrase actuellement
+rendue. Deux messages différents cachent souvent un seul concept ; un même message en cache parfois
+deux.
+
+*Ce qu'elle a coûté* : « Pays de livraison invalide » était un `not_found` écrit six fois ;
+« Provider non configuré » et « Mode de paiement non disponible » sont la même garde écrite treize
+fois ; les sept `push` de `link.ts` n'exprimaient que **trois** prédicats. À l'inverse, un seul
+message d'`asConflict` fusionnait deux causes qui se corrigent différemment.
+
+### 7.3 — Cartographier tous les producteurs d'un statut avant de toucher au socle
+
+Avant de rendre un statut contractuel, énumérer **tout** ce qui l'émet — y compris le framework.
+Un producteur découvert après coup fait refaire la tranche entière.
+
+*Ce qu'elle a coûté* : le 422 avait **six** producteurs. Le recensement par `status(422, …)` n'en
+voyait que neuf sites applicatifs et manquait l'essentiel — Elysia en émet un sur chaque validation
+de requête, donc sur presque toutes les routes. Un septième cas restait invisible — `on: 'response'`,
+qu'Elysia range sous `VALIDATION` alors qu'il signale un bug serveur.
+
+### 7.4 — Les opérandes sont minimaux : ce qui ne change pas le geste ne traverse pas
+
+Un opérande ne voyage que s'il est **nécessaire à la correction**. Deux tests, dans cet ordre :
+
+1. **L'appelant peut-il le reconstruire** depuis sa propre requête ? Si oui, il ne traverse pas.
+2. **Peut-il agir dessus** ? Si non, il ne traverse pas — *même s'il ne peut pas le reconstruire*.
+
+Le second test est le moins intuitif et le plus utile. Un opérande facultatif n'est admis que quand
+la surface ne peut pas reconstruire l'information ; sinon il est soit obligatoire parce qu'il
+**constitue** la faute, soit absent. `rank_reserved.grants` reste le seul opérande facultatif du
+contrat.
+
+*Ce qu'elle a coûté* : le compte de lignes pendantes a été retiré (il ne change pas le geste —
+corriger ces valeurs) ; `holders` a été gardé (le dev ne peut pas deviner quelles *autres* entités le
+retiennent) ; le chemin des cibles référençables a été retiré (l'appelant venait de soumettre le
+registre entier).
+
+### 7.5 — Un opérande ne porte jamais de prose, ni de ponctuation d'affichage
+
+Les chemins sortent **nus** — `hero.titre`, `lecteur_externe.cible`. La mise en forme appartient à la
+surface, qui ne saurait pas la retirer si le domaine la posait.
+
+*Ce qu'elle a coûté* : trois fonctions composaient des guillemets typographiques dans leurs résultats
+(`duplicateFieldNames`, `incomingReferences`, `unknownRefTargets`) ; `@repo/auth` rédigeait
+`« … (tient au rang, non délégable) »` en français dans une liste de droits.
+
+### 7.6 — Avant de créer un code, chercher le concept plus général qui existe déjà
+
+Et symétriquement : **ne pas réserver un nom général à un seul domaine**.
+
+*Ce qu'elle a coûté* : `value_not_allowed` aurait menti (un des prédicats refuse une URL non
+parsable) → `redirect_url_rejected`. À l'inverse, les quinze prédicats de blockers du planificateur
+n'ont donné **qu'un** code neuf : la moitié *était* `registry_incoherent`, créé pour le registre de
+sections — les deux moteurs partagent leur grammaire de champs (ADR-0026), donc leurs façons d'être
+mal déclarés.
+
+### 7.7 — L'audience peut trancher contre le prédicat
+
+Le code juste **par la garde** peut être refusé **par la frontière** quand l'appelant est anonyme. Le
+domaine conserve sa précision ; c'est la frontière qui projette.
+
+Cette règle prolonge §3 (redaction par classe) et §4 (fusion contre un oracle), mais elle s'en
+distingue : ici on ne se protège pas d'une énumération, on refuse de **renseigner** sur
+l'installation.
+
+*Ce qu'elle a coûté* : `contact` est public et anonyme. `configuration_missing` y est refusé — et pas
+seulement pour son `target` : apprendre qu'une configuration manque est déjà une information qu'on ne
+doit pas à un visiteur. Réduit vers `service_unavailable`, sans opérande. Les onze autres sites du
+code sont derrière un garde d'administration, ou portent une valeur que l'appelant a soumise.
+
+### 7.8 — Un `try` ne couvre que ce qui peut échouer de la faute de l'appelant
+
+Une portée trop large requalifie **nos** pannes en fautes client. Ce qui échoue de notre côté remonte
+au gestionnaire global et sort en 5xx.
+
+*Ce qu'elle a coûté* : deux fois. `checkout` promouvait l'exception d'un adapter de paiement en
+réponse à l'acheteur — une fuite. Le webhook englobait `handlePaymentResult`, donc une panne de base
+sortait en **400** ; or un provider lit un 4xx comme un refus définitif et **cesse de réessayer** —
+un paiement perdu, pas une fuite. Même motif, deux conséquences sans rapport.
+
+### 7.9 — Renvois
+
+Deux règles nées de cette migration vivent **hors de cet ADR**, parce qu'elles le dépassent :
+
+- **dériver un vocabulaire fermé d'une mesure, pas d'une documentation** →
+  [conventions § Fermer un vocabulaire](../reference/conventions.md) ;
+- **un contrat typé ne protège que ses consommateurs typés** →
+  [contraintes d'outillage](../reference/contraintes-outillage.md), entrée `@mrcasquette/content`.
+
+---
+
+## Question ouverte — une faute doit-elle être rattachée à une réponse HTTP ?
+
+Posée à la clôture, **volontairement non tranchée**. Rien dans le dépôt ne l'exige aujourd'hui, et y
+répondre maintenant serait décider par anticipation — ce que cette migration a refusé de faire à
+chaque tranche.
+
+### L'état de fait
+
+`Fault` est devenu un langage partagé par trois surfaces — API, administration, CLI — et deux
+observations le montrent :
+
+- **`packages/shared/src/fault.ts` n'a aucun import.** Ni Elysia, ni HTTP, ni transport. Le seul
+  rattachement est `faultBody()`, une dizaine de lignes dans `apps/echoppe-api/src/lib/`.
+- **Le vocabulaire a déjà franchi la frontière, par morceaux.** Sept modules de domaine importent les
+  types du contrat sans jamais voir de réponse HTTP : `@repo/auth` (`UndelegatableReason`),
+  `@repo/entities` (`ValidationIssue`, `RegistryIssue`, `PlanBlocker`), `@repo/pages`. Ce ne sont pas
+  des `Fault` — ce sont ses **opérandes**. Le domaine rend un verdict typé
+  (`{ outcome: 'invalid'; issues: ValidationIssue[] }`), la frontière l'emballe.
+
+Autrement dit : **le langage est partagé, l'enveloppe ne l'est pas.**
+
+### La séparation à conserver quoi qu'il advienne
+
+Si le langage de faute devenait un jour transport-agnostique, **la projection selon l'audience
+resterait à la frontière**. Ce sont deux choses distinctes, et `contact` le démontre :
+
+- la **faute** reste ignorante de son destinataire — le domaine dit « pas de fournisseur configuré »
+  sans savoir qui lira ;
+- la **frontière** connaît l'audience, et c'est elle qui projette `configuration_missing` vers
+  `service_unavailable`.
+
+Une faute qui porterait son audience réintroduirait dans le domaine exactement ce que §3 et 7.7 en ont
+sorti. La question ouverte porte donc sur le **transport**, jamais sur l'audience.
+
+### Ce qui appartient réellement à HTTP
+
+Peu de choses : le **statut**, choisi route par route, et `incident`. Codes, opérandes et catalogues
+sont indifférents au transport — la CLI le prouve, elle rend des fautes dans un terminal.
+
+### Critère de réouverture
+
+**Le premier consommateur non-HTTP** : un job de fond, une file de messages, un `Result<T, Fault>`
+interne. Il n'en existe aucun aujourd'hui. Le jour où il apparaît, cette question se rouvre avec un
+cas réel à examiner, et non une hypothèse.

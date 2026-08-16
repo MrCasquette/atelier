@@ -18,6 +18,30 @@ section « Résolu ») pour l'historique.
 
 ## ⛓️ Actives
 
+### `@mrcasquette/content` reparse le contrat à la main — `tsc` ne le protège pas
+
+- **Où** : `packages/content/src/sync.ts`, fonctions `readPlan` et `extractMessage`.
+- **Contrainte** : ce paquet est **publié sans aucune dépendance de production**, délibérément. Il ne
+  consomme donc pas `@repo/client` ni `@repo/shared` : il **redéclare** en structurel ce qu'il lit sur
+  le fil (`PlanStep`, `PlanBlocker`, `Fault`). Toute évolution de forme d'un corps de réponse doit
+  être répercutée **à la main** dans ce fichier — aucun outil ne le signalera.
+- **Symptôme** : `content check` a cessé de signaler le moindre blocage et annonçait un registre
+  synchronisé alors que la migration était impossible. Silencieux : exit 0, aucun avertissement.
+- **Cause racine** : `readPlan` filtrait `blockers` sur `typeof blocker === 'string'`. Quand
+  `EntityPlan.blockers` est passé de `string[]` à des objets structurés (ADR-0050, tranche 422), le
+  filtre les a tous éliminés → tableau vide → « rien ne bloque ». Le champ `issues`, ajouté au même
+  moment, n'était pas lu du tout.
+- **Fausses pistes** : le `type-check` du monorepo passe (le paquet parse de l'`unknown`, donc aucune
+  erreur de type) ; les 197 tests d'intégration passent (ils testent l'API, pas la CLI) ; le
+  `contracts:check` passe (il garde le SDK, dont la CLI ne dépend pas).
+- **Règle générale** : **un contrat typé ne protège que ses consommateurs typés.** Toute frontière
+  qui reparse est un point de rupture silencieux, et doit être inventoriée à chaque changement de
+  forme du contrat.
+- **Condition de levée** : la CLI consomme le SDK généré, ou un test de bout en bout exerce
+  `content check` contre une API réelle. Ni l'un ni l'autre n'est prévu — l'autonomie du paquet
+  publié est un choix assumé, cette contrainte en est le prix.
+- **Date / Réfs** : 2026-08-17 · [ADR-0050](../adr/ADR-0050-exception-jamais-reponse-http.md).
+
 ### npm 12 casse la détection de changesets → pin `npm@11`
 
 - **Où** : `.github/workflows/release.yml`, étape « Ensure npm supports OIDC ».
