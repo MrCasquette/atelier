@@ -670,3 +670,34 @@ l'absence comme la valeur hors liste.
 Seul changement de statut observable de ce lot, et il est la conséquence directe du correctif : ce
 chemin rend désormais 422 au lieu de 400. Les autres requalifications de statut restent groupées
 dans leur propre chantier.
+
+## Note d'implémentation 2026-08-16 — `insufficient_stock` porte sa variante
+
+Le dernier blocage du 400 était `validateStock`, dont le message nommait le produit en rupture. La
+question posée : fallait-il un **second** opérande facultatif pour dire quelle ligne du panier est
+concernée ?
+
+Les quatre gardes qui émettent `insufficient_stock` ont été relues avant d'ajouter quoi que ce soit.
+Résultat : **les quatre ont l'identifiant de variante sous la main**, gratuitement — chacune vient de
+lire la ligne dont elle compare le stock. Et deux d'entre elles servent un appelant qui ne peut pas
+le reconstruire : `PATCH /cart/items/:id` reçoit un identifiant de LIGNE, pas de variante ; `POST
+/checkout` ne reçoit aucune ligne du tout.
+
+Un champ facultatif aurait donc été rempli à moitié — non parce que l'information est parfois
+inutile, mais parce que deux appelants sur quatre l'ont déjà. Or « l'appelant l'a déjà » justifie de
+ne pas *ajouter* un champ ; ça ne justifie pas de le rendre incertain quand il constitue la faute.
+
+**Et il la constitue.** `available: 2, requested: 5` ne désigne rien. Même structure qu'`in_use`, qui
+porte `resource` et `usedBy` sans que l'un soit facultatif. Le champ est donc **obligatoire**, et
+`rank_reserved.grants` reste le seul opérande facultatif du contrat.
+
+Il s'appelle `variant` et non `resource` : ce n'est pas une valeur du vocabulaire de fautes mais
+l'identifiant d'une ligne. Et il remplace `item.product.name` — une donnée saisie par le marchand,
+qui voyageait dans un message. La surface a affiché le panier ; elle retrouve le libellé.
+
+### Un bug d'opérande révélé par la structuration
+
+`POST /cart/items`, sur la fusion de deux lignes, teste `newQuantity > availableStock` mais rendait
+`body.quantity` comme quantité demandée. L'écart était invisible tant que le message n'affichait que
+le stock disponible. Exposer l'opérande l'a fait apparaître : `requested` porte désormais
+`newQuantity`, ce que la garde compare réellement.

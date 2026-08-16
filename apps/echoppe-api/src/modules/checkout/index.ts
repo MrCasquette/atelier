@@ -1,7 +1,7 @@
 import { faults, getAvailablePaymentProviders, getPaymentAdapter } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
-import { faultMessage } from '../../lib/fault-message';
+import { faultBody } from '../../lib/fault';
 import { checkoutRateLimitOptions } from '../../lib/rate-limit';
 import { errorSchema, withReadErrors } from '../../lib/response';
 import { models } from '../../model';
@@ -10,12 +10,12 @@ import {
   calculateOrderTotals,
   createAddressSnapshot,
   createOrder,
+  firstStockShortage,
   generateOrderNumber,
   getActiveCart,
   getCartItems,
   initiatePayment,
   rollbackOrder,
-  validateStock,
 } from './service';
 import { rejectedRedirectField } from './url-validation';
 
@@ -80,42 +80,50 @@ export const checkoutRoutes = new Elysia({
       const customer = currentCustomer as SessionCustomer;
 
       // 1. Validate URLs
-      // Cette route ne bascule PAS sur le contrat : elle porte encore `checkout:146`, qui promeut
-      // une exception d'adapter, et une route n'a qu'un schéma par statut. Le corps garde donc sa
-      // forme héritée — mais son texte vient désormais du catalogue, seule source de phrases.
       const rejectedUrl = rejectedRedirectField(body.successUrl, body.cancelUrl);
       if (rejectedUrl) {
-        return status(400, { message: faultMessage(faults.redirectUrlRejected(rejectedUrl)) });
+        return status(400, faultBody(faults.redirectUrlRejected(rejectedUrl)));
       }
 
       // 2. Get cart
       const cartData = await getActiveCart(customer.id);
-      if (!cartData) return status(400, { message: 'Votre panier est vide' });
+      if (!cartData) return status(400, faultBody(faults.invalidState('cart', 'empty', 'filled')));
 
       const items = await getCartItems(cartData.id);
-      if (items.length === 0) return status(400, { message: 'Votre panier est vide' });
+      if (items.length === 0)
+        return status(400, faultBody(faults.invalidState('cart', 'empty', 'filled')));
 
       // 3. Validate stock
-      const stockError = validateStock(items);
-      if (stockError) return status(400, { message: stockError });
+      const shortage = firstStockShortage(items);
+      if (shortage) {
+        return status(
+          400,
+          faultBody(
+            faults.insufficientStock(shortage.variant, shortage.available, shortage.requested),
+          ),
+        );
+      }
 
       // 4. Verify provider
       const adapter = getPaymentAdapter(body.paymentProvider);
       if (!(await adapter.isConfigured())) {
-        return status(400, { message: `Mode de paiement ${body.paymentProvider} non disponible` });
+        return status(400, faultBody(faults.configurationMissing(body.paymentProvider)));
       }
 
       // 5. Addresses
       const shippingSnapshot = await createAddressSnapshot(body.shippingAddress);
-      if (!shippingSnapshot) return status(400, { message: 'Pays de livraison invalide' });
+      // `createAddressSnapshot` rend `null` sur un `if (!countryData)` : c'est un not_found, que sa
+      // formulation déguisait en « invalide ».
+      if (!shippingSnapshot) return status(400, faultBody(faults.notFound('country')));
 
       const billingInput = body.useSameAddress ? body.shippingAddress : body.billingAddress;
-      if (!billingInput) return status(400, { message: 'Adresse de facturation requise' });
+      if (!billingInput)
+        return status(400, faultBody(faults.requiredDataMissing('billingAddress')));
 
       const billingSnapshot = body.useSameAddress
         ? shippingSnapshot
         : await createAddressSnapshot(billingInput);
-      if (!billingSnapshot) return status(400, { message: 'Pays de facturation invalide' });
+      if (!billingSnapshot) return status(400, faultBody(faults.notFound('country')));
 
       // 6. Create order
       const totals = await calculateOrderTotals(items);
@@ -165,6 +173,6 @@ export const checkoutRoutes = new Elysia({
       customerAuth: true,
       cookie: t.Cookie({ echoppe_customer_session: t.Optional(t.String()) }),
       body: checkoutBodySchema,
-      response: { 200: 'CheckoutResult', 400: errorSchema, 429: errorSchema },
+      response: { 200: 'CheckoutResult', 400: 'ErrorResponse', 429: errorSchema },
     },
   );

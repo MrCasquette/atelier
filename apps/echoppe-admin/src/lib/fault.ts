@@ -157,6 +157,8 @@ export function faultText(fault: Fault): string | null {
       return `Action impossible : ${demonstrative(gender, name).toLowerCase()} ${name} est « ${state(fault.current)} », ${pronoun} doit être « ${state(fault.expected)} »`;
     }
     case 'insufficient_stock':
+      // `fault.variant` identifie la ligne ; l'écran qui a affiché le panier retrouve son libellé.
+      // Ce catalogue n'a pas le panier, donc il reste sur les quantités.
       return `Stock insuffisant : ${fault.available} disponible(s) pour ${fault.requested} demandé(s)`;
     case 'configuration_missing':
       return `${fault.target} n’est pas configuré`;

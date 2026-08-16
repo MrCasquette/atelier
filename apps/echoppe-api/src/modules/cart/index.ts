@@ -301,7 +301,10 @@ export const cartRoutes = new Elysia({
 
       const availableStock = variantData.quantity;
       if (availableStock < body.quantity) {
-        return status(400, faultBody(faults.insufficientStock(availableStock, body.quantity)));
+        return status(
+          400,
+          faultBody(faults.insufficientStock(body.variantId, availableStock, body.quantity)),
+        );
       }
 
       // Personnalisation (ADR-0010) : valide contre les champs déclarés du produit ; le supplément
@@ -346,7 +349,10 @@ export const cartRoutes = new Elysia({
         // Update quantity
         const newQuantity = existingItem.quantity + body.quantity;
         if (newQuantity > availableStock) {
-          return status(400, faultBody(faults.insufficientStock(availableStock, body.quantity)));
+          return status(
+            400,
+            faultBody(faults.insufficientStock(body.variantId, availableStock, newQuantity)),
+          );
         }
 
         await db
@@ -430,7 +436,10 @@ export const cartRoutes = new Elysia({
 
       const availableStock = variantData?.quantity ?? 0;
       if (body.quantity > availableStock) {
-        return status(400, faultBody(faults.insufficientStock(availableStock, body.quantity)));
+        return status(
+          400,
+          faultBody(faults.insufficientStock(item.variantId, availableStock, body.quantity)),
+        );
       }
 
       // Update quantity

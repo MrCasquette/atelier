@@ -5468,20 +5468,11 @@
             }
           },
           "400": {
-            "description": "Response for status 400",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Description de l'erreur",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -7688,12 +7679,16 @@
                 "type": "object",
                 "required": [
                   "code",
+                  "variant",
                   "available",
                   "requested"
                 ],
                 "properties": {
                   "code": {
                     "const": "insufficient_stock",
+                    "type": "string"
+                  },
+                  "variant": {
                     "type": "string"
                   },
                   "available": {

@@ -39,11 +39,11 @@ export const invalidState = (
   expected: string,
 ): EchoppeFault => ({ code: 'invalid_state', resource, current, expected });
 
-export const insufficientStock = (available: number, requested: number): EchoppeFault => ({
-  code: 'insufficient_stock',
-  available,
-  requested,
-});
+export const insufficientStock = (
+  variant: string,
+  available: number,
+  requested: number,
+): EchoppeFault => ({ code: 'insufficient_stock', variant, available, requested });
 
 export const unauthenticated = (): EchoppeFault => ({ code: 'unauthenticated' });
 

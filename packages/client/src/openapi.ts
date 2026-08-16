@@ -1071,6 +1071,7 @@ export interface components {
             } | {
                 /** @constant */
                 code: "insufficient_stock";
+                variant: string;
                 available: number;
                 requested: number;
             } | {
@@ -4571,16 +4572,13 @@ export interface operations {
                     "application/json": components["schemas"]["CheckoutResult"];
                 };
             };
-            /** @description Response for status 400 */
+            /** @description Réponse d’erreur (ADR-0050) */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Response for status 429 */

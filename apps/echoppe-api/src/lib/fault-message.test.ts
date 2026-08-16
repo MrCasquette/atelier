@@ -97,7 +97,7 @@ describe('exhaustivité du catalogue', () => {
       { code: 'already_exists', resource: 'user', field: 'email' },
       { code: 'in_use', resource: 'role', usedBy: 'user' },
       { code: 'invalid_state', resource: 'order', current: 'a', expected: 'b' },
-      { code: 'insufficient_stock', available: 1, requested: 3 },
+      { code: 'insufficient_stock', variant: '9f1c', available: 1, requested: 3 },
       { code: 'unauthenticated' },
       { code: 'invalid_credentials' },
       { code: 'invalid_token' },

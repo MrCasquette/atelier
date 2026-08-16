@@ -159,11 +159,21 @@ export async function getCartItems(cartId: string): Promise<CartItemWithDetails[
     .where(eq(cartItem.cart, cartId));
 }
 
-export function validateStock(items: CartItemWithDetails[]): string | null {
+/**
+ * La première ligne du panier dont le stock ne suffit pas — `null` si toutes passent.
+ *
+ * Rend les OPÉRANDES, plus une phrase. L'ancienne version interpolait `item.product.name`, une
+ * donnée saisie par le marchand, dans un message : la surface qui l'affichait ne pouvait ni la
+ * traduire ni la reformater. L'identifiant de variante suffit — l'acheteur a le panier sous les
+ * yeux, il retrouve le libellé.
+ */
+export function firstStockShortage(
+  items: CartItemWithDetails[],
+): { variant: string; available: number; requested: number } | null {
   for (const item of items) {
     const available = item.variant.quantity;
     if (item.quantity > available) {
-      return `Stock insuffisant pour ${item.product.name} (${available} disponible)`;
+      return { variant: item.variant.id, available, requested: item.quantity };
     }
   }
   return null;

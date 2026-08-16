@@ -130,6 +130,7 @@ export const faultSchema = t.Union(
     }),
     t.Object({
       code: t.Literal('insufficient_stock'),
+      variant: t.String(),
       available: t.Number(),
       requested: t.Number(),
     }),

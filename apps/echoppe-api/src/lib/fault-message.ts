@@ -159,6 +159,8 @@ export function faultMessage(fault: Fault): string {
       return `Action impossible : ${demonstrative(gender, name).toLowerCase()} ${name} est « ${state(fault.current)} », ${pronoun} doit être « ${state(fault.expected)} »`;
     }
     case 'insufficient_stock':
+      // Le NOM du produit n'est pas ici, et n'y sera pas : c'est une donnée saisie par le marchand.
+      // La surface a affiché le panier, donc elle a la ligne, donc elle a le libellé.
       return `Stock insuffisant : ${fault.available} disponible(s) pour ${fault.requested} demandé(s)`;
     case 'unauthenticated':
       return 'Non authentifié';

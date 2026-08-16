@@ -25,7 +25,7 @@ const SAMPLES: Record<FaultCode, EchoppeFault> = {
   already_exists: faults.alreadyExists('product', 'slug'),
   in_use: faults.inUse('option', 'variant'),
   invalid_state: faults.invalidState('order', 'paid', 'pending'),
-  insufficient_stock: faults.insufficientStock(2, 5),
+  insufficient_stock: faults.insufficientStock('9f1c-variant', 2, 5),
   unauthenticated: faults.unauthenticated(),
   invalid_credentials: faults.invalidCredentials(),
   invalid_token: faults.invalidToken(),
@@ -94,9 +94,12 @@ describe('les opérandes traversent intactes', () => {
     });
   });
 
-  it('rend les quantités d’un stock insuffisant en NOMBRES', () => {
-    expect(faults.insufficientStock(2, 5)).toEqual({
+  it('rend les quantités d’un stock insuffisant en NOMBRES, et nomme la variante', () => {
+    // L'identifiant est OBLIGATOIRE : les quatre gardes qui émettent cette faute l'ont sous la
+    // main, et deux d'entre elles servent un appelant qui ne peut pas le déduire de sa requête.
+    expect(faults.insufficientStock('9f1c-variant', 2, 5)).toEqual({
       code: 'insufficient_stock',
+      variant: '9f1c-variant',
       available: 2,
       requested: 5,
     });

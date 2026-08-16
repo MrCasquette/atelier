@@ -49,7 +49,16 @@ export type Fault<R extends string = string, K extends string = string> =
   | { code: 'in_use'; resource: R; usedBy: R }
   /** L'état courant interdit la transition demandée. */
   | { code: 'invalid_state'; resource: R; current: string; expected: string }
-  | { code: 'insufficient_stock'; available: number; requested: number }
+  /**
+   * `variant` identifie CE dont le stock manque, et il est obligatoire : « stock insuffisant » sans
+   * dire de quoi ne désigne rien — deux quantités ne sont pas une faute complète. Même structure
+   * qu'`in_use`, qui porte `resource` et `usedBy` sans que l'un soit facultatif.
+   *
+   * Il n'est pas nommé `resource` : ce n'est pas une valeur du vocabulaire de fautes mais
+   * l'identifiant d'une ligne. Et il ne porte pas le NOM du produit, qui est une donnée marchande —
+   * la surface a affiché le panier, elle retrouve le libellé depuis l'identifiant.
+   */
+  | { code: 'insufficient_stock'; variant: string; available: number; requested: number }
   /** Aucune identité présentée, ou session expirée — les deux sont indiscernables pour l'appelant. */
   | { code: 'unauthenticated' }
   /**
