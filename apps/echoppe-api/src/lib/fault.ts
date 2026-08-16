@@ -1,5 +1,4 @@
 import type { EchoppeErrorResponse, EchoppeFault } from '@echoppe/core';
-import { faultMessage } from './fault-message';
 
 // Le corps qu'une route rend quand elle refuse (ADR-0050).
 //
@@ -9,9 +8,10 @@ import { faultMessage } from './fault-message';
 // le code de l'OpenAPI comme du client Eden. La faute dit de quoi il s'agit, la route dit comment ça
 // se transporte : c'est la même séparation qu'entre le domaine et sa frontière.
 //
-// `message` est rempli ici, à un seul endroit, et c'est ce qui permettra de le retirer d'un seul
-// geste : les routes ne le composent jamais.
+// Le corps ne porte plus que la faute. `message` était rempli ici, à un seul endroit — ce qui a
+// permis de le retirer d'un seul geste, les routes ne l'ayant jamais composé. Chaque surface tient
+// désormais son catalogue (ADR-0050 §6), et le serveur n'écrit plus de français.
 
 export function faultBody(fault: EchoppeFault): EchoppeErrorResponse {
-  return { fault, message: faultMessage(fault) };
+  return { fault };
 }

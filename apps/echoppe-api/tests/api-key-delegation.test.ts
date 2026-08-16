@@ -97,7 +97,12 @@ describe("scopes d'une clé — on ne délègue que ce qu'on détient", () => {
     const res = await createKey(boundedCookie, ['write:product']);
 
     expect(res.status).toBe(403);
-    expect(((await res.json()) as { message: string }).message).toContain('write:product');
+    expect(await res.json()).toMatchObject({
+      fault: {
+        code: 'undelegatable_grants',
+        grants: [{ grant: 'write:product', reason: 'not_held' }],
+      },
+    });
   });
 
   it('refuse une ressource que le demandeur ne détient pas du tout', async () => {

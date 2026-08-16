@@ -2763,21 +2763,11 @@
             }
           },
           "503": {
-            "description": "Service indisponible - Réessayez plus tard",
+            "description": "Réponse d’erreur (ADR-0050)",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Service indisponible - Réessayez plus tard",
-                  "type": "object",
-                  "required": [
-                    "message"
-                  ],
-                  "properties": {
-                    "message": {
-                      "description": "Service temporairement indisponible",
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -6518,8 +6508,7 @@
         "description": "Réponse d’erreur (ADR-0050)",
         "type": "object",
         "required": [
-          "fault",
-          "message"
+          "fault"
         ],
         "properties": {
           "fault": {
@@ -8578,15 +8567,23 @@
                     "type": "string"
                   }
                 }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "code"
+                ],
+                "properties": {
+                  "code": {
+                    "const": "service_unavailable",
+                    "type": "string"
+                  }
+                }
               }
             ]
           },
           "incident": {
             "description": "Corrélation opaque vers la trace serveur, si des champs ont été retirés",
-            "type": "string"
-          },
-          "message": {
-            "description": "Rendu français — format hérité, lire `fault`",
             "type": "string"
           }
         },

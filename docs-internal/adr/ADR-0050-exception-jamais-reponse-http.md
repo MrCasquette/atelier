@@ -853,3 +853,90 @@ homologue des menus, qui alimente le même code.
 Deux cas rangés sous « validation » n'en étaient pas : un type de bloc inconnu (`not_found`, la donnée
 n'a jamais été examinée) et un patch vide (`empty_patch`, la requête ne demande rien). Ni l'un ni
 l'autre ne décrit une donnée fautive.
+
+---
+
+## Note d'implémentation 2026-08-17 — la clôture, et ce que l'inventaire terminal a trouvé
+
+Quatre réponses restaient. Le classement n'a révélé aucun concept nouveau, mais trois défauts qu'il
+fallait corriger avant de fermer.
+
+### `contact` — une réduction sémantique selon l'audience
+
+Les trois 5xx venaient d'un seul service. Deux disent la même chose — pas d'adresse publique sur le
+site, aucun fournisseur d'e-mail branché — et leur prédicat est celui de `configuration_missing`.
+
+Ce code est pourtant **refusé sur cette frontière**, et c'est la première fois que l'audience, et non
+le prédicat, décide du contrat. La route est **publique et anonyme** ; les onze autres sites qui
+émettent `configuration_missing` sont derrière un garde d'administration, ou portent une valeur que
+l'appelant a lui-même soumise. Servir ce code à un visiteur le renseignerait sur l'installation — et
+pas seulement par son `target` : apprendre qu'une configuration manque est déjà une information qu'on
+ne lui doit pas.
+
+Le domaine **continue de distinguer ses cas** ; c'est la frontière qui réduit, vers
+`service_unavailable`, sans opérande. Même mécanisme que la fusion d'`invalid_credentials`, qui
+refuse de dire laquelle des deux causes s'applique — sauf qu'ici on se protège du renseignement, non
+de l'énumération.
+
+`send-failed` ne suit pas : c'est une panne, pas une configuration, et le 500 du socle reste
+`{ message }` — il s'adresse à un opérateur (§4).
+
+### Le webhook — un `catch` qui pouvait coûter un paiement
+
+Le corps était déjà conforme : une constante, jamais dérivée de l'exception. C'est sa **portée** qui
+ne l'était pas. Le `try` englobait `handlePaymentResult`, si bien qu'une panne de base devenait
+« Webhook verification failed » en **400** — et un provider lit un 4xx comme un refus définitif, donc
+cesse de réessayer. Une indisponibilité passagère faisait perdre l'événement, et une commande payée
+restait non confirmée.
+
+Le `try` ne couvre plus que `verifyWebhook`. Ce qui échoue après remonte au `onError`, devient 500, et
+déclenche le retry. Même motif que le `catch` de `checkout` — une panne requalifiée en faute
+d'appelant — mais la conséquence était ici un paiement perdu, pas une fuite.
+
+### Une régression que la tranche 422 avait introduite en silence
+
+`content check` **ne signalait plus aucun blocage**. Son parseur filtrait `blockers` sur
+`typeof === 'string'` ; le jour où ils sont devenus des objets structurés, le filtre les a tous
+éliminés, et la CLI annonçait un registre synchronisé alors que la migration était impossible. Les
+`issues` n'étaient pas lues du tout.
+
+Ni `tsc` ni les tests ne pouvaient l'attraper : `@mrcasquette/content` est **publié sans dépendance**,
+il reparse le contrat à la main plutôt que de consommer le SDK. C'est le prix de son autonomie, et il
+est désormais écrit au-dessus de `readPlan` : toute évolution d'`EntityPlan` se répercute là, à la
+main.
+
+**Leçon générale** : un contrat typé ne protège que ses consommateurs typés. Une frontière qui
+reparse est un point de rupture silencieux, et elle doit être inventoriée comme telle à chaque
+changement de forme.
+
+### `message` est retiré
+
+Le champ a existé le temps que les **trois** surfaces se dotent d'un catalogue :
+
+- l'administration avait le sien ;
+- la CLI n'en avait pas — elle affichait `message` parce qu'il existait. Elle a maintenant
+  `fault-text.ts`, avec un repli sur le **code brut** plutôt qu'une phrase creuse : un développeur
+  peut chercher `entity_locked` dans le dépôt, il ne peut rien faire de « une erreur est survenue » ;
+- l'API n'en a plus besoin. `lib/fault-message.ts` est **supprimé** : le serveur n'écrit plus de
+  français.
+
+Dix-huit assertions de tests d'intégration gelaient de la prose. Réécrites sur les fautes, elles ont
+gagné en précision — `undelegatable_grants` distingue `not_held` de `rank_bound`, là où les tests
+cherchaient le mot « rang » dans une phrase.
+
+### Une incohérence relevée, non corrigée
+
+`undelegatable_grants` porte des granularités différentes selon la raison : `not_held` nomme
+`payment_config:read` (ressource + action), `rank_bound` nomme `schema` (ressource seule). Les deux
+sont exacts — un droit lié au rang l'est pour toutes ses actions — mais un consommateur qui découpe
+sur `:` obtiendra deux formes. À trancher si le besoin apparaît ; ce n'est pas une fuite.
+
+### État de clôture
+
+- aucun `message` dans le contrat ;
+- aucune route ne rend `{ message }` en 4xx, **sauf** le webhook (destinataire machine, décidé) ;
+- aucune promotion d'exception vers une réponse HTTP ;
+- 27 codes, trois surfaces avec leur catalogue, un serveur qui n'écrit plus de texte.
+
+**ADR-0050 est clos.** Reste le chantier séparé des requalifications de statut, qui n'a jamais fait
+partie de cette migration.

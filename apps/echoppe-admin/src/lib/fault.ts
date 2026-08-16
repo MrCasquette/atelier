@@ -263,6 +263,8 @@ export function faultText(fault: Fault): string | null {
       return fault.grants?.length
         ? `Cet acte — ${verb(fault.action)} — est réservé ${RANKS[fault.requires] ?? fault.requires} : ${fault.grants.join(', ')}`
         : `Cet acte — ${verb(fault.action)} — est réservé ${RANKS[fault.requires] ?? fault.requires}`;
+    case 'service_unavailable':
+      return 'Service temporairement indisponible — réessayez plus tard';
     case 'undelegatable_grants': {
       // Groupé par raison : trois règles se croisent, et chacune se corrige autrement. On ne peut
       // pas accorder ce qu'on n'a pas, mais `rank_bound` ne s'obtient par aucune permission.

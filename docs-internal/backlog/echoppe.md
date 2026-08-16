@@ -135,21 +135,32 @@ Détail : [ADR-0005](../adr/ADR-0005-panier-stock.md).
   - [x] Trois fonctions cessent de composer de la ponctuation dans leurs opérandes
     (`duplicateFieldNames`, `incomingReferences`, `unknownRefTargets`).
 
-  **RESTE À FAIRE — 4 réponses :**
+  - [x] Les 3 × 5xx de `contact` et le webhook. Aucun concept nouveau, mais trois défauts :
+    `contact` est **public et anonyme**, donc `configuration_missing` y est refusé — le domaine garde
+    sa précision, la frontière réduit vers `service_unavailable` sans opérande (première fois que
+    l'AUDIENCE, et non le prédicat, décide du code) ; le `try` du webhook englobait
+    `handlePaymentResult`, si bien qu'une panne de base devenait un 400 et faisait **cesser les
+    retries du provider** — un paiement perdu ; et `content check` ne signalait plus aucun blocage
+    depuis la tranche 422, son parseur filtrant les blockers sur `typeof === 'string'`.
+  - [x] **`message` retiré du contrat.** Les trois surfaces ont leur catalogue : l'administration,
+    la CLI (`fault-text.ts`, nouveau, avec repli sur le code brut) et plus rien côté API —
+    `lib/fault-message.ts` est supprimé, le serveur n'écrit plus de français. 18 assertions de tests
+    réécrites sur les fautes.
+  - [x] **ADR-0050 CLOS.** 27 codes ; aucune promotion d'exception ; aucun 4xx en `{ message }` hors
+    webhook (destinataire machine, décidé).
 
-  - [ ] **Les 3 × 503/500** — services externes. Petite tranche, la dernière du contrat.
-  - [ ] **1 × 400, le webhook** (`payment:374`) : déjà conforme (détail au log, réponse générique),
-    en anglais parce que son destinataire est une machine. Seul 4xx du dépôt encore en `{ message }`.
-    Ne migrera probablement pas — à trancher avec le chantier des statuts.
-  - [ ] **Retirer le champ `message` déprécié**, une fois qu'aucune surface ne le lit plus. Vérifier
-    les 8 vues de l'administration, puis supprimer le champ, `lib/fault-message.ts` et le repli
-    d'`apiError`.
-  - [ ] **Chantier SÉPARÉ, après la migration : les ~32 requalifications de statut HTTP.** Elles
-    changent le comportement observable des clients, donc jamais mêlées aux corps. Recensées lors du
-    classement des 400 : `configuration_missing` → 503 (13 sites), `invalid_state` /
+  **RESTE À FAIRE :**
+
+  - [ ] **Chantier SÉPARÉ : les ~32 requalifications de statut HTTP.** Il n'a jamais fait partie
+    d'ADR-0050. Elles changent le comportement observable des clients, donc jamais mêlées aux corps.
+    Recensées lors du classement des 400 : `configuration_missing` → 503 (13 sites), `invalid_state` /
     `already_exists` / `in_use` → 409 (10), `insufficient_stock` → 409 (4), `not_found` déguisé en
-    400 → 404 (6). Deux cas sont déjà résolus au passage : `shipping` rend 422 depuis que son schéma
-    exige `provider`, et la validation de RÉPONSE d'Elysia rend 500 au lieu de 422.
+    400 → 404 (6). Trois cas sont déjà résolus au passage : `shipping` rend 422 depuis que son schéma
+    exige `provider`, la validation de RÉPONSE d'Elysia rend 500 au lieu de 422, et le webhook rend
+    500 sur une panne au lieu de 400.
+  - [ ] 🟡 `undelegatable_grants` porte deux granularités : `not_held` nomme `ressource:action`,
+    `rank_bound` nomme la ressource seule. Les deux sont exacts, mais un consommateur qui découpe sur
+    `:` obtient deux formes. À trancher si le besoin apparaît — ce n'est pas une fuite.
 
   **Règles de découpage acquises**, à ne pas réapprendre :
   - L'unité migrable est la **route**, pas la réponse : une route n'a qu'un schéma par statut, donc
@@ -167,6 +178,12 @@ Détail : [ADR-0005](../adr/ADR-0005-panier-stock.md).
     remesure vaut mieux qu'une version épinglée.
   - Un compte, un libellé, une borne : si l'appelant ne peut pas AGIR dessus, l'opérande ne
     traverse pas — même quand il ne peut pas le reconstruire.
+  - **L'audience peut trancher contre le prédicat.** Le code juste par la garde
+    (`configuration_missing`) est refusé sur une frontière anonyme : le domaine garde sa précision, la
+    frontière réduit. Réduction sémantique, au même titre que la fusion anti-énumération.
+  - **Un contrat typé ne protège que ses consommateurs typés.** `@mrcasquette/content` reparse le
+    contrat à la main (paquet publié sans dépendance) : un changement de forme y casse en silence,
+    sans que `tsc` ni les tests ne bronchent. Inventorier ces frontières à chaque évolution.
 
 - [ ] 🟡 Inférer `Invoice` depuis le contrat dans l'admin.
 

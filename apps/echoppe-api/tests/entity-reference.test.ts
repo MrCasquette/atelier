@@ -31,7 +31,7 @@ const pushOk = async (declarations: Declaration[]): Promise<void> => {
   const res = await push(declarations);
   if (res.status !== 200) {
     const body = (await res.json()) as { message?: string };
-    throw new Error(`push ${res.status} : ${body.message ?? '(sans message)'}`);
+    throw new Error(`push ${res.status} : ${JSON.stringify(body)}`);
   }
 };
 
@@ -223,8 +223,11 @@ describe('une entité citable hérite de ses clés étrangères', () => {
     const res = await push([chronique, lien_social, ancre_test, prive, avis]);
 
     expect(res.status).toBe(422);
-    const body = (await res.json()) as { message: string };
-    expect(body.message).toContain('entity_avis');
-    expect(body.message).toContain('jamais de cascade');
+    expect(await res.json()).toMatchObject({
+      fault: {
+        code: 'blocked_plan',
+        blockers: [{ reason: 'still_referenced', target: 'socle', holders: ['entity_avis.sujet'] }],
+      },
+    });
   });
 });

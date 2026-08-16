@@ -7,6 +7,7 @@
 // et passent donc par le chemin check/push d'ADR-0027 (`/content/entities`). Les entités partent
 // EN PREMIER : une section peut référencer une entité, l'inverse n'arrive pas.
 
+import { blockerText, faultOf, faultText } from './fault-text.js';
 import { serialize } from './serialize.js';
 import type { ContentDefinition, Registry } from './types.js';
 
@@ -36,6 +37,18 @@ export interface PlanStep {
   destroys?: { kind: 'recreate_table' | 'drop_column' | 'drop_table'; target: string };
 }
 
+/**
+ * Ce qu'un plan refuse, en DEUX listes distinctes.
+ *
+ * `issues` : la déclaration est fautive, le dev corrige ses fichiers. `blockers` : la déclaration
+ * est bonne, c'est l'état de la base qui empêche. Les deux voyageaient dans une seule liste de
+ * phrases, et rien ne disait au lecteur laquelle des deux choses on lui demandait.
+ */
+type PlanRefusals = {
+  issues: Record<string, unknown>[];
+  blockers: Record<string, unknown>[];
+};
+
 // Résultat de `checkRegistry`. `ok` = les appels ont abouti ; `synced` = rien à pousser, ni
 // définitions ni tables. `plan` dit, en clair, ce qu'un push ferait aux tables d'entités.
 export interface CheckResult {
@@ -46,15 +59,24 @@ export interface CheckResult {
   message?: string;
 }
 
-// Tente de récupérer le message d'erreur structuré de l'API ({ message }).
+/**
+ * Ce que l'API a refusé, dit en français.
+ *
+ * Lit la FAUTE et la rend avec le catalogue de cette CLI (ADR-0050 §6). Elle lisait auparavant le
+ * champ `message` que l'API composait pour elle — ce qui marchait tant qu'une seule surface
+ * existait, et interdisait de retirer ce champ.
+ *
+ * Repli sur le code brut quand le catalogue ne connaît pas la faute : un développeur peut chercher
+ * `entity_locked` dans le dépôt, il ne peut rien faire de « une erreur est survenue ». C'est la
+ * différence entre cette surface et les deux autres.
+ */
 async function extractMessage(response: Response): Promise<string | undefined> {
   try {
     const body: unknown = await response.json();
-    if (body && typeof body === 'object' && 'message' in body && typeof body.message === 'string') {
-      return body.message;
-    }
+    const fault = faultOf(body);
+    if (fault) return faultText(fault) ?? `faute « ${fault.code} »`;
   } catch {
-    // corps non-JSON — message indéfini
+    // corps non-JSON — rien à en tirer
   }
   return undefined;
 }
@@ -99,16 +121,39 @@ const requester =
 // Le plan arrive de l'API en `unknown` : on le réduit par un garde plutôt que de l'affirmer.
 // Volontairement tolérant sur le contenu des étapes — ce qui compte ici, c'est qu'il y en ait, et
 // combien. Les afficher est la seule chose qu'on en fasse.
-function readPlan(body: unknown): { steps: PlanStep[]; blockers: string[] } | null {
+/**
+ * Lit le plan rendu par `/content/entities/check`.
+ *
+ * ⚠️ Ce parseur est la SEULE frontière de la CLI, et il ne bénéficie d'aucun typage partagé : ce
+ * paquet est publié sans dépendance, donc `tsc` ne peut pas l'avertir quand le contrat bouge. Il
+ * filtrait `blockers` sur `typeof === 'string'` ; le jour où ils sont devenus des objets structurés,
+ * le filtre les a tous éliminés en silence — `content check` cessait de signaler le moindre blocage
+ * et annonçait un registre synchronisé. Toute évolution de `EntityPlan` se répercute ICI, à la main.
+ */
+function readPlan(body: unknown): ({ steps: PlanStep[] } & PlanRefusals) | null {
   if (!body || typeof body !== 'object') return null;
-  const { steps, blockers } = body as { steps?: unknown; blockers?: unknown };
+  const { steps, issues, blockers } = body as {
+    steps?: unknown;
+    issues?: unknown;
+    blockers?: unknown;
+  };
   if (!Array.isArray(steps) || !Array.isArray(blockers)) return null;
+
+  const objects = (value: unknown): Record<string, unknown>[] =>
+    Array.isArray(value)
+      ? value.filter(
+          (item): item is Record<string, unknown> =>
+            typeof item === 'object' && item !== null && !Array.isArray(item),
+        )
+      : [];
+
   return {
     steps: steps.filter(
       (step): step is PlanStep =>
         !!step && typeof step === 'object' && 'sql' in step && 'summary' in step,
     ),
-    blockers: blockers.filter((blocker): blocker is string => typeof blocker === 'string'),
+    issues: objects(issues),
+    blockers: objects(blockers),
   };
 }
 
@@ -174,8 +219,19 @@ export async function checkRegistry(
   if (!plan) {
     return { ok: false, status: planned.status, message: "Plan d'entités illisible." };
   }
+  // Deux refus distincts, deux gestes de correction — et ils se disent séparément.
+  if (plan.issues.length > 0) {
+    const issues = plan.issues
+      .map((issue) => `« ${String(issue.path)} » (${String(issue.reason)})`)
+      .join(' · ');
+    return { ok: false, status: planned.status, message: `Déclaration refusée : ${issues}` };
+  }
   if (plan.blockers.length > 0) {
-    return { ok: false, status: planned.status, message: plan.blockers.join(' · ') };
+    return {
+      ok: false,
+      status: planned.status,
+      message: `Migration impossible en l’état : ${plan.blockers.map(blockerText).join(' · ')}`,
+    };
   }
 
   return {

@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { api } from '@/lib/api';
+import { errorMessage } from '@/lib/apiError';
 import { useAuth } from '@/composables/useAuth';
 import { useToast } from '@/composables/useToast';
 import Button from '@/components/atoms/Button.vue';
@@ -88,7 +89,7 @@ async function sendResetLink() {
   sendingLink.value = false;
 
   if (error) {
-    toast.error(error.value?.message || 'Envoi impossible');
+    toast.error(errorMessage(error, 'Envoi impossible'));
     return;
   }
 
@@ -197,7 +198,7 @@ async function save() {
       });
 
       if (error) {
-        toast.error(error.value?.message || 'Erreur lors de la création');
+        toast.error(errorMessage(error, 'Erreur lors de la création'));
         return;
       }
 
@@ -229,7 +230,7 @@ async function save() {
       const { error } = await api.users({ id }).patch(updates);
 
       if (error) {
-        toast.error(error.value?.message || 'Erreur lors de la mise à jour');
+        toast.error(errorMessage(error, 'Erreur lors de la mise à jour'));
         return;
       }
 

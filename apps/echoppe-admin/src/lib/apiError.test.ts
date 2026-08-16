@@ -38,7 +38,6 @@ describe('le repli, qui est la partie obligatoire', () => {
       {
         value: {
           fault: { code: 'insufficient_stock', available: 2, requested: 5 },
-          message: 'Stock insuffisant : 2 disponible(s) pour 5 demandé(s)',
         },
       },
       'repli',
@@ -47,10 +46,16 @@ describe('le repli, qui est la partie obligatoire', () => {
     expect(text).toBe('Stock insuffisant : 2 disponible(s) pour 5 demandé(s)');
   });
 
-  it('retombe sur `message` pour une route non encore migrée', () => {
-    expect(errorMessage({ value: { message: 'Ce slug est déjà pris' } }, 'repli')).toBe(
-      'Ce slug est déjà pris',
-    );
+  it('retombe sur le texte de l’appelant pour un code que ce catalogue ignore', () => {
+    // Le cas n'est PAS théorique : l'API livrera un jour un code qu'une administration déployée
+    // plus tôt ne connaîtra pas. C'est ce qui rend le repli obligatoire (ADR-0050 §6).
+    expect(errorMessage({ value: { fault: { code: 'entity_locked' } } }, 'repli')).toBe('repli');
+  });
+
+  it('ignore un `message` résiduel : le serveur n’écrit plus de français', () => {
+    // Le champ a été retiré du contrat en fin de migration. S'il reparaissait — vieux serveur,
+    // proxy bavard —, il ne doit pas court-circuiter le catalogue de cette surface.
+    expect(errorMessage({ value: { message: 'Ce slug est déjà pris' } }, 'repli')).toBe('repli');
   });
 
   it('n’utilise le texte de l’appelant que si le serveur s’est tu', () => {
@@ -61,8 +66,6 @@ describe('le repli, qui est la partie obligatoire', () => {
 
   it('ne prend pas une donnée quelconque pour une faute', () => {
     // `fault` sans discriminant n'est pas une faute : le guard le rejette, le repli s'applique.
-    expect(errorMessage({ value: { fault: { resource: 'product' }, message: 'hérité' } }, '')).toBe(
-      'hérité',
-    );
+    expect(errorMessage({ value: { fault: { resource: 'product' } } }, 'repli')).toBe('repli');
   });
 });

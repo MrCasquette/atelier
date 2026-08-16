@@ -127,7 +127,8 @@ describe('poser son mot de passe', () => {
     const unknown = await accept('f'.repeat(64), 'peu-importe');
 
     expect(unknown.status).toBe(400);
-    expect(((await unknown.json()) as { message: string }).message).toBe('Lien invalide ou expiré');
+    // Un seul code pour les deux causes : la fusion est la propriété de sécurité, pas un raccourci.
+    expect(await unknown.json()).toMatchObject({ fault: { code: 'invalid_token' } });
   });
 
   it('refuse un jeton périmé', async () => {

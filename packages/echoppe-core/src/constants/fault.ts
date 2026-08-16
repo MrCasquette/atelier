@@ -172,3 +172,11 @@ export const externalOperationFailed = (operation: string): EchoppeFault => ({
   code: 'external_operation_failed',
   operation,
 });
+
+/**
+ * Ce qu'une surface PUBLIQUE rend quand le service ne répond pas.
+ *
+ * Sans opérande, délibérément : la précision qu'un opérateur mérite est du renseignement pour un
+ * anonyme. Le domaine distingue toujours ses cas ; c'est la frontière qui réduit (ADR-0050).
+ */
+export const serviceUnavailable = (): EchoppeFault => ({ code: 'service_unavailable' });

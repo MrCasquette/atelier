@@ -93,7 +93,9 @@ describe("menu — la validation que l'union fermée assurait", () => {
     });
 
     expect(res.status).toBe(422);
-    expect(((await res.json()) as { message: string }).message).toContain('chaussette');
+    expect(await res.json()).toMatchObject({
+      fault: { code: 'unknown_reference_targets', targets: ['chaussette'] },
+    });
   });
 
   it('refuse aussi une cible fautive nichée dans les enfants', async () => {

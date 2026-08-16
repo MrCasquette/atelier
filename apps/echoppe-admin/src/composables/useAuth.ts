@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue';
 import { api } from '@/lib/api';
+import { errorMessage } from '@/lib/apiError';
 import type { ApiData } from '@/types/api';
 
 // Types inférés depuis Eden
@@ -58,11 +59,9 @@ export function useAuth() {
       const { error } = await api.auth.login.post({ email, password });
 
       if (error) {
-        const errorMessage = typeof error.value === 'object' && error.value && 'message' in error.value
-          ? String(error.value.message)
-          : 'Erreur de connexion';
-        state.value.error = errorMessage;
-        return { success: false, error: errorMessage };
+        const reason = errorMessage(error, 'Erreur de connexion');
+        state.value.error = reason;
+        return { success: false, error: reason };
       }
 
       // Fetch full user data after login

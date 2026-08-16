@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Button from '@/components/atoms/Button.vue';
 import { api } from '@/lib/api';
+import { errorMessage } from '@/lib/apiError';
 
 // Où l'invité pose son mot de passe (ADR-0048). Écran PUBLIC : celui qui arrive ici n'a pas de
 // session, c'est précisément ce qu'il vient chercher.
@@ -40,7 +41,7 @@ async function submit() {
 
   if (failure) {
     // Le serveur ne dit pas si le jeton a existé — on ne le devine pas non plus.
-    error.value = failure.value?.message || 'Lien invalide ou expiré';
+    error.value = errorMessage(failure, 'Lien invalide ou expiré');
     return;
   }
 

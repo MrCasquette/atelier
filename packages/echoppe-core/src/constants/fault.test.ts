@@ -57,6 +57,7 @@ const SAMPLES: Record<FaultCode, EchoppeFault> = {
   unknown_reference_targets: faults.unknownReferenceTargets(['page']),
   unknown_scopes: faults.unknownScopes(['catalog']),
   external_operation_failed: faults.externalOperationFailed('payment.capture'),
+  service_unavailable: faults.serviceUnavailable(),
 };
 
 describe('le catalogue de constructeurs couvre l’union', () => {

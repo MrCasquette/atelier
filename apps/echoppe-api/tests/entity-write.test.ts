@@ -93,8 +93,8 @@ describe('la ressource naît avec l’entité, sans être écrite', () => {
     const res = await req('GET', '/content/entities/note/rows', { cookie: redacteurCookie });
 
     expect(res.status).toBe(403);
-    expect((await res.json()) as { message: string }).toMatchObject({
-      message: expect.stringContaining('entity:note'),
+    expect(await res.json()).toMatchObject({
+      fault: { code: 'permission_denied', action: 'read', resource: 'entity:note' },
     });
   });
 

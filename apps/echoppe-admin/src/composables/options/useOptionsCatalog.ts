@@ -1,5 +1,6 @@
 import { useToast } from '@/composables/useToast';
 import { api } from '@/lib/api';
+import { errorMessage } from '@/lib/apiError';
 import type { ApiItem } from '@/types/api';
 import { ref } from 'vue';
 
@@ -12,18 +13,6 @@ export type Axis = ApiItem<ReturnType<typeof axesApi.get>>;
 export type OptionValue = ApiItem<ReturnType<ReturnType<typeof axesApi>['values']['get']>>;
 export type ColorMetadata = NonNullable<OptionValue['metadata']>;
 export type AxisWithValues = Axis & { values: OptionValue[] };
-
-// Message d'erreur Eden ({ status, value }) — les 409 (utilisée/dupliquée) portent un `message`.
-function errorMessage(error: unknown, fallback: string): string {
-  if (error && typeof error === 'object' && 'value' in error) {
-    const value = (error as { value: unknown }).value;
-    if (value && typeof value === 'object' && 'message' in value) {
-      const message = (value as { message: unknown }).message;
-      if (typeof message === 'string') return message;
-    }
-  }
-  return fallback;
-}
 
 export function useOptionsCatalog() {
   const toast = useToast();

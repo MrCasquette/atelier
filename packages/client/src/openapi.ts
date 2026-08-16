@@ -1200,11 +1200,12 @@ export interface components {
                 /** @constant */
                 code: "external_operation_failed";
                 operation: string;
+            } | {
+                /** @constant */
+                code: "service_unavailable";
             };
             /** @description Corrélation opaque vers la trace serveur, si des champs ont été retirés */
             incident?: string;
-            /** @description Rendu français — format hérité, lire `fault` */
-            message: string;
         };
         Identity: {
             site: ({
@@ -3452,16 +3453,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Service indisponible - Réessayez plus tard */
+            /** @description Réponse d’erreur (ADR-0050) */
             503: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Service temporairement indisponible */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

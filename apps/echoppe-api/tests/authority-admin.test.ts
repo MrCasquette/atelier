@@ -79,7 +79,7 @@ beforeAll(async () => {
   });
   if (pushed.status !== 200) {
     const body = (await pushed.json()) as { message?: string };
-    throw new Error(`Préparation impossible : push ${pushed.status} — ${body.message ?? ''}`);
+    throw new Error(`Préparation impossible : push ${pushed.status} — ${JSON.stringify(body)}`);
   }
 });
 
@@ -175,7 +175,12 @@ describe('ce qu’il peut déléguer, et ce qu’il ne peut pas', () => {
     });
 
     expect(res.status).toBe(403);
-    expect(((await res.json()) as { message: string }).message).toContain('payment_config');
+    expect(await res.json()).toMatchObject({
+      fault: {
+        code: 'undelegatable_grants',
+        grants: [{ grant: 'payment_config:read', reason: 'not_held' }],
+      },
+    });
   });
 
   it('ne peut pas transmettre `schema`, qu’il détient pourtant', async () => {
@@ -196,7 +201,14 @@ describe('ce qu’il peut déléguer, et ce qu’il ne peut pas', () => {
     });
 
     expect(res.status).toBe(403);
-    expect(((await res.json()) as { message: string }).message).toContain('rang');
+    // `rank_bound`, et non `not_held` : le rôle DÉTIENT `schema`. C'est la distinction que le
+    // message fusionnait sous le seul mot « rang ».
+    expect(await res.json()).toMatchObject({
+      fault: {
+        code: 'undelegatable_grants',
+        grants: [{ grant: 'schema', reason: 'rank_bound' }],
+      },
+    });
   });
 
   it('ne peut pas se forger une clé d’API sur ce qu’il ne détient pas', async () => {

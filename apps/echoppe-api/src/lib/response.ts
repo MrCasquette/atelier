@@ -27,22 +27,6 @@ export const messageSchema = t.Object({
 // Réponses d'erreur HTTP communes
 // ============================================
 
-/** 400 Bad Request - Requête invalide */
-export const badRequestResponse = t.Object(
-  {
-    message: t.String({ description: "Détail de l'erreur de validation" }),
-  },
-  { description: 'Requête invalide - Données manquantes ou incorrectes' },
-);
-
-/** 409 Conflict - Conflit de données */
-export const conflictResponse = t.Object(
-  {
-    message: t.String({ description: 'Détail du conflit' }),
-  },
-  { description: 'Conflit - La ressource existe déjà ou est en conflit' },
-);
-
 /** 429 Too Many Requests - Rate limit dépassé */
 export const rateLimitResponse = t.Object(
   {
@@ -59,14 +43,6 @@ export const serverErrorResponse = t.Object(
     incident: t.Optional(t.String({ description: 'Corrélation opaque vers la trace serveur' })),
   },
   { description: 'Erreur serveur interne' },
-);
-
-/** 503 Service Unavailable - Service indisponible */
-export const serviceUnavailableResponse = t.Object(
-  {
-    message: t.String({ description: 'Service temporairement indisponible' }),
-  },
-  { description: 'Service indisponible - Réessayez plus tard' },
 );
 
 // ============================================
@@ -158,9 +134,14 @@ export function withNotFound<const T extends ResponseMap>(responses: T) {
   return { ...COMMON_ERRORS, ...NOT_FOUND_ERROR, ...responses };
 }
 
-/** Routes dépendant de services externes : 503 (+ socle, qui inclut déjà 500). */
+/**
+ * Routes dépendant de services externes : 503 (+ socle, qui inclut déjà 500).
+ *
+ * Le 503 est contractuel. Son unique appelant sert un visiteur ANONYME, à qui la faute est réduite —
+ * `service_unavailable` sans opérande, là où le domaine sait dire pourquoi (cf. `contact`).
+ */
 export function withServiceErrors<const T extends ResponseMap>(responses: T) {
-  return { ...responses, ...COMMON_ERRORS, 503: serviceUnavailableResponse };
+  return { ...responses, ...COMMON_ERRORS, 503: 'ErrorResponse' as const };
 }
 
 /** Combinaison complète CRUD + rate limit : 401 + 403 + 404 + 429 (+ socle). */

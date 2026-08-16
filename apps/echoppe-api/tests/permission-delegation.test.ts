@@ -149,10 +149,16 @@ describe('délégation des droits', () => {
     });
 
     expect(res.status).toBe(403);
-    const body = (await res.json()) as { message: string };
-    // Le message nomme CE QUI est refusé, action par action.
-    expect(body.message).toContain('user:read');
-    expect(body.message).toContain('user:delete');
+    // La faute nomme CE QUI est refusé, action par action — et pourquoi, ce que la phrase taisait.
+    expect(await res.json()).toMatchObject({
+      fault: {
+        code: 'undelegatable_grants',
+        grants: [
+          { grant: 'user:read', reason: 'not_held' },
+          { grant: 'user:delete', reason: 'not_held' },
+        ],
+      },
+    });
   });
 
   it("refuse l'action non détenue même sur une ressource qu'on détient", async () => {
@@ -163,8 +169,11 @@ describe('délégation des droits', () => {
     });
 
     expect(res.status).toBe(403);
-    expect((await res.json()) as { message: string }).toMatchObject({
-      message: expect.stringContaining('product:delete'),
+    expect(await res.json()).toMatchObject({
+      fault: {
+        code: 'undelegatable_grants',
+        grants: [{ grant: 'product:delete', reason: 'not_held' }],
+      },
     });
   });
 
@@ -245,9 +254,12 @@ describe('délégation des droits', () => {
     });
 
     expect(res.status).toBe(403);
-    const body = (await res.json()) as { message: string };
-    expect(body.message).toContain('schema');
-    expect(body.message).toContain('rang');
+    expect(await res.json()).toMatchObject({
+      fault: {
+        code: 'undelegatable_grants',
+        grants: [{ grant: 'schema', reason: 'rank_bound' }],
+      },
+    });
   });
 
   it("l'owner court-circuite la délégation", async () => {

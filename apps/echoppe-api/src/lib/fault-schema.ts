@@ -246,6 +246,7 @@ export const faultSchema = t.Union(
     t.Object({ code: t.Literal('unknown_reference_targets'), targets: t.Array(t.String()) }),
     t.Object({ code: t.Literal('unknown_scopes'), scopes: t.Array(t.String()) }),
     t.Object({ code: t.Literal('external_operation_failed'), operation: t.String() }),
+    t.Object({ code: t.Literal('service_unavailable') }),
   ],
   {
     description:
@@ -253,7 +254,7 @@ export const faultSchema = t.Union(
   },
 );
 
-/** Ce qu'une route rend quand elle refuse. `message` reste rempli le temps de la migration. */
+/** Ce qu'une route rend quand elle refuse : la faute, et rien qu'elle. */
 export const errorResponseSchema = t.Object(
   {
     fault: faultSchema,
@@ -262,7 +263,6 @@ export const errorResponseSchema = t.Object(
         description: 'Corrélation opaque vers la trace serveur, si des champs ont été retirés',
       }),
     ),
-    message: t.String({ description: 'Rendu français — format hérité, lire `fault`' }),
   },
   { description: 'Réponse d’erreur (ADR-0050)' },
 );

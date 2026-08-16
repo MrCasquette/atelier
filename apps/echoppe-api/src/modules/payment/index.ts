@@ -349,23 +349,22 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
           const headers = Object.fromEntries(request.headers);
           const adapter = getPaymentAdapter(params.provider);
 
+          // Le `try` ne couvre QUE la vérification, et cette portée est la correction elle-même.
+          //
+          // Il englobait aussi `handlePaymentResult`, si bien qu'une panne de base devenait
+          // « Webhook verification failed » en 400. Or un provider lit un 4xx comme un refus
+          // DÉFINITIF et cesse de réessayer, là où un 5xx déclenche un retry : une indisponibilité
+          // passagère faisait perdre l'événement, et une commande payée restait non confirmée.
+          //
+          // Même motif que le `catch` de `checkout` fermé plus tôt — une panne requalifiée en faute
+          // de l'appelant — mais la conséquence n'est pas une fuite ici : c'est un paiement perdu.
+          let result: Awaited<ReturnType<typeof adapter.verifyWebhook>>;
           try {
-            const result = await adapter.verifyWebhook(payload, headers);
-
-            console.log('[Webhook] Event received', {
-              provider: params.provider,
-              orderId: result.orderId ?? 'N/A',
-              status: result.status,
-              transactionId: result.transactionId,
-              timestamp: new Date().toISOString(),
-            });
-
-            if (result.orderId && result.status !== 'pending') {
-              await handlePaymentResult(result.orderId, params.provider, result);
-            }
-
-            return { received: true };
+            result = await adapter.verifyWebhook(payload, headers);
           } catch (error) {
+            // Le corps est une CONSTANTE, jamais dérivée de l'exception : le détail reste au log.
+            // Il est en anglais parce que son destinataire est une machine, et il ne devient pas
+            // une `Fault` pour la même raison — personne ne le lira (ADR-0050 §4).
             console.error('[Webhook] Verification failed', {
               provider: params.provider,
               error: error instanceof Error ? error.message : 'Unknown error',
@@ -373,6 +372,22 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
             });
             return status(400, { message: 'Webhook verification failed' });
           }
+
+          console.log('[Webhook] Event received', {
+            provider: params.provider,
+            orderId: result.orderId ?? 'N/A',
+            status: result.status,
+            transactionId: result.transactionId,
+            timestamp: new Date().toISOString(),
+          });
+
+          // Hors du `try` : ce qui échoue ici est de NOTRE côté. L'exception remonte au `onError`,
+          // qui rend 500 + incident — et le provider réessaiera, ce qui est exactement voulu.
+          if (result.orderId && result.status !== 'pending') {
+            await handlePaymentResult(result.orderId, params.provider, result);
+          }
+
+          return { received: true };
         },
         {
           params: t.Object({ provider: t.String() }),

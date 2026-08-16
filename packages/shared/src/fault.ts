@@ -278,7 +278,21 @@ export type Fault<R extends string = string, K extends string = string> =
   | { code: 'unknown_reference_targets'; targets: string[] }
   | { code: 'unknown_scopes'; scopes: string[] }
   /** Un système tiers a échoué. `operation` le nomme sans exposer son diagnostic. */
-  | { code: 'external_operation_failed'; operation: string };
+  | { code: 'external_operation_failed'; operation: string }
+  /**
+   * Le service demandé n'est pas en mesure de répondre. Sans opérande, et c'est tout le propos.
+   *
+   * Ce n'est pas un code « fourre-tout » mais une RÉDUCTION SÉMANTIQUE assumée, au même titre
+   * qu'`invalid_credentials` qui refuse de dire laquelle des deux causes s'applique. Le domaine
+   * continue de distinguer ses cas — pas de destinataire, pas de fournisseur configuré — et c'est la
+   * frontière qui décide de ce que l'audience a le droit de savoir.
+   *
+   * Employé là où l'appelant est ANONYME. `configuration_missing` nomme sa cible, ce qui est utile à
+   * un opérateur qui peut agir dessus ; à un visiteur, c'est du renseignement sur l'infrastructure,
+   * et jusqu'au code lui-même : apprendre qu'une configuration manque est déjà une information qu'on
+   * ne lui doit pas. Les surfaces d'administration gardent le code précis.
+   */
+  | { code: 'service_unavailable' };
 
 export type FaultCode = Fault['code'];
 
@@ -301,12 +315,11 @@ export type FaultOf<
  * réelle. Opaque par construction — c'est la seule chose qui doive l'être, les codes n'étant que des
  * clés.
  *
- * @remarks `message` est le format hérité. Il reste rempli pendant la migration parce que
- * l'administration le lit dans huit vues, et disparaît quand elles auront leur catalogue.
+ * Il n'y a plus de champ `message`, et c'est la fin de la migration. Il a existé le temps que les
+ * trois surfaces — administration, API, CLI — se dotent chacune de son catalogue (§6) : tant qu'une
+ * seule d'entre elles dépendait d'un texte composé par le serveur, le retirer l'aurait rendue muette.
  */
 export type ErrorResponse<R extends string = string, K extends string = string> = {
   fault: Fault<R, K>;
   incident?: string;
-  /** @deprecated Format hérité — lire `fault`. Retiré à la fin de la migration d'ADR-0050. */
-  message: string;
 };

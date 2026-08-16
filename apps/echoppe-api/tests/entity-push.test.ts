@@ -223,8 +223,8 @@ describe('ce que le mécanisme doit refuser', () => {
     const res = await push([], true);
 
     expect(res.status).toBe(422);
-    expect((await res.json()) as { message: string }).toMatchObject({
-      message: expect.stringContaining('article'),
+    expect(await res.json()).toMatchObject({
+      fault: { code: 'blocked_plan', blockers: [{ reason: 'rows_present', target: 'article' }] },
     });
     expect(await tableExists('entity_article')).toBe(true);
   });
@@ -314,8 +314,11 @@ describe('le lien déclaré par une entité', () => {
     ]);
 
     expect(res.status).toBe(422);
-    expect((await res.json()) as { message: string }).toMatchObject({
-      message: expect.stringContaining('url'),
+    expect(await res.json()).toMatchObject({
+      fault: {
+        code: 'registry_incoherent',
+        issues: [{ path: 'lien_test.url', reason: 'link_unknown_field' }],
+      },
     });
   });
 
