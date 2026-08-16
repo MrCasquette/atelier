@@ -1,3 +1,4 @@
+import { faults } from '@echoppe/core';
 import {
   findDeclaration,
   findEntityRowBySlug,
@@ -5,6 +6,7 @@ import {
   listEntityRows,
 } from '@repo/entities';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../../lib/fault';
 import { getPaginationParams, paginationQuery } from '../../../lib/pagination';
 import { withNotFound } from '../../../lib/response';
 import { models } from '../../../model';
@@ -30,7 +32,7 @@ export const entityPublicRoutes = new Elysia({
     async ({ params, query, status }) => {
       const found = await findDeclaration(params.name);
       // Non déclarée : erreur de code, pas état du produit (ADR-0039).
-      if (found.outcome === 'undeclared') return status(404, { message: 'Entité introuvable' });
+      if (found.outcome === 'undeclared') return status(404, faultBody(faults.notFound('entity')));
 
       if (found.declaration.singleton) {
         // Déclaré mais jamais rempli → `200 { data: null }`. Un singleton EXISTE dès qu'il est
@@ -67,11 +69,11 @@ export const entityPublicRoutes = new Elysia({
     async ({ params, status }) => {
       const found = await findDeclaration(params.name);
       if (found.outcome === 'undeclared' || found.declaration.singleton) {
-        return status(404, { message: 'Entité introuvable' });
+        return status(404, faultBody(faults.notFound('entity')));
       }
 
       const row = await findEntityRowBySlug(found.declaration, params.slug);
-      if (!row) return status(404, { message: 'Occurrence introuvable' });
+      if (!row) return status(404, faultBody(faults.notFound('entity_row')));
 
       return { data: row };
     },

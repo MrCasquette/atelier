@@ -1,9 +1,19 @@
-import { and, collection, count, db, eq, inArray, product, productCollection } from '@echoppe/core';
+import {
+  and,
+  collection,
+  count,
+  db,
+  eq,
+  faults,
+  inArray,
+  product,
+  productCollection,
+} from '@echoppe/core';
 import { slugify } from '@repo/shared';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../../lib/fault';
 import { buildListResponse, getPaginationParams, paginationQuery } from '../../../lib/pagination';
 import {
-  notFound,
   successSchema,
   withAuthErrors,
   withCrudErrors,
@@ -89,7 +99,7 @@ export const collectionsRoutes = new Elysia({
         .select()
         .from(collection)
         .where(and(eq(collection.id, params.id), visibilityFilter(collection.isVisible, all)));
-      if (!found) return status(404, notFound('Collection'));
+      if (!found) return status(404, faultBody(faults.notFound('collection')));
       return found;
     },
     {
@@ -110,7 +120,7 @@ export const collectionsRoutes = new Elysia({
         .select()
         .from(collection)
         .where(and(eq(collection.slug, params.slug), visibilityFilter(collection.isVisible, all)));
-      if (!found) return status(404, notFound('Collection'));
+      if (!found) return status(404, faultBody(faults.notFound('collection')));
       return found;
     },
     {
@@ -131,7 +141,7 @@ export const collectionsRoutes = new Elysia({
         .select({ id: collection.id })
         .from(collection)
         .where(and(eq(collection.id, params.id), visibilityFilter(collection.isVisible, all)));
-      if (!collectionExists) return status(404, notFound('Collection'));
+      if (!collectionExists) return status(404, faultBody(faults.notFound('collection')));
 
       // Appartenance à la collection (jonction many-to-many).
       const productIds = await db
@@ -211,7 +221,7 @@ export const collectionsRoutes = new Elysia({
         })
         .where(eq(collection.id, params.id))
         .returning();
-      if (!updated) return status(404, notFound('Collection'));
+      if (!updated) return status(404, faultBody(faults.notFound('collection')));
 
       logAudit({
         userId: currentUser?.id,
@@ -238,7 +248,7 @@ export const collectionsRoutes = new Elysia({
     '/:id',
     async ({ params, status, currentUser, request }) => {
       const [deleted] = await db.delete(collection).where(eq(collection.id, params.id)).returning();
-      if (!deleted) return status(404, notFound('Collection'));
+      if (!deleted) return status(404, faultBody(faults.notFound('collection')));
 
       logAudit({
         userId: currentUser?.id,

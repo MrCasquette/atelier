@@ -1,3 +1,4 @@
+import { faults } from '@echoppe/core';
 import {
   createPage,
   deletePage,
@@ -7,6 +8,7 @@ import {
   updatePage,
 } from '@repo/pages';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../../lib/fault';
 import { conflictResponse, successSchema, withCrudErrors } from '../../../lib/response';
 import { models } from '../../../model';
 import { permissionGuard } from '../../auth/rbac';
@@ -79,7 +81,7 @@ export const pageAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: 
     '/pages/:id',
     async ({ params, status }) => {
       const found = await findPage(params.id);
-      if (!found) return status(404, { message: 'Page introuvable' });
+      if (!found) return status(404, faultBody(faults.notFound('page')));
 
       return found;
     },
@@ -113,7 +115,7 @@ export const pageAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: 
     '/pages/:id',
     async ({ params, body, status }) => {
       const updated = await updatePage(params.id, body);
-      if (!updated) return status(404, { message: 'Page introuvable' });
+      if (!updated) return status(404, faultBody(faults.notFound('page')));
 
       return updated;
     },
@@ -133,7 +135,7 @@ export const pageAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: 
 
       switch (result.outcome) {
         case 'page-not-found':
-          return status(404, { message: 'Page introuvable' });
+          return status(404, faultBody(faults.notFound('page')));
         case 'invalid':
           return status(422, { message: result.errors.join(' ; ') });
         case 'replaced':
@@ -155,7 +157,7 @@ export const pageAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: 
     '/pages/:id',
     async ({ params, status }) => {
       const deleted = await deletePage(params.id);
-      if (!deleted) return status(404, { message: 'Page introuvable' });
+      if (!deleted) return status(404, faultBody(faults.notFound('page')));
 
       return { success: true };
     },

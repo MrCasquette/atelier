@@ -6,6 +6,7 @@ import {
   db,
   desc,
   eq,
+  faults,
   folder,
   generateInvoice,
   getInvoicesByOrder,
@@ -27,6 +28,7 @@ import {
   variant,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../lib/fault';
 import { buildListResponse, listResponse, parseListQuery } from '../../lib/pagination';
 import { successSchema, withCrudErrors } from '../../lib/response';
 import { models } from '../../model';
@@ -322,7 +324,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
         .where(eq(order.id, params.id));
 
       if (!orderData) {
-        return status(404, { message: 'Commande introuvable' });
+        return status(404, faultBody(faults.notFound('order')));
       }
 
       // Get order items
@@ -375,7 +377,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
         .where(eq(order.id, params.id));
 
       if (!existing) {
-        return status(404, { message: 'Commande introuvable' });
+        return status(404, faultBody(faults.notFound('order')));
       }
 
       const previousStatus = existing.status;
@@ -458,7 +460,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
         .where(eq(order.id, params.id));
 
       if (!existing) {
-        return status(404, { message: 'Commande introuvable' });
+        return status(404, faultBody(faults.notFound('order')));
       }
 
       const updates: Partial<typeof order.$inferInsert> = {
@@ -530,7 +532,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
         .where(eq(order.id, params.id));
 
       if (!existing) {
-        return status(404, { message: 'Commande introuvable' });
+        return status(404, faultBody(faults.notFound('order')));
       }
 
       const invoices = await getInvoicesByOrder(params.id);
@@ -569,7 +571,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
         .where(eq(order.id, params.id));
 
       if (!existing) {
-        return status(404, { message: 'Commande introuvable' });
+        return status(404, faultBody(faults.notFound('order')));
       }
 
       // Générer la facture
@@ -645,7 +647,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
         .where(and(eq(invoice.id, params.invoiceId), eq(invoice.order, params.id)));
 
       if (!inv) {
-        return status(404, { message: 'Facture introuvable' });
+        return status(404, faultBody(faults.notFound('invoice')));
       }
 
       // Si un PDF est stocké, le servir

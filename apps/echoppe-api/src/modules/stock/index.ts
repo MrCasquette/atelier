@@ -1,5 +1,6 @@
-import { db, desc, eq, product, sql, stockMove, variant } from '@echoppe/core';
+import { db, desc, eq, faults, product, sql, stockMove, variant } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../lib/fault';
 import {
   buildListResponse,
   getPaginationParams,
@@ -143,7 +144,7 @@ export const stockRoutes = new Elysia({ prefix: '/stock', detail: { tags: ['Stoc
         .where(eq(variant.id, body.variant));
 
       if (!v) {
-        return status(404, { message: 'Variant not found' });
+        return status(404, faultBody(faults.notFound('variant')));
       }
 
       // Build label

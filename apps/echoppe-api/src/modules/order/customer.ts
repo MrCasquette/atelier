@@ -3,6 +3,7 @@ import {
   db,
   desc,
   eq,
+  faults,
   order,
   orderItem,
   payment,
@@ -11,6 +12,7 @@ import {
   sql,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../lib/fault';
 import { buildListResponse, getPaginationParams, paginationQuery } from '../../lib/pagination';
 import { withAuthErrors, withCrudErrors } from '../../lib/response';
 import { models } from '../../model';
@@ -99,7 +101,7 @@ export const customerOrdersRoutes = new Elysia({
         .where(and(eq(order.id, params.id), eq(order.customer, customer.id)));
 
       if (!orderData) {
-        return status(404, { message: 'Commande introuvable' });
+        return status(404, faultBody(faults.notFound('order')));
       }
 
       const items = await db

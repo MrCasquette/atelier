@@ -131,7 +131,7 @@ export const apiKeyRoutes = new Elysia({ prefix: '/api-keys', detail: { tags: ['
       // Ownership : un admin non-owner ne peut révoquer que SES clés. On masque les autres en 404
       // (pas de fuite d'existence). L'Owner bypasse (selfOnly false) → peut tout révoquer.
       if (!existing || (selfOnly && existing.createdBy !== currentUser?.id)) {
-        return status(404, { message: 'Clé introuvable' });
+        return status(404, faultBody(faults.notFound('api_key')));
       }
       await db.delete(apiKey).where(eq(apiKey.id, params.id));
       return { success: true };

@@ -1,6 +1,7 @@
-import { db, eq, menu } from '@echoppe/core';
+import { db, eq, faults, menu } from '@echoppe/core';
 import { resolveMenuItems } from '@repo/menus';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../lib/fault';
 import { withNotFound } from '../../lib/response';
 import { models } from '../../model';
 import { references } from '../reference/targets';
@@ -17,7 +18,7 @@ export const menusRoutes = new Elysia({ prefix: '/menus', detail: { tags: ['Menu
     async ({ params, status }) => {
       const [row] = await db.select().from(menu).where(eq(menu.handle, params.handle));
       if (!row) {
-        return status(404, { message: 'Menu introuvable' });
+        return status(404, faultBody(faults.notFound('menu')));
       }
       // `row.items` est typé MenuItem[] (colonne $type) : validé à l'écriture, trusté en lecture.
       return {

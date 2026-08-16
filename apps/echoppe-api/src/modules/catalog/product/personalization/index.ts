@@ -1,7 +1,7 @@
 import { and, db, eq, faults, personalizationField, product } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../../../lib/fault';
-import { successSchema, withCrudFaults } from '../../../../lib/response';
+import { successSchema, withCrudErrors } from '../../../../lib/response';
 import { models } from '../../../../model';
 import { permissionGuard } from '../../../auth/rbac';
 import { productParams } from '../shared';
@@ -50,7 +50,7 @@ export const personalizationRoutes = new Elysia()
       permission: true,
       params: productParams,
       body: personalizationFieldBody,
-      response: withCrudFaults({ 200: 'PersonalizationField' }),
+      response: withCrudErrors({ 200: 'PersonalizationField' }),
     },
   )
 
@@ -82,7 +82,7 @@ export const personalizationRoutes = new Elysia()
       permission: true,
       params: personalizationFieldParams,
       body: personalizationFieldBody,
-      response: withCrudFaults({ 200: 'PersonalizationField' }),
+      response: withCrudErrors({ 200: 'PersonalizationField' }),
     },
   )
 
@@ -105,6 +105,6 @@ export const personalizationRoutes = new Elysia()
     {
       permission: true,
       params: personalizationFieldParams,
-      response: withCrudFaults({ 200: successSchema }),
+      response: withCrudErrors({ 200: successSchema }),
     },
   );

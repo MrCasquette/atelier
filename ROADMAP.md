@@ -79,6 +79,9 @@ l'administration ; il n'est plus seulement déclaré dans les barrels.
   `lib/response.ts`, donc les 40 sites basculent ensemble ou pas du tout. Trois codes ajoutés —
   `undelegatable_grants`, `rank_reserved`, `self_only` —, `owner_only` retiré, et le contrat SDK
   **rétrécit de 222 lignes** puisque 401/403 passent au `$ref`.
+- **Les 404 sont migrés** (82 réponses, un seul code) : le contrat perd encore 254 lignes, et les
+  deux jeux de helpers fusionnent. Restent 65 réponses — 44 en 400, 9 en 409, 9 en 422, 3 en
+  503/500.
 
 ## Jalon 1 — Fermer les vulnérabilités courtes et exposées
 

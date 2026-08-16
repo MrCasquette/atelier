@@ -13,7 +13,7 @@ import {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../../lib/fault';
-import { successSchema, withCrudFaults } from '../../../lib/response';
+import { successSchema, withCrudErrors } from '../../../lib/response';
 import { models } from '../../../model';
 import { permissionGuard } from '../../auth/rbac';
 import { colorMetadataSchema, optionSchema, optionTypeSchema, optionValueSchema } from '../model';
@@ -128,7 +128,7 @@ export const productOptionRoutes = new Elysia()
       permission: true,
       params: t.Object({ id: t.String({ format: 'uuid' }) }),
       body: optionBody,
-      response: withCrudFaults({ 200: 'Option', 409: 'ErrorResponse' }),
+      response: withCrudErrors({ 200: 'Option', 409: 'ErrorResponse' }),
     },
   )
 
@@ -166,7 +166,7 @@ export const productOptionRoutes = new Elysia()
       permission: true,
       params: optionParams,
       body: optionValueBody,
-      response: withCrudFaults({ 200: 'OptionValue' }),
+      response: withCrudErrors({ 200: 'OptionValue' }),
     },
   )
 
@@ -203,7 +203,7 @@ export const productOptionRoutes = new Elysia()
       permission: true,
       params: optionParams,
       body: optionUpdateBody,
-      response: withCrudFaults({ 200: 'Option' }),
+      response: withCrudErrors({ 200: 'Option' }),
     },
   )
 
@@ -242,7 +242,7 @@ export const productOptionRoutes = new Elysia()
       permission: true,
       params: optionValueParams,
       body: optionValueUpdateBody,
-      response: withCrudFaults({ 200: 'OptionValue' }),
+      response: withCrudErrors({ 200: 'OptionValue' }),
     },
   )
 
@@ -275,7 +275,7 @@ export const productOptionRoutes = new Elysia()
     {
       permission: true,
       params: optionValueParams,
-      response: withCrudFaults({ 200: successSchema, 409: 'ErrorResponse' }),
+      response: withCrudErrors({ 200: successSchema, 409: 'ErrorResponse' }),
     },
   )
 
@@ -312,6 +312,6 @@ export const productOptionRoutes = new Elysia()
     {
       permission: true,
       params: optionParams,
-      response: withCrudFaults({ 200: successSchema, 409: 'ErrorResponse' }),
+      response: withCrudErrors({ 200: successSchema, 409: 'ErrorResponse' }),
     },
   );

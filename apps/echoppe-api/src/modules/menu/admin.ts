@@ -1,6 +1,7 @@
-import { asc, db, eq, menu } from '@echoppe/core';
+import { asc, db, eq, faults, menu } from '@echoppe/core';
 import { menuItemsSchema, unknownTargets } from '@repo/menus';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../lib/fault';
 import { conflictResponse, successSchema, withCrudErrors } from '../../lib/response';
 import { models } from '../../model';
 import { permissionGuard } from '../auth/rbac';
@@ -64,7 +65,7 @@ export const menuAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: 
     async ({ params, status }) => {
       const [row] = await db.select().from(menu).where(eq(menu.id, params.id));
       if (!row) {
-        return status(404, { message: 'Menu introuvable' });
+        return status(404, faultBody(faults.notFound('menu')));
       }
       return { id: row.id, handle: row.handle, label: row.label, items: row.items };
     },
@@ -106,7 +107,7 @@ export const menuAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: 
     async ({ params, body, status }) => {
       const [existing] = await db.select({ id: menu.id }).from(menu).where(eq(menu.id, params.id));
       if (!existing) {
-        return status(404, { message: 'Menu introuvable' });
+        return status(404, faultBody(faults.notFound('menu')));
       }
 
       // Le contrat ne peut plus énumérer les cibles (ADR-0032) : leur existence se vérifie ici,
@@ -143,7 +144,7 @@ export const menuAdminRoutes = new Elysia({ prefix: '/content', detail: { tags: 
     async ({ params, status }) => {
       const [existing] = await db.select({ id: menu.id }).from(menu).where(eq(menu.id, params.id));
       if (!existing) {
-        return status(404, { message: 'Menu introuvable' });
+        return status(404, faultBody(faults.notFound('menu')));
       }
       await db.delete(menu).where(eq(menu.id, params.id));
       return { success: true };

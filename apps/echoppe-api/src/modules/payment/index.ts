@@ -246,7 +246,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
         .where(eq(order.id, body.orderId));
 
       if (!orderData) {
-        return status(404, { message: 'Commande introuvable' });
+        return status(404, faultBody(faults.notFound('order')));
       }
 
       // SECURITY: Verify order belongs to the authenticated customer
@@ -326,7 +326,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
         200: checkoutSessionSchema,
         400: errorSchema,
         403: 'ErrorResponse',
-        404: errorSchema,
+        404: 'ErrorResponse',
       },
     },
   )
@@ -335,47 +335,50 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
   // route. Chaque adapter extrait/valide ses propres headers de signature (route agnostique).
   // Rate-limit IP dédié dans une sous-instance `scoped` → n'affecte pas les routes admin suivantes.
   .use(
-    new Elysia().use(rateLimit(webhookRateLimitOptions)).post(
-      '/webhook/:provider',
-      async ({ params, request, status }) => {
-        if (!isPaymentProvider(params.provider)) {
-          return status(404, { message: `Unknown payment provider: ${params.provider}` });
-        }
-
-        const payload = await request.text();
-        const headers = Object.fromEntries(request.headers);
-        const adapter = getPaymentAdapter(params.provider);
-
-        try {
-          const result = await adapter.verifyWebhook(payload, headers);
-
-          console.log('[Webhook] Event received', {
-            provider: params.provider,
-            orderId: result.orderId ?? 'N/A',
-            status: result.status,
-            transactionId: result.transactionId,
-            timestamp: new Date().toISOString(),
-          });
-
-          if (result.orderId && result.status !== 'pending') {
-            await handlePaymentResult(result.orderId, params.provider, result);
+    new Elysia()
+      .use(models)
+      .use(rateLimit(webhookRateLimitOptions))
+      .post(
+        '/webhook/:provider',
+        async ({ params, request, status }) => {
+          if (!isPaymentProvider(params.provider)) {
+            return status(404, faultBody(faults.notFound('payment_provider')));
           }
 
-          return { received: true };
-        } catch (error) {
-          console.error('[Webhook] Verification failed', {
-            provider: params.provider,
-            error: error instanceof Error ? error.message : 'Unknown error',
-            timestamp: new Date().toISOString(),
-          });
-          return status(400, { message: 'Webhook verification failed' });
-        }
-      },
-      {
-        params: t.Object({ provider: t.String() }),
-        response: { 200: webhookReceivedSchema, 400: errorSchema, 404: errorSchema },
-      },
-    ),
+          const payload = await request.text();
+          const headers = Object.fromEntries(request.headers);
+          const adapter = getPaymentAdapter(params.provider);
+
+          try {
+            const result = await adapter.verifyWebhook(payload, headers);
+
+            console.log('[Webhook] Event received', {
+              provider: params.provider,
+              orderId: result.orderId ?? 'N/A',
+              status: result.status,
+              transactionId: result.transactionId,
+              timestamp: new Date().toISOString(),
+            });
+
+            if (result.orderId && result.status !== 'pending') {
+              await handlePaymentResult(result.orderId, params.provider, result);
+            }
+
+            return { received: true };
+          } catch (error) {
+            console.error('[Webhook] Verification failed', {
+              provider: params.provider,
+              error: error instanceof Error ? error.message : 'Unknown error',
+              timestamp: new Date().toISOString(),
+            });
+            return status(400, { message: 'Webhook verification failed' });
+          }
+        },
+        {
+          params: t.Object({ provider: t.String() }),
+          response: { 200: webhookReceivedSchema, 400: errorSchema, 404: 'ErrorResponse' },
+        },
+      ),
   )
 
   // === ORDER READ (payment status) ===
@@ -391,12 +394,12 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
         .where(eq(payment.order, params.orderId));
 
       if (!paymentData) {
-        return status(404, { message: 'Paiement introuvable' });
+        return status(404, faultBody(faults.notFound('payment')));
       }
 
       return paymentData;
     },
-    { permission: true, params: uuidParam, response: { 200: paymentSchema, 404: errorSchema } },
+    { permission: true, params: uuidParam, response: { 200: paymentSchema, 404: 'ErrorResponse' } },
   )
 
   // === ORDER UPDATE (refund) ===
@@ -412,7 +415,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
         .where(eq(payment.order, params.orderId));
 
       if (!paymentData) {
-        return status(404, { message: 'Paiement introuvable' });
+        return status(404, faultBody(faults.notFound('payment')));
       }
 
       if (paymentData.status !== 'completed') {
@@ -455,7 +458,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
       body: t.Object({
         amount: t.Optional(t.Number({ minimum: 0 })),
       }),
-      response: { 200: refundResultSchema, 400: errorSchema, 404: errorSchema },
+      response: { 200: refundResultSchema, 400: errorSchema, 404: 'ErrorResponse' },
     },
   );
 

@@ -1,5 +1,16 @@
-import { and, asc, db, eq, ilike, option, optionValue, variantOptionValue } from '@echoppe/core';
+import {
+  and,
+  asc,
+  db,
+  eq,
+  faults,
+  ilike,
+  option,
+  optionValue,
+  variantOptionValue,
+} from '@echoppe/core';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../../lib/fault';
 import { conflictResponse, successSchema, withCrudErrors } from '../../../lib/response';
 import { models } from '../../../model';
 import { permissionGuard } from '../../auth/rbac';
@@ -60,7 +71,7 @@ export const optionsRoutes = new Elysia({ prefix: '/option-axes', detail: { tags
     '/:optionId/values',
     async ({ params, status }) => {
       const [opt] = await db.select().from(option).where(eq(option.id, params.optionId));
-      if (!opt) return status(404, { message: 'Option not found' });
+      if (!opt) return status(404, faultBody(faults.notFound('option')));
       return db
         .select()
         .from(optionValue)
@@ -102,7 +113,7 @@ export const optionsRoutes = new Elysia({ prefix: '/option-axes', detail: { tags
     '/:optionId/values',
     async ({ params, body, status }) => {
       const [opt] = await db.select().from(option).where(eq(option.id, params.optionId));
-      if (!opt) return status(404, { message: 'Option not found' });
+      if (!opt) return status(404, faultBody(faults.notFound('option')));
 
       const [existing] = await db
         .select()
@@ -138,7 +149,7 @@ export const optionsRoutes = new Elysia({ prefix: '/option-axes', detail: { tags
     '/:optionId',
     async ({ params, body, status }) => {
       const [existing] = await db.select().from(option).where(eq(option.id, params.optionId));
-      if (!existing) return status(404, { message: 'Option not found' });
+      if (!existing) return status(404, faultBody(faults.notFound('option')));
 
       const nextType = body.type ?? existing.type;
       const [updated] = await db
@@ -173,13 +184,13 @@ export const optionsRoutes = new Elysia({ prefix: '/option-axes', detail: { tags
     '/:optionId/values/:valueId',
     async ({ params, body, status }) => {
       const [opt] = await db.select().from(option).where(eq(option.id, params.optionId));
-      if (!opt) return status(404, { message: 'Option not found' });
+      if (!opt) return status(404, faultBody(faults.notFound('option')));
 
       const [existing] = await db
         .select()
         .from(optionValue)
         .where(and(eq(optionValue.id, params.valueId), eq(optionValue.option, params.optionId)));
-      if (!existing) return status(404, { message: 'Option value not found' });
+      if (!existing) return status(404, faultBody(faults.notFound('option_value')));
 
       let metadata: (typeof existing)['metadata'] = null;
       if (opt.type === 'color') {
@@ -216,7 +227,7 @@ export const optionsRoutes = new Elysia({ prefix: '/option-axes', detail: { tags
         .select()
         .from(optionValue)
         .where(and(eq(optionValue.id, params.valueId), eq(optionValue.option, params.optionId)));
-      if (!existing) return status(404, { message: 'Option value not found' });
+      if (!existing) return status(404, faultBody(faults.notFound('option_value')));
 
       const [used] = await db
         .select({ v: variantOptionValue.variant })
@@ -243,7 +254,7 @@ export const optionsRoutes = new Elysia({ prefix: '/option-axes', detail: { tags
     '/:optionId',
     async ({ params, status }) => {
       const [existing] = await db.select().from(option).where(eq(option.id, params.optionId));
-      if (!existing) return status(404, { message: 'Option not found' });
+      if (!existing) return status(404, faultBody(faults.notFound('option')));
 
       const [used] = await db
         .select({ v: variantOptionValue.variant })

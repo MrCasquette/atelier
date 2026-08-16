@@ -1916,16 +1916,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Response for status 404 */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -2276,16 +2273,13 @@ export interface operations {
                     "application/json": components["schemas"]["Category"];
                 };
             };
-            /** @description Ressource non trouvée */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Entité non traitable - Règle métier non respectée */
@@ -2336,16 +2330,13 @@ export interface operations {
                     "application/json": components["schemas"]["Category"];
                 };
             };
-            /** @description Ressource non trouvée */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Entité non traitable - Règle métier non respectée */
@@ -2401,16 +2392,13 @@ export interface operations {
                     "application/json": components["schemas"]["ProductList"];
                 };
             };
-            /** @description Ressource non trouvée */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Entité non traitable - Règle métier non respectée */
@@ -2510,16 +2498,13 @@ export interface operations {
                     "application/json": components["schemas"]["Collection"];
                 };
             };
-            /** @description Ressource non trouvée */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Entité non traitable - Règle métier non respectée */
@@ -2570,16 +2555,13 @@ export interface operations {
                     "application/json": components["schemas"]["Collection"];
                 };
             };
-            /** @description Ressource non trouvée */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Entité non traitable - Règle métier non respectée */
@@ -2635,16 +2617,13 @@ export interface operations {
                     "application/json": components["schemas"]["ProductList"];
                 };
             };
-            /** @description Ressource non trouvée */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Entité non traitable - Règle métier non respectée */
@@ -2741,16 +2720,13 @@ export interface operations {
                     "application/json": components["schemas"]["Page"];
                 };
             };
-            /** @description Ressource non trouvée */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Entité non traitable - Règle métier non respectée */
@@ -2804,16 +2780,13 @@ export interface operations {
                     "application/json": components["schemas"]["EntityResult"];
                 };
             };
-            /** @description Ressource non trouvée */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Entité non traitable - Règle métier non respectée */
@@ -2865,16 +2838,13 @@ export interface operations {
                     "application/json": components["schemas"]["EntityResult"];
                 };
             };
-            /** @description Ressource non trouvée */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Entité non traitable - Règle métier non respectée */
@@ -2925,16 +2895,13 @@ export interface operations {
                     "application/json": components["schemas"]["Menu"];
                 };
             };
-            /** @description Ressource non trouvée */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Entité non traitable - Règle métier non respectée */
@@ -3077,16 +3044,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Ressource non trouvée */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -3123,16 +3087,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ressource non trouvée */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -3193,16 +3154,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ressource non trouvée */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -4104,16 +4062,13 @@ export interface operations {
                     "application/json": components["schemas"]["Address"];
                 };
             };
-            /** @description Response for status 404 */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -4203,16 +4158,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Response for status 404 */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -4245,16 +4197,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Response for status 404 */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -4368,16 +4317,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ressource non trouvée */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Ressource non trouvée */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Entité non traitable - Règle métier non respectée */
@@ -4471,16 +4417,13 @@ export interface operations {
                     };
                 };
             };
-            /** @description Response for status 404 */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -4738,16 +4681,13 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Response for status 404 */
+            /** @description Réponse d’erreur (ADR-0050) */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @description Description de l'erreur */
-                        message: string;
-                    };
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

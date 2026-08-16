@@ -1,5 +1,7 @@
+import { faults } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { errorSchema, successSchema, withAuthErrors } from '../../lib/response';
+import { faultBody } from '../../lib/fault';
+import { successSchema, withAuthErrors } from '../../lib/response';
 import { models } from '../../model';
 import { getClientIp, logAudit } from '../audit/service';
 import { permissionGuard } from '../auth/rbac';
@@ -52,14 +54,14 @@ export const mediaFolderRoutes = new Elysia({ prefix: '/media', detail: { tags: 
     async ({ params, body, status }) => {
       const updated = await updateFolder(params.id, body);
 
-      if (!updated) return status(404, { message: 'Dossier non trouvé' });
+      if (!updated) return status(404, faultBody(faults.notFound('folder')));
       return updated;
     },
     {
       permission: true,
       params: uuidParam,
       body: folderBody,
-      response: { 200: folderSchema, 404: errorSchema },
+      response: { 200: folderSchema, 404: 'ErrorResponse' },
     },
   )
 
@@ -71,7 +73,7 @@ export const mediaFolderRoutes = new Elysia({ prefix: '/media', detail: { tags: 
     async ({ params, status, currentUser, request }) => {
       const deleted = await deleteFolder(params.id);
 
-      if (!deleted) return status(404, { message: 'Dossier non trouvé' });
+      if (!deleted) return status(404, faultBody(faults.notFound('folder')));
 
       logAudit({
         userId: currentUser?.id,
@@ -87,6 +89,6 @@ export const mediaFolderRoutes = new Elysia({ prefix: '/media', detail: { tags: 
     {
       permission: true,
       params: uuidParam,
-      response: { 200: successSchema, 404: errorSchema },
+      response: { 200: successSchema, 404: 'ErrorResponse' },
     },
   );

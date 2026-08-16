@@ -15,7 +15,7 @@ import {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../../lib/fault';
-import { withNotFoundFault, withReadErrors } from '../../../lib/response';
+import { withNotFound, withReadErrors } from '../../../lib/response';
 import { models } from '../../../model';
 import { type ImageRef, imageRef, loadMediaDimensions } from '../../media/image-ref';
 import { variantPublicSchema } from '../model';
@@ -147,7 +147,7 @@ export const publicProductRoutes = new Elysia()
     },
     {
       params: t.Object({ slug: t.String() }),
-      response: withNotFoundFault({ 200: 'ProductDetail' }),
+      response: withNotFound({ 200: 'ProductDetail' }),
     },
   )
 
@@ -220,7 +220,7 @@ export const publicProductRoutes = new Elysia()
 
       return { ...found, variants: variantsWithOptions, options: optionsWithValues, tags };
     },
-    { params: productParams, response: withNotFoundFault({ 200: 'ProductWithVariants' }) },
+    { params: productParams, response: withNotFound({ 200: 'ProductWithVariants' }) },
   )
 
   // GET /products/:id/related (public) — produits liés curés, sinon fallback voisinage (B8).

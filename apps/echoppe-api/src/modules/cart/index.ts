@@ -20,7 +20,7 @@ import {
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../lib/fault';
-import { badRequestResponse, notFoundResponse, successSchema } from '../../lib/response';
+import { badRequestResponse, successSchema } from '../../lib/response';
 import { models } from '../../model';
 import {
   calculateAddonPrice,
@@ -289,7 +289,7 @@ export const cartRoutes = new Elysia({
         .where(eq(variant.id, body.variantId));
 
       if (!variantData) {
-        return status(404, { message: 'Variante non trouvée' });
+        return status(404, faultBody(faults.notFound('variant')));
       }
 
       if (variantData.status !== 'published') {
@@ -375,7 +375,7 @@ export const cartRoutes = new Elysia({
       response: {
         200: 'Cart',
         400: badRequestResponse,
-        404: notFoundResponse,
+        404: 'ErrorResponse',
       },
     },
   )
@@ -398,14 +398,14 @@ export const cartRoutes = new Elysia({
         .where(eq(cartItem.id, params.id));
 
       if (!item) {
-        return status(404, { message: 'Article non trouvé' });
+        return status(404, faultBody(faults.notFound('cart_item')));
       }
 
       // Verify cart ownership
       const [cartData] = await db.select().from(cart).where(eq(cart.id, item.cartId));
 
       if (!cartData) {
-        return status(404, { message: 'Panier non trouvé' });
+        return status(404, faultBody(faults.notFound('cart')));
       }
 
       const isOwner = customerId
@@ -444,7 +444,7 @@ export const cartRoutes = new Elysia({
         200: 'Cart',
         400: badRequestResponse,
         403: 'ErrorResponse',
-        404: notFoundResponse,
+        404: 'ErrorResponse',
       },
     },
   )
@@ -463,14 +463,14 @@ export const cartRoutes = new Elysia({
         .where(eq(cartItem.id, params.id));
 
       if (!item) {
-        return status(404, { message: 'Article non trouvé' });
+        return status(404, faultBody(faults.notFound('cart_item')));
       }
 
       // Verify cart ownership
       const [cartData] = await db.select().from(cart).where(eq(cart.id, item.cartId));
 
       if (!cartData) {
-        return status(404, { message: 'Panier non trouvé' });
+        return status(404, faultBody(faults.notFound('cart')));
       }
 
       const isOwner = customerId
@@ -496,7 +496,7 @@ export const cartRoutes = new Elysia({
       response: {
         200: 'Cart',
         403: 'ErrorResponse',
-        404: notFoundResponse,
+        404: 'ErrorResponse',
       },
     },
   )

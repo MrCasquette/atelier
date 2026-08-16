@@ -1,3 +1,4 @@
+import { faults } from '@echoppe/core';
 import {
   createEntityRow,
   deleteEntityRow,
@@ -9,6 +10,7 @@ import {
 } from '@repo/entities';
 import { loadRegistry } from '@repo/pages';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../../lib/fault';
 import { getPaginationParams, paginationQuery } from '../../../lib/pagination';
 import { conflictResponse, successSchema, withCrudErrors } from '../../../lib/response';
 import { models } from '../../../model';
@@ -35,7 +37,8 @@ const rowBody = t.Object({
 });
 
 const rowSchema = t.Record(t.String(), t.Unknown());
-const notDeclared = { message: 'Entité introuvable' };
+/** Une entité non déclarée n'existe pas pour l'API : même faute qu'une ligne absente. */
+const notDeclared = faultBody(faults.notFound('entity'));
 
 export const entityAdminRoutes = new Elysia({
   prefix: '/content/entities/:name/rows',
@@ -112,7 +115,8 @@ export const entityAdminRoutes = new Elysia({
         return status(422, { message: written.errors.join(' · ') });
       }
       if (written.outcome === 'conflict') return status(409, { message: written.message });
-      if (written.outcome === 'absent') return status(404, { message: 'Occurrence introuvable' });
+      if (written.outcome === 'absent')
+        return status(404, faultBody(faults.notFound('entity_row')));
 
       return written.row;
     },
@@ -132,7 +136,7 @@ export const entityAdminRoutes = new Elysia({
       if (found.outcome === 'undeclared') return status(404, notDeclared);
 
       const removed = await deleteEntityRow(found.declaration, params.id);
-      if (!removed) return status(404, { message: 'Occurrence introuvable' });
+      if (!removed) return status(404, faultBody(faults.notFound('entity_row')));
 
       return { success: true as const };
     },

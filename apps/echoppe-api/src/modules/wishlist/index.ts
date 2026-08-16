@@ -3,6 +3,7 @@ import {
   db,
   desc,
   eq,
+  faults,
   inArray,
   product,
   productMedia,
@@ -10,7 +11,8 @@ import {
   wishlistItem,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { errorSchema, notFound, successSchema } from '../../lib/response';
+import { faultBody } from '../../lib/fault';
+import { successSchema } from '../../lib/response';
 import { models } from '../../model';
 import {
   customerAuthPlugin,
@@ -97,7 +99,7 @@ export const wishlistRoutes = new Elysia({ prefix: '/wishlist', detail: { tags: 
         .select({ id: variant.id })
         .from(variant)
         .where(eq(variant.id, body.variantId));
-      if (!exists) return status(404, notFound('Variant'));
+      if (!exists) return status(404, faultBody(faults.notFound('variant')));
 
       await db
         .insert(wishlistItem)
@@ -110,7 +112,7 @@ export const wishlistRoutes = new Elysia({ prefix: '/wishlist', detail: { tags: 
       customerAuth: true,
       cookie: customerCookieSchema,
       body: t.Object({ variantId: t.String({ format: 'uuid' }) }),
-      response: { 200: successSchema, 404: errorSchema },
+      response: { 200: successSchema, 404: 'ErrorResponse' },
     },
   )
 

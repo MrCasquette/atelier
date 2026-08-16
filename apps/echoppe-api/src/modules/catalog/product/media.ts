@@ -1,7 +1,7 @@
 import { and, db, eq, faults, product, productMedia } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../../lib/fault';
-import { successSchema, withCrudFaults } from '../../../lib/response';
+import { successSchema, withCrudErrors } from '../../../lib/response';
 import { models } from '../../../model';
 import { permissionGuard } from '../../auth/rbac';
 import { productMediaSchema } from '../model';
@@ -75,7 +75,7 @@ export const productMediaRoutes = new Elysia()
       permission: true,
       params: productParams,
       body: productMediaBody,
-      response: withCrudFaults({ 200: 'ProductMedia' }),
+      response: withCrudErrors({ 200: 'ProductMedia' }),
     },
   )
 
@@ -114,7 +114,7 @@ export const productMediaRoutes = new Elysia()
       permission: true,
       params: mediaParams,
       body: productMediaUpdateBody,
-      response: withCrudFaults({ 200: 'ProductMedia' }),
+      response: withCrudErrors({ 200: 'ProductMedia' }),
     },
   )
 
@@ -130,5 +130,5 @@ export const productMediaRoutes = new Elysia()
       if (!deleted) return status(404, faultBody(faults.notFound('product_media')));
       return { success: true };
     },
-    { permission: true, params: mediaParams, response: withCrudFaults({ 200: successSchema }) },
+    { permission: true, params: mediaParams, response: withCrudErrors({ 200: successSchema }) },
   );

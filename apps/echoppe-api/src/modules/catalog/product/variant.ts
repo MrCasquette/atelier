@@ -1,7 +1,7 @@
 import { and, db, eq, faults, ne, product, variant, variantOptionValue } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../../lib/fault';
-import { successSchema, withCrudFaults } from '../../../lib/response';
+import { successSchema, withCrudErrors } from '../../../lib/response';
 import { models } from '../../../model';
 import { permissionGuard } from '../../auth/rbac';
 import { productParams } from './shared';
@@ -73,7 +73,7 @@ export const variantRoutes = new Elysia()
       permission: true,
       params: productParams,
       body: variantBody,
-      response: withCrudFaults({ 200: 'Variant' }),
+      response: withCrudErrors({ 200: 'Variant' }),
     },
   )
 
@@ -118,7 +118,7 @@ export const variantRoutes = new Elysia()
       permission: true,
       params: variantParams,
       body: variantBody,
-      response: withCrudFaults({ 200: 'Variant' }),
+      response: withCrudErrors({ 200: 'Variant' }),
     },
   )
 
@@ -134,7 +134,7 @@ export const variantRoutes = new Elysia()
       if (!deleted) return status(404, faultBody(faults.notFound('variant')));
       return { success: true };
     },
-    { permission: true, params: variantParams, response: withCrudFaults({ 200: successSchema }) },
+    { permission: true, params: variantParams, response: withCrudErrors({ 200: successSchema }) },
   )
 
   // PUT /products/:id/variants/:variantId/options - Set variant option values (replaces all)
@@ -165,6 +165,6 @@ export const variantRoutes = new Elysia()
       permission: true,
       params: variantParams,
       body: t.Object({ optionValueIds: t.Array(t.String({ format: 'uuid' })) }),
-      response: withCrudFaults({ 200: successSchema }),
+      response: withCrudErrors({ 200: successSchema }),
     },
   );

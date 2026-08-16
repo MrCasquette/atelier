@@ -513,3 +513,41 @@ ce que `toContain` sur une phrase ne permettait pas.
 Le composant `ErrorResponse` existait déjà. 401 et 403 cessent d'inscrire leur `{ message }` inline
 dans chaque route pour ne plus porter qu'un `$ref` : **−222 lignes** de contrat SDK. La migration ne
 coûte plus rien au contrat, elle lui en rend.
+
+## Note d'implémentation 2026-08-16 — la tranche 404
+
+**82 réponses, un seul code.** La plus grosse tranche du chantier, et la seule qui ne prenne aucune
+décision : `not_found(resource)` partout, l'opérande se lit dans la garde qui l'a produite
+(`if (!found)`). Elle a été migrée d'un seul diff, ce que l'interdiction d'un « big-bang » n'exclut
+pas : ce qu'elle vise est le mélange de familles hétérogènes, pas le nombre de sites d'une famille
+homogène.
+
+### Ce que l'uniformisation a révélé
+
+Le helper `notFound(entity)` couvrait 11 sites sur 89 et produisait une phrase. Les 71 autres
+écrivaient la leur, avec le résultat attendu : **cinq messages restés en anglais** (`Option not
+found`, `Variant not found`, `Media not found`…) et **trois orthographes concurrentes** pour la même
+idée — « introuvable », « non trouvé », « non trouvée ». Le contrat les supprime toutes d'un coup,
+parce qu'il n'y a plus qu'un endroit où la phrase s'écrit.
+
+### Les deux jeux de helpers fusionnent
+
+`withCrudFaults` et `withNotFoundFault` n'existaient que pour la coexistence : tant qu'une route
+rendait `{ message }` en 404, un helper unique ne pouvait pas annoncer `ErrorResponse`. Le dernier
+site basculé, ils rejoignent `withCrudErrors` et `withNotFound`. `notFoundResponse` et le helper
+`notFound()` disparaissent avec eux.
+
+C'est la forme que prendra la fin de la migration : chaque famille migrée retire un schéma hérité
+au lieu d'ajouter une variante.
+
+### Un opérande perdu, et le critère qui dit que ce n'est pas une perte
+
+Deux sites interpolaient le nom demandé : `` `Cible référençable inconnue : ${params.name}` `` et
+`` `Unknown payment provider: ${params.provider}` ``. La faute ne le porte pas — et n'a pas à le
+porter : ce nom vient de l'URL que l'appelant a lui-même construite. C'est exactement le test posé
+en §5 (« l'appelant sait-il déjà ? »), appliqué pour la première fois à un cas réel.
+
+### Le contrat rétrécit encore
+
+**−254 lignes** de contrat SDK. Les 404 cessent d'inscrire leur `{ message }` dans chaque route pour
+ne porter qu'un `$ref`. Cumulé avec la tranche 401/403 : −476 lignes depuis que le composant existe.

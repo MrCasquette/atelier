@@ -1,8 +1,8 @@
-import { and, category, db, eq, product } from '@echoppe/core';
+import { and, category, db, eq, faults, product } from '@echoppe/core';
 import { slugify } from '@repo/shared';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../../lib/fault';
 import {
-  notFound,
   successSchema,
   withAuthErrors,
   withCrudErrors,
@@ -90,7 +90,7 @@ export const categoriesRoutes = new Elysia({
         .select()
         .from(category)
         .where(and(eq(category.id, params.id), visibilityFilter(category.isVisible, all)));
-      if (!found) return status(404, notFound('Category'));
+      if (!found) return status(404, faultBody(faults.notFound('category')));
       return found;
     },
     {
@@ -111,7 +111,7 @@ export const categoriesRoutes = new Elysia({
         .select()
         .from(category)
         .where(and(eq(category.slug, params.slug), visibilityFilter(category.isVisible, all)));
-      if (!found) return status(404, notFound('Category'));
+      if (!found) return status(404, faultBody(faults.notFound('category')));
       return found;
     },
     {
@@ -132,7 +132,7 @@ export const categoriesRoutes = new Elysia({
         .select({ id: category.id })
         .from(category)
         .where(and(eq(category.id, params.id), visibilityFilter(category.isVisible, all)));
-      if (!categoryExists) return status(404, notFound('Category'));
+      if (!categoryExists) return status(404, faultBody(faults.notFound('category')));
 
       // Liste publique : produits PUBLIÉS de la catégorie. Recherche/filtres/tri/pagination
       // délégués à la projection unique des cartes (queryProductCards) ; l'appartenance catégorie
@@ -205,7 +205,7 @@ export const categoriesRoutes = new Elysia({
         })
         .where(eq(category.id, params.id))
         .returning();
-      if (!updated) return status(404, notFound('Category'));
+      if (!updated) return status(404, faultBody(faults.notFound('category')));
 
       logAudit({
         userId: currentUser?.id,
@@ -256,7 +256,7 @@ export const categoriesRoutes = new Elysia({
     '/:id',
     async ({ params, status, currentUser, request }) => {
       const [deleted] = await db.delete(category).where(eq(category.id, params.id)).returning();
-      if (!deleted) return status(404, notFound('Category'));
+      if (!deleted) return status(404, faultBody(faults.notFound('category')));
 
       logAudit({
         userId: currentUser?.id,

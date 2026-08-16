@@ -1,5 +1,7 @@
+import { faults } from '@echoppe/core';
 import { findPublishedPageBySlug, listPublishedPages } from '@repo/pages';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../../lib/fault';
 import { withNotFound, withReadErrors } from '../../../lib/response';
 import { models } from '../../../model';
 import { interpolateSections } from '../interpolation';
@@ -19,7 +21,7 @@ export const pagesRoutes = new Elysia({ prefix: '/pages', detail: { tags: ['Page
     '/by-slug/:slug',
     async ({ params, status }) => {
       const found = await findPublishedPageBySlug(params.slug);
-      if (!found) return status(404, { message: 'Page introuvable' });
+      if (!found) return status(404, faultBody(faults.notFound('page')));
 
       // Substitution À LA LECTURE (ADR-0035) : le stockage garde `{{ legal.name }}` en clair, le
       // front reçoit du texte prêt à afficher. Ici et pas dans `@repo/pages` : le résolveur lit

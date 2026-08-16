@@ -258,7 +258,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
         .where(eq(user.id, params.id));
 
       if (!userData) {
-        return status(404, { message: 'Utilisateur introuvable' });
+        return status(404, faultBody(faults.notFound('user')));
       }
 
       return userData;
@@ -352,7 +352,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
         .where(eq(user.id, params.id));
 
       if (!existing) {
-        return status(404, { message: 'Utilisateur introuvable' });
+        return status(404, faultBody(faults.notFound('user')));
       }
 
       // Cannot modify owner (except owner themselves)
@@ -440,7 +440,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
         .where(eq(user.id, params.id));
 
       if (!existing) {
-        return status(404, { message: 'Utilisateur introuvable' });
+        return status(404, faultBody(faults.notFound('user')));
       }
 
       // Cannot deactivate owner
@@ -489,7 +489,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
         .where(eq(user.id, params.id));
 
       if (!existing) {
-        return status(404, { message: 'Utilisateur introuvable' });
+        return status(404, faultBody(faults.notFound('user')));
       }
 
       // Cannot delete owner
@@ -542,7 +542,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
         .where(eq(user.id, params.id));
 
       if (!target) {
-        return status(404, { message: 'Utilisateur introuvable' });
+        return status(404, faultBody(faults.notFound('user')));
       }
 
       // Même borne que partout : on ne touche pas au premier rang sans être le propriétaire.
@@ -597,7 +597,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
         .where(eq(user.id, params.id));
 
       if (!target) {
-        return status(404, { message: 'Utilisateur introuvable' });
+        return status(404, faultBody(faults.notFound('user')));
       }
       if (target.isOwner) {
         return status(400, { message: 'Cet utilisateur est déjà le propriétaire' });

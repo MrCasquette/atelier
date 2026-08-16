@@ -16,8 +16,8 @@ import { faultBody } from '../../../lib/fault';
 import {
   successSchema,
   withAuthErrors,
-  withCrudFaults,
-  withNotFoundFault,
+  withCrudErrors,
+  withNotFound,
   withReadErrors,
 } from '../../../lib/response';
 import { models } from '../../../model';
@@ -149,7 +149,7 @@ export const productCrudRoutes = new Elysia()
       permission: true,
       params: productParams,
       body: productUpdateBody,
-      response: withCrudFaults({ 200: 'Product' }),
+      response: withCrudErrors({ 200: 'Product' }),
     },
   )
 
@@ -187,7 +187,7 @@ export const productCrudRoutes = new Elysia()
       permission: true,
       params: productParams,
       body: productPatchBody,
-      response: withCrudFaults({ 200: 'Product' }),
+      response: withCrudErrors({ 200: 'Product' }),
     },
   )
 
@@ -210,7 +210,7 @@ export const productCrudRoutes = new Elysia()
 
       return { success: true };
     },
-    { permission: true, params: productParams, response: withCrudFaults({ 200: successSchema }) },
+    { permission: true, params: productParams, response: withCrudErrors({ 200: successSchema }) },
   )
 
   // === LECTURE ADMIN ===
@@ -293,6 +293,6 @@ export const productCrudRoutes = new Elysia()
     {
       permission: true,
       params: productParams,
-      response: withNotFoundFault({ 200: 'ProductAdminWithVariants' }),
+      response: withNotFound({ 200: 'ProductAdminWithVariants' }),
     },
   );

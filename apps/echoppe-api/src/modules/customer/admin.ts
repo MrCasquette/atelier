@@ -7,6 +7,7 @@ import {
   db,
   desc,
   eq,
+  faults,
   gte,
   ilike,
   lte,
@@ -16,6 +17,7 @@ import {
   wishlistItem,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../lib/fault';
 import { buildListResponse, listResponse, parseListQuery } from '../../lib/pagination';
 import { successSchema, withCrudErrors } from '../../lib/response';
 import { models } from '../../model';
@@ -240,7 +242,7 @@ export const customersRoutes = new Elysia({ prefix: '/customers', detail: { tags
       const [customerData] = await db.select().from(customer).where(eq(customer.id, params.id));
 
       if (!customerData) {
-        return status(404, { message: 'Client introuvable' });
+        return status(404, faultBody(faults.notFound('customer')));
       }
 
       // Get addresses with country name
@@ -326,7 +328,7 @@ export const customersRoutes = new Elysia({ prefix: '/customers', detail: { tags
         .where(eq(customer.id, params.id));
 
       if (!existing) {
-        return status(404, { message: 'Client introuvable' });
+        return status(404, faultBody(faults.notFound('customer')));
       }
 
       const updates: Partial<typeof customer.$inferInsert> = {
@@ -360,7 +362,7 @@ export const customersRoutes = new Elysia({ prefix: '/customers', detail: { tags
         .where(eq(customer.id, params.id));
 
       if (!existing) {
-        return status(404, { message: 'Client introuvable' });
+        return status(404, faultBody(faults.notFound('customer')));
       }
 
       await db
@@ -399,7 +401,7 @@ export const customersRoutes = new Elysia({ prefix: '/customers', detail: { tags
         .where(eq(customer.id, params.id));
 
       if (!existing) {
-        return status(404, { message: 'Client introuvable' });
+        return status(404, faultBody(faults.notFound('customer')));
       }
 
       // Delete related data

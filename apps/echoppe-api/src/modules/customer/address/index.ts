@@ -1,5 +1,6 @@
-import { address, and, country, db, eq } from '@echoppe/core';
+import { address, and, country, db, eq, faults } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../../lib/fault';
 import { errorSchema, successSchema } from '../../../lib/response';
 import { models } from '../../../model';
 import {
@@ -103,7 +104,7 @@ export const customerAddressesRoutes = new Elysia({
         .where(and(eq(address.id, params.id), eq(address.customer, customer.id)));
 
       if (!addressData) {
-        return status(404, { message: 'Adresse introuvable' });
+        return status(404, faultBody(faults.notFound('address')));
       }
 
       return addressData;
@@ -112,7 +113,7 @@ export const customerAddressesRoutes = new Elysia({
       customerAuth: true,
       cookie: customerCookieSchema,
       params: t.Object({ id: t.String({ format: 'uuid' }) }),
-      response: { 200: 'Address', 404: errorSchema },
+      response: { 200: 'Address', 404: 'ErrorResponse' },
     },
   )
 
@@ -197,7 +198,7 @@ export const customerAddressesRoutes = new Elysia({
         .where(and(eq(address.id, params.id), eq(address.customer, customer.id)));
 
       if (!existing) {
-        return status(404, { message: 'Adresse introuvable' });
+        return status(404, faultBody(faults.notFound('address')));
       }
 
       // Verify country exists
@@ -259,7 +260,7 @@ export const customerAddressesRoutes = new Elysia({
       cookie: customerCookieSchema,
       params: t.Object({ id: t.String({ format: 'uuid' }) }),
       body: addressBodySchema,
-      response: { 200: 'Address', 400: errorSchema, 404: errorSchema },
+      response: { 200: 'Address', 400: errorSchema, 404: 'ErrorResponse' },
     },
   )
 
@@ -276,7 +277,7 @@ export const customerAddressesRoutes = new Elysia({
         .where(and(eq(address.id, params.id), eq(address.customer, customer.id)));
 
       if (!existing) {
-        return status(404, { message: 'Adresse introuvable' });
+        return status(404, faultBody(faults.notFound('address')));
       }
 
       await db.delete(address).where(eq(address.id, params.id));
@@ -287,6 +288,6 @@ export const customerAddressesRoutes = new Elysia({
       customerAuth: true,
       cookie: customerCookieSchema,
       params: t.Object({ id: t.String({ format: 'uuid' }) }),
-      response: { 200: successSchema, 404: errorSchema },
+      response: { 200: successSchema, 404: 'ErrorResponse' },
     },
   );

@@ -2,6 +2,7 @@ import {
   type ColissimoCredentials,
   db,
   eq,
+  faults,
   getShippingAdapter,
   getShippingProviderStatus,
   isEncryptionConfigured,
@@ -16,6 +17,7 @@ import {
   shippingProvider,
 } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../lib/fault';
 import { errorSchema, successSchema, withAuthErrors } from '../../lib/response';
 import { models } from '../../model';
 import { permissionGuard } from '../auth/rbac';
@@ -334,7 +336,7 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
       const [orderData] = await db.select().from(order).where(eq(order.id, body.orderId));
 
       if (!orderData) {
-        return status(404, { message: 'Commande introuvable' });
+        return status(404, faultBody(faults.notFound('order')));
       }
 
       // Récupérer ou créer le shipping provider
@@ -383,6 +385,6 @@ export const shippingRoutes = new Elysia({ prefix: '/shipping', detail: { tags: 
     {
       permission: true,
       body: labelBody,
-      response: { 200: labelSchema, 400: errorSchema, 404: errorSchema },
+      response: { 200: labelSchema, 400: errorSchema, 404: 'ErrorResponse' },
     },
   );

@@ -1,6 +1,8 @@
+import { faults } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
+import { faultBody } from '../../lib/fault';
 import { buildListResponse, getPaginationParams, listResponse } from '../../lib/pagination';
-import { errorSchema, successSchema, withAuthErrors } from '../../lib/response';
+import { successSchema, withAuthErrors } from '../../lib/response';
 import { models } from '../../model';
 import { getClientIp, logAudit } from '../audit/service';
 import { permissionGuard } from '../auth/rbac';
@@ -50,7 +52,7 @@ export const mediaItemRoutes = new Elysia({ prefix: '/media', detail: { tags: ['
     async ({ params, status }) => {
       const item = await findMedia(params.id);
 
-      if (!item) return status(404, { message: 'Média non trouvé' });
+      if (!item) return status(404, faultBody(faults.notFound('media')));
       return item;
     },
     {
@@ -58,7 +60,7 @@ export const mediaItemRoutes = new Elysia({ prefix: '/media', detail: { tags: ['
       params: uuidParam,
       response: {
         200: mediaSchema,
-        404: t.Object({ message: t.String() }),
+        404: 'ErrorResponse',
       },
     },
   )
@@ -104,14 +106,14 @@ export const mediaItemRoutes = new Elysia({ prefix: '/media', detail: { tags: ['
     async ({ params, body, status }) => {
       const updated = await updateMediaMetadata(params.id, body);
 
-      if (!updated) return status(404, { message: 'Média non trouvé' });
+      if (!updated) return status(404, faultBody(faults.notFound('media')));
       return updated;
     },
     {
       permission: true,
       params: uuidParam,
       body: mediaUpdate,
-      response: { 200: mediaSchema, 404: errorSchema },
+      response: { 200: mediaSchema, 404: 'ErrorResponse' },
     },
   )
 
@@ -134,7 +136,7 @@ export const mediaItemRoutes = new Elysia({ prefix: '/media', detail: { tags: ['
     async ({ params, status, currentUser, request }) => {
       const deleted = await deleteMedia(params.id);
 
-      if (!deleted) return status(404, { message: 'Média non trouvé' });
+      if (!deleted) return status(404, faultBody(faults.notFound('media')));
 
       logAudit({
         userId: currentUser?.id,
@@ -150,7 +152,7 @@ export const mediaItemRoutes = new Elysia({ prefix: '/media', detail: { tags: ['
     {
       permission: true,
       params: uuidParam,
-      response: { 200: successSchema, 404: errorSchema },
+      response: { 200: successSchema, 404: 'ErrorResponse' },
     },
   )
 

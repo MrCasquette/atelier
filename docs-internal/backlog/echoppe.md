@@ -87,7 +87,17 @@ Détail : [ADR-0005](../adr/ADR-0005-panier-stock.md).
     partagés, donc rien ne se découpait. `unauthorizedResponse` / `forbiddenResponse` retirés,
     trois codes ajoutés (`undelegatable_grants`, `rank_reserved`, `self_only`), `owner_only`
     absorbé, et la prose française sortie de `undelegatableGrants` (`@repo/auth`).
-  - [ ] Les ~148 réponses restantes des autres modules.
+  - [x] Les **82 réponses 404** → `not_found(resource)`. Une seule tranche : un seul code, aucun
+    arbitrage métier. Corrige au passage 5 messages restés en anglais et trois orthographes
+    concurrentes. Les deux jeux de helpers fusionnent — `withCrudFaults` / `withNotFoundFault`
+    disparaissent, ils n'existaient que pour la coexistence.
+  - [ ] Les **44 réponses 400** — repartir des gardes AVANT de décider le découpage : c'est la
+    famille hétérogène, celle qui peut réclamer des codes.
+  - [ ] Les 9 × 409 et 9 × 422, familles déjà nommées (`already_exists`, `in_use`,
+    `validation_failed`, `unknown_scopes`).
+  - [ ] Les 3 × 503/500 des services externes.
+  - [ ] Chantier SÉPARÉ, jamais mêlé aux corps : les statuts HTTP discutables (de la validation
+    métier rendue en 400 plutôt qu'en 422).
   - [ ] Retirer le champ `message` déprécié, une fois qu'aucune surface ne le lit plus.
 - [ ] 🟡 Inférer `Invoice` depuis le contrat dans l'admin.
 

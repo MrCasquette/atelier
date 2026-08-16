@@ -1,5 +1,7 @@
+import { faults } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
-import { errorSchema, withAuthErrors } from '../../lib/response';
+import { faultBody } from '../../lib/fault';
+import { withAuthErrors } from '../../lib/response';
 import { models } from '../../model';
 import { permissionGuard } from '../auth/rbac';
 import { listReferenceTargets, projectTarget, searchTarget } from './targets';
@@ -54,7 +56,7 @@ export const referenceRoutes = new Elysia({
       );
 
       return result.outcome === 'unknown-target'
-        ? status(404, { message: `Cible référençable inconnue : ${params.name}` })
+        ? status(404, faultBody(faults.notFound('reference_target')))
         : result.entities;
     },
     {
@@ -64,7 +66,7 @@ export const referenceRoutes = new Elysia({
         search: t.Optional(t.String()),
         limit: t.Optional(t.Numeric({ minimum: 1 })),
       }),
-      response: withAuthErrors({ 200: t.Array(entitySchema), 404: errorSchema }),
+      response: withAuthErrors({ 200: t.Array(entitySchema), 404: 'ErrorResponse' }),
     },
   )
 
@@ -77,7 +79,7 @@ export const referenceRoutes = new Elysia({
       const result = await projectTarget(params.name, ids);
 
       return result.outcome === 'unknown-target'
-        ? status(404, { message: `Cible référençable inconnue : ${params.name}` })
+        ? status(404, faultBody(faults.notFound('reference_target')))
         : result.entities;
     },
     {
@@ -86,6 +88,6 @@ export const referenceRoutes = new Elysia({
       query: t.Object({
         ids: t.Optional(t.String({ description: 'UUID séparés par des virgules.' })),
       }),
-      response: withAuthErrors({ 200: t.Array(entitySchema), 404: errorSchema }),
+      response: withAuthErrors({ 200: t.Array(entitySchema), 404: 'ErrorResponse' }),
     },
   );

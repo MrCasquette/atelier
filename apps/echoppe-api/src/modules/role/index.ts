@@ -169,7 +169,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
     async ({ params, status }) => {
       const [r] = await db.select().from(role).where(eq(role.id, params.id));
       if (!r) {
-        return status(404, { message: 'Rôle non trouvé' });
+        return status(404, faultBody(faults.notFound('role')));
       }
 
       const perms = await db.select().from(permission).where(eq(permission.role, params.id));
@@ -181,7 +181,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
       params: t.Object({ id: t.String({ format: 'uuid' }) }),
       response: {
         200: roleWithPermissionsSchema,
-        404: errorSchema,
+        404: 'ErrorResponse',
       },
     },
   )
@@ -226,7 +226,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
     async ({ params, body, status, currentUser, request }) => {
       const [existing] = await db.select().from(role).where(eq(role.id, params.id));
       if (!existing) {
-        return status(404, { message: 'Rôle non trouvé' });
+        return status(404, faultBody(faults.notFound('role')));
       }
       if (existing.isSystem) {
         return status(403, faultBody(faults.protectedSubject('role')));
@@ -260,7 +260,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
       response: {
         200: roleSchema,
         403: 'ErrorResponse',
-        404: errorSchema,
+        404: 'ErrorResponse',
       },
     },
   )
@@ -272,7 +272,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
     async ({ params, status, currentUser, request }) => {
       const [existing] = await db.select().from(role).where(eq(role.id, params.id));
       if (!existing) {
-        return status(404, { message: 'Rôle non trouvé' });
+        return status(404, faultBody(faults.notFound('role')));
       }
       if (existing.isSystem) {
         return status(403, faultBody(faults.protectedSubject('role')));
@@ -312,7 +312,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
         200: successSchema,
         400: errorSchema,
         403: 'ErrorResponse',
-        404: errorSchema,
+        404: 'ErrorResponse',
       },
     },
   )
@@ -324,7 +324,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
     async ({ params, body, status, currentUser, request, principal }) => {
       const [existing] = await db.select().from(role).where(eq(role.id, params.id));
       if (!existing) {
-        return status(404, { message: 'Rôle non trouvé' });
+        return status(404, faultBody(faults.notFound('role')));
       }
 
       const currentPerms = await db.select().from(permission).where(eq(permission.role, params.id));
@@ -402,7 +402,7 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
       response: {
         200: t.Object({ permissions: t.Array(permissionSchema) }),
         403: 'ErrorResponse',
-        404: errorSchema,
+        404: 'ErrorResponse',
       },
     },
   );

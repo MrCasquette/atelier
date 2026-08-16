@@ -23,12 +23,6 @@ export const messageSchema = t.Object({
   message: t.String({ description: 'Message de confirmation' }),
 });
 
-// Corps 404 uniforme (UI FR, accents corrects) : `status(404, notFound('Collection'))`. Évite les
-// messages disparates (« Collection non trouvee » sans accent / « Collection not found » en anglais).
-export function notFound(entity: string): { message: string } {
-  return { message: `${entity} introuvable` };
-}
-
 // ============================================
 // Réponses d'erreur HTTP communes
 // ============================================
@@ -39,14 +33,6 @@ export const badRequestResponse = t.Object(
     message: t.String({ description: "Détail de l'erreur de validation" }),
   },
   { description: 'Requête invalide - Données manquantes ou incorrectes' },
-);
-
-/** 404 Not Found - Ressource non trouvée */
-export const notFoundResponse = t.Object(
-  {
-    message: t.String({ description: 'Ressource non trouvée' }),
-  },
-  { description: 'Ressource non trouvée' },
 );
 
 /** 409 Conflict - Conflit de données */
@@ -109,30 +95,34 @@ type ResponseMap = Record<number, TSchema | ModelName>;
 //   serveur) présent sur quasiment toutes les routes ;
 // - les codes spécifiques au type de route (401/403/404/429/503…).
 // `const T` préserve les littéraux (noms de modèles) passés en entrée.
-// NOTE : les shapes d'erreur HÉRITÉES restent inline — elles sont triviales (`{ message }`), donc
-// la dédup ne rapporterait rien. Les routes migrées sur ADR-0050 utilisent, elles, le modèle nommé
-// (cf. `FAULT_ERRORS` plus bas), parce que leur schéma est gros et partagé.
 //
-// 401 et 403 sont, eux, TOUJOURS contractuels, dans les helpers hérités comme dans les migrés. Ils
-// ne pouvaient pas basculer module par module : le schéma d'un statut est déclaré par ces helpers
-// partagés, donc une route non migrée qui aurait continué de rendre `{ message }` aurait échoué à
-// la validation de réponse dès que le helper aurait annoncé `ErrorResponse`. Les 40 sites ont
-// basculé ensemble, et `unauthorizedResponse`/`forbiddenResponse` ont disparu.
+// 401, 403 et 404 sont CONTRACTUELS : ils rendent `ErrorResponse`, le modèle nommé d'ADR-0050, donc
+// un `$ref` unique dans l'OpenAPI au lieu d'un `{ message }` recopié par route. Il n'existe plus de
+// second jeu de helpers « migrés » : `withCrudFaults` et `withNotFoundFault` ont fusionné avec
+// `withCrudErrors` et `withNotFound` le jour où le dernier des 82 sites 404 a basculé. Deux jeux
+// n'avaient de raison d'être que pendant la coexistence.
+//
+// Restent hérités, en `{ message }`, les statuts dont aucune tranche n'est encore passée : 400, 409,
+// 422, 429, 500 et 503.
 
 /** Socle d'erreurs universel : validation d'input (422) + erreur serveur (500). */
 const COMMON_ERRORS = { 422: unprocessableResponse, 500: serverErrorResponse };
 
 /**
- * Les refus d'identité et de droits, contractuels partout (ADR-0050).
+ * Les codes contractuels, par MODÈLE NOMMÉ.
  *
- * Même remarque que pour `FAULT_ERRORS` plus bas : annotation de type, jamais `as const`. Le
- * `readonly` qu'ajoute `as const` empêche le littéral de survivre au spread, Elysia cesse d'y voir
- * un nom de modèle et lit le statut comme du texte.
+ * L'annotation de type n'est pas décorative et `as const` ne la remplace PAS : `as const` ajoute
+ * `readonly`, et le littéral `'ErrorResponse'` ne survit alors pas au spread — il s'élargit en
+ * `string`, Elysia cesse d'y voir un nom de modèle, et lit le statut comme du texte. Les routes
+ * deviennent intypables, avec des messages qui accusent l'union discriminée (`resource: never`)
+ * alors que la cause est ici. Mesuré sur les deux formes.
  */
 const AUTH_ERRORS: { 401: 'ErrorResponse'; 403: 'ErrorResponse' } = {
   401: 'ErrorResponse',
   403: 'ErrorResponse',
 };
+
+const NOT_FOUND_ERROR: { 404: 'ErrorResponse' } = { 404: 'ErrorResponse' };
 
 /** Routes publiques de lecture (liste/détail sans not-found) : uniquement le socle. */
 export function withReadErrors<const T extends ResponseMap>(responses: T) {
@@ -141,7 +131,7 @@ export function withReadErrors<const T extends ResponseMap>(responses: T) {
 
 /** Routes protégées par auth : 401 + 403 (+ socle). */
 export function withAuthErrors<const T extends ResponseMap>(responses: T) {
-  return { ...responses, ...COMMON_ERRORS, ...AUTH_ERRORS };
+  return { ...COMMON_ERRORS, ...AUTH_ERRORS, ...responses };
 }
 
 /** Routes avec rate limiting : 429 (+ socle). */
@@ -151,27 +141,17 @@ export function withRateLimitErrors<const T extends ResponseMap>(responses: T) {
 
 /** Routes d'authentification (login/register) : 401 + 403 + 429 (+ socle). */
 export function withLoginErrors<const T extends ResponseMap>(responses: T) {
-  return {
-    ...responses,
-    ...COMMON_ERRORS,
-    ...AUTH_ERRORS,
-    429: rateLimitResponse,
-  };
+  return { ...COMMON_ERRORS, ...AUTH_ERRORS, 429: rateLimitResponse, ...responses };
 }
 
 /** Routes CRUD protégées : 401 + 403 + 404 (+ socle). */
 export function withCrudErrors<const T extends ResponseMap>(responses: T) {
-  return {
-    ...responses,
-    ...COMMON_ERRORS,
-    ...AUTH_ERRORS,
-    404: notFoundResponse,
-  };
+  return { ...COMMON_ERRORS, ...AUTH_ERRORS, ...NOT_FOUND_ERROR, ...responses };
 }
 
 /** Routes publiques pouvant ne pas trouver la ressource : 404 (+ socle). */
 export function withNotFound<const T extends ResponseMap>(responses: T) {
-  return { ...responses, ...COMMON_ERRORS, 404: notFoundResponse };
+  return { ...COMMON_ERRORS, ...NOT_FOUND_ERROR, ...responses };
 }
 
 /** Routes dépendant de services externes : 503 (+ socle, qui inclut déjà 500). */
@@ -179,48 +159,13 @@ export function withServiceErrors<const T extends ResponseMap>(responses: T) {
   return { ...responses, ...COMMON_ERRORS, 503: serviceUnavailableResponse };
 }
 
-// ============================================
-// Routes migrées sur le contrat de faute (ADR-0050)
-// ============================================
-//
-// Les helpers ci-dessus rendent `{ message }` ; ceux-ci rendent `ErrorResponse`, le modèle nommé du
-// contrat. Les deux jeux COEXISTENT le temps de la migration, et c'est délibéré : elle avance par
-// tranche verticale, et une route non migrée qui déclarerait `ErrorResponse` échouerait à la
-// validation de réponse d'Elysia — il lui manquerait `fault`.
-//
-//
-// `...responses` passe EN DERNIER, à l'inverse des helpers hérités : une route migrée ajoute ses
-// propres codes (409 sur un conflit) sans que le socle les écrase.
-
-/**
- * Les codes que la route migrée émet elle-même portent la faute, par MODÈLE NOMMÉ — donc un `$ref`
- * unique dans l'OpenAPI au lieu de l'union des 41 ressources recopiée dans chaque réponse.
- *
- * L'annotation de type n'est pas décorative et `as const` ne la remplace PAS : `as const` ajoute
- * `readonly`, et le littéral `'ErrorResponse'` ne survit alors pas au spread dans les helpers — il
- * s'élargit en `string`, Elysia cesse d'y voir un nom de modèle, et lit `404` comme un statut
- * textuel. Les routes deviennent intypables, avec des messages qui accusent l'union discriminée
- * (`resource: never`) alors que la cause est ici. Mesuré sur les deux formes.
- */
-const FAULT_ERRORS: { 404: 'ErrorResponse' } = { 404: 'ErrorResponse' };
-
-/** Routes CRUD protégées, migrées : 401, 403 et 404 contractuels. */
-export function withCrudFaults<const T extends ResponseMap>(responses: T) {
-  return { ...COMMON_ERRORS, ...AUTH_ERRORS, ...FAULT_ERRORS, ...responses };
-}
-
-/** Routes publiques migrées pouvant ne pas trouver la ressource. */
-export function withNotFoundFault<const T extends ResponseMap>(responses: T) {
-  return { ...COMMON_ERRORS, ...FAULT_ERRORS, ...responses };
-}
-
 /** Combinaison complète CRUD + rate limit : 401 + 403 + 404 + 429 (+ socle). */
 export function withFullErrors<const T extends ResponseMap>(responses: T) {
   return {
-    ...responses,
     ...COMMON_ERRORS,
     ...AUTH_ERRORS,
-    404: notFoundResponse,
+    ...NOT_FOUND_ERROR,
     429: rateLimitResponse,
+    ...responses,
   };
 }
