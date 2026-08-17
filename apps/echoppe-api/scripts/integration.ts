@@ -292,8 +292,11 @@ async function assertContractParity(): Promise<void> {
   }
   const typeFiles = [...target.frozen];
   const allGenerated = [`${target.client}/openapi.json`, ...typeFiles];
+  // CONTRACT_API_URL vise l'API DU CONTENEUR : sans lui, `generate` retombe sur son défaut
+  // (l'API des sources, 7533) et T4 comparerait les types d'une autre API que celle testée.
   const gen = await sh('bun', ['run', '--cwd', target.client, 'generate'], {
     inheritStdio: false,
+    env: { ...process.env, CONTRACT_API_URL: baseUrl },
   });
   if (gen.code !== 0) {
     console.error(gen.out);
@@ -312,7 +315,6 @@ async function assertContractParity(): Promise<void> {
 // ── Phases ──────────────────────────────────────────────────────────────────────────────
 
 async function main(): Promise<number> {
-  process.env.ECHOPPE_API_URL = baseUrl; // pour la régénération SDK (T4)
   await ensureImage();
   await docker(['network', 'create', NET]);
 

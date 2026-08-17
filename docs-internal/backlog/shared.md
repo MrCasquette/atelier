@@ -36,6 +36,9 @@ ce qui cassait :
   version `0.6.0` sont inchangés, le contrat figé ne bouge pas d'un octet), et
   `ECHOPPE_API_URL` → `CONTRACT_API_URL` — `scripts/` n'étant pas publié, le changement ne sort pas
   du dépôt.
+- [x] **Drapeau de tests `ECHOPPE_SMOKE` → `SMOKE_RUN`** — la garde « base jetable » du harness API
+  sera recopiée telle quelle par `prisme-api` ; elle ne nomme plus un produit. Même famille lexicale
+  que `SMOKE_DATABASE_URL`, déjà neutre.
 
 Reste ouvert :
 
@@ -78,16 +81,16 @@ Reste ouvert :
   `@repo/entities` ne dépend plus de `@repo/pages`.
 - [x] 🟠 **Implémenter l'interpolation V1** après stabilisation de Markdown : jeu fini de variables,
   substitution sans évaluation, une passe, littéral conservé pour une inconnue.
-- [ ] 🔴 **Sortir le vocabulaire Échoppe du contrat public de `@mrcasquette/content`** — sa CLI exige
-  `ECHOPPE_API_KEY` (`cli.ts:36`, message dans `fault-text.ts:98`), lit `ECHOPPE_CONTENT_CONFIG`
-  (`cli.ts:19`), déclare le mot-clé `echoppe` et son `CHANGELOG` le nomme encore `@echoppe/content`.
-  Or c'est **le DSL config-as-code de Prisme autant que d'Échoppe** : les deux le consomment
-  (`apps/echoppe-api/src/modules/content/`, `packages/create-echoppe/template/src/content/`). Le
-  scope neutre est conforme à [ADR-0033](../adr/ADR-0033-organisation-monorepo.md) et n'est pas en
-  cause ; ce sont les variables d'environnement qui le sont. **Bloquant pour la fixture Prisme** :
-  sans cette décision, `prisme-api` réclamerait une clé nommée d'après Échoppe. Contrairement à
-  `CONTRACT_API_URL`, ces variables-ci sont dans la surface **publiée** — le renommage est un
-  changement cassant à acter, pas un détail d'outillage.
+- [x] 🔴 **Sortir le vocabulaire Échoppe du contrat public de `@mrcasquette/content`** — c'est **le
+  DSL config-as-code de Prisme autant que d'Échoppe**, et sa CLI réclamait pourtant une clé nommée
+  d'après un seul des deux. → `ECHOPPE_API_KEY` → `CONTENT_API_KEY`, `ECHOPPE_CONTENT_CONFIG` →
+  `CONTENT_CONFIG`, sans lecture de repli : la variable manquante arrête la CLI en la nommant, donc
+  la migration se voit au premier `push`. Changeset **major** (surface publiée, contrairement à
+  `CONTRACT_API_URL` qui ne sortait pas du dépôt). Le nom suit désormais le package, pas le produit
+  qui le consomme. Le scope neutre était déjà conforme à
+  [ADR-0033](../adr/ADR-0033-organisation-monorepo.md) et n'était pas en cause.
+  Reste, hors périmètre env : le mot-clé npm `echoppe` (positionnement produit, pas outillage) et le
+  `CHANGELOG` qui nomme `@echoppe/content` en 0.1.0 — exact pour cette version-là.
 - [ ] 🟡 **Type-gen du DSL** pour les sections et composants de front.
 - [ ] 🟡 **Générateur de formulaires admin** depuis le registre.
 - [ ] 🟡 Menus imbriqués, champs custom, fichiers/assets et i18n des enums.

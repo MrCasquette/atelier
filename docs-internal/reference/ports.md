@@ -79,9 +79,10 @@ Nulle part ailleurs. Les défauts en dur du code (`API_PORT ?? 7532` dans `src/i
 `|| 'http://localhost:7532'` de l'admin, `compose.yaml`, tout `packages/create-echoppe`) restent
 sur l'identité : ils décrivent le produit livré, pas le poste de travail.
 
-**Un consommateur à connaître** : `packages/client/scripts/generate.ts` interroge
+**Un consommateur à connaître** : `packages/echoppe-client/scripts/generate.ts` interroge
 `http://localhost:7533/docs/json` pour régénérer le SDK. Il vise donc l'API **des sources**, pas un
-conteneur. Override par `ECHOPPE_API_URL` pour pointer ailleurs.
+conteneur. Override par `CONTRACT_API_URL` pour pointer ailleurs — c'est ce que fait le test
+d'intégration, qui vise l'API du conteneur.
 
 `7533`, `3212` et `3142` n'ont aucune valeur symbolique : ce sont des ports de travail local, pas
 une identité produit.
