@@ -195,6 +195,9 @@ Détail : [ADR-0005](../adr/ADR-0005-panier-stock.md).
 
 ### Capacités commerce ultérieures
 
+- [ ] **Tarification de l'emballage** : calculer les colis par bin packing selon le volume de la
+  commande et en déduire le prix des emballages ; permettre aussi une stratégie forfaitaire
+  (`0` ou montant fixe), notamment lorsqu'un seul type d'emballage est disponible.
 - [ ] Onboarding OAuth des providers et création automatique des webhooks.
 - [ ] Thèmes, personnalisation et aperçu du storefront Échoppe.
 - [ ] Re-porter vers Astro les parcours riches du storefront historique encore pertinents.
