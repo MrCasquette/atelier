@@ -108,7 +108,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       # SMOKE_DATABASE_URL cible le service Postgres neuf (base vierge). Le wrapper l'utilise
-      # tel quel (pas de conteneur éphémère à provisionner en CI) et pose ECHOPPE_SMOKE=1, sans
+      # tel quel (pas de conteneur éphémère à provisionner en CI) et pose SMOKE_RUN=1, sans
       # quoi les tests refusent de tourner — garde-fou contre un run sur une base non jetable.
       - name: Smoke tests
         env:

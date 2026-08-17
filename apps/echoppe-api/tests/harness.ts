@@ -19,9 +19,9 @@ import { app } from '../src/app';
 // Ce module factorise l'infra recopiée dans chaque fichier ; il ne porte aucune assertion.
 // ⚠️ Tout ce qui migre/écrit ici suppose la base JETABLE de `bun run test:smoke`.
 
-/** Refuse l'exécution hors base jetable balisée (`ECHOPPE_SMOKE=1`, posé par scripts/smoke.ts). */
+/** Refuse l'exécution hors base jetable balisée (`SMOKE_RUN=1`, posé par scripts/smoke.ts). */
 export function requireSmokeDb(): void {
-  if (process.env.ECHOPPE_SMOKE !== '1') {
+  if (process.env.SMOKE_RUN !== '1') {
     throw new Error(
       'Test à lancer via `bun run test:smoke` (base jetable). Refus hors base balisée.',
     );

@@ -10,7 +10,7 @@
  * On N'utilise JAMAIS le DATABASE_URL ambiant : Bun auto-charge `.env`, qui pointe la
  * base de dev — la migrer/seed serait destructeur (cf. docs-internal/release/release-runbook.md).
  * Le DATABASE_URL passé au sous-process est explicite et écrase celui du `.env`, et le
- * test refuse de tourner sans le drapeau ECHOPPE_SMOKE posé ici.
+ * test refuse de tourner sans le drapeau SMOKE_RUN posé ici.
  */
 import { spawn } from 'node:child_process';
 
@@ -66,7 +66,7 @@ function runTest(databaseUrl: string): Promise<number> {
   return run('bun', ['test', 'tests/'], {
     ...process.env,
     DATABASE_URL: databaseUrl,
-    ECHOPPE_SMOKE: '1',
+    SMOKE_RUN: '1',
   });
 }
 
