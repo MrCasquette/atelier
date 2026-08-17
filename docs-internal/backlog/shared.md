@@ -3,6 +3,68 @@
 Travail sur les packages, contrats et décisions qui concernent Échoppe et Prisme. Une abstraction
 nouvelle doit avoir deux usages réels ; à défaut, elle reste dans le produit qui la porte.
 
+## Workspace et outillage (`atelier`)
+
+Le conteneur, distinct des produits qu'il héberge. Principe acquis : **l'outillage découvre, il
+n'énumère pas** — et il découvre par *capacité* (le fichier qui prouve qu'un workspace sait faire
+quelque chose) ou par *déclaration* (le workspace le dit dans son manifeste), jamais par convention
+de nom, qui tiendrait sans que rien ne la vérifie.
+
+Livré le 2026-08-17, chaque point vérifié en créant un squelette `prisme-*` jetable et en observant
+ce qui cassait :
+
+- [x] **Le workspace se nomme `atelier`** (`package.json`), aligné sur le remote `MrCasquette/atelier`
+  qui portait déjà ce nom. Échoppe cesse d'être le produit du dépôt.
+- [x] **`test`, `build`, `lint` génériques.** L'ancien `test` énumérait 14 workspaces : un test
+  délibérément cassé dans un workspace non listé sortait en **0**. `--filter '*'` sort en 1 et
+  n'en perd aucun (15 contre 14). `build` respecte la topologie — vérifié à froid, `dist/` retirés.
+- [x] **`tsconfig.base.json` : `paths` supprimés.** Vestige — `tsc` résout par les symlinks de
+  `node_modules`. 19 workspaces verts sans eux. Aucune entrée par produit à maintenir.
+- [x] **ESLint linter unique, Biome formateur.** Biome ne résout pas les références d'un
+  `<template>` : 880 faux positifs sur `echoppe-admin`, 13 sur `echoppe-store`, concentrés sur
+  `noUnusedVariables`/`noUnusedImports`. La frontière devient « linter / formateur », orthogonale au
+  code, au lieu de « quel fichier va à quel linter » — qui laissait `echoppe-store`, `prisme-admin`,
+  `docs` et **tout `scripts/`** sans couverture. Passe de 309 à **481 fichiers** pour 3 corrections.
+- [x] **`scripts/drift-guard.ts`** — découvre les `drizzle.config.ts` et lit `out` dans la config.
+  Vérifié sur deux schémas simultanés : l'un validé, l'autre refusé.
+- [x] **`scripts/contract-targets.ts` + `contracts.ts`** — le client déclare sa source
+  (`contract.source` / `contract.frozen`). Le gate de release T4 consomme la même déclaration ; les
+  deux listes de fichiers figés qui pouvaient diverger n'en font plus qu'une.
+- [x] **`scripts/product-isolation.ts`** — garde d'isolation entre produits frères, sur les
+  dépendances déclarées **et** les imports réels (une dep non déclarée résout par hoisting).
+- [x] **`packages/client` → `packages/echoppe-client`** (dossier seul ; `@echoppe/client` et sa
+  version `0.6.0` sont inchangés, le contrat figé ne bouge pas d'un octet), et
+  `ECHOPPE_API_URL` → `CONTRACT_API_URL` — `scripts/` n'étant pas publié, le changement ne sort pas
+  du dépôt.
+
+Reste ouvert :
+
+- [ ] 🟠 **`dev`, `db:*` et `test:integration` restent câblés sur Échoppe** (`--cwd apps/echoppe-*`,
+  `packages/echoppe-core`). Ce sont les derniers scripts racine qui nomment un produit.
+- [ ] 🟠 **Distribution mono-produit** : `Dockerfile` (19 `COPY packages/*/package.json` énumérés,
+  targets `api`/`admin`, user système `echoppe`), `docker-build.yml` (`IMAGE_PREFIX`), `release.yml`
+  (version runtime = `apps/echoppe-api/package.json`), `ship.ts` (4 canaux Échoppe), `compose.yaml`
+  et `compose.dev.yaml`. **Volontairement différé** : Prisme n'a aucun cycle de publication, et
+  paramétrer avant d'avoir un second artefact serait de l'abstraction par anticipation. Piège à
+  connaître : l'image n'est construite qu'**à la release** (`docker-build.yml` → `integration.ts`),
+  jamais par `ci.yml` — une dérive du `Dockerfile` ne se voit qu'au moment de publier. Ne jamais
+  renommer un volume Compose : la donnée de production y est attachée.
+- [ ] 🟡 **Renommer le dossier de travail local** `~/dev/Axiome/echoppe` → `…/atelier`. Le dépôt n'en
+  dépend pas : aucun chemin absolu n'est codé en dur et le remote s'appelle déjà `atelier`. Deux
+  précautions seulement — relancer `bun install` (les liens de `node_modules` pointent l'ancien
+  chemin) et rouvrir les sessions d'outils dont le répertoire courant devient invalide.
+- [ ] 🟡 **`docs/` est le site d'Échoppe** (`@echoppe/docs`, 22 fichiers), pas la doc du workspace.
+  À trancher avec `prisme-admin`.
+- [ ] 🟡 **La garde d'isolation s'endort sous deux produits.** Elle sort en succès silencieux tant
+  qu'un seul scope possède une application — donc dès que le squelette `prisme-*` disparaîtra, et
+  jusqu'au vrai `prisme-api`.
+- [ ] 🟡 **Dette Biome révélée** : `$schema` figé en 2.3.9 alors que Biome est en 2.5.2, et
+  `linter.rules.recommended` déprécié au profit de `preset` (`biome migrate`). Par ailleurs
+  l'organisation automatique des imports, qui venait de `biome check`, disparaît avec le linter —
+  `biome format` ne la fait pas.
+- [ ] 🟡 **18 warnings ESLint** : 17 `no-non-null-assertion` (statut inchangé, la règle était déjà
+  en `warn` sous Biome) et 1 `vue/no-v-html` dans la doc — celui-ci est un signal de sécurité.
+
 ## Contenu config-as-code
 
 - [ ] 🔴 **Migrer `richText` de HTML vers Markdown** selon [ADR-0030](../adr/ADR-0030-texte-riche-markdown.md) :
@@ -16,6 +78,16 @@ nouvelle doit avoir deux usages réels ; à défaut, elle reste dans le produit 
   `@repo/entities` ne dépend plus de `@repo/pages`.
 - [x] 🟠 **Implémenter l'interpolation V1** après stabilisation de Markdown : jeu fini de variables,
   substitution sans évaluation, une passe, littéral conservé pour une inconnue.
+- [ ] 🔴 **Sortir le vocabulaire Échoppe du contrat public de `@mrcasquette/content`** — sa CLI exige
+  `ECHOPPE_API_KEY` (`cli.ts:36`, message dans `fault-text.ts:98`), lit `ECHOPPE_CONTENT_CONFIG`
+  (`cli.ts:19`), déclare le mot-clé `echoppe` et son `CHANGELOG` le nomme encore `@echoppe/content`.
+  Or c'est **le DSL config-as-code de Prisme autant que d'Échoppe** : les deux le consomment
+  (`apps/echoppe-api/src/modules/content/`, `packages/create-echoppe/template/src/content/`). Le
+  scope neutre est conforme à [ADR-0033](../adr/ADR-0033-organisation-monorepo.md) et n'est pas en
+  cause ; ce sont les variables d'environnement qui le sont. **Bloquant pour la fixture Prisme** :
+  sans cette décision, `prisme-api` réclamerait une clé nommée d'après Échoppe. Contrairement à
+  `CONTRACT_API_URL`, ces variables-ci sont dans la surface **publiée** — le renommage est un
+  changement cassant à acter, pas un détail d'outillage.
 - [ ] 🟡 **Type-gen du DSL** pour les sections et composants de front.
 - [ ] 🟡 **Générateur de formulaires admin** depuis le registre.
 - [ ] 🟡 Menus imbriqués, champs custom, fichiers/assets et i18n des enums.
@@ -84,6 +156,16 @@ nouvelle doit avoir deux usages réels ; à défaut, elle reste dans le produit 
 
 ## Sécurité
 
+- [ ] 🔴 **Trancher la garde des credentials au moment d'implémenter l'authentification commune** :
+  comparer un package local partagé, un fournisseur d'identité externe (OIDC) et un service géré
+  par une éventuelle offre Échoppe Cloud. Le choix doit couvrir les administrations de Prisme et
+  d'Échoppe, puis traiter séparément le cycle client propre à Échoppe. Ne pas introduire d'adapter
+  avant deux usages réels. Séparer les packages d'identité humaine, d'authentification et
+  d'autorisation/RBAC ; renommer ou déplacer l'actuel `@repo/identity`, qui porte en réalité
+  l'identité du site et de son entité légale. Consigner la décision finale en amendant
+  l'[ADR-0051](../adr/ADR-0051-garde-credentials.md) et, si nécessaire,
+  l'[ADR-0008](../adr/ADR-0008-auth-sessions.md).
+
 Relevés par l'[audit de couverture documentaire](../audits/audit-couverture-documentaire.md)
 (lot 2, 2026-08-16). Aucun n'est exploité aujourd'hui ; tous reposent sur une propriété
 circonstancielle plutôt que sur une garde.
@@ -136,4 +218,3 @@ circonstancielle plutôt que sur une garde.
 - [ ] 🟡 Vérifier les trusted publishers npm/OIDC des trois artefacts publics.
 - [ ] 🟡 Purger l'ancien registre Docker Hub après migration des consommateurs encore concernés.
 - [ ] 🟡 Garder npm 11 tant que Changesets est incompatible avec npm 12.
-
