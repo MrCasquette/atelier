@@ -15,12 +15,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
-    "verbatimModuleSyntax": true,
-    "paths": {
-      "@repo/shared": ["./packages/shared/src"],
-      "@repo/shared/*": ["./packages/shared/src/*"],
-      "@echoppe/core": ["./packages/echoppe-core/src"],
-      "@echoppe/core/*": ["./packages/echoppe-core/src/*"]
-    }
+    "verbatimModuleSyntax": true
   }
 }
