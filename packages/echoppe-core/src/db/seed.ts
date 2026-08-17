@@ -89,7 +89,8 @@ async function seed() {
 
   // === MEDIA FOLDER ===
   console.log('  → Media folders...');
-  let productsFolderId: string | null = null;
+  // Pas d'initialisation : les deux branches ci-dessous l'assignent systématiquement.
+  let productsFolderId: string | null;
 
   const [existingProductsFolder] = await db
     .select()

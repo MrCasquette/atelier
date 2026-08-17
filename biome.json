@@ -9,11 +9,11 @@
     "ignoreUnknown": true,
     "includes": [
       "packages/**",
-      "apps/echoppe-api/**",
-      "!packages/client/src/openapi.ts",
-      "!packages/client/src/models.ts",
-      "!packages/client/src/facade.ts",
-      "!packages/client/openapi.json",
+      "apps/*-api/**",
+      "!packages/echoppe-client/src/openapi.ts",
+      "!packages/echoppe-client/src/models.ts",
+      "!packages/echoppe-client/src/facade.ts",
+      "!packages/echoppe-client/openapi.json",
       "!packages/echoppe-core/drizzle",
       "!packages/create-echoppe/template"
     ]
@@ -25,22 +25,7 @@
     "lineWidth": 100
   },
   "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true,
-      "correctness": {
-        "noUnusedImports": "error",
-        "noUnusedVariables": "error"
-      },
-      "style": {
-        "noNonNullAssertion": "warn",
-        "useConst": "error",
-        "useImportType": "error"
-      },
-      "suspicious": {
-        "noExplicitAny": "error"
-      }
-    }
+    "enabled": false
   },
   "javascript": {
     "formatter": {

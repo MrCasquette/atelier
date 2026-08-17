@@ -9,7 +9,11 @@ const entries = Object.entries(props.schema.properties ?? {});
 
 <template>
   <div class="fields">
-    <div v-for="[key, prop] in entries" :key="key" class="field">
+    <div
+      v-for="[key, prop] in entries"
+      :key="key"
+      class="field"
+    >
       <div class="field-main">
         <span class="field-id">
           <code class="field-name">{{ key }}</code>
@@ -18,13 +22,22 @@ const entries = Object.entries(props.schema.properties ?? {});
             class="badge link"
             :href="'#' + anchor(linkedModel(prop)!)"
           >{{ linkedModel(prop) }}{{ prop.type === 'array' ? '[]' : '' }}</a>
-          <span v-else class="badge type">{{ renderType(prop) }}</span>
-          <span v-if="!required.has(key)" class="badge optional">optionnel</span>
+          <span
+            v-else
+            class="badge type"
+          >{{ renderType(prop) }}</span>
+          <span
+            v-if="!required.has(key)"
+            class="badge optional"
+          >optionnel</span>
         </span>
         <span class="field-desc">{{ prop.description }}</span>
       </div>
 
-      <details v-if="!linkedModel(prop) && objectChild(prop)" class="nested">
+      <details
+        v-if="!linkedModel(prop) && objectChild(prop)"
+        class="nested"
+      >
         <summary>Propriétés</summary>
         <SchemaFields :schema="objectChild(prop)!" />
       </details>

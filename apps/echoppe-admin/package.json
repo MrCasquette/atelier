@@ -8,9 +8,7 @@
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit",
-    "test": "bun test src",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "test": "bun test src"
   },
   "dependencies": {
     "@echoppe/api": "workspace:*",

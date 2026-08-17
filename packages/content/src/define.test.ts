@@ -190,9 +190,13 @@ describe('déclarer le lien dune entité', () => {
 
 describe('inférence de la forme rendue', () => {
   test('une entité de liste porte un slug, un singleton non', () => {
+    // Ces deux constantes ne sont lues QUE par `typeof` ci-dessous — c'est le propos du test.
+    // `no-unused-vars` compte l'usage en position de type comme une non-utilisation.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const article = defineEntity('article', {
       fields: { titre: f.text({ required: true }), vues: f.number() },
     });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const cgv = defineEntity('cgv', { singleton: true, fields: { corps: f.richText() } });
 
     // La vérification est au type-check : ces valeurs ne compilent que si l'inférence est juste.

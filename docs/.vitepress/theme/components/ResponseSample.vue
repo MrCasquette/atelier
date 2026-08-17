@@ -36,7 +36,9 @@ function highlight(json: string): string {
         :key="i.code"
         :class="['resp-tab', isOk(i.code) ? 'ok' : 'err', { active: i.code === active }]"
         @click="active = i.code"
-      >{{ i.code }}</button>
+      >
+        {{ i.code }}
+      </button>
     </div>
     <pre class="resp-code"><code v-html="highlight(current.json)" /></pre>
   </div>

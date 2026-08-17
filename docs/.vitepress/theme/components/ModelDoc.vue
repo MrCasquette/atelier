@@ -21,13 +21,23 @@ const fieldsSchema = computed(() =>
 
 <template>
   <div class="model-doc">
-    <p v-if="schema?.description" class="model-desc">{{ schema.description }}</p>
+    <p
+      v-if="schema?.description"
+      class="model-desc"
+    >
+      {{ schema.description }}
+    </p>
 
-    <p v-if="arrayItemModel" class="array-note">
+    <p
+      v-if="arrayItemModel"
+      class="array-note"
+    >
       Tableau de <a :href="'#' + anchor(arrayItemModel)"><code>{{ arrayItemModel }}</code></a>.
     </p>
     <template v-else>
-      <p class="section-label">Propriétés</p>
+      <p class="section-label">
+        Propriétés
+      </p>
       <SchemaFields :schema="fieldsSchema" />
     </template>
   </div>

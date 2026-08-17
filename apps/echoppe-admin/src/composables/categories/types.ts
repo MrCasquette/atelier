@@ -1,4 +1,4 @@
-import { api } from '@/lib/api';
+import type { api } from '@/lib/api';
 import type { ApiItem } from '@/types/api';
 
 // Type inféré depuis Eden

@@ -1,4 +1,3 @@
-/* eslint-disable no-redeclare */
 import { ref, computed } from 'vue';
 import type {
   SortableState,
