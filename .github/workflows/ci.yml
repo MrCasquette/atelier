@@ -34,7 +34,7 @@ jobs:
       - name: Build packages (deps du type-check)
         run: |
           bun run --cwd packages/content build
-          bun run --cwd packages/client build
+          bun run --cwd packages/echoppe-client build
 
       - name: Type-check
         run: bun run type-check
@@ -55,18 +55,19 @@ jobs:
       # migrations committées. `db:generate` est hors-ligne (compare schéma ↔ snapshots),
       # DATABASE_URL est un placeholder requis par drizzle.config mais aucune connexion
       # n'est ouverte. S'il produit un fichier, c'est qu'une migration manque → échec.
+      #
+      # Le guard DÉCOUVRE les `drizzle.config.ts` du dépôt : un second produit doté d'un schéma
+      # est gardé sans qu'on touche à ce workflow.
       - name: Migration drift guard
         env:
           DATABASE_URL: postgres://placeholder:placeholder@localhost:5432/placeholder
-        run: |
-          bun run --cwd packages/echoppe-core db:generate --name=drift_guard
-          if ! git diff --quiet --exit-code packages/echoppe-core/drizzle || [ -n "$(git ls-files --others --exclude-standard packages/echoppe-core/drizzle)" ]; then
-            echo "::error::Dérive schéma ↔ migrations : le schéma Drizzle a changé sans migration générée."
-            echo "Lancer 'bun run db:generate' puis committer le .sql + meta/*_snapshot.json."
-            git status --short packages/echoppe-core/drizzle
-            exit 1
-          fi
-          echo "✓ Schéma == migrations, aucune dérive."
+        run: bun run drift-guard
+
+      # Garde d'isolation : deux produits frères partagent `@repo/*`, jamais leurs propres briques.
+      # Vérifie les dépendances DÉCLARÉES et les imports RÉELS (une dep non déclarée résout quand
+      # même par hoisting). Silencieuse tant qu'il n'y a qu'un seul produit.
+      - name: Product isolation
+        run: bun run product-isolation
 
       # Garde anti-dérive du CONTRAT SDK : régénère le client depuis l'app pure (offline) et échoue
       # si les types figés (openapi.ts/models.ts/facade.ts) divergent des routes. Miroir du drift-guard
