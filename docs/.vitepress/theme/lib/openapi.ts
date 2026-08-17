@@ -2,8 +2,8 @@
 // (`@echoppe/client/openapi.json`) est la SOURCE : ces helpers en extraient les modèles,
 // leurs types, un exemple de réponse et l'appel SDK correspondant. Tout suit le contrat.
 
-import contract from '../../../../packages/client/openapi.json';
-import { METHOD_NAMES, TAG_NAMESPACE } from '../../../../packages/client/scripts/facade-map';
+import contract from '../../../../packages/echoppe-client/openapi.json';
+import { METHOD_NAMES, TAG_NAMESPACE } from '../../../../packages/echoppe-client/scripts/facade-map';
 
 export type JsonSchema = {
   type?: string | string[];

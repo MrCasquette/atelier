@@ -35,7 +35,7 @@ COPY packages/pages/package.json ./packages/pages/
 COPY packages/menus/package.json ./packages/menus/
 COPY packages/references/package.json ./packages/references/
 COPY packages/communication/package.json ./packages/communication/
-COPY packages/client/package.json ./packages/client/
+COPY packages/echoppe-client/package.json ./packages/echoppe-client/
 COPY packages/content/package.json ./packages/content/
 COPY packages/create-echoppe/package.json ./packages/create-echoppe/
 COPY apps/echoppe-api/package.json ./apps/echoppe-api/

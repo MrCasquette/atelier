@@ -10,7 +10,7 @@ set -e
 
 # Build des paquets publiables (dist requis dans le tarball).
 bun run --cwd packages/content build
-bun run --cwd packages/client build
+bun run --cwd packages/echoppe-client build
 bun run --cwd packages/create-echoppe build
 
 bunx changeset publish --no-git-tag

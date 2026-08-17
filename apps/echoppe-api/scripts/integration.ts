@@ -17,6 +17,7 @@
  */
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { contractTargets } from '../../../scripts/contract-targets';
 
 const REPO_ROOT = fileURLToPath(new URL('../../..', import.meta.url));
 
@@ -283,13 +284,15 @@ async function assertIdempotence(): Promise<void> {
 // des faux positifs sans écart de contrat.
 async function assertContractParity(): Promise<void> {
   console.log('→ [T4] parité contrat (types SDK == OpenAPI de l’image)…');
-  const typeFiles = [
-    'packages/client/src/openapi.ts',
-    'packages/client/src/models.ts',
-    'packages/client/src/facade.ts',
-  ];
-  const allGenerated = ['packages/client/openapi.json', ...typeFiles];
-  const gen = await sh('bun', ['run', '--cwd', 'packages/client', 'generate'], {
+  // La cible vient de la DÉCLARATION du client (`contract` dans son package.json), pas d'une liste
+  // recopiée ici : le gate de release et la garde CI lisaient deux listes qui pouvaient diverger.
+  const target = contractTargets().find((t) => t.source === 'apps/echoppe-api');
+  if (!target) {
+    fail('[T4] aucun client ne déclare `apps/echoppe-api` comme source de contrat.');
+  }
+  const typeFiles = [...target.frozen];
+  const allGenerated = [`${target.client}/openapi.json`, ...typeFiles];
+  const gen = await sh('bun', ['run', '--cwd', target.client, 'generate'], {
     inheritStdio: false,
   });
   if (gen.code !== 0) {

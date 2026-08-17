@@ -20,6 +20,14 @@
     "LICENSE"
   ],
   "sideEffects": false,
+  "contract": {
+    "source": "apps/echoppe-api",
+    "frozen": [
+      "src/openapi.ts",
+      "src/models.ts",
+      "src/facade.ts"
+    ]
+  },
   "publishConfig": {
     "access": "public"
   },

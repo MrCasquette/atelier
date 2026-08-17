@@ -4,7 +4,7 @@
  * `<ModelDoc>` (propriétés, rendu par le thème Vue), puis les exemples d'appel (code-group
  * SDK/REST) et de réponse en markdown → coloration Shiki + onglets natifs.
  *
- * Alimenté par le contrat `packages/client/openapi.json` : la page suit le contrat.
+ * Alimenté par le contrat `packages/echoppe-client/openapi.json` : la page suit le contrat.
  * Usage : `bun run gen:reference` (depuis le paquet docs).
  */
 import { anchor, codeExample, modelNames, namespaceFor, restExample } from '../.vitepress/theme/lib/openapi';

@@ -9,7 +9,7 @@
  *    (`import type { ProductDetail } from '@echoppe/client'`).
  *
  * Usage : `bun run generate` (API source par défaut sur http://localhost:7533),
- * ou `ECHOPPE_API_URL=https://api.exemple.fr bun run generate`.
+ * ou `CONTRACT_API_URL=https://api.exemple.fr bun run generate`.
  */
 import { $ } from 'bun';
 import { FACADE_SKIP_TAGS, METHOD_NAMES, TAG_NAMESPACE } from './facade-map';
@@ -83,8 +83,8 @@ function normalizeRecursiveSchemas(spec: OpenApiSpec): number {
 }
 
 // Défaut = API dev *depuis les sources* (API_PORT=7533, cf. .env), pas le conteneur Docker
-// (7532). Override par ECHOPPE_API_URL pour viser une API distante.
-const apiUrl = (process.env.ECHOPPE_API_URL ?? 'http://localhost:7533').replace(/\/+$/, '');
+// (7532). Override par CONTRACT_API_URL pour viser une API distante.
+const apiUrl = (process.env.CONTRACT_API_URL ?? 'http://localhost:7533').replace(/\/+$/, '');
 const specUrl = `${apiUrl}/docs/json`;
 
 const response = await fetch(specUrl);
