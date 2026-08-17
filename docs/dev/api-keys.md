@@ -69,7 +69,7 @@ curl https://votre-api/content/registry \
 Pour le module contenu, collez-la dans le `.env` du front :
 
 ```dotenv
-ECHOPPE_API_KEY=eck_votre_cle
+CONTENT_API_KEY=eck_votre_cle
 ```
 
 puis `pnpm content:push`.

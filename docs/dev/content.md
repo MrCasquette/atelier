@@ -103,7 +103,7 @@ La CLI sérialise votre `defineContent` en **registre JSON** et le pousse en `PU
 
 ```dotenv
 PUBLIC_API_URL=http://localhost:7532
-ECHOPPE_API_KEY=eck_votre_cle   # portée write:schema
+CONTENT_API_KEY=eck_votre_cle   # portée write:schema
 ```
 
 La clé s'obtient dans l'admin (**« Clés d'API »**) — voir [Clés d'API](/dev/api-keys).

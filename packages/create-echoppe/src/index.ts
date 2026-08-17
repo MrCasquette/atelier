@@ -33,7 +33,7 @@ PUBLIC_API_URL=${apiUrl}
 # blocs vers l'API. Créez-la dans l'admin (« Clés d'API »), ou via :
 #   docker compose exec api bun run api-key:create --name front --scopes write:schema
 # puis collez-la ci-dessous.
-ECHOPPE_API_KEY=
+CONTENT_API_KEY=
 
 # ─── Version des images Échoppe (backend, cf. compose.yaml) ─────────────
 ECHOPPE_VERSION=latest

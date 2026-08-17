@@ -95,7 +95,7 @@ export function faultText(fault: Fault): string | null {
     case 'unknown_scopes':
       return `Portées inconnues : ${(Array.isArray(fault.scopes) ? fault.scopes : []).map(str).join(', ')}`;
     case 'unauthenticated':
-      return 'Clé d’API refusée — vérifiez ECHOPPE_API_KEY';
+      return 'Clé d’API refusée — vérifiez CONTENT_API_KEY';
     case 'permission_denied':
       return `Droit manquant : ${str(fault.action)} sur « ${str(fault.resource)} » — la clé doit porter « write:schema »`;
     case 'not_found':

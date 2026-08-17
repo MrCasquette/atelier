@@ -3,8 +3,8 @@
 // par create-echoppe. Elle N'EST PAS un `bin` node (un shim node ne saurait importer le `.ts` de
 // config du dev).
 //
-//   ECHOPPE_API_KEY=eck_… PUBLIC_API_URL=http://localhost:7532  <runtime> cli.js push
-//   ECHOPPE_API_KEY=eck_… PUBLIC_API_URL=http://localhost:7532  <runtime> cli.js check
+//   CONTENT_API_KEY=eck_… PUBLIC_API_URL=http://localhost:7532  <runtime> cli.js push
+//   CONTENT_API_KEY=eck_… PUBLIC_API_URL=http://localhost:7532  <runtime> cli.js check
 
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -16,7 +16,7 @@ import type { ContentDefinition } from './types.js';
 async function loadContent(): Promise<ContentDefinition> {
   const configPath = resolve(
     process.cwd(),
-    process.env.ECHOPPE_CONTENT_CONFIG ?? 'src/content/index.ts',
+    process.env.CONTENT_CONFIG ?? 'src/content/index.ts',
   );
   const mod = await import(pathToFileURL(configPath).href);
   const content = mod.default;
@@ -33,9 +33,9 @@ function fail(message: string): never {
 
 function readEnv(): { apiUrl: string; apiKey: string } {
   const apiUrl = process.env.PUBLIC_API_URL ?? process.env.API_URL;
-  const apiKey = process.env.ECHOPPE_API_KEY;
+  const apiKey = process.env.CONTENT_API_KEY;
   if (!apiUrl) fail('PUBLIC_API_URL (ou API_URL) manquant dans l’environnement.');
-  if (!apiKey) fail('ECHOPPE_API_KEY manquant dans l’environnement.');
+  if (!apiKey) fail('CONTENT_API_KEY manquant dans l’environnement.');
   return { apiUrl, apiKey };
 }
 
