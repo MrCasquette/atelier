@@ -1,5 +1,5 @@
 ---
-'@mrcasquette/content': major
+'@mrcasquette/content': minor
 ---
 
 **Cassant** — les variables d'environnement de la CLI perdent le nom d'Échoppe.

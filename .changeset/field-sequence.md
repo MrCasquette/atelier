@@ -1,5 +1,5 @@
 ---
-'@mrcasquette/content': major
+'@mrcasquette/content': minor
 ---
 
 Le schema est une séquence de champs, pas un dictionnaire.

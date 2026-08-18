@@ -56,6 +56,32 @@ registre de vérité — **npm**.
   Releases de package existantes ; créer les Releases pour l'épine `v*`. Les packages npm déjà publiés
   ne sont **pas** touchés (npm ≠ git). Détail dans `pipeline-release.md`.
 
+## Amendement — 2026-08-18 : `1.0.0` dit la stabilité, pas l'ampleur de la rupture
+
+L'ADR fixait où vivent les versions, jamais **quel rang** bumper. La question s'est posée au premier
+lot de ruptures : le runtime changeait de surface, de port, de racine de données et de mode
+d'amorçage, et le SDK perdait une méthode de sa façade.
+
+**Tant que le développement est actif, aucune unité ne franchit `1.0.0`.** Une rupture se dit
+`minor` — ce qui est le comportement normal de semver en `0.x`, où le contrat est explicitement
+instable — et le corps du changeset la nomme sans détour. Passer à `1.0.0` annoncerait une stabilité
+qu'on ne peut pas encore promettre, et l'annonce ne se reprend pas.
+
+Ce que cela n'autorise pas : minimiser la rupture dans le texte. Le rang mesure l'engagement de
+stabilité, le changelog décrit ce qui casse. Les deux ne disent pas la même chose.
+
+**Une garde le mesure désormais.** `release-coverage` (`scripts/release-coverage.ts`, `bun run
+release-coverage`) échoue si une unité de release a bougé sans changeset. Elle découvre les unités
+au lieu de les connaître — workspaces publiables, plus les groupes `fixed` de la configuration
+changesets, par où le runtime, privé mais porteur du tag `v*`, se déclare. Elle est née de deux
+dérives réelles : `@echoppe/client` avait perdu `company.get()` sans qu'aucun changeset ne le
+couvre, et le runtime accumulait 72 commits — la release aurait publié les paquets npm sans jamais
+reconstruire l'image.
+
+**Nettoyage associé** : le tag local `v1.0.0` (29 décembre 2025), antérieur à cette politique et
+jamais poussé sur origin, est supprimé. Il ne documentait aucune release et aurait un jour croisé
+un vrai `1.0.0`.
+
 ## Détail
 
 → [pipeline-release.md](../release/pipeline-release.md) (mécanique à jour) ·
