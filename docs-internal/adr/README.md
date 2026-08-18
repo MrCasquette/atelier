@@ -43,6 +43,7 @@ Portée : socle | <package> | échoppe | prisme
 | [0053](./ADR-0053-commentaire-passe-agissant.md) | Un commentaire garde le passé seulement s'il est encore agissant | accepté | — |
 | [0054](./ADR-0054-ports-rang-de-pile.md) | Un port publié appartient à l'instance : la grille et le rang de pile | accepté · amende [0004](./ADR-0004-migrations-release.md) | [ports.md](../reference/ports.md) |
 | [0055](./ADR-0055-publics-de-la-configuration.md) | Trois publics de la configuration, un fichier chacun | accepté | [configuration.md](../../docs/guide/configuration.md) |
+| [0056](./ADR-0056-racine-de-donnees.md) | Une racine de données, montée hors du répertoire applicatif | accepté · amende [0018](./ADR-0018-stockage-media.md) | — |
 
 ## Index — `client` · SDK et contrat d'API
 
@@ -85,7 +86,7 @@ Portée : socle | <package> | échoppe | prisme
 
 | N° | Titre | Statut | Détail |
 |----|-------|--------|--------|
-| [0018](./ADR-0018-stockage-media.md) | Stockage média (disque local, arbre de dossiers) | accepté | — |
+| [0018](./ADR-0018-stockage-media.md) | Stockage média (disque local, arbre de dossiers) | accepté · amendé par [0056](./ADR-0056-racine-de-donnees.md) | — |
 | [0021](./ADR-0021-strategie-images.md) | Stratégie images : pas de resize serveur, dimensions exposées | accepté | — |
 
 ## Index — `identity` · Identité du site et entité légale

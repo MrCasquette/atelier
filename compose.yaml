@@ -60,13 +60,14 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@echoppe.dev}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
-      UPLOAD_DIR: /app/uploads
     # Rang 2 : le rang 0 (:8100) appartient au produit, le rang 1 (:8101) à `bun run dev`.
     # Le port INTERNE, lui, vaut 8100 dans toutes les piles — c'est celui du Dockerfile.
     ports:
       - '${API_PORT:-8102}:8100'
+    # Racine des données (ADR-0056), hors de `/app` que l'image possède. Un `docker pull` reconstruit
+    # tout sauf ce volume — c'est le seul point à sauvegarder avec la base.
     volumes:
-      - echoppe-uploads:/app/uploads
+      - echoppe-uploads:/data
     depends_on:
       postgres:
         condition: service_healthy

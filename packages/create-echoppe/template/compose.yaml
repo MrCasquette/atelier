@@ -39,8 +39,9 @@ services:
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
     ports:
       - '${API_PORT}:8100'
+    # Racine des données : tout le reste se reconstruit d'un `docker pull`. À sauvegarder avec la base.
     volumes:
-      - echoppe-uploads:/app/uploads
+      - echoppe-uploads:/data
     depends_on:
       db:
         condition: service_healthy

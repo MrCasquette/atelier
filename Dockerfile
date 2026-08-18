@@ -105,7 +105,10 @@ RUN bun build src/index.ts \
 FROM oven/bun:1-alpine AS api
 WORKDIR /app
 ENV NODE_ENV=production
-ENV UPLOAD_DIR=/app/uploads
+# Racine des données, hors du répertoire applicatif : `/app` porte ce que l'image fabrique, `/data`
+# ce que l'application produit (ADR-0056). Une nature de données ajoutée plus tard devient un
+# sous-dossier, sans volume à déclarer chez l'exploitant.
+ENV UPLOAD_DIR=/data/uploads
 # Migrations SQL versionnées appliquées au boot par l'API elle-même.
 ENV RUN_MIGRATIONS=1
 ENV MIGRATIONS_DIR=/app/drizzle
@@ -119,7 +122,7 @@ COPY --from=api-builder --chown=echoppe:echoppe /app/apps/echoppe-api/api ./api
 COPY --from=dashboard-builder --chown=echoppe:echoppe /app/apps/echoppe-admin/dist ./dashboard
 COPY --chown=echoppe:echoppe packages/echoppe-core/drizzle ./drizzle
 
-RUN mkdir -p /app/uploads && chown -R echoppe:echoppe /app/uploads
+RUN mkdir -p /data/uploads && chown -R echoppe:echoppe /data
 
 USER echoppe
 EXPOSE 8100

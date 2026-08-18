@@ -44,7 +44,7 @@ valeurs stockées deviennent illisibles. Générez-la avec `openssl rand -base64
 | Variable | Description | Défaut |
 |----------|-------------|--------|
 | `REDIS_URL` | Active le rate-limit distribué. Sans elle, l'API fonctionne, en dégradation silencieuse | — |
-| `UPLOAD_DIR` | Racine de stockage des médias | `apps/echoppe-api/uploads` (`/app/uploads` en image) |
+| `UPLOAD_DIR` | Où sont écrits les fichiers téléversés | `apps/echoppe-api/uploads` · `/data/uploads` en image |
 | `SHOP_NAME` | Nom de la boutique affiché par PayPal au paiement | `Shop` |
 | `NODE_ENV` | `production` durcit les cookies (`secure`) et les en-têtes de sécurité | — |
 

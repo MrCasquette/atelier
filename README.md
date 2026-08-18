@@ -72,7 +72,7 @@ services:
     ports:
       - '8100:8100'
     volumes:
-      - echoppe-uploads:/app/uploads
+      - echoppe-uploads:/data
     depends_on:
       db:
         condition: service_healthy

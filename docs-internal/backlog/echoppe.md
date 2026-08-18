@@ -180,6 +180,16 @@ Détail : [ADR-0005](../adr/ADR-0005-panier-stock.md).
 
 ## Après V1
 
+### Conservation des documents comptables
+
+- [ ] 🔴 **Trancher comment se conservent factures et avoirs — ADR à écrire.** Aujourd'hui une
+  facture est un `media` comme un autre : même dossier que les images de produits, même route de
+  suppression, `unlink` réel (`media/service.ts:193`). L'effacer depuis la médiathèque supprime le
+  PDF, alors qu'une facture relève d'une obligation légale de conservation. Le volume (ADR-0056)
+  n'est qu'une réponse possible : un service dédié, cloud ou auto-hébergé, ou un paquet spécialisé
+  en sont d'autres. À instruire avant de choisir — la question n'est pas *où* le fichier vit, mais
+  ce qui garantit qu'il vit assez longtemps et qu'on peut le prouver.
+
 ### Distribution et validation réelle
 
 - [ ] Créer et tester une vraie boutique Astro hors monorepo via `create-echoppe`, dont le cas x86.
