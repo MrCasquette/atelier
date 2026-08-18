@@ -14,10 +14,7 @@ import type { ContentDefinition } from './types.js';
 // Charge le point d'entrée de contenu du dev (défaut : src/content/index.ts). Le runtime TS
 // (Bun/tsx) résout et transpile ce `.ts` — d'où l'absence de loader embarqué.
 async function loadContent(): Promise<ContentDefinition> {
-  const configPath = resolve(
-    process.cwd(),
-    process.env.CONTENT_CONFIG ?? 'src/content/index.ts',
-  );
+  const configPath = resolve(process.cwd(), process.env.CONTENT_CONFIG ?? 'src/content/index.ts');
   const mod = await import(pathToFileURL(configPath).href);
   const content = mod.default;
   if (content?.kind !== 'content' || !Array.isArray(content.sections)) {

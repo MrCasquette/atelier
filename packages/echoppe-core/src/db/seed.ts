@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { db } from '@repo/db';
 import { eq } from 'drizzle-orm';
@@ -32,7 +32,11 @@ import {
   variantOptionValue,
 } from './schema';
 
-const UPLOAD_DIR = join(import.meta.dir, '../../../../apps/echoppe-api/uploads');
+// Même source que `apps/echoppe-api/src/modules/media/storage.ts` : un chemin en dur ici écrirait
+// les images ailleurs que là où l'API les sert dès qu'`UPLOAD_DIR` est défini, et les médias
+// seedés répondraient 404 sans que rien ne l'explique.
+const UPLOAD_DIR =
+  process.env.UPLOAD_DIR || join(import.meta.dir, '../../../../apps/echoppe-api/uploads');
 
 // Download placeholder image from Picsum
 async function downloadPlaceholder(
@@ -81,10 +85,26 @@ async function createMedia(
   }
 }
 
+// Chaque média seedé porte un UUID neuf : rien ne réutilise le fichier de l'exécution précédente,
+// et rien ne le supprimait — 1134 fichiers pour 39 médias, 82 Mo, avant que ceci n'existe. On vise
+// les orphelins et non le dossier entier, parce que le seed est idempotent : sur une base déjà
+// peuplée il ne retélécharge rien, et vider le dossier laisserait 39 médias pointant vers du vide.
+async function purgeOrphanUploads(): Promise<void> {
+  const referenced = new Set(
+    (await db.select({ f: media.filenameDisk }).from(media)).map((m) => m.f),
+  );
+  let removed = 0;
+  for (const entry of await readdir(UPLOAD_DIR, { withFileTypes: true })) {
+    if (!entry.isFile() || referenced.has(entry.name)) continue;
+    await rm(join(UPLOAD_DIR, entry.name), { force: true });
+    removed++;
+  }
+  if (removed > 0) console.log(`  → ${removed} image(s) orpheline(s) supprimée(s)`);
+}
+
 async function seed() {
   console.log('🌱 Seeding database...');
 
-  // Ensure uploads directory exists
   await mkdir(UPLOAD_DIR, { recursive: true });
 
   // === MEDIA FOLDER ===
@@ -1869,6 +1889,8 @@ async function seed() {
       console.log('    ⊘ Admin user already exists');
     }
   }
+
+  await purgeOrphanUploads();
 
   console.log('✅ Seed completed!');
 }
