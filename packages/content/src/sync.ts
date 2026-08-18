@@ -10,6 +10,7 @@
 import { blockerText, faultOf, faultText } from './fault-text.js';
 import { serialize } from './serialize.js';
 import type { ContentDefinition, Registry } from './types.js';
+import { isRecord } from './guards.js';
 
 export interface PushOptions {
   apiUrl: string; // origine de l'API, ex. http://localhost:8100
@@ -87,8 +88,8 @@ function canonical(value: unknown): string {
   if (Array.isArray(value)) {
     return `[${value.map(canonical).join(',')}]`;
   }
-  if (value && typeof value === 'object') {
-    const record = value as Record<string, unknown>;
+  if (isRecord(value)) {
+    const record = value;
     const keys = Object.keys(record)
       .filter((key) => record[key] !== undefined)
       .sort();
@@ -131,12 +132,8 @@ const requester =
  * et annonçait un registre synchronisé. Toute évolution de `EntityPlan` se répercute ICI, à la main.
  */
 function readPlan(body: unknown): ({ steps: PlanStep[] } & PlanRefusals) | null {
-  if (!body || typeof body !== 'object') return null;
-  const { steps, issues, blockers } = body as {
-    steps?: unknown;
-    issues?: unknown;
-    blockers?: unknown;
-  };
+  if (!isRecord(body)) return null;
+  const { steps, issues, blockers } = body;
   if (!Array.isArray(steps) || !Array.isArray(blockers)) return null;
 
   const objects = (value: unknown): Record<string, unknown>[] =>

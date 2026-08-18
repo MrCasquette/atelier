@@ -65,7 +65,7 @@ describe('le catalogue de constructeurs couvre l’union', () => {
     // Le `Record` garantit qu'il existe une entrée par code ; ceci garantit que l'entrée a bien été
     // produite par le constructeur de CE code, et non recopiée d'une ligne voisine.
     for (const [code, fault] of Object.entries(SAMPLES)) {
-      expect(fault.code).toBe(code as FaultCode);
+      expect<string>(fault.code).toBe(code);
     }
   });
 

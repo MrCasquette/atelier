@@ -4,7 +4,7 @@ export const COMMUNICATION_PROVIDERS = ['resend', 'brevo', 'smtp'] as const;
 export type CommunicationProvider = (typeof COMMUNICATION_PROVIDERS)[number];
 
 export function isCommunicationProvider(value: string): value is CommunicationProvider {
-  return (COMMUNICATION_PROVIDERS as readonly string[]).includes(value);
+  return COMMUNICATION_PROVIDERS.some((provider) => provider === value);
 }
 export type EmailStatus = 'sent' | 'failed' | 'bounced';
 

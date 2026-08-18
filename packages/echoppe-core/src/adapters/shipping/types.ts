@@ -4,7 +4,7 @@ export const SHIPPING_PROVIDERS = ['colissimo', 'mondialrelay', 'sendcloud'] as 
 export type ShippingProvider = (typeof SHIPPING_PROVIDERS)[number];
 
 export function isShippingProvider(value: string): value is ShippingProvider {
-  return (SHIPPING_PROVIDERS as readonly string[]).includes(value);
+  return SHIPPING_PROVIDERS.some((provider) => provider === value);
 }
 
 export interface Address {

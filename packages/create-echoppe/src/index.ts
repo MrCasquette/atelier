@@ -74,6 +74,15 @@ interface TemplatePkg {
   [key: string]: unknown;
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const isTemplatePkg = (value: unknown): value is TemplatePkg =>
+  isRecord(value) &&
+  typeof value.name === 'string' &&
+  isRecord(value.scripts) &&
+  isRecord(value.devDependencies);
+
 /** Copie le template et le personnalise (nom du projet + URL de l'API + .env). */
 async function scaffold(projectName: string, apiUrl: string, targetDir: string): Promise<void> {
   await cp(templateDir, targetDir, { recursive: true });
@@ -81,7 +90,13 @@ async function scaffold(projectName: string, apiUrl: string, targetDir: string):
   await rename(join(targetDir, '_gitignore'), join(targetDir, '.gitignore'));
 
   const pkgPath = join(targetDir, 'package.json');
-  const pkg = JSON.parse(await readFile(pkgPath, 'utf8')) as TemplatePkg;
+  // Le template est livré avec le paquet, mais il est lu depuis le disque : un fichier tronqué à
+  // l'installation ferait échouer le scaffolding trois lignes plus bas, sur une propriété absente.
+  const parsed: unknown = JSON.parse(await readFile(pkgPath, 'utf8'));
+  if (!isTemplatePkg(parsed)) {
+    throw new Error(`Template corrompu : ${pkgPath} n'a pas la forme attendue.`);
+  }
+  const pkg = parsed;
   pkg.name = projectName;
   // Outillage de contenu : dépendance + commandes de synchronisation (push) et de vérification de
   // dérive (check, à brancher en CI / pre-build). Le typage du front, lui, est inféré côté source.

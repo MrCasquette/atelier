@@ -25,14 +25,13 @@ import type {
 // Options d'un builder = son descripteur privé de `kind` (dérivé, pas de duplication).
 type Options<T extends { kind: string }> = Omit<T, 'kind'>;
 
-// Construction générique d'un descripteur. Cette fonction concentre l'UNIQUE assertion interne du
-// module : TypeScript ne peut pas prouver que `{ kind, ...options }` (options optionnelles) produit
-// `{ kind: K } & O`, alors que c'est vrai par construction (O est inféré des options réelles). Même
-// nature que `asSections` : assertion de frontière côté lib, jamais du cast métier.
+// Construction générique d'un descripteur. `Object.assign` est ici un choix de TYPE, pas de style :
+// sa signature produit nativement l'intersection `{ kind: K } & O`, là où un littéral à spread
+// oblige à affirmer le résultat. Le compilateur prouve ce qu'on affirmait auparavant.
 const make = <K extends string, const O extends object = object>(
   kind: K,
   options?: O,
-): { kind: K } & O => ({ kind, ...options }) as { kind: K } & O;
+): { kind: K } & O => Object.assign({ kind }, options);
 
 export const field = {
   text<const O extends Options<TextField> = object>(options?: O): { kind: 'text' } & O {
@@ -73,9 +72,9 @@ export const field = {
     of: D,
     options?: O,
   ): { kind: 'list'; of: D } & O {
-    // Même assertion interne que `make` (cf. plus haut) : la fusion de `of` empêche de router par
-    // `make`, on construit donc directement le descripteur `list`.
-    return { kind: 'list', of, ...options } as { kind: 'list'; of: D } & O;
+    // La fusion de `of` empêche de router par `make` ; même mécanique d'intersection, appliquée
+    // directement.
+    return Object.assign({ kind: 'list' as const, of }, options);
   },
 
   repeater<const O extends Options<RepeaterField>>(options: O): { kind: 'repeater' } & O {

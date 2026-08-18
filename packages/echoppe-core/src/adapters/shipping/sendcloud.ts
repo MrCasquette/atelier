@@ -8,15 +8,14 @@ import type {
   ShippingRate,
   TrackingEvent,
 } from './types';
+import { isRecord } from '@repo/shared';
+
+const isShippingMethod = (value: unknown): value is SendcloudShippingMethod =>
+  isRecord(value) &&
+  typeof value.min_weight === 'number' &&
+  typeof value.max_weight === 'number';
 
 const SENDCLOUD_API_URL = 'https://panel.sendcloud.sc/api/v2';
-
-interface SendcloudParcel {
-  id: number;
-  tracking_number: string;
-  tracking_url: string;
-  label: { normal_printer: string[] };
-}
 
 interface SendcloudShippingMethod {
   id: number;
@@ -51,7 +50,14 @@ export class SendcloudAdapter implements ShippingAdapter {
     return (await this.credentials.get()) !== null;
   }
 
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  /**
+   * Une réponse de Sendcloud, telle qu'elle arrive : `unknown`.
+   *
+   * Elle promettait `T` sur la seule foi de l'appelant, sans jamais rien vérifier — la forme la
+   * plus trompeuse, puisque le type paraissait sûr partout en aval. C'est à chaque appelant de
+   * dire ce qu'il lit, et de le prouver.
+   */
+  private async request(endpoint: string, options: RequestInit = {}): Promise<unknown> {
     await this.ensureInitialized();
 
     if (!this.authHeader) {
@@ -72,13 +78,15 @@ export class SendcloudAdapter implements ShippingAdapter {
       throw new Error(`Sendcloud API error: ${response.status} - ${error}`);
     }
 
-    return response.json() as Promise<T>;
+    return response.json();
   }
 
   async getRates(params: GetRatesParams): Promise<ShippingRate[]> {
-    const { shipping_methods } = await this.request<{
-      shipping_methods: SendcloudShippingMethod[];
-    }>('/shipping_methods');
+    const body = await this.request('/shipping_methods');
+    const shipping_methods =
+      isRecord(body) && Array.isArray(body.shipping_methods)
+        ? body.shipping_methods.filter(isShippingMethod)
+        : [];
 
     const weightKg = params.weight / 1000;
 
@@ -125,31 +133,43 @@ export class SendcloudAdapter implements ShippingAdapter {
       },
     };
 
-    const { parcel } = await this.request<{ parcel: SendcloudParcel }>('/parcels', {
+    const body = await this.request('/parcels', {
       method: 'POST',
       body: JSON.stringify(parcelData),
     });
+    const parcel = isRecord(body) && isRecord(body.parcel) ? body.parcel : null;
+    if (
+      !parcel ||
+      typeof parcel.tracking_number !== 'string' ||
+      typeof parcel.tracking_url !== 'string'
+    ) {
+      throw new Error("Réponse Sendcloud inattendue : le colis créé n'a pas de numéro de suivi.");
+    }
+    const printer =
+      isRecord(parcel.label) && Array.isArray(parcel.label.normal_printer)
+        ? parcel.label.normal_printer
+        : [];
 
     return {
       trackingNumber: parcel.tracking_number,
       trackingUrl: parcel.tracking_url,
-      labelUrl: parcel.label.normal_printer[0],
+      labelUrl: typeof printer[0] === 'string' ? printer[0] : '',
     };
   }
 
   async getTracking(trackingNumber: string): Promise<TrackingEvent[]> {
-    const { parcel } = await this.request<{
-      parcel: {
-        status: { id: number; message: string };
-        date_updated: string;
-      };
-    }>(`/parcels?tracking_number=${trackingNumber}`);
+    const body = await this.request(`/parcels?tracking_number=${trackingNumber}`);
+    const parcel = isRecord(body) && isRecord(body.parcel) ? body.parcel : null;
+    const status = isRecord(parcel?.status) ? parcel.status : null;
+    if (!parcel || typeof parcel.date_updated !== 'string' || typeof status?.message !== 'string') {
+      return [];
+    }
 
     return [
       {
         date: new Date(parcel.date_updated),
-        status: parcel.status.message,
-        description: parcel.status.message,
+        status: status.message,
+        description: status.message,
       },
     ];
   }

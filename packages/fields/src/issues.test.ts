@@ -15,11 +15,12 @@ import type { SerializedField } from './model';
 // Chaque cas est donc écrit comme une DONNÉE fautive et sa correction attendue, pas comme un nom de
 // `ValueErrorType` : c'est le contrat qu'on gèle, pas l'implémentation du validateur.
 
-const components: Components = {
-  bloc: { fields: [{ kind: 'text', name: 'titre', required: true } as SerializedField] },
-};
+/** Nomme l'intention — un champ du contrat — et laisse le compilateur vérifier la forme. */
+const field = (definition: SerializedField): SerializedField => definition;
 
-const field = (definition: unknown): SerializedField => definition as SerializedField;
+const components: Components = {
+  bloc: { fields: [field({ kind: 'text', name: 'titre', required: true })] },
+};
 
 /** Les raisons d'une donnée, dédupliquées : l'ordre des erreurs ne fait pas partie du contrat. */
 function reasonsFor(fields: SerializedField[], data: unknown): ValidationReason[] {

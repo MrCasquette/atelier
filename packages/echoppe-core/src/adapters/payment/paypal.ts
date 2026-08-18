@@ -10,6 +10,7 @@ import type {
   PaymentResult,
   RefundResult,
 } from './types';
+import { isRecord } from '@repo/shared';
 
 export class PayPalAdapter implements PaymentAdapter {
   readonly provider = 'paypal' as const;
@@ -227,7 +228,12 @@ export class PayPalAdapter implements PaymentAdapter {
       throw new Error(`Failed to get PayPal access token: ${tokenResponse.status}`);
     }
 
-    const tokenData = (await tokenResponse.json()) as { access_token: string };
+    // Une réponse d'API tierce est une frontière : on vérifie le seul champ qu'on lit, plutôt que
+    // d'affirmer une forme qu'on n'a pas produite.
+    const tokenData: unknown = await tokenResponse.json();
+    if (!isRecord(tokenData) || typeof tokenData.access_token !== 'string') {
+      throw new Error('Réponse PayPal inattendue : access_token absent.');
+    }
 
     // Vérifier la signature du webhook
     // IMPORTANT: Le webhook_event doit être le payload JSON brut, pas re-sérialisé
@@ -257,8 +263,8 @@ export class PayPalAdapter implements PaymentAdapter {
       return false;
     }
 
-    const verifyData = (await verifyResponse.json()) as { verification_status: string };
-    return verifyData.verification_status === 'SUCCESS';
+    const verifyData: unknown = await verifyResponse.json();
+    return isRecord(verifyData) && verifyData.verification_status === 'SUCCESS';
   }
 
   async refund(transactionId: string, amount?: number): Promise<RefundResult> {

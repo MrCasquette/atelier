@@ -8,6 +8,39 @@ import type {
   ShippingRate,
   TrackingEvent,
 } from './types';
+import { isRecord } from '@repo/shared';
+
+interface ColissimoTrackingEvent {
+  date: string;
+  code: string;
+  label: string;
+}
+
+const isTrackingEvent = (value: unknown): value is ColissimoTrackingEvent =>
+  isRecord(value) &&
+  typeof value.date === 'string' &&
+  typeof value.code === 'string' &&
+  typeof value.label === 'string';
+
+/**
+ * Ce qu'on retient d'une réponse d'étiquette. Colissimo peut répondre 200 avec un corps d'erreur,
+ * ou un corps partiel : affirmer la forme ne la produisait pas, ça la supposait.
+ */
+function readLabelResponse(body: unknown): ColissimoLabelResponse {
+  if (!isRecord(body)) return {};
+  const messages = Array.isArray(body.messages)
+    ? body.messages.filter(
+        (m): m is { type: string; messageContent: string } =>
+          isRecord(m) && typeof m.type === 'string' && typeof m.messageContent === 'string',
+      )
+    : undefined;
+  const label = isRecord(body.labelV2Response) ? body.labelV2Response : null;
+  const labelV2Response =
+    label && typeof label.parcelNumber === 'string' && typeof label.pdfUrl === 'string'
+      ? { parcelNumber: label.parcelNumber, pdfUrl: label.pdfUrl }
+      : undefined;
+  return { messages, labelV2Response };
+}
 
 const COLISSIMO_API_URL = 'https://ws.colissimo.fr/sls-ws/SlsServiceWSRest';
 const COLISSIMO_TRACKING_URL = 'https://api.laposte.fr/suivi/v2';
@@ -155,7 +188,7 @@ export class ColissimoAdapter implements ShippingAdapter {
       }),
     });
 
-    const data = (await response.json()) as ColissimoLabelResponse;
+    const data = readLabelResponse(await response.json());
 
     if (data.messages?.some((m) => m.type === 'ERROR')) {
       const error = data.messages.find((m) => m.type === 'ERROR');
@@ -187,22 +220,14 @@ export class ColissimoAdapter implements ShippingAdapter {
       throw new Error(`Colissimo tracking error: ${response.status}`);
     }
 
-    const data = (await response.json()) as {
-      shipment?: {
-        event?: Array<{
-          date: string;
-          code: string;
-          label: string;
-        }>;
-      };
-    };
+    const data: unknown = await response.json();
+    const shipment = isRecord(data) && isRecord(data.shipment) ? data.shipment : null;
+    const events = Array.isArray(shipment?.event) ? shipment.event.filter(isTrackingEvent) : [];
 
-    return (
-      data.shipment?.event?.map((event) => ({
-        date: new Date(event.date),
-        status: event.code,
-        description: event.label,
-      })) ?? []
-    );
+    return events.map((event) => ({
+      date: new Date(event.date),
+      status: event.code,
+      description: event.label,
+    }));
   }
 }

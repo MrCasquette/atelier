@@ -1,5 +1,4 @@
 import { db, sql } from '@repo/db';
-import type { SerializedField } from '@repo/fields';
 import {
   type EntityProjection,
   linkUrl,
@@ -28,7 +27,7 @@ import type { EntityDeclaration, EntityRegistry } from './model';
  * présentation (ADR-0049) : « premier » n'a de sens que si la séquence en a un.
  */
 function labelColumn(declaration: EntityDeclaration): string | null {
-  for (const field of declaration.fields as SerializedField[]) {
+  for (const field of declaration.fields) {
     if (field.kind === 'text') return field.name;
   }
   return null;
@@ -85,9 +84,7 @@ async function anchorUrls(
   const link = declaration.link;
   if (link?.mode !== 'anchor') return new Map();
 
-  const parentField = (declaration.fields as SerializedField[]).find(
-    (field) => field.name === link.parent,
-  );
+  const parentField = declaration.fields.find((field) => field.name === link.parent);
   const parentName = parentField?.kind === 'ref' ? parentField.to : undefined;
   const parent = parentName ? registry.get(parentName) : undefined;
   if (!parent) return new Map();

@@ -10,6 +10,19 @@ import type {
   RefundResult,
 } from './types';
 
+/**
+ * L'identifiant du PaymentIntent, quelle que soit la forme sous laquelle Stripe le rend.
+ *
+ * Le champ vaut `string`, l'objet complet (quand la requête l'a étendu) ou `null`. L'assertion qui
+ * tenait ce rôle affirmait `string` dans les trois cas : un webhook étendu aurait mis un OBJET
+ * dans `transactionId`, et la commande aurait été rapprochée d'un identifiant `[object Object]`.
+ */
+function paymentIntentId(value: string | Stripe.PaymentIntent | null): string {
+  if (typeof value === 'string') return value;
+  if (value) return value.id;
+  throw new Error('Événement Stripe sans payment_intent : impossible de rattacher la transaction.');
+}
+
 export class StripeAdapter implements PaymentAdapter {
   readonly provider = 'stripe' as const;
   private client: Stripe | null = null;
@@ -105,10 +118,10 @@ export class StripeAdapter implements PaymentAdapter {
 
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
+        const session = event.data.object;
         return {
           success: true,
-          transactionId: session.payment_intent as string,
+          transactionId: paymentIntentId(session.payment_intent),
           status: 'completed',
           orderId: session.metadata?.orderId ?? session.client_reference_id ?? undefined,
           amount: session.amount_total ?? undefined,
@@ -117,7 +130,7 @@ export class StripeAdapter implements PaymentAdapter {
       }
 
       case 'checkout.session.expired': {
-        const session = event.data.object as Stripe.Checkout.Session;
+        const session = event.data.object;
         return {
           success: false,
           transactionId: session.id,
@@ -128,10 +141,10 @@ export class StripeAdapter implements PaymentAdapter {
       }
 
       case 'charge.refunded': {
-        const charge = event.data.object as Stripe.Charge;
+        const charge = event.data.object;
         return {
           success: true,
-          transactionId: charge.payment_intent as string,
+          transactionId: paymentIntentId(charge.payment_intent),
           status: 'refunded',
           amount: charge.amount_refunded,
           rawData: charge,

@@ -3,6 +3,7 @@ import { mkdir, readdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { db } from '@repo/db';
 import { eq } from 'drizzle-orm';
+import type { BillingAddress } from './schema/orders';
 import { folder, media } from '@repo/assets';
 import { permission, role, user } from '@repo/auth';
 import { country, legalEntity, site } from '@repo/identity';
@@ -26,6 +27,9 @@ import {
   variant,
   variantOptionValue,
 } from './schema';
+
+/** Les seuls pays que le jeu de démonstration utilise. Le repli vaut FR, comme la boutique. */
+const SEED_COUNTRY_CODES: Record<string, string> = { France: 'FR', Belgique: 'BE', Suisse: 'CH' };
 
 // Même source que `apps/echoppe-api/src/modules/media/storage.ts` : un chemin en dur ici écrirait
 // les images ailleurs que là où l'API les sert dès qu'`UPLOAD_DIR` est défini, et les médias
@@ -1504,6 +1508,8 @@ async function seed() {
   }
 
   // Helper to create address snapshot
+  // Le seed écrivait `country` en chaîne là où le checkout écrit `{ code, name }` : une même
+  // colonne, deux formes. Le type de la colonne tranche désormais, et c'est le checkout qui fait foi.
   function createAddressSnapshot(data: {
     firstName: string;
     lastName: string;
@@ -1513,7 +1519,7 @@ async function seed() {
     country: string;
     company?: string;
     phone?: string;
-  }) {
+  }): BillingAddress {
     return {
       firstName: data.firstName,
       lastName: data.lastName,
@@ -1522,7 +1528,7 @@ async function seed() {
       street2: null,
       postalCode: data.postalCode,
       city: data.city,
-      country: data.country,
+      country: { code: SEED_COUNTRY_CODES[data.country] ?? 'FR', name: data.country },
       phone: data.phone || null,
     };
   }

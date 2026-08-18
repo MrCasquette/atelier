@@ -12,6 +12,26 @@ import {
 import { variant } from './catalog';
 import { customer } from './customer';
 
+/**
+ * L'adresse figée au moment de la commande — elle ne suit pas les modifications du carnet.
+ *
+ * Elle est décrite d'après ce que le checkout ÉCRIT, seule source réelle. La facture, elle,
+ * affirmait une autre forme à la lecture : `company` et `street2` optionnels au lieu de nullables,
+ * `phone` ignoré, et surtout `country` en chaîne alors que c'est un objet. Le pays d'une facture
+ * émise valait donc `[object Object]`, sans que rien ne le signale.
+ */
+export interface BillingAddress {
+  firstName: string;
+  lastName: string;
+  company: string | null;
+  street: string;
+  street2: string | null;
+  postalCode: string;
+  city: string;
+  country: { code: string; name: string };
+  phone: string | null;
+}
+
 export const orderStatusEnum = pgEnum('order_status', [
   'pending',
   'confirmed',
@@ -30,7 +50,7 @@ export const order = pgTable('order', {
     .references(() => customer.id),
   status: orderStatusEnum('status').notNull().default('pending'),
   shippingAddress: jsonb('shipping_address').notNull(), // Snapshot
-  billingAddress: jsonb('billing_address').notNull(), // Snapshot
+  billingAddress: jsonb('billing_address').$type<BillingAddress>().notNull(),
   subtotalHt: decimal('subtotal_ht', { precision: 10, scale: 2 }).notNull(),
   shippingHt: decimal('shipping_ht', { precision: 10, scale: 2 }).notNull().default('0'),
   discountHt: decimal('discount_ht', { precision: 10, scale: 2 }).notNull().default('0'),

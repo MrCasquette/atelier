@@ -1,3 +1,4 @@
+import { isRecord } from './guards.js';
 // Le catalogue de la CLI (ADR-0050 §6).
 //
 // Troisième surface après l'API et l'administration, et la plus sobre : son lecteur est le
@@ -31,9 +32,6 @@ const VALIDATION: Record<string, string> = {
   too_large: 'est trop grand',
   format: 'n’a pas la forme attendue',
 };
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
 
 const str = (value: unknown): string => (typeof value === 'string' ? value : '?');
 

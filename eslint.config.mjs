@@ -94,10 +94,12 @@ export default [
   // type — la sortie est de la rendre visible (narrowing, `Exclude<>`, `satisfies`, type guard),
   // pas de faire taire le compilateur.
   //
-  // 244 occurrences au 2026-08-18. La règle s'étend à chaque lot nettoyé, et ce qui est nettoyé ne
+  // 210 occurrences au 2026-08-18. La règle s'étend à chaque lot nettoyé, et ce qui est nettoyé ne
   // peut plus régresser. `as const` reste permis : il restreint au lieu d'élargir.
+  //
+  // Faits : `scripts/` et `packages/` sont clos. Restent les deux applications.
   {
-    files: ['scripts/**/*.ts'],
+    files: ['scripts/**/*.ts', 'packages/**/*.ts', 'docs/**/*.{ts,vue}'],
     rules: {
       '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
     },

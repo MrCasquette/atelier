@@ -26,5 +26,10 @@ export function asSections<C extends ContentDefinition>(
   _content: C,
   raw: readonly RawSection[],
 ): InferSections<C>[] {
+  // La SEULE assertion tolérée du dépôt, et elle est signalée pour qu'on la revoie plutôt que de
+  // l'oublier : sans validation, aucune expression ne mène de `RawSection[]` à `InferSections<C>[]`
+  // — la fonction EST cette affirmation, c'est son objet même. La rendre vérifiante changerait le
+  // contrat d'un paquet publié (elle deviendrait faillible), ce qui se décide, pas se glisse.
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- cf. ci-dessus
   return raw as InferSections<C>[];
 }

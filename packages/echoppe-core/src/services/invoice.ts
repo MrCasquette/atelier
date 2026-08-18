@@ -7,38 +7,11 @@ import { eq } from 'drizzle-orm';
 import { customer, invoice, order, orderItem, storeSettings } from '../db/schema';
 import { country, legalEntity, site } from '@repo/identity';
 import { getStoreSettings } from './store-settings';
+import type { BuyerSnapshot, SellerSnapshot } from '../db/schema/document';
+
+export type { BuyerSnapshot, SellerSnapshot };
 
 // Types pour les snapshots (archivage légal)
-export interface SellerSnapshot {
-  shopName: string;
-  legalName: string;
-  legalForm: string | null;
-  siren: string | null;
-  siret: string | null;
-  tvaIntra: string | null;
-  rcsCity: string | null;
-  shareCapital: string | null;
-  street: string;
-  street2: string | null;
-  postalCode: string;
-  city: string;
-  country: string;
-  publicEmail: string;
-  publicPhone: string | null;
-}
-
-export interface BuyerSnapshot {
-  firstName: string;
-  lastName: string;
-  company: string | null;
-  email: string | null;
-  street: string;
-  street2: string | null;
-  postalCode: string;
-  city: string;
-  country: string | null;
-}
-
 export interface InvoiceItem {
   label: string;
   quantity: number;
@@ -173,27 +146,18 @@ export async function generateInvoice(
   };
 
   // Construire le snapshot acheteur depuis l'adresse de facturation
-  const billingAddress = orderData.billingAddress as {
-    firstName: string;
-    lastName: string;
-    company?: string;
-    street: string;
-    street2?: string;
-    postalCode: string;
-    city: string;
-    country?: string;
-  };
+  const billingAddress = orderData.billingAddress;
 
   const buyerSnapshot: BuyerSnapshot = {
     firstName: billingAddress.firstName,
     lastName: billingAddress.lastName,
-    company: billingAddress.company ?? null,
+    company: billingAddress.company,
     email: cust?.email ?? null,
     street: billingAddress.street,
-    street2: billingAddress.street2 ?? null,
+    street2: billingAddress.street2,
     postalCode: billingAddress.postalCode,
     city: billingAddress.city,
-    country: billingAddress.country ?? null,
+    country: billingAddress.country.name,
   };
 
   // Mention d'exonération si applicable
@@ -333,8 +297,8 @@ export async function regenerateInvoicePdf(invoiceId: string): Promise<Buffer> {
       totalTtc: inv.totalTtc,
       taxExemptMention: inv.taxExemptMention,
     },
-    seller: inv.sellerSnapshot as SellerSnapshot,
-    buyer: inv.buyerSnapshot as BuyerSnapshot,
+    seller: inv.sellerSnapshot,
+    buyer: inv.buyerSnapshot,
     items: items.map((item) => ({
       label: item.label,
       quantity: item.quantity,

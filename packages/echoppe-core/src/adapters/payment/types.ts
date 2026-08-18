@@ -5,7 +5,7 @@ export const PAYMENT_PROVIDERS = ['stripe', 'paypal'] as const;
 export type PaymentProvider = (typeof PAYMENT_PROVIDERS)[number];
 
 export function isPaymentProvider(value: string): value is PaymentProvider {
-  return (PAYMENT_PROVIDERS as readonly string[]).includes(value);
+  return PAYMENT_PROVIDERS.some((provider) => provider === value);
 }
 
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';

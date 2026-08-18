@@ -16,6 +16,9 @@ import { FACADE_SKIP_TAGS, METHOD_NAMES, TAG_NAMESPACE } from './facade-map';
 import { filterStorefront, type OpenApiSpec } from './filter';
 import { type HttpMethod, STOREFRONT_SURFACE } from './storefront-surface';
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
 const REF_PREFIX = '#/components/schemas/';
 
 // Normalise les schémas RÉCURSIFS (TypeBox `t.Recursive` → nœud `{$id}` + self-`$ref: "<id>"`).
@@ -30,8 +33,8 @@ function normalizeRecursiveSchemas(spec: OpenApiSpec): number {
   const refTargets = new Set<string>();
   const collectRefs = (node: unknown): void => {
     if (Array.isArray(node)) return void node.forEach(collectRefs);
-    if (!node || typeof node !== 'object') return;
-    const rec = node as Record<string, unknown>;
+    if (!isRecord(node)) return;
+    const rec = node;
     for (const [key, value] of Object.entries(rec)) {
       if (
         key === '$ref' &&
@@ -53,8 +56,8 @@ function normalizeRecursiveSchemas(spec: OpenApiSpec): number {
   const registered = new Set<string>();
   const hoist = (node: unknown): void => {
     if (Array.isArray(node)) return void node.forEach(hoist);
-    if (!node || typeof node !== 'object') return;
-    const rec = node as Record<string, unknown>;
+    if (!isRecord(node)) return;
+    const rec = node;
     if (typeof rec.$id === 'string' && refTargets.has(rec.$id) && !registered.has(rec.$id)) {
       registered.add(rec.$id);
       schemas[rec.$id] = structuredClone(rec);
@@ -67,8 +70,8 @@ function normalizeRecursiveSchemas(spec: OpenApiSpec): number {
   // 3. Réécrit les `$ref` bruts ciblés en pointeurs, et retire les `$id` résiduels correspondants.
   const rewrite = (node: unknown): void => {
     if (Array.isArray(node)) return void node.forEach(rewrite);
-    if (!node || typeof node !== 'object') return;
-    const rec = node as Record<string, unknown>;
+    if (!isRecord(node)) return;
+    const rec = node;
     if (typeof rec.$id === 'string' && refTargets.has(rec.$id)) delete rec.$id;
     for (const [key, value] of Object.entries(rec)) {
       if (key === '$ref' && typeof value === 'string' && refTargets.has(value))
@@ -94,7 +97,12 @@ if (!response.ok) {
 
 // Le contrat de l'API décrit TOUTES les routes (admin + boutique). Le SDK boutique ne doit
 // exposer que la surface storefront → on filtre + tree-shake avant de figer.
-const fullSpec = (await response.json()) as OpenApiSpec;
+// Le contrat arrive du réseau : on vérifie qu'il porte bien des chemins avant de s'appuyer dessus.
+const body: unknown = await response.json();
+if (!isRecord(body) || !isRecord(body.paths)) {
+  throw new Error(`Spec OpenAPI inexploitable depuis ${specUrl} : aucun objet \`paths\`.`);
+}
+const fullSpec: OpenApiSpec = { ...body, paths: body.paths };
 const { spec, missing, keptPaths, keptSchemas } = filterStorefront(fullSpec, STOREFRONT_SURFACE);
 
 const recursiveCount = normalizeRecursiveSchemas(spec);
@@ -139,19 +147,19 @@ type FacadeMethod = { fn: string; method: HttpMethod; path: string; required: bo
 const namespaces = new Map<string, FacadeMethod[]>();
 const facadeMissing: string[] = [];
 
-const asRecord = (v: unknown): Record<string, unknown> =>
-  v && typeof v === 'object' ? (v as Record<string, unknown>) : {};
+const asRecord = (v: unknown): Record<string, unknown> => (isRecord(v) ? v : {});
 
 for (const [path, item] of Object.entries(spec.paths)) {
   for (const method of HTTP_METHODS) {
     const op = asRecord(item)[method];
     if (!op) continue;
     const opRec = asRecord(op);
-    const tag = (opRec.tags as string[] | undefined)?.[0];
+    const tags = Array.isArray(opRec.tags) ? opRec.tags : [];
+    const tag = typeof tags[0] === 'string' ? tags[0] : undefined;
     if (tag && FACADE_SKIP_TAGS.includes(tag)) continue;
 
     const ns = tag ? TAG_NAMESPACE[tag] : undefined;
-    const operationId = opRec.operationId as string | undefined;
+    const operationId = typeof opRec.operationId === 'string' ? opRec.operationId : undefined;
     const fn = operationId ? METHOD_NAMES[operationId] : undefined;
     if (!ns || !fn) {
       facadeMissing.push(
@@ -160,7 +168,7 @@ for (const [path, item] of Object.entries(spec.paths)) {
       continue;
     }
 
-    const params = (opRec.parameters as Array<Record<string, unknown>> | undefined) ?? [];
+    const params = Array.isArray(opRec.parameters) ? opRec.parameters.filter(isRecord) : [];
     const requiredQuery = params.some((p) => p.in === 'query' && p.required);
     const required = path.includes('{') || Boolean(opRec.requestBody) || requiredQuery;
 

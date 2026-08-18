@@ -191,10 +191,19 @@ export interface ContentConfig<S extends readonly Definition[], E extends readon
   entities?: E;
 }
 
+// Deux surcharges plutôt qu'un défaut générique : `E` vaut `[]` quand `entities` est absent, ce que
+// TypeScript ne sait pas prouver d'un littéral vide — c'est ce qu'une assertion masquait ici. Les
+// surcharges portent la précision, l'implémentation n'est plus générique et n'a rien à affirmer.
+export function defineContent<const S extends readonly Definition[]>(
+  config: ContentConfig<S, []> & { entities?: undefined },
+): ContentDefinition<S, []>;
 export function defineContent<
   const S extends readonly Definition[],
-  const E extends readonly Entity[] = [],
->(config: ContentConfig<S, E>): ContentDefinition<S, E> {
+  const E extends readonly Entity[],
+>(config: ContentConfig<S, E> & { entities: E }): ContentDefinition<S, E>;
+export function defineContent(
+  config: ContentConfig<readonly Definition[], readonly Entity[]>,
+): ContentDefinition<readonly Definition[], readonly Entity[]> {
   for (const section of config.sections) {
     if (section.role !== 'section') {
       throw new Error(
@@ -213,8 +222,5 @@ export function defineContent<
     }
   }
 
-  // Même assertion interne que `make` (cf. field.ts) : `E` vaut `[]` quand `entities` est absent,
-  // ce que TypeScript ne sait pas prouver du littéral vide. Assertion de frontière côté lib.
-  const entities = (config.entities ?? []) as E;
-  return { kind: 'content', sections: config.sections, entities };
+  return { kind: 'content', sections: config.sections, entities: config.entities ?? [] };
 }

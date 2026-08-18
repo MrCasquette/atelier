@@ -3,6 +3,7 @@ import { decrypt, encrypt } from '@repo/shared';
 import { eq } from 'drizzle-orm';
 import { paymentProviderConfig } from '../../db/schema/payment';
 import type { PaymentProvider } from './types';
+import { isRecord } from '@repo/shared';
 
 export interface StripeCredentials {
   secretKey: string;
@@ -19,6 +20,30 @@ export interface PayPalCredentials {
 export type ProviderCredentials = {
   stripe: StripeCredentials;
   paypal: PayPalCredentials;
+};
+/**
+ * Ce qu'on accepte de relire dans la base, par provider.
+ *
+ * Des credentials déchiffrés sont du JSON qu'on n'a pas sous la main au moment de le lire : la
+ * colonne peut avoir été écrite par une version antérieure, restaurée d'une sauvegarde, ou
+ * corrompue. L'assertion qui tenait ce rôle ne vérifiait rien — elle repoussait la panne jusqu'au
+ * premier appel, où elle ressort en erreur de provider incompréhensible.
+ *
+ * Le type mappé rend la table exhaustive — un provider ajouté sans son guard ne compile plus — et
+ * il est annoté plutôt que `satisfies` : c'est ce qui relie `CREDENTIAL_GUARDS[provider]` au type
+ * de retour indexé, là où `satisfies` n'aurait laissé qu'une union des formes.
+ */
+const CREDENTIAL_GUARDS: {
+  [P in PaymentProvider]: (v: unknown) => v is ProviderCredentials[P];
+} = {
+  stripe: (v: unknown): v is StripeCredentials =>
+    isRecord(v) && typeof v.secretKey === 'string' && typeof v.webhookSecret === 'string',
+  paypal: (v: unknown): v is PayPalCredentials =>
+    isRecord(v) &&
+    typeof v.clientId === 'string' &&
+    typeof v.clientSecret === 'string' &&
+    (v.mode === 'sandbox' || v.mode === 'live') &&
+    typeof v.webhookId === 'string',
 };
 
 /**
@@ -37,8 +62,8 @@ export async function getProviderCredentials<T extends PaymentProvider>(
   }
 
   try {
-    const decrypted = decrypt(config.credentials);
-    return JSON.parse(decrypted) as ProviderCredentials[T];
+    const parsed: unknown = JSON.parse(decrypt(config.credentials));
+    return CREDENTIAL_GUARDS[provider](parsed) ? parsed : null;
   } catch {
     console.error(`Failed to decrypt credentials for ${provider}`);
     return null;

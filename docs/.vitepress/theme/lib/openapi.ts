@@ -35,7 +35,33 @@ type Spec = {
 
 export type Route = { method: string; path: string };
 
-const spec = contract as unknown as Spec;
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+function readSpec(source: unknown): Spec {
+  const paths: Spec['paths'] = {};
+  if (isRecord(source) && isRecord(source.paths)) {
+    for (const [path, item] of Object.entries(source.paths)) {
+      if (!isRecord(item)) continue;
+      const operations: Record<string, Operation> = {};
+      for (const [method, op] of Object.entries(item)) {
+        if (isRecord(op)) operations[method] = op;
+      }
+      paths[path] = operations;
+    }
+  }
+  const components =
+    isRecord(source) && isRecord(source.components) && isRecord(source.components.schemas)
+      ? { schemas: source.components.schemas }
+      : undefined;
+  return { paths, components };
+}
+
+
+// Le contrat est importé, donc TypeScript en connaît la forme exacte — trop exacte : la double
+// assertion servait à la réduire à ce que cette page lit. Une lecture structurée fait le même
+// travail en vérifiant, et survit à un contrat régénéré autrement.
+const spec: Spec = readSpec(contract);
 const METHODS = ['get', 'post', 'put', 'patch', 'delete'] as const;
 
 export const schemas: Record<string, JsonSchema> = spec.components?.schemas ?? {};
