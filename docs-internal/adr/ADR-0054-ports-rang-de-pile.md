@@ -128,6 +128,8 @@ de projet, comme le fait déjà le template livré.
 - Les valeurs changent partout : défauts du code, composes, template, `.env.example`, documentation
   publique. `7532` ne survit nulle part — pas de compatibilité ascendante, aucune boutique n'est
   déployée.
-- Les scripts `docker:up` / `docker:down` / `docker:logs` visaient le mauvais fichier (`docker
-  compose` sans `-f`, et un service `postgres` absent de `compose.yaml`). La fusion les rend
-  corrects ; leur utilité propre reste à juger.
+- Les scripts `docker:up` / `docker:down` / `docker:logs` sont supprimés : personne ne les appelait,
+  ils ne raccourcissaient pas la commande qu'ils enveloppaient, et depuis la fusion ils masquaient
+  le profil `release` en ne couvrant qu'un des deux usages. `scripts/docker-init.sh` part avec eux —
+  mort (une seule mention, en commentaire) et faux : il générait la clé de chiffrement en `hex 32`,
+  soit 48 octets une fois décodée, que le garde-fou de `env.ts` refuse (32 attendus).
