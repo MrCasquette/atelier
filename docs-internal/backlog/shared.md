@@ -46,16 +46,18 @@ Reste ouvert :
   `packages/echoppe-core`). Ce sont les derniers scripts racine qui nomment un produit.
 - [ ] 🟠 **Distribution mono-produit** : `Dockerfile` (19 `COPY packages/*/package.json` énumérés,
   targets `api`/`admin`, user système `echoppe`), `docker-build.yml` (`IMAGE_PREFIX`), `release.yml`
-  (version runtime = `apps/echoppe-api/package.json`), `ship.ts` (4 canaux Échoppe), `compose.yaml`
-  et `compose.yaml`. **Volontairement différé** : Prisme n'a aucun cycle de publication, et
+  (version runtime = `apps/echoppe-api/package.json`), `ship.ts` (4 canaux Échoppe) et
+  `compose.yaml`. **Volontairement différé** : Prisme n'a aucun cycle de publication, et
   paramétrer avant d'avoir un second artefact serait de l'abstraction par anticipation. Piège à
   connaître : l'image n'est construite qu'**à la release** (`docker-build.yml` → `integration.ts`),
   jamais par `ci.yml` — une dérive du `Dockerfile` ne se voit qu'au moment de publier. Ne jamais
   renommer un volume Compose : la donnée de production y est attachée.
-- [ ] 🟡 **Renommer le dossier de travail local** `~/dev/Axiome/echoppe` → `…/atelier`. Le dépôt n'en
-  dépend pas : aucun chemin absolu n'est codé en dur et le remote s'appelle déjà `atelier`. Deux
-  précautions seulement — relancer `bun install` (les liens de `node_modules` pointent l'ancien
-  chemin) et rouvrir les sessions d'outils dont le répertoire courant devient invalide.
+- [x] **Renommer le dossier de travail local** `~/dev/Axiome/echoppe` → `…/atelier`. Fait. La
+  précaution qui manquait à cette note, découverte le 2026-08-18 : Compose dérive le **nom de
+  projet** du nom du dossier, donc le renommage a détaché la pile de ses volumes
+  (`echoppe_echoppe-data` → `atelier_echoppe-data`). Les conteneurs survivants masquaient la
+  bascule ; les recréer a monté une base vide. Rien n'était perdu — l'ancien volume gardait ses
+  55 tables — mais un renommage de dossier déplace la donnée d'une pile Compose sans le dire.
 - [ ] 🟡 **`docs/` est le site d'Échoppe** (`@echoppe/docs`, 22 fichiers), pas la doc du workspace.
   À trancher avec `prisme-admin`.
 - [ ] 🟡 **La garde d'isolation s'endort sous deux produits.** Elle sort en succès silencieux tant
@@ -231,6 +233,10 @@ circonstancielle plutôt que sur une garde.
 - [ ] 🟡 Vérifier les trusted publishers npm/OIDC des trois artefacts publics.
 - [ ] 🟡 Purger l'ancien registre Docker Hub après migration des consommateurs encore concernés.
 - [ ] 🟡 Garder npm 11 tant que Changesets est incompatible avec npm 12.
+- [ ] 🟢 **Migrations concurrentes sous plusieurs répliques.** ADR-0004 fait migrer l'API au boot ;
+  deux répliques qui démarrent ensemble rejouent les migrations en parallèle, sans `pg_advisory_lock`
+  pour les sérialiser. Latent et non urgent — personne ne déploie en multi-répliques — mais à
+  trancher avant que ce soit le cas, par amendement d'ADR-0004.
 - [ ] 🟢 **Garde de découverte des variables d'environnement.** ADR-0055 fait de
   `docs/guide/configuration.md` la référence des variables, et le `.env.example` du contributeur ne
   porte plus que le nécessaire — la référence peut donc diverger du code sans que rien ne le
