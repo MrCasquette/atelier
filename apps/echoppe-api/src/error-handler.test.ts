@@ -2,6 +2,14 @@ import { afterEach, describe, expect, it, spyOn } from 'bun:test';
 import { Elysia } from 'elysia';
 import { errorHandler } from './error-handler';
 
+/** Le corps JSON attendu — une réponse d'erreur mal formée doit casser ici, pas plus loin. */
+function asRecord(value: unknown): Record<string, unknown> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new Error(`corps inattendu : ${JSON.stringify(value)?.slice(0, 200)}`);
+  }
+  return Object.fromEntries(Object.entries(value));
+}
+
 // L'invariant d'ADR-0050 se teste ici et nulle part ailleurs : ce qui est levé ne doit pas
 // ressortir. Un test qui vérifierait seulement « le statut est 500 » manquerait tout l'objet.
 
@@ -36,7 +44,7 @@ describe('une exception non rattrapée', () => {
     captureLogs();
 
     const res = await probe.handle(new Request('http://localhost/boom'));
-    const body = (await res.json()) as { message: string; incident: string };
+    const body = asRecord(await res.json());
 
     expect(body.message).toBe('Internal server error');
     // Opaque signifie : rien de dérivable. Un UUID ne dit ni quand, ni où, ni qui.
@@ -47,7 +55,7 @@ describe('une exception non rattrapée', () => {
     const logged = captureLogs();
 
     const res = await probe.handle(new Request('http://localhost/boom'));
-    const { incident } = (await res.json()) as { incident: string };
+    const { incident } = asRecord(await res.json());
 
     const line = logged.mock.calls.at(0);
     expect(line?.[0]).toContain(incident);
@@ -59,12 +67,8 @@ describe('une exception non rattrapée', () => {
   it('donne un incident DIFFÉRENT à chaque occurrence', async () => {
     captureLogs();
 
-    const first = (await (await probe.handle(new Request('http://localhost/boom'))).json()) as {
-      incident: string;
-    };
-    const second = (await (await probe.handle(new Request('http://localhost/boom'))).json()) as {
-      incident: string;
-    };
+    const first = asRecord(await (await probe.handle(new Request('http://localhost/boom'))).json());
+    const second = asRecord(await (await probe.handle(new Request('http://localhost/boom'))).json());
 
     expect(first.incident).not.toBe(second.incident);
   });

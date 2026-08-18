@@ -1,7 +1,15 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { entityDefinition } from '@repo/entities';
 import { db, sql } from '@repo/db';
-import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
+import {
+  createAdminSession,
+  migrate,
+  record,
+  records,
+  req,
+  requireDisposableDb,
+  text,
+} from './harness';
 
 // Clés étrangères d'une entité (ADR-0045).
 //
@@ -72,7 +80,7 @@ beforeAll(async () => {
 
 describe('la table dérivée porte de vraies contraintes', () => {
   it('vise media pour un champ image, et la table déclarée par la cible pour un ref', async () => {
-    expect(await constraintsOf('entity_dossier')).toEqual([
+    expect([...(await constraintsOf('entity_dossier'))]).toEqual([
       // La politique se DÉDUIT de `required` : obligatoire → `restrict`, parce qu'une colonne
       // NOT NULL ne peut pas devenir nulle. `set null` échouerait quand même, mais sur une
       // violation de contrainte NOT NULL — le bon comportement dit de la pire façon.
@@ -102,7 +110,7 @@ describe('la table dérivée porte de vraies contraintes', () => {
     ]);
     expect(res.status).toBe(200);
 
-    expect(await constraintsOf('entity_note_libre')).toEqual([]);
+    expect([...(await constraintsOf('entity_note_libre'))]).toEqual([]);
   });
 });
 
@@ -138,13 +146,12 @@ describe('une table déjà poussée se met à niveau', () => {
       cookie: ownerCookie,
       body: { entities: { dossier, archive: ancienne } },
     });
-    const plan = (await planned.json()) as {
-      steps: Array<{ sql: string; destroys?: { kind: string; target: string } }>;
-      blockers: string[];
-    };
+    const plan = record(await planned.json());
 
     expect(plan.blockers).toEqual([]);
-    const step = plan.steps.find((s) => s.sql.includes('entity_archive'));
+    const step = records(plan.steps, 'steps').find((s) =>
+      text(s.sql, 'sql').includes('entity_archive'),
+    );
     expect(step?.sql).toContain('add foreign key (visuel) references media(id)');
     // Poser une garantie ne détruit rien : ça passe sans confirmation.
     expect(step?.destroys).toBeUndefined();
@@ -154,7 +161,7 @@ describe('une table déjà poussée se met à niveau', () => {
     const res = await push([dossier, ancienne]);
     expect(res.status).toBe(200);
 
-    expect(await constraintsOf('entity_archive')).toEqual([
+    expect([...(await constraintsOf('entity_archive'))]).toEqual([
       { column_name: 'visuel', foreign_table: 'media', delete_rule: 'SET NULL' },
     ]);
   });

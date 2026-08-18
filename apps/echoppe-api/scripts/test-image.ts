@@ -216,45 +216,59 @@ async function seedDemo(): Promise<void> {
 
 // ── Assertions ──────────────────────────────────────────────────────────────────────────
 
-type ProductCard = { slug: string; swatches: unknown[]; images: unknown[] };
-type ListResponse = { data: ProductCard[]; meta: { hasNextPage: boolean; hasPrevPage: boolean } };
-type OptionOut = { type: string; values: Array<{ metadata: unknown }> };
-type BySlug = { options: OptionOut[] };
+// Ce script valide une image PUBLIÉE : ce qu'il lit vient d'un conteneur, pas de nos types. Les
+// formes attendues se vérifient donc, elles ne s'affirment pas — et `fail` dit déjà comment.
+function asRecord(value: unknown, what: string): Record<string, unknown> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    fail(`${what} : objet attendu, reçu ${JSON.stringify(value)?.slice(0, 200)}`);
+  }
+  return Object.fromEntries(Object.entries(value));
+}
+
+function asRecords(value: unknown, what: string): Record<string, unknown>[] {
+  if (!Array.isArray(value)) {
+    fail(`${what} : tableau attendu, reçu ${JSON.stringify(value)?.slice(0, 200)}`);
+  }
+  return value.map((item, index) => asRecord(item, `${what}[${index}]`));
+}
 
 async function assertStorefront(label: string): Promise<void> {
   console.log(`→ [${label}] assertions storefront…`);
 
   const countries = await getJson('/countries/');
   if (countries.status !== 200) fail(`[${label}] /countries/ → ${countries.status}`);
-  const clist = countries.body as Array<{ code: string }>;
-  if (!Array.isArray(clist) || !clist.some((c) => c.code === 'FR')) {
+  const clist = asRecords(countries.body, '/countries/');
+  if (!clist.some((c) => c.code === 'FR')) {
     fail(`[${label}] /countries/ ne contient pas la France : ${JSON.stringify(clist)}`);
   }
 
   const products = await getJson('/products/?limit=50');
   if (products.status !== 200) fail(`[${label}] /products/ → ${products.status} (attendu 200)`);
-  const plist = products.body as ListResponse;
-  if (!Array.isArray(plist.data) || plist.data.length === 0) {
+  const plist = asRecord(products.body, '/products/');
+  const cards = asRecords(plist.data, '/products/ data');
+  if (cards.length === 0) {
     fail(`[${label}] /products/ vide après seed`);
   }
-  if (
-    typeof plist.meta?.hasNextPage !== 'boolean' ||
-    typeof plist.meta?.hasPrevPage !== 'boolean'
-  ) {
+  const meta = asRecord(plist.meta, '/products/ meta');
+  if (typeof meta.hasNextPage !== 'boolean' || typeof meta.hasPrevPage !== 'boolean') {
     fail(`[${label}] meta.hasNextPage/hasPrevPage manquants`);
   }
 
-  const withSwatches = plist.data.find((p) => p.swatches.length > 0);
+  const withSwatches = cards.find((p) => asRecords(p.swatches, 'swatches').length > 0);
   if (!withSwatches) fail(`[${label}] aucun produit avec swatches non vides`);
-  const withImages = plist.data.find((p) => p.images.length > 0);
+  const withImages = cards.find((p) => asRecords(p.images, 'images').length > 0);
   if (!withImages) fail(`[${label}] aucun produit avec images non vides`);
 
   const detail = await getJson(`/products/by-slug/${withSwatches.slug}`);
   if (detail.status !== 200) fail(`[${label}] /by-slug/${withSwatches.slug} → ${detail.status}`);
-  const bySlug = detail.body as BySlug;
-  const colorOpt = bySlug.options?.find((o) => o.type === 'color');
+  const bySlug = asRecord(detail.body, '/by-slug');
+  const colorOpt = asRecords(bySlug.options, 'options').find((o) => o.type === 'color');
   if (!colorOpt) fail(`[${label}] by-slug sans option type=color`);
-  if (!colorOpt.values.some((v) => v.metadata !== null && v.metadata !== undefined)) {
+  if (
+    !asRecords(colorOpt.values, 'values').some(
+      (v) => v.metadata !== null && v.metadata !== undefined,
+    )
+  ) {
     fail(`[${label}] by-slug : option couleur sans metadata`);
   }
   console.log(`  ✓ [${label}] /products/ swatches+images, by-slug type/metadata, /countries/ FR`);

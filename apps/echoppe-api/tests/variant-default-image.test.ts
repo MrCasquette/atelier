@@ -8,6 +8,8 @@ import {
   ensureTaxRate,
   getJson,
   migrate,
+  record,
+  records,
   req,
   requireDisposableDb,
 } from './harness';
@@ -81,22 +83,17 @@ async function insertMediaForVariant(productId: string, variantId: string) {
   return m.id;
 }
 
-interface Card {
-  slug: string;
-  defaultVariant: {
-    id: string;
-    priceHt: string;
-    compareAtPriceHt: string | null;
-    quantity: number;
-  } | null;
-}
 
-const cardFor = async (slug: string): Promise<Card> => {
-  const body = await getJson<{ data: Card[] }>('/products/?limit=100');
-  const card = body.data.find((p) => p.slug === slug);
+const cardFor = async (slug: string): Promise<Record<string, unknown>> => {
+  const body = record(await getJson('/products/?limit=100'));
+  const card = records(body.data, 'data').find((p) => p.slug === slug);
   if (!card) throw new Error(`carte introuvable pour le slug ${slug}`);
   return card;
 };
+
+/** La variante par défaut d'une carte — son absence est ce que plusieurs cas vérifient. */
+const defaultVariantOf = (card: Record<string, unknown>): Record<string, unknown> =>
+  record(card.defaultVariant, 'defaultVariant');
 
 beforeAll(async () => {
   await migrate();
@@ -129,7 +126,7 @@ describe('A3 — defaultVariant retombe sur la 1re variante publiée', () => {
     ]);
     const card = await cardFor('a3-fallback');
     expect(card.defaultVariant).not.toBeNull();
-    expect(card.defaultVariant.priceHt).toBe('35.00');
+    expect(defaultVariantOf(card).priceHt).toBe('35.00');
   });
 
   it('isDefault prime sur sortOrder', async () => {
@@ -138,7 +135,7 @@ describe('A3 — defaultVariant retombe sur la 1re variante publiée', () => {
       { sku: 'AD-2', priceHt: '38.00', sortOrder: 2, isDefault: true },
     ]);
     const card = await cardFor('a3-isdefault');
-    expect(card.defaultVariant.priceHt).toBe('38.00');
+    expect(defaultVariantOf(card).priceHt).toBe('38.00');
   });
 
   it('1re variante en draft → saute à la publiée suivante', async () => {
@@ -147,7 +144,7 @@ describe('A3 — defaultVariant retombe sur la 1re variante publiée', () => {
       { sku: 'AS-1', priceHt: '32.00', sortOrder: 1, status: 'published' },
     ]);
     const card = await cardFor('a3-draft-skip');
-    expect(card.defaultVariant.priceHt).toBe('32.00');
+    expect(defaultVariantOf(card).priceHt).toBe('32.00');
   });
 
   it('aucune variante publiée → defaultVariant null (pas de fuite draft)', async () => {
@@ -168,12 +165,10 @@ describe('B1 — variant.featuredImage sur le détail', () => {
     ]);
     const mediaId = await insertMediaForVariant(p.id, variants[0].id);
 
-    const detail = await getJson<{
-      variants: { id: string; featuredImage: { id: string } | null }[];
-    }>('/products/by-slug/b1-featured');
-    const byId = new Map(detail.variants.map((v) => [v.id, v]));
+    const detail = record(await getJson('/products/by-slug/b1-featured'));
+    const byId = new Map(records(detail.variants, 'variants').map((v) => [v.id, v]));
     // B5 : featuredImage est une ref {id,width,height} (dimensions nulles ici, média sans w/h).
-    expect(byId.get(variants[0].id)?.featuredImage?.id).toBe(mediaId);
+    expect(record(byId.get(variants[0].id)?.featuredImage, 'featuredImage').id).toBe(mediaId);
     expect(byId.get(variants[1].id)?.featuredImage).toBeNull();
   });
 });

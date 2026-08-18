@@ -1,7 +1,13 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { permission, role, session, user } from '@repo/auth';
 import { db, eq } from '@repo/db';
-import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
+import {
+  createAdminSession,
+  migrate,
+  record,
+  req,
+  requireDisposableDb,
+} from './harness';
 
 // Délégation (ADR-0038) : on ne peut accorder que ce qu'on détient.
 //
@@ -203,12 +209,12 @@ describe('délégation des droits', () => {
     expect(res.status).toBe(403);
     // `grants` survit à la migration : la route REMPLACE l'ensemble des droits, donc l'appelant ne
     // peut pas déduire de sa propre soumission ce qu'il allait retirer.
-    const body = (await res.json()) as { fault: { grants: string[] } };
+    const body = record(await res.json());
     expect(body).toMatchObject({
       fault: { code: 'rank_reserved', action: 'revoke', requires: 'first_rank' },
     });
-    expect(body.fault.grants).toContain('media:read');
-    expect(body.fault.grants).toContain('media:delete');
+    expect(record(body.fault, 'fault').grants).toContain('media:read');
+    expect(record(body.fault, 'fault').grants).toContain('media:delete');
   });
 
   it("refuse la révocation même sur une ressource qu'on détient", async () => {
@@ -225,7 +231,7 @@ describe('délégation des droits', () => {
     });
 
     expect(res.status).toBe(403);
-    expect((await res.json()) as { fault: unknown }).toMatchObject({
+    expect(record(await res.json())).toMatchObject({
       fault: { code: 'rank_reserved', requires: 'first_rank', grants: ['product:read'] },
     });
   });

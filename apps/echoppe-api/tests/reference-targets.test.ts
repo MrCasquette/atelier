@@ -2,7 +2,10 @@ import { beforeAll, describe, expect, it } from 'bun:test';
 import { menu } from '@repo/menus';
 import { page } from '@repo/pages';
 import { db, eq } from '@repo/db';
-import { createAdminSession, getJson, migrate, req, requireDisposableDb } from './harness';
+import { createAdminSession, getJson, migrate, req, requireDisposableDb,
+  record,
+  records,
+} from './harness';
 
 // Filet posé AVEC l'ouverture de `RefTarget` en registre (ADR-0032, #8).
 //
@@ -17,15 +20,6 @@ import { createAdminSession, getJson, migrate, req, requireDisposableDb } from '
 //
 // ⚠️ Base JETABLE via `bun run test:api` uniquement.
 requireDisposableDb();
-
-type TargetSummary = { name: string; label: string; route: string | null };
-type Projection = { id: string; slug: string; name: string };
-type ResolvedMenu = {
-  items: Array<{
-    label: string;
-    link: { target: string; url?: string; entity?: Projection | null };
-  }>;
-};
 
 let adminCookie: string;
 let pageId: string;
@@ -51,9 +45,9 @@ beforeAll(async () => {
 
 describe('registre de cibles référençables', () => {
   it("déclare les cibles d'Échoppe avec leur route, sans que l'admin les connaisse", async () => {
-    const targets = await getJson<TargetSummary[]>('/content/reference-targets', {
+    const targets = records(await getJson('/content/reference-targets', {
       cookie: adminCookie,
-    });
+    }));
 
     expect(targets.map((target) => target.name).sort()).toEqual([
       'category',
@@ -65,15 +59,15 @@ describe('registre de cibles référençables', () => {
   });
 
   it('cherche et projette une entité sans nommer sa table', async () => {
-    const found = await getJson<Projection[]>('/content/reference-targets/page/entities', {
+    const found = records(await getJson('/content/reference-targets/page/entities', {
       cookie: adminCookie,
-    });
+    }));
     expect(found).toEqual([]);
 
-    const projected = await getJson<Projection[]>(
+    const projected = records(await getJson(
       `/content/reference-targets/page/entities?ids=${pageId}`,
       { cookie: adminCookie },
-    );
+    ));
     expect(projected.map((entity) => entity.id)).toEqual([pageId]);
   });
 
@@ -136,9 +130,10 @@ describe("menu — la validation que l'union fermée assurait", () => {
     expect(written.status).toBe(200);
 
     const [row] = await db.select().from(menu).where(eq(menu.id, menuId));
-    const resolved = await getJson<ResolvedMenu>(`/menus/by-handle/${row.handle}`);
+    const resolved = record(await getJson(`/menus/by-handle/${row.handle}`));
 
-    expect(resolved.items[0].link.entity?.id).toBe(pageId);
-    expect(resolved.items[1].link.url).toBe('https://exemple.test');
+    const items = records(resolved.items, 'items');
+    expect(record(record(items[0]?.link, 'link').entity, 'entity').id).toBe(pageId);
+    expect(record(items[1]?.link, 'link').url).toBe('https://exemple.test');
   });
 });

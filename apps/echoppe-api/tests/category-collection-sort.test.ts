@@ -1,7 +1,15 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { collection, product, productCollection, variant } from '@echoppe/core';
 import { db } from '@repo/db';
-import { ensureCategory, ensureTaxRate, getJson, migrate, requireDisposableDb } from './harness';
+import {
+  ensureCategory,
+  ensureTaxRate,
+  getJson,
+  migrate,
+  record,
+  records,
+  requireDisposableDb,
+} from './harness';
 
 // Verrou B4 (tri des sous-listes produit) : `/categories/:id/products` et `/collections/:id/products`
 // délèguent à queryProductCards → honorent `?sort=price&order=…` (comme la liste globale) au lieu du
@@ -31,11 +39,6 @@ async function pricedProduct(slug: string, priceHt: number) {
   return p.id;
 }
 
-interface Card {
-  slug: string;
-  defaultVariant: { priceHt: string } | null;
-}
-
 beforeAll(async () => {
   await migrate();
   categoryId = await ensureCategory('sort-cat', 'Sort');
@@ -48,15 +51,15 @@ describe('B4 — tri des produits par catégorie', () => {
     await pricedProduct('sort-c-10', 10);
     await pricedProduct('sort-c-20', 20);
 
-    const asc = await getJson<{ data: Card[] }>(
+    const asc = record(await getJson(
       `/categories/${categoryId}/products?sort=price&order=asc`,
-    );
-    expect(asc.data.map((c) => c.slug)).toEqual(['sort-c-10', 'sort-c-20', 'sort-c-30']);
+    ));
+    expect(records(asc.data, 'data').map((c) => c.slug)).toEqual(['sort-c-10', 'sort-c-20', 'sort-c-30']);
 
-    const desc = await getJson<{ data: Card[] }>(
+    const desc = record(await getJson(
       `/categories/${categoryId}/products?sort=price&order=desc`,
-    );
-    expect(desc.data.map((c) => c.slug)).toEqual(['sort-c-30', 'sort-c-20', 'sort-c-10']);
+    ));
+    expect(records(desc.data, 'data').map((c) => c.slug)).toEqual(['sort-c-30', 'sort-c-20', 'sort-c-10']);
   });
 });
 
@@ -75,9 +78,9 @@ describe('B4 — tri des produits par collection', () => {
       .insert(productCollection)
       .values(ids.map((product) => ({ collection: col.id, product })));
 
-    const desc = await getJson<{ data: Card[] }>(
+    const desc = record(await getJson(
       `/collections/${col.id}/products?sort=price&order=desc`,
-    );
-    expect(desc.data.map((c) => c.slug)).toEqual(['sort-col-45', 'sort-col-25', 'sort-col-15']);
+    ));
+    expect(records(desc.data, 'data').map((c) => c.slug)).toEqual(['sort-col-45', 'sort-col-25', 'sort-col-15']);
   });
 });

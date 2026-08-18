@@ -2,7 +2,13 @@ import { beforeAll, describe, expect, it } from 'bun:test';
 import { role, session, user } from '@repo/auth';
 import { db, eq } from '@repo/db';
 import { invalidatePermissionCache, invalidateSystemRoleCache } from '@repo/auth';
-import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
+import {
+  createAdminSession,
+  migrate,
+  record,
+  req,
+  requireDisposableDb,
+} from './harness';
 
 // Le transfert de propriété (ADR-0047, décision 6).
 //
@@ -80,7 +86,7 @@ describe('ce que le transfert refuse', () => {
     const res = await transfer(inactiveId, ownerCookie);
 
     expect(res.status).toBe(400);
-    expect((await res.json()) as { fault: unknown }).toMatchObject({
+    expect(record(await res.json())).toMatchObject({
       fault: { code: 'invalid_state', resource: 'user', current: 'disabled', expected: 'active' },
     });
   });

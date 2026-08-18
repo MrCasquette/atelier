@@ -3,7 +3,15 @@ import { permission, role, session, user } from '@repo/auth';
 import { entityDefinition } from '@repo/entities';
 import { db } from '@repo/db';
 import { invalidatePermissionCache } from '@repo/auth';
-import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
+import {
+  createAdminSession,
+  migrate,
+  record,
+  records,
+  req,
+  requireDisposableDb,
+  strings,
+} from './harness';
 
 // « Ce que je peux administrer » (#37) — la question de la NAVIGATION, distincte de celle du
 // journal.
@@ -19,15 +27,6 @@ requireDisposableDb();
 let ownerCookie: string;
 let redacteurCookie: string;
 let redacteurRoleId: string;
-
-type Granted = {
-  name: string;
-  label?: string;
-  icon?: string;
-  singleton: boolean;
-  fields: Record<string, unknown>;
-  actions: string[];
-};
 
 /** Rôle vierge : c'est ce qu'on lui accorde qui se vérifie, jamais ce qu'il aurait par défaut. */
 async function createRedacteurSession(): Promise<string> {
@@ -72,11 +71,11 @@ async function grant(resource: string, actions: Partial<Record<string, boolean>>
   invalidatePermissionCache();
 }
 
-const mine = async (cookie?: string): Promise<{ status: number; entities: Granted[] }> => {
+const mine = async (cookie?: string): Promise<{ status: number; entities: Record<string, unknown>[] }> => {
   const res = await req('GET', '/content/entities/mine', cookie ? { cookie } : {});
   if (res.status !== 200) return { status: res.status, entities: [] };
-  const body = (await res.json()) as { entities: Granted[] };
-  return { status: res.status, entities: body.entities };
+  const body = record(await res.json());
+  return { status: res.status, entities: records(body.entities, 'entities') };
 };
 
 beforeAll(async () => {
@@ -109,7 +108,7 @@ beforeAll(async () => {
     },
   });
   if (pushed.status !== 200) {
-    const body = (await pushed.json()) as { message?: string };
+    const body = record(await pushed.json());
     throw new Error(`Préparation impossible : push ${pushed.status} — ${body.message ?? ''}`);
   }
 });
@@ -165,7 +164,10 @@ describe('la réponse porte de quoi générer un écran', () => {
     // longueur puis octet —, donc `{ titre, corps }` ressortait `{ corps, titre }` et le formulaire
     // généré affichait les champs dans le désordre (#46). Depuis ADR-0049 l'ordre vit dans la
     // séquence, que `jsonb` préserve : c'est la position qui le porte, plus la forme du conteneur.
-    expect(depeche?.fields.map((field) => field.name)).toEqual(['titre', 'corps']);
+    expect(records(depeche?.fields, 'fields').map((field) => field.name)).toEqual([
+      'titre',
+      'corps',
+    ]);
   });
 
   it('dit la cardinalité, qui décide de la forme de l’écran', async () => {
@@ -184,6 +186,11 @@ describe('la réponse porte de quoi générer un écran', () => {
   it('rend toutes les actions au propriétaire', async () => {
     const depeche = (await mine(ownerCookie)).entities.find((e) => e.name === 'depeche');
 
-    expect(depeche?.actions.sort()).toEqual(['create', 'delete', 'read', 'update']);
+    expect(strings(depeche?.actions, 'actions').sort()).toEqual([
+      'create',
+      'delete',
+      'read',
+      'update',
+    ]);
   });
 });

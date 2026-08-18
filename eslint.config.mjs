@@ -97,9 +97,14 @@ export default [
   // 210 occurrences au 2026-08-18. La règle s'étend à chaque lot nettoyé, et ce qui est nettoyé ne
   // peut plus régresser. `as const` reste permis : il restreint au lieu d'élargir.
   //
-  // Faits : `scripts/` et `packages/` sont clos. Restent les deux applications.
+  // Faits : `scripts/`, `packages/`, `docs/` et `apps/echoppe-api` sont clos. Reste le dashboard.
   {
-    files: ['scripts/**/*.ts', 'packages/**/*.ts', 'docs/**/*.{ts,vue}'],
+    files: [
+      'scripts/**/*.ts',
+      'packages/**/*.ts',
+      'docs/**/*.{ts,vue}',
+      'apps/echoppe-api/**/*.ts',
+    ],
     rules: {
       '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
     },

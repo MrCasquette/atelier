@@ -1,7 +1,14 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { entityDefinition } from '@repo/entities';
 import { db, sql } from '@repo/db';
-import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
+import {
+  createAdminSession,
+  migrate,
+  record,
+  records,
+  req,
+  requireDisposableDb,
+} from './harness';
 
 // Surface de lecture front des entités (ADR-0027, amendement du 2026-08-10). Deux choses s'y
 // vérifient, et la seconde est celle qui compte :
@@ -14,11 +21,9 @@ import { createAdminSession, migrate, req, requireDisposableDb } from './harness
 // ⚠️ Base JETABLE via `bun run test:api` uniquement.
 requireDisposableDb();
 
-type Result = { data: unknown; meta?: { total: number; hasNextPage: boolean } };
-
-const read = async (path: string): Promise<{ status: number; body: Result }> => {
+const read = async (path: string): Promise<{ status: number; body: Record<string, unknown> }> => {
   const res = await req('GET', path);
-  return { status: res.status, body: (await res.json()) as Result };
+  return { status: res.status, body: record(await res.json()) };
 };
 
 beforeAll(async () => {
@@ -60,15 +65,15 @@ describe("lecture d'une entité de liste", () => {
     const { status, body } = await read('/entities/billet');
 
     expect(status).toBe(200);
-    expect(body.meta?.total).toBe(2);
-    expect(body.meta?.hasNextPage).toBe(false);
-    const rows = body.data as Array<Record<string, unknown>>;
+    expect(record(body.meta, 'meta').total).toBe(2);
+    expect(record(body.meta, 'meta').hasNextPage).toBe(false);
+    const rows = records(body.data, 'data');
     expect(rows.map((row) => row.titre).sort()).toEqual(['Premier', 'Second']);
   });
 
   it("nomme les colonnes d'identité comme le reste de l'API, et les champs comme le dev", async () => {
     const { body } = await read('/entities/billet');
-    const [row] = body.data as Array<Record<string, unknown>>;
+    const [row] = records(body.data, 'data');
 
     expect(Object.keys(row).sort()).toEqual([
       'dateCreated',
@@ -83,15 +88,15 @@ describe("lecture d'une entité de liste", () => {
   it('pagine', async () => {
     const { body } = await read('/entities/billet?limit=1');
 
-    expect((body.data as unknown[]).length).toBe(1);
-    expect(body.meta?.hasNextPage).toBe(true);
+    expect(records(body.data, 'data').length).toBe(1);
+    expect(record(body.meta, 'meta').hasNextPage).toBe(true);
   });
 
   it('rend une occurrence par son slug', async () => {
     const { status, body } = await read('/entities/billet/premier');
 
     expect(status).toBe(200);
-    expect((body.data as Record<string, unknown>).titre).toBe('Premier');
+    expect(record(body.data, 'data').titre).toBe('Premier');
   });
 
   it('rend 404 pour un slug qui ne désigne rien', async () => {
@@ -117,7 +122,7 @@ describe("un singleton non renseigné n'est pas une erreur", () => {
     const { status, body } = await read('/entities/mentions');
 
     expect(status).toBe(200);
-    expect((body.data as Record<string, unknown>).corps).toBe('Éditeur : …');
+    expect(record(body.data, 'data').corps).toBe('Éditeur : …');
     expect(body.data).not.toHaveProperty('slug');
   });
 

@@ -2,7 +2,12 @@ import { beforeAll, describe, expect, it } from 'bun:test';
 import { option, optionValue } from '@echoppe/core';
 import { db, eq } from '@repo/db';
 import { app } from '../src/app';
-import { migrate, requireDisposableDb } from './harness';
+import {
+  migrate,
+  record,
+  records,
+  requireDisposableDb,
+} from './harness';
 
 // Smoke « base vierge depuis les migrations » (T2 du runbook). Régression directe de
 // l'incident 0.4.0 : les colonnes option.type / option_value.metadata, poussées en dev
@@ -17,7 +22,6 @@ import { migrate, requireDisposableDb } from './harness';
 
 requireDisposableDb();
 
-const json = (res: Response) => res.json() as Promise<unknown>;
 
 beforeAll(async () => {
   await migrate();
@@ -27,7 +31,7 @@ describe('storefront smoke — base vierge migrée', () => {
   it('GET /countries/ → 200 et contient la France (seed migration prod)', async () => {
     const res = await app.handle(new Request('http://localhost/countries/'));
     expect(res.status).toBe(200);
-    const body = (await json(res)) as Array<{ code: string; name: string }>;
+    const body = records(await res.json());
     expect(Array.isArray(body)).toBe(true);
     expect(body.some((c) => c.code === 'FR')).toBe(true);
   });
@@ -35,10 +39,10 @@ describe('storefront smoke — base vierge migrée', () => {
   it('GET /products/ → 200 (pas de 500 : colonnes option.type/metadata présentes)', async () => {
     const res = await app.handle(new Request('http://localhost/products/'));
     expect(res.status).toBe(200);
-    const body = (await json(res)) as { data: unknown[]; meta: { hasNextPage: boolean } };
+    const body = record(await res.json());
     expect(Array.isArray(body.data)).toBe(true);
-    expect(body.meta).toBeDefined();
-    expect(typeof body.meta.hasNextPage).toBe('boolean');
+    expect(record(body.meta, 'meta')).toBeDefined();
+    expect(typeof record(body.meta, 'meta').hasNextPage).toBe('boolean');
   });
 
   it('option.type + option_value.metadata acceptent la forme oklch (round-trip)', async () => {

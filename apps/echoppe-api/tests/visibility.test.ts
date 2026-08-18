@@ -2,7 +2,13 @@ import { beforeAll, describe, expect, it } from 'bun:test';
 import { collection } from '@echoppe/core';
 import { db } from '@repo/db';
 import { app } from '../src/app';
-import { createAdminSession, migrate, requireDisposableDb } from './harness';
+import {
+  createAdminSession,
+  migrate,
+  record,
+  records,
+  requireDisposableDb,
+} from './harness';
 
 // Verrou audit2 #3 (visibilityFilter, ADR-0006) : une ressource invisible est 404 pour un anonyme,
 // mais visible pour un principal privilégié (session admin). Le helper porte la règle de sécurité.
@@ -40,9 +46,9 @@ describe('audit2 #3 — filtre de visibilité (ADR-0006)', () => {
       .values({ name: 'Cachée liste', slug: 'cachee-liste', isVisible: false })
       .returning();
 
-    const list = (await (
+    const list = record(await (
       await app.handle(new Request('http://localhost/collections?limit=100'))
-    ).json()) as { data: { slug: string }[] };
-    expect(list.data.some((c) => c.slug === 'cachee-liste')).toBe(false);
+    ).json());
+    expect(records(list.data, 'data').some((c) => c.slug === 'cachee-liste')).toBe(false);
   });
 });

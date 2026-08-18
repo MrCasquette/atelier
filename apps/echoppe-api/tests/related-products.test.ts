@@ -9,6 +9,7 @@ import {
   migrate,
   req,
   requireDisposableDb,
+  records,
 } from './harness';
 
 // Verrou B8 (produits liés) : relation DIRECTIONNELLE curée (set ordonné via PATCH produit),
@@ -16,10 +17,6 @@ import {
 // catégorie) quand aucune curation. Catégorie dédiée pour isoler le voisinage.
 // ⚠️ Base JETABLE via `bun run test:api` uniquement.
 requireDisposableDb();
-
-interface Card {
-  slug: string;
-}
 
 let adminCookie: string;
 const id: Record<string, string> = {};
@@ -48,18 +45,18 @@ const setRelated = (productId: string, relatedProductIds: string[]) =>
 describe('B8 — produits liés', () => {
   it('curation : /related respecte l’ordre choisi', async () => {
     expect((await setRelated(id['rel-a'], [id['rel-c'], id['rel-b']])).status).toBe(200);
-    const related = await getJson<Card[]>(`/products/${id['rel-a']}/related`);
+    const related = records(await getJson(`/products/${id['rel-a']}/related`));
     expect(related.map((c) => c.slug)).toEqual(['rel-c', 'rel-b']);
   });
 
   it('auto-référence exclue du set', async () => {
     await setRelated(id['rel-a'], [id['rel-a'], id['rel-b']]);
-    const related = await getJson<Card[]>(`/products/${id['rel-a']}/related`);
+    const related = records(await getJson(`/products/${id['rel-a']}/related`));
     expect(related.map((c) => c.slug)).toEqual(['rel-b']);
   });
 
   it('fallback voisinage quand aucune curation (même catégorie, hors self)', async () => {
-    const related = await getJson<Card[]>(`/products/${id['rel-d']}/related`);
+    const related = records(await getJson(`/products/${id['rel-d']}/related`));
     const slugs = related.map((c) => c.slug);
     expect(slugs.length).toBeGreaterThan(0);
     expect(slugs).not.toContain('rel-d');

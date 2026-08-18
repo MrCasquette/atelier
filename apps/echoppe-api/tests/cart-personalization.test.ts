@@ -8,6 +8,8 @@ import {
   ensureTaxRate,
   getJson,
   migrate,
+  record,
+  records,
   req,
   requireDisposableDb,
 } from './harness';
@@ -71,13 +73,10 @@ const postCart = (body: unknown) => req('POST', '/cart/items', { body });
 describe('B2 — personnalisation produit', () => {
   it('le détail by-slug expose personalizationEnabled + les champs', async () => {
     const { field } = await personalizableProduct('perso-detail');
-    const detail = await getJson<{
-      personalizationEnabled: boolean;
-      personalizationFields: { id: string; label: string; priceHt: string; required: boolean }[];
-    }>('/products/by-slug/perso-detail');
+    const detail = record(await getJson('/products/by-slug/perso-detail'));
     expect(detail.personalizationEnabled).toBe(true);
     expect(detail.personalizationFields).toHaveLength(1);
-    expect(detail.personalizationFields[0]).toMatchObject({
+    expect(records(detail.personalizationFields, 'personalizationFields')[0]).toMatchObject({
       id: field.id,
       label: 'Prénom',
       priceHt: '5.00',
@@ -93,13 +92,10 @@ describe('B2 — personnalisation produit', () => {
       personalization: { [field.id]: 'Lucie' },
     });
     expect(res.status).toBe(200);
-    const cart = (await res.json()) as {
-      totalHt: string;
-      items: { addonPriceHt: string; personalization: { label: string; value: string }[] }[];
-    };
+    const cart = record(await res.json());
     expect(cart.items).toHaveLength(1);
-    expect(cart.items[0].addonPriceHt).toBe('5.00');
-    expect(cart.items[0].personalization).toEqual([
+    expect(records(cart.items, 'items')[0].addonPriceHt).toBe('5.00');
+    expect(records(cart.items, 'items')[0].personalization).toEqual([
       { fieldId: field.id, label: 'Prénom', value: 'Lucie' },
     ]);
     expect(cart.totalHt).toBe('40.00'); // (35 + 5) × 1
@@ -155,19 +151,19 @@ describe('B2 — personnalisation produit', () => {
       body: { label: 'Gravure', type: 'text', maxLength: 15, priceHt: 3 },
     });
     expect(createRes.status).toBe(200);
-    const created = (await createRes.json()) as { id: string; priceHt: string };
+    const created = record(await createRes.json());
     expect(created.priceHt).toBe('3.00');
 
-    const detail = await getJson<{ personalizationFields: { id: string }[] }>(
+    const detail = record(await getJson(
       '/products/by-slug/perso-crud',
-    );
-    expect(detail.personalizationFields.map((f) => f.id)).toContain(created.id);
+    ));
+    expect(records(detail.personalizationFields, 'personalizationFields').map((f) => f.id)).toContain(created.id);
 
     const delRes = await req('DELETE', `${base}/${created.id}`, { cookie: adminCookie });
     expect(delRes.status).toBe(200);
-    const after = await getJson<{ personalizationFields: unknown[] }>(
+    const after = record(await getJson(
       '/products/by-slug/perso-crud',
-    );
+    ));
     expect(after.personalizationFields).toHaveLength(0);
   });
 });

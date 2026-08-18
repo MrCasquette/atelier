@@ -3,7 +3,14 @@ import { legalEntity, site } from '@repo/identity';
 import { page, section } from '@repo/pages';
 import { db } from '@repo/db';
 import { invalidateRegistryCache } from '@repo/pages';
-import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
+import {
+  createAdminSession,
+  migrate,
+  record,
+  records,
+  req,
+  requireDisposableDb,
+} from './harness';
 
 // Interpolation de variables (ADR-0035, V1 humble).
 //
@@ -18,19 +25,17 @@ let ownerCookie: string;
 const SLUG = `mentions-${crypto.randomUUID().slice(0, 8)}`;
 
 /** Les sections de la page publiée, telles que la surface publique les rend. */
-async function published(): Promise<{ type: string; data: Record<string, unknown> }[]> {
+async function published(): Promise<Record<string, unknown>[]> {
   const res = await req('GET', `/pages/by-slug/${SLUG}`);
   expect(res.status).toBe(200);
-  const body = (await res.json()) as {
-    sections: { type: string; data: Record<string, unknown> }[];
-  };
-  return body.sections;
+  const body = record(await res.json());
+  return records(body.sections, 'sections');
 }
 
 const dataOf = async (type: string): Promise<Record<string, unknown>> => {
   const found = (await published()).find((s) => s.type === type);
   if (!found) throw new Error(`Section ${type} absente`);
-  return found.data;
+  return record(found.data, 'data');
 };
 
 beforeAll(async () => {
@@ -100,8 +105,8 @@ describe('ce que la substitution remplace', () => {
     const data = await dataOf('legal');
 
     // Le texte rédigé d'une page vit autant là qu'au premier niveau.
-    expect((data.encart as { note: string }).note).toBe('Contact : bonjour@atelier.test');
-    expect((data.lignes as { texte: string }[])[0].texte).toBe('Siège : Nantes');
+    expect(record(data.encart, 'encart').note).toBe('Contact : bonjour@atelier.test');
+    expect(records(data.lignes, 'lignes')[0]?.texte).toBe('Siège : Nantes');
   });
 });
 
@@ -116,7 +121,7 @@ describe('ce que la substitution refuse', () => {
   it('laisse le littéral d’une variable qui n’existe pas au jeu déclaré', async () => {
     const data = await dataOf('legal');
 
-    expect((data.lignes as { texte: string }[])[1].texte).toBe('Inconnue : {{ legal.nawak }}');
+    expect(records(data.lignes, 'lignes')[1]?.texte).toBe('Inconnue : {{ legal.nawak }}');
   });
 
   it('échappe la valeur injectée dans du Markdown, mais pas dans du texte', async () => {
@@ -160,9 +165,9 @@ describe('substituer, jamais évaluer', () => {
     });
 
     const res = await req('GET', `/pages/by-slug/${created.slug}`);
-    const body = (await res.json()) as { sections: { data: { titre: string } }[] };
+    const body = record(await res.json());
 
-    expect(body.sections[0].data.titre).toBe(raw);
+    expect(record(records(body.sections, 'sections')[0]?.data, 'data').titre).toBe(raw);
   });
 
   it('ne re-balaie jamais ce qu’elle vient d’insérer — une seule passe', async () => {
@@ -184,10 +189,10 @@ describe('substituer, jamais évaluer', () => {
       .values({ page: created.id, type: 'legal', sort: 0, data: { titre: '{{ site.name }}' } });
 
     const res = await req('GET', `/pages/by-slug/${created.slug}`);
-    const body = (await res.json()) as { sections: { data: { titre: string } }[] };
+    const body = record(await res.json());
 
     // Substitué une fois, puis laissé tel quel.
-    expect(body.sections[0].data.titre).toBe('{{ site.name }}');
+    expect(record(records(body.sections, 'sections')[0]?.data, 'data').titre).toBe('{{ site.name }}');
 
     await db.update(site).set({ name: 'Atelier *Étoile*' });
   });

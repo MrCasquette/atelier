@@ -1,7 +1,14 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { entityDefinition } from '@repo/entities';
 import { db, sql } from '@repo/db';
-import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
+import {
+  createAdminSession,
+  migrate,
+  record,
+  records,
+  req,
+  requireDisposableDb,
+} from './harness';
 
 // « Une entité déclarée devient référençable sans code » (ADR-0032, tenu par ADR-0046).
 //
@@ -15,8 +22,6 @@ requireDisposableDb();
 let ownerCookie: string;
 
 type Declaration = { name: string; singleton: boolean; fields: unknown; link?: unknown };
-type Target = { name: string; label: string; route: string | null };
-type Option = { id: string; slug: string; name: string; url?: string | null };
 
 const push = (declarations: Declaration[]) =>
   req('PUT', '/content/entities', {
@@ -31,23 +36,23 @@ const push = (declarations: Declaration[]) =>
 const pushOk = async (declarations: Declaration[]): Promise<void> => {
   const res = await push(declarations);
   if (res.status !== 200) {
-    const body = (await res.json()) as { message?: string };
+    const body = record(await res.json());
     throw new Error(`push ${res.status} : ${JSON.stringify(body)}`);
   }
 };
 
-const targets = async (): Promise<Target[]> => {
+const targets = async (): Promise<Record<string, unknown>[]> => {
   const res = await req('GET', '/content/reference-targets', { cookie: ownerCookie });
   expect(res.status).toBe(200);
-  return (await res.json()) as Target[];
+  return records(await res.json());
 };
 
-const options = async (name: string): Promise<Option[]> => {
+const options = async (name: string): Promise<Record<string, unknown>[]> => {
   const res = await req('GET', `/content/reference-targets/${encodeURIComponent(name)}/options`, {
     cookie: ownerCookie,
   });
   expect(res.status).toBe(200);
-  return (await res.json()) as Option[];
+  return records(await res.json());
 };
 
 // Trois entités, une par mode de lien — plus une quatrième qui se tait.

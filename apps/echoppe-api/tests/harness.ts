@@ -69,9 +69,48 @@ export function req(method: string, path: string, opts: ReqOptions = {}): Promis
 }
 
 /** GET + parse JSON, typé par l'appelant. */
-export async function getJson<T>(path: string, opts: ReqOptions = {}): Promise<T> {
+// ─── Lire une réponse sans l'affirmer ──────────────────────────────────────────────────────────
+//
+// Les tests annonçaient la forme des corps par des assertions. Quand une route changeait, le test
+// échouait quand même — mais plusieurs lignes plus bas, sur un `undefined` à expliquer. Ces
+// fonctions vérifient au point d'entrée et disent ce qu'elles ont reçu : c'est le travail d'un
+// test, et ça n'a jamais été celui d'une assertion.
+
+/** L'objet attendu, ou l'échec là où la réponse diverge. */
+export function record(value: unknown, what = 'corps'): Record<string, unknown> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new Error(`${what} : objet attendu, reçu ${JSON.stringify(value)?.slice(0, 200)}`);
+  }
+  return Object.fromEntries(Object.entries(value));
+}
+
+/** Le tableau d'objets attendu — la forme de loin la plus fréquente (`data`, listes). */
+export function records(value: unknown, what = 'liste'): Record<string, unknown>[] {
+  if (!Array.isArray(value)) {
+    throw new Error(`${what} : tableau attendu, reçu ${JSON.stringify(value)?.slice(0, 200)}`);
+  }
+  return value.map((item, index) => record(item, `${what}[${index}]`));
+}
+
+/** La chaîne attendue — identifiants renvoyés par l'API, jetons, URL. */
+export function text(value: unknown, what = 'valeur'): string {
+  if (typeof value !== 'string') {
+    throw new Error(`${what} : chaîne attendue, reçu ${JSON.stringify(value)?.slice(0, 200)}`);
+  }
+  return value;
+}
+
+/** Le tableau de chaînes attendu — actions RBAC, listes de noms. */
+export function strings(value: unknown, what = 'liste'): string[] {
+  if (!Array.isArray(value)) {
+    throw new Error(`${what} : tableau attendu, reçu ${JSON.stringify(value)?.slice(0, 200)}`);
+  }
+  return value.map((item, index) => text(item, `${what}[${index}]`));
+}
+
+export async function getJson(path: string, opts: ReqOptions = {}): Promise<unknown> {
   const res = await req('GET', path, opts);
-  return res.json() as Promise<T>;
+  return res.json();
 }
 
 /**

@@ -5,7 +5,16 @@ import { role, session, user } from '@repo/auth';
 import { entityDefinition } from '@repo/entities';
 import { db, eq, sql } from '@repo/db';
 import { invalidatePermissionCache, invalidateSystemRoleCache } from '@repo/auth';
-import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
+import {
+  createAdminSession,
+  migrate,
+  record,
+  records,
+  req,
+  requireDisposableDb,
+  strings,
+  text,
+} from './harness';
 
 // L'Administrateur défini par soustraction (ADR-0047).
 //
@@ -80,7 +89,7 @@ beforeAll(async () => {
     },
   });
   if (pushed.status !== 200) {
-    const body = (await pushed.json()) as { message?: string };
+    const body = record(await pushed.json());
     throw new Error(`Préparation impossible : push ${pushed.status} — ${JSON.stringify(body)}`);
   }
 });
@@ -96,10 +105,17 @@ describe('ce qui lui revient sans avoir été nommé', () => {
 
   it('la voit dans ce qu’il peut administrer', async () => {
     const res = await req('GET', '/content/entities/mine', { cookie: adminCookie });
-    const body = (await res.json()) as { entities: { name: string; actions: string[] }[] };
+    const body = record(await res.json());
 
-    const communique = body.entities.find((entity) => entity.name === 'communique');
-    expect(communique?.actions.sort()).toEqual(['create', 'delete', 'read', 'update']);
+    const communique = records(body.entities, 'entities').find(
+      (entity) => entity.name === 'communique',
+    );
+    expect(strings(communique?.actions, 'actions').sort()).toEqual([
+      'create',
+      'delete',
+      'read',
+      'update',
+    ]);
   });
 
   it('gère le RBAC — sinon ce n’est pas un administrateur', async () => {
@@ -126,7 +142,7 @@ describe('les trois bornes', () => {
     const res = await req('GET', '/api-keys', { cookie: adminCookie });
 
     expect(res.status).toBe(200);
-    expect((await res.json()) as unknown[]).toEqual([]);
+    expect(records(await res.json())).toEqual([]);
   });
 });
 
@@ -138,7 +154,7 @@ describe('ce qu’il peut déléguer, et ce qu’il ne peut pas', () => {
       cookie: adminCookie,
       body: { name: `Rédacteur ${crypto.randomUUID().slice(0, 8)}`, scope: 'admin' },
     });
-    customRoleId = ((await created.json()) as { id: string }).id;
+    customRoleId = text((record(await created.json())).id, 'customRoleId');
   });
 
   it('accorde une entité à un rôle sur mesure — il la détient, donc il la transmet', async () => {
@@ -378,7 +394,7 @@ describe('toucher au premier rang est un acte du propriétaire', () => {
         role: administratorRoleId,
       },
     });
-    secondAdminId = ((await created.json()) as { id: string }).id;
+    secondAdminId = text((record(await created.json())).id, 'secondAdminId');
 
     const [ordinaryRole] = await db
       .insert(role)
@@ -395,7 +411,7 @@ describe('toucher au premier rang est un acte du propriétaire', () => {
         role: ordinaryRole.id,
       },
     });
-    ordinaryId = ((await ordinary.json()) as { id: string }).id;
+    ordinaryId = text((record(await ordinary.json())).id, 'ordinaryId');
   });
 
   it('refuse à un administrateur d’en supprimer un autre', async () => {
@@ -404,7 +420,7 @@ describe('toucher au premier rang est un acte du propriétaire', () => {
     expect(res.status).toBe(403);
     // La FAUTE, pas la phrase : c'est le contrat qui est stable (ADR-0050), le message est du
     // rendu et peut changer sans que la garde change.
-    expect((await res.json()) as { fault: unknown }).toMatchObject({
+    expect(record(await res.json())).toMatchObject({
       fault: { code: 'rank_reserved', action: 'delete', requires: 'owner' },
     });
   });

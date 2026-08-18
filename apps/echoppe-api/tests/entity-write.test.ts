@@ -3,7 +3,13 @@ import { permission, role, session, user } from '@repo/auth';
 import { entityDefinition } from '@repo/entities';
 import { db, eq, sql } from '@repo/db';
 import { invalidatePermissionCache } from '@repo/auth';
-import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
+import {
+  createAdminSession,
+  migrate,
+  record,
+  req,
+  requireDisposableDb,
+} from './harness';
 
 // Administration des occurrences, et la ressource RBAC qui naît avec l'entité (#26).
 //
@@ -17,8 +23,6 @@ requireDisposableDb();
 let ownerCookie: string;
 let redacteurCookie: string;
 let redacteurRoleId: string;
-
-type Row = Record<string, unknown>;
 
 /** Rôle qui n'a AUCUN droit au départ : c'est ce qu'on lui accorde qui se vérifie. */
 async function createRedacteurSession(): Promise<string> {
@@ -127,7 +131,7 @@ describe('écriture des occurrences', () => {
     });
 
     expect(res.status).toBe(200);
-    const row = (await res.json()) as Row;
+    const row = record(await res.json());
     expect(row.titre).toBe('Premier');
     expect(row.slug).toBe('premier');
     rowId = String(row.id);
@@ -165,7 +169,7 @@ describe('écriture des occurrences', () => {
     });
 
     expect(res.status).toBe(200);
-    expect(((await res.json()) as Row).titre).toBe('Premier, corrigé');
+    expect((record(await res.json())).titre).toBe('Premier, corrigé');
   });
 
   it("rend 404 sur une occurrence qui n'existe pas", async () => {

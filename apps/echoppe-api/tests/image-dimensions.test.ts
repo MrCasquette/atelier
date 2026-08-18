@@ -2,19 +2,21 @@ import { beforeAll, describe, expect, it } from 'bun:test';
 import { product, productMedia, variant } from '@echoppe/core';
 import { media } from '@repo/assets';
 import { db } from '@repo/db';
-import { ensureCategory, ensureTaxRate, getJson, migrate, requireDisposableDb } from './harness';
+import {
+  ensureCategory,
+  ensureTaxRate,
+  getJson,
+  migrate,
+  record,
+  records,
+  requireDisposableDb,
+} from './harness';
 
 // Verrou B5 (dimensions image storefront) : le framework n'optimise PAS les images (pas de resize
 // serveur) — il expose l'original + ses dimensions intrinsèques (px). featuredImage/images sont des
 // refs {id,width,height} sur la carte ET le détail. Catégorie dédiée pour isoler le produit.
 // ⚠️ Base JETABLE via `bun run test:api` uniquement.
 requireDisposableDb();
-
-interface ImageRef {
-  id: string;
-  width: number | null;
-  height: number | null;
-}
 
 let categoryId: string;
 let taxRateId: string;
@@ -57,13 +59,13 @@ describe('B5 — dimensions image (carte + détail)', () => {
       .returning();
     await db.insert(productMedia).values({ product: p.id, media: m.id, isFeatured: true });
 
-    const list = await getJson<{ data: { slug: string; featuredImage: ImageRef | null }[] }>(
+    const list = record(await getJson(
       '/products/?limit=100',
-    );
-    const card = list.data.find((c) => c.slug === 'img-dim');
+    ));
+    const card = records(list.data, 'data').find((c) => c.slug === 'img-dim');
     expect(card?.featuredImage).toEqual({ id: m.id, width: 800, height: 600 });
 
-    const detail = await getJson<{ images: ImageRef[] }>('/products/by-slug/img-dim');
-    expect(detail.images[0]).toEqual({ id: m.id, width: 800, height: 600 });
+    const detail = record(await getJson('/products/by-slug/img-dim'));
+    expect(records(detail.images, 'images')[0]).toEqual({ id: m.id, width: 800, height: 600 });
   });
 });

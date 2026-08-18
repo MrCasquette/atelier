@@ -3,7 +3,15 @@ import { permission, role, session, user } from '@repo/auth';
 import { entityDefinition } from '@repo/entities';
 import { db, eq } from '@repo/db';
 import { invalidatePermissionCache, invalidateSystemRoleCache } from '@repo/auth';
-import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
+import {
+  createAdminSession,
+  migrate,
+  record,
+  records,
+  req,
+  requireDisposableDb,
+  strings,
+} from './harness';
 
 // `GET /roles/resources` est la SEULE liste de ce qui est protégeable (#38).
 //
@@ -19,20 +27,16 @@ let ownerCookie: string;
 let limitedCookie: string;
 let administratorCookie: string;
 
-type Resource = {
-  name: string;
-  label: string | null;
-  actions: string[];
-  selfOnlyRequired: boolean;
-};
-
-async function resources(cookie: string = ownerCookie): Promise<Resource[]> {
+async function resources(cookie: string = ownerCookie): Promise<Record<string, unknown>[]> {
   const res = await req('GET', '/roles/resources', { cookie });
   expect(res.status).toBe(200);
-  return ((await res.json()) as { resources: Resource[] }).resources;
+  return records(record(await res.json()).resources, 'resources');
 }
 
-const named = (list: Resource[], name: string): Resource | undefined =>
+const named = (
+  list: Record<string, unknown>[],
+  name: string,
+): Record<string, unknown> | undefined =>
   list.find((resource) => resource.name === name);
 
 /** Une session pour un utilisateur donné, sans passer par `/auth/login`. */
@@ -175,14 +179,14 @@ describe('la liste est bornée à ce que le demandeur peut accorder', () => {
   it('rend au propriétaire les quatre actions, sur tout', async () => {
     const product = named(await resources(), 'product');
 
-    expect(product?.actions.toSorted()).toEqual(['create', 'delete', 'read', 'update']);
+    expect(strings(product?.actions, 'actions').toSorted()).toEqual(['create', 'delete', 'read', 'update']);
   });
 
   it("ne propose d'une ressource que les actions détenues", async () => {
     const product = named(await resources(limitedCookie), 'product');
 
     // `product:delete` n'est pas détenu : il ne doit pas être proposé.
-    expect(product?.actions.toSorted()).toEqual(['create', 'read', 'update']);
+    expect(strings(product?.actions, 'actions').toSorted()).toEqual(['create', 'read', 'update']);
   });
 
   it("tait une ressource dont on ne détient rien, plutôt que d'en offrir les cases", async () => {
@@ -277,10 +281,10 @@ describe('la liste est bornée à ce que le demandeur peut accorder', () => {
 
     const submitted = (await resources(cookie)).map((resource) => ({
       resource: resource.name,
-      canCreate: resource.actions.includes('create'),
-      canRead: resource.actions.includes('read'),
-      canUpdate: resource.actions.includes('update'),
-      canDelete: resource.actions.includes('delete'),
+      canCreate: strings(resource.actions, 'actions').includes('create'),
+      canRead: strings(resource.actions, 'actions').includes('read'),
+      canUpdate: strings(resource.actions, 'actions').includes('update'),
+      canDelete: strings(resource.actions, 'actions').includes('delete'),
       selfOnly: resource.selfOnlyRequired,
     }));
 

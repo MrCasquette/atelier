@@ -2,7 +2,14 @@ import { beforeAll, describe, expect, it } from 'bun:test';
 import { permission, role, session, user } from '@repo/auth';
 import { entityDefinition } from '@repo/entities';
 import { db, sql } from '@repo/db';
-import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
+import {
+  createAdminSession,
+  migrate,
+  record,
+  records,
+  req,
+  requireDisposableDb,
+} from './harness';
 
 // Le chemin d'ADR-0027 : le dev déclare, la CLI pousse, l'API dérive la table. Ce qui se vérifie
 // ici n'est pas « ça marche » mais les REFUS — c'est là que le mécanisme est dangereux :
@@ -20,11 +27,16 @@ let editorCookie: string;
 
 /** Forme d'écriture des fixtures : lisible. La déclaration poussée, elle, est une séquence. */
 type Fields = Record<string, Record<string, unknown>>;
-type Declaration = { name: string; singleton: boolean; fields: unknown[]; label?: string };
-type Plan = {
-  steps: Array<{ sql: string; summary: string; destroys?: { kind: string; target: string } }>;
+type Declaration = {
+  name: string;
+  singleton: boolean;
+  fields: unknown[];
+  label?: string;
+  // Le lien de référencement (ADR-0032) : présent seulement sur les entités citables. Il manquait
+  // à ce type, et chaque cas l'ajoutait par une assertion — ce qui revenait à décrire la donnée
+  // ailleurs que dans son type.
+  link?: unknown;
 };
-
 // Le champ PORTE son nom depuis ADR-0049 — la conversion tient ici pour que les cas de test
 // restent lisibles, et parce que l'ordre déclaré n'a pas d'importance dans ce fichier-ci.
 const entity = (name: string, fields: Fields, singleton = false): Declaration => ({
@@ -137,7 +149,7 @@ describe('pousser une entité dérive sa table', () => {
     // Le journal est aussi ce que l'API rend : c'est lui qui répond à « cette entité existe-t-elle ».
     const read = await req('GET', '/content/entities', { cookie: ownerCookie });
     expect(read.status).toBe(200);
-    expect(Object.keys((await read.json()) as Record<string, unknown>)).toEqual(['article']);
+    expect(Object.keys(record(await read.json()))).toEqual(['article']);
   });
 
   it('ajoute une colonne sans toucher aux données existantes', async () => {
@@ -150,10 +162,10 @@ describe('pousser une entité dérive sa table', () => {
         chapo: { kind: 'text' },
       }),
     ]);
-    const plan = (await planned.json()) as Plan;
+    const plan = record(await planned.json());
     expect(plan.steps).toHaveLength(1);
-    expect(plan.steps[0].destroys).toBeUndefined();
-    expect(plan.steps[0].sql).toContain('add column chapo');
+    expect(records(plan.steps, 'steps')[0].destroys).toBeUndefined();
+    expect(records(plan.steps, 'steps')[0].sql).toContain('add column chapo');
 
     const res = await push([
       entity('article', {
@@ -179,11 +191,9 @@ describe('pousser une entité dérive sa table', () => {
 
     expect(res.status).toBe(409);
     // La faute nomme ce qui serait détruit — en CODES, plus dans une phrase (ADR-0050).
-    const body = (await res.json()) as {
-      fault: { code: string; steps: Array<{ kind: string; target: string }> };
-    };
-    expect(body.fault.code).toBe('destructive_plan');
-    expect(body.fault.steps).toContainEqual({ kind: 'drop_column', target: 'article.chapo' });
+    const body = record(await res.json());
+    expect(record(body.fault, 'fault').code).toBe('destructive_plan');
+    expect(record(body.fault, 'fault').steps).toContainEqual({ kind: 'drop_column', target: 'article.chapo' });
     expect(await columnsOf('entity_article')).toContain('chapo');
   });
 
@@ -277,7 +287,7 @@ describe('cardinalité', () => {
 // ce qu'elle veut : c'est la frontière qui tranche, et un lien qui cite un champ inexistant ne se
 // résoudrait jamais — il se verrait en production, pas avant.
 describe('le lien déclaré par une entité', () => {
-  const withLink = (fields: Fields, link: unknown, singleton = false) => ({
+  const withLink = (fields: Fields, link: Declaration['link'], singleton = false): Declaration => ({
     ...entity('lien_test', fields, singleton),
     link,
   });
@@ -299,20 +309,20 @@ describe('le lien déclaré par une entité', () => {
         withLink(
           { titre: { kind: 'text' } },
           { mode: 'route', route: '/blog/:slug' },
-        ) as Declaration,
+        ),
       ],
       true,
     );
 
     expect(res.status).toBe(200);
     const read = await req('GET', '/content/entities', { cookie: ownerCookie });
-    const journal = (await read.json()) as Record<string, { link?: unknown }>;
-    expect(journal.lien_test.link).toEqual({ mode: 'route', route: '/blog/:slug' });
+    const journal = record(await read.json());
+    expect(record(journal.lien_test, 'lien_test').link).toEqual({ mode: 'route', route: '/blog/:slug' });
   });
 
   it('refuse un href qui cite un champ non déclaré, et dit lequel', async () => {
     const res = await push([
-      withLink({ titre: { kind: 'text' } }, { mode: 'href', field: 'url' }) as Declaration,
+      withLink({ titre: { kind: 'text' } }, { mode: 'href', field: 'url' }),
     ]);
 
     expect(res.status).toBe(422);
@@ -326,7 +336,7 @@ describe('le lien déclaré par une entité', () => {
 
   it("refuse une ancre dont le parent n'est pas un ref", async () => {
     const res = await push([
-      withLink({ titre: { kind: 'text' } }, { mode: 'anchor', parent: 'titre' }) as Declaration,
+      withLink({ titre: { kind: 'text' } }, { mode: 'anchor', parent: 'titre' }),
     ]);
 
     expect(res.status).toBe(422);

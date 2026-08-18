@@ -7,6 +7,8 @@ import {
   ensureCategory,
   ensureTaxRate,
   migrate,
+  record,
+  records,
   requireDisposableDb,
 } from './harness';
 
@@ -58,9 +60,9 @@ describe('B3 — tags produit', () => {
     const p = await publishedProduct('tags-detail');
     expect((await putTags(p, ['Nouveauté', 'Été'])).status).toBe(200);
 
-    const detail = (await (
+    const detail = record(await (
       await app.handle(new Request('http://localhost/products/by-slug/tags-detail'))
-    ).json()) as { tags: string[] };
+    ).json());
     expect(detail.tags).toEqual(['Été', 'Nouveauté']);
   });
 
@@ -68,10 +70,10 @@ describe('B3 — tags produit', () => {
     const p = await publishedProduct('tags-card');
     await putTags(p, ['Solde']);
 
-    const list = (await (
+    const list = record(await (
       await app.handle(new Request('http://localhost/products/?limit=100'))
-    ).json()) as { data: { slug: string; tags: string[] }[] };
-    const card = list.data.find((c) => c.slug === 'tags-card');
+    ).json());
+    const card = records(list.data, 'data').find((c) => c.slug === 'tags-card');
     expect(card?.tags).toEqual(['Solde']);
   });
 
@@ -80,9 +82,9 @@ describe('B3 — tags produit', () => {
     await putTags(p, ['Ancien', 'Obsolète']);
     await putTags(p, ['Récent']);
 
-    const detail = (await (
+    const detail = record(await (
       await app.handle(new Request('http://localhost/products/by-slug/tags-replace'))
-    ).json()) as { tags: string[] };
+    ).json());
     expect(detail.tags).toEqual(['Récent']);
   });
 
@@ -90,9 +92,9 @@ describe('B3 — tags produit', () => {
     const p = await publishedProduct('tags-dedup');
     await putTags(p, ['Été', 'été', 'ÉTÉ']);
 
-    const detail = (await (
+    const detail = record(await (
       await app.handle(new Request('http://localhost/products/by-slug/tags-dedup'))
-    ).json()) as { tags: string[] };
+    ).json());
     expect(detail.tags).toHaveLength(1);
   });
 });

@@ -1,7 +1,14 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { permission, role, session, user } from '@repo/auth';
 import { db } from '@repo/db';
-import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
+import {
+  createAdminSession,
+  migrate,
+  record,
+  records,
+  req,
+  requireDisposableDb,
+} from './harness';
 
 // `PUT /content/registry` était gardé par `content:update` — le droit d'ÉDITER.
 //
@@ -96,11 +103,10 @@ describe('l’ordre des champs déclarés survit au stockage', () => {
     expect(pushed.status).toBe(200);
 
     const res = await req('GET', '/content/registry', { cookie: ownerCookie });
-    const registry = (await res.json()) as {
-      sections: Record<string, { fields: { name: string }[] }>;
-    };
+    const registry = record(await res.json());
 
-    expect(registry.sections.heros.fields.map((field) => field.name)).toEqual(declared);
+    const heros = record(record(registry.sections, 'sections').heros, 'heros');
+    expect(records(heros.fields, 'fields').map((field) => field.name)).toEqual(declared);
   });
 
   it('refuse un nom de champ que JavaScript réordonnerait', async () => {
