@@ -40,6 +40,7 @@ Portée : socle | <package> | échoppe | prisme
 | [0050](./ADR-0050-exception-jamais-reponse-http.md) | Une exception ne compose jamais une réponse HTTP | accepté, amendé 2026-08-16 | [audit-couverture-documentaire.md](../audits/audit-couverture-documentaire.md) |
 | [0034](./ADR-0034-identite-referentiel-reglages.md) | Identité, référentiel et réglages : ce que l'outil possède | accepté, partiellement amendé par [0040](./ADR-0040-identite-site-entite-legale.md) | — |
 | [0052](./ADR-0052-surfaces-exploitation-image-unique.md) | Les surfaces d'exploitation sous `/-/`, le dashboard servi par l'API | accepté · amende [0002](./ADR-0002-distribution.md) | [ports.md](../reference/ports.md) |
+| [0053](./ADR-0053-commentaire-passe-agissant.md) | Un commentaire garde le passé seulement s'il est encore agissant | accepté | — |
 
 ## Index — `client` · SDK et contrat d'API
 

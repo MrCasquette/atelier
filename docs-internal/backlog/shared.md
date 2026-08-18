@@ -215,6 +215,16 @@ circonstancielle plutôt que sur une garde.
   et liens vers les ADR successeurs.
 - [ ] 🟡 Corriger les chemins, versions et exemples devenus obsolètes dans les README actifs.
 - [ ] 🟡 Distinguer explicitement documentation historique, référence active et vision.
+- [ ] 🟡 **Passe de nettoyage des commentaires narratifs**, selon le critère d'[ADR-0053](../adr/ADR-0053-commentaire-passe-agissant.md) :
+  *si je supprime cette phrase, quelqu'un peut-il refaire l'erreur ?* Un balayage donne une
+  trentaine d'occurrences dont la majorité sont des **faux positifs** — « avant le `listen` »,
+  « avant l'`ALTER` » sont des antériorités logiques, pas des souvenirs. Restent une dizaine de vrais
+  candidats : `content/sync.ts`, `menus/schema.ts`, `pages/definition-model.ts`,
+  `admin/useCatalogRef.ts`, `api/lib/fault.ts`, `api/lib/response.ts`, `catalog/product/option.ts`.
+  Deux cas à ne PAS traiter au grep : `tests/permission-delegation.test.ts` est un garde-fou déguisé
+  (son commentaire dit ce que le test empêche de revenir), et `tests/products-guards.test.ts` se dit
+  « filet AVANT le découpage de products.ts » — à vérifier plutôt qu'à supprimer, le découpage ayant
+  peut-être eu lieu. Aucun risque fonctionnel ; se livre en diff, pas en rapport.
 
 ## Intendance transverse
 
