@@ -30,6 +30,7 @@
     "product-isolation": "bun run scripts/product-isolation.ts",
     "reserved-space": "bun run scripts/reserved-space.ts",
     "image-manifests": "bun run scripts/image-manifests.ts",
+    "release-coverage": "bun run scripts/release-coverage.ts",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "sh scripts/release.sh",

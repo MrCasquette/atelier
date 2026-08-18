@@ -18,8 +18,13 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
+      # Historique complet : `release-coverage` date la dernière release de chaque paquet par
+      # l'historique de son CHANGELOG. Un clone superficiel le prive de ce repère — la garde le
+      # détecte et échoue, plutôt que de passer au vert sans rien mesurer.
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -81,6 +86,14 @@ jobs:
       # semaines plus tard. Trois secondes ici valent mieux qu'un échec au moment de publier.
       - name: Image manifests
         run: bun run image-manifests
+
+      # Garde de couverture des releases : un paquet publié dont la source a bougé doit être
+      # mentionné par un changeset. `contracts:check` compare le SDK aux routes, `drift-guard` le
+      # schéma aux migrations — deux cohérences INTERNES. Personne ne mesurait l'écart entre ce qui
+      # est committé et ce qui est PUBLIÉ : `@echoppe/client` avait perdu `company.get()` sans
+      # qu'aucun changeset ne le couvre, et serait resté figé pendant que le reste partait.
+      - name: Release coverage
+        run: bun run release-coverage
 
       # Garde anti-dérive du CONTRAT SDK : régénère le client depuis l'app pure (offline) et échoue
       # si les types figés (openapi.ts/models.ts/facade.ts) divergent des routes. Miroir du drift-guard
