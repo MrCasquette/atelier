@@ -59,10 +59,10 @@ Tous implémentés. T1 aurait attrapé l'incident directement.
 - **T5 — Idempotence seeds (même orchestrateur).** Re-boot de l'image (migrate rejoué)
   → healthy + `country` toujours à 1 France (upsert idempotent).
 
-**Branchement.** T1 dans `ci.yml` (push/PR) + smoke source-level (`test:api`). T2–T5
+**Branchement.** T1 dans `ci.yml` (push/PR) + l'API assemblée (`test:api`). T2–T5
 dans `docker-build.yml`, job `integration` **dont dépend `build-and-push`** (`needs`) :
 aucune image ne part sur le registre si le gate échoue. Local : `bun run --cwd apps/echoppe-api
-test:integration` (auto-provisionne tout, `INTEGRATION_IMAGE` pour réutiliser un build).
+test:image` (auto-provisionne tout, `INTEGRATION_IMAGE` pour réutiliser un build).
 
 **Garde contrat (ajoutée 2026-07-19).** Miroir de T1 pour le SDK : `bun run contracts:check`
 (`ci.yml`) régénère le client depuis l'app pure offline et échoue si les types figés
