@@ -5,43 +5,9 @@ nouvelle doit avoir deux usages réels ; à défaut, elle reste dans le produit 
 
 ## Workspace et outillage (`atelier`)
 
-Le conteneur, distinct des produits qu'il héberge. Principe acquis : **l'outillage découvre, il
-n'énumère pas** — et il découvre par *capacité* (le fichier qui prouve qu'un workspace sait faire
-quelque chose) ou par *déclaration* (le workspace le dit dans son manifeste), jamais par convention
-de nom, qui tiendrait sans que rien ne la vérifie.
-
-Livré le 2026-08-17, chaque point vérifié en créant un squelette `prisme-*` jetable et en observant
-ce qui cassait :
-
-- [x] **Le workspace se nomme `atelier`** (`package.json`), aligné sur le remote `MrCasquette/atelier`
-  qui portait déjà ce nom. Échoppe cesse d'être le produit du dépôt.
-- [x] **`test`, `build`, `lint` génériques.** L'ancien `test` énumérait 14 workspaces : un test
-  délibérément cassé dans un workspace non listé sortait en **0**. `--filter '*'` sort en 1 et
-  n'en perd aucun (15 contre 14). `build` respecte la topologie — vérifié à froid, `dist/` retirés.
-- [x] **`tsconfig.base.json` : `paths` supprimés.** Vestige — `tsc` résout par les symlinks de
-  `node_modules`. 19 workspaces verts sans eux. Aucune entrée par produit à maintenir.
-- [x] **ESLint linter unique, Biome formateur.** Biome ne résout pas les références d'un
-  `<template>` : 880 faux positifs sur `echoppe-admin`, 13 sur `echoppe-store`, concentrés sur
-  `noUnusedVariables`/`noUnusedImports`. La frontière devient « linter / formateur », orthogonale au
-  code, au lieu de « quel fichier va à quel linter » — qui laissait `echoppe-store`, `prisme-admin`,
-  `docs` et **tout `scripts/`** sans couverture. Passe de 309 à **481 fichiers** pour 3 corrections.
-- [x] **`scripts/drift-guard.ts`** — découvre les `drizzle.config.ts` et lit `out` dans la config.
-  Vérifié sur deux schémas simultanés : l'un validé, l'autre refusé.
-- [x] **`scripts/contract-targets.ts` + `contracts.ts`** — le client déclare sa source
-  (`contract.source` / `contract.frozen`). Le gate de release T4 consomme la même déclaration ; les
-  deux listes de fichiers figés qui pouvaient diverger n'en font plus qu'une.
-- [x] **`scripts/product-isolation.ts`** — garde d'isolation entre produits frères, sur les
-  dépendances déclarées **et** les imports réels (une dep non déclarée résout par hoisting).
-- [x] **`packages/client` → `packages/echoppe-client`** (dossier seul ; `@echoppe/client` et sa
-  version `0.6.0` sont inchangés, le contrat figé ne bouge pas d'un octet), et
-  `ECHOPPE_API_URL` → `CONTRACT_API_URL` — `scripts/` n'étant pas publié, le changement ne sort pas
-  du dépôt.
-- [x] **Drapeau de tests `ECHOPPE_SMOKE` → `SMOKE_RUN` → `DISPOSABLE_DB`** — la garde « base jetable »
-  du harness API sera recopiée telle quelle par `prisme-api` ; elle ne nomme plus un produit. Second
-  temps le 2026-08-18 : le drapeau ne nomme plus non plus la suite qui l'utilise, mais l'invariant
-  qu'il atteste — la base peut être détruite. `SMOKE_DATABASE_URL` devient `TEST_DATABASE_URL`.
-
-Reste ouvert :
+Le conteneur, distinct des produits qu'il héberge. Le principe qui gouverne cet outillage —
+**il découvre, il n'énumère pas** — est acquis et consigné dans les
+[conventions](../reference/conventions.md#loutillage-découvre-il-nénumère-pas).
 
 - [ ] 🟠 **`dev`, `db:*`, `test:api` et `test:image` restent câblés sur Échoppe** (`--cwd apps/echoppe-*`,
   `packages/echoppe-core`). Ce sont les derniers scripts racine qui nomment un produit.
@@ -49,17 +15,13 @@ Reste ouvert :
   targets `api`/`admin`, user système `echoppe`), `docker-build.yml` (`IMAGE_PREFIX`), `release.yml`
   (version runtime = `apps/echoppe-api/package.json`), `ship.ts` (4 canaux Échoppe) et
   `compose.yaml`. **Volontairement différé** : Prisme n'a aucun cycle de publication, et
-  paramétrer avant d'avoir un second artefact serait de l'abstraction par anticipation. Piège à
-  connaître : ne jamais renommer un volume Compose, la donnée de production y est attachée.
-  *(Le piège « l'image n'est construite qu'à la release » est levé depuis le 2026-08-18 : `ci.yml`
-  la construit à chaque PR, et `image-manifests` vérifie que la liste des `COPY` couvre tous les
-  workspaces.)*
-- [x] **Renommer le dossier de travail local** `~/dev/Axiome/echoppe` → `…/atelier`. Fait. La
-  précaution qui manquait à cette note, découverte le 2026-08-18 : Compose dérive le **nom de
-  projet** du nom du dossier, donc le renommage a détaché la pile de ses volumes
-  (`echoppe_echoppe-data` → `atelier_echoppe-data`). Les conteneurs survivants masquaient la
-  bascule ; les recréer a monté une base vide. Rien n'était perdu — l'ancien volume gardait ses
-  55 tables — mais un renommage de dossier déplace la donnée d'une pile Compose sans le dire.
+  paramétrer avant d'avoir un second artefact serait de l'abstraction par anticipation.
+
+  Deux pièges à connaître avant d'y toucher, tous deux vérifiés sur la donnée réelle : ne jamais
+  renommer un volume Compose, la donnée de production y est attachée ; et **le nom de projet Compose
+  dérive du nom du dossier de travail**, si bien qu'un simple renommage de répertoire détache la pile
+  de ses volumes — les conteneurs survivants masquent la bascule jusqu'à ce qu'on les recrée sur une
+  base vide.
 - [ ] 🟡 **`docs/` est le site d'Échoppe** (`@echoppe/docs`, 22 fichiers), pas la doc du workspace.
   À trancher avec `prisme-admin`.
 - [ ] 🟡 **La garde d'isolation s'endort sous deux produits.** Elle sort en succès silencieux tant
@@ -76,27 +38,10 @@ Reste ouvert :
 
 - [ ] 🔴 **Migrer `richText` de HTML vers Markdown** selon [ADR-0030](../adr/ADR-0030-texte-riche-markdown.md) :
   convertir les données, désactiver le HTML brut et tester le rendu contre le XSS stocké.
-- [x] 🟠 **Préserver l'ordre déclaré des champs** : choisir une représentation explicitement
-  ordonnée plutôt que dépendre de l'ordre d'un objet stocké en `jsonb`. → `json` au lieu de `jsonb`
-  sur `content_definition.fields` et `entity_definition.fields` ; `jsonb` normalise les clés.
-- [x] 🟠 **Extraire la grammaire des champs hors de `@repo/pages`** ; trancher le nom du package
-  avec le lexique. → `@repo/fields`, sans aucune dépendance : la primitive et sa compilation sont
-  parties, les dérivations sont restées — DDL côté entités, registre à deux rôles côté pages.
-  `@repo/entities` ne dépend plus de `@repo/pages`.
-- [x] 🟠 **Implémenter l'interpolation V1** après stabilisation de Markdown : jeu fini de variables,
-  substitution sans évaluation, une passe, littéral conservé pour une inconnue.
-- [x] 🔴 **Sortir le vocabulaire Échoppe du contrat public de `@mrcasquette/content`** — c'est **le
-  DSL config-as-code de Prisme autant que d'Échoppe**, et sa CLI réclamait pourtant une clé nommée
-  d'après un seul des deux. → `ECHOPPE_API_KEY` → `CONTENT_API_KEY`, `ECHOPPE_CONTENT_CONFIG` →
-  `CONTENT_CONFIG`, sans lecture de repli : la variable manquante arrête la CLI en la nommant, donc
-  la migration se voit au premier `push`. Changeset **major** (surface publiée, contrairement à
-  `CONTRACT_API_URL` qui ne sortait pas du dépôt). Le nom suit désormais le package, pas le produit
-  qui le consomme. Le scope neutre était déjà conforme à
-  [ADR-0033](../adr/ADR-0033-organisation-monorepo.md) et n'était pas en cause.
-  Reste, hors périmètre env : le mot-clé npm `echoppe` (positionnement produit, pas outillage) et le
-  `CHANGELOG` qui nomme `@echoppe/content` en 0.1.0 — exact pour cette version-là.
-- [ ] 🟡 **Type-gen du DSL** pour les sections et composants de front.
-- [ ] 🟡 **Générateur de formulaires admin** depuis le registre.
+- [ ] 🟠 **Générateur de formulaires d'administration** depuis le registre. Annoncé en « Maintenant »
+  sur la [roadmap publique](../../docs/roadmap.md), au même titre que les menus.
+- [ ] 🟡 **Type-gen du DSL** pour les sections et composants de front — l'inférence est livrée, la
+  génération explicite reste à trancher.
 - [ ] 🟡 Menus imbriqués, champs custom, fichiers/assets et i18n des enums.
 - [ ] 🟡 Durcir les clés API et documenter la portabilité liée à PostgreSQL/`jsonb`.
 
@@ -159,6 +104,9 @@ Reste ouvert :
   de le porter sans l'appliquer.
 - [ ] 🟠 **Définir la compatibilité runtime/API/SDK** : matrice, dépréciation et politique pré-1.0.
 - [ ] 🟡 Réorganiser les domaines internes uniquement à l'apparition d'un deuxième consommateur.
+- [ ] ⚪ **Fusionner les petits paquets `@repo/*`**, une fois Prisme réel : lui seul dira lesquels ont
+  vraiment deux consommateurs. Dépend du vertical slice, qui est un chantier V1 — donc la condition
+  se lève pendant la V1, pas après.
 - [ ] 🟡 Compiler en CI les exemples des packages publics et une configuration de contenu témoin.
 
 ## Sécurité

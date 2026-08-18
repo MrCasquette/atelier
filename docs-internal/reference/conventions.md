@@ -66,6 +66,69 @@ de TypeBox vaut « valeur hors liste » pour un `enum` et « mauvais type » pou
 discrimine alors par la **forme** de la donnée, jamais par un nom. Et une échelle mesurée reste
 **additive** : on l'étend quand un cas neuf apparaît, on ne l'élargit pas d'avance.
 
+## L'outillage découvre, il n'énumère pas
+
+Une garde, un script racine ou un workflow ne doit **jamais** contenir la liste des workspaces,
+des produits ou des paquets qu'il traite. Il la reconstitue à chaque exécution. Sans cela, un
+paquet créé pendant un chantier n'est couvert par rien, et l'oubli ne se voit qu'au pire moment :
+`@repo/fields` a manqué au `Dockerfile` des semaines, jusqu'à faire échouer une publication sur un
+dépôt par ailleurs vert.
+
+La découverte se fait par **capacité** — le fichier qui prouve qu'un workspace sait faire quelque
+chose — ou par **déclaration** — le workspace le dit dans son manifeste. Jamais par convention de
+nom, qui tiendrait sans que rien ne la vérifie.
+
+| Découvre | Par quoi |
+|---|---|
+| `drift-guard` | les `drizzle.config.ts` du dépôt, et lit `out` dans chaque config |
+| `product-isolation` | les préfixes de paquets, sur dépendances déclarées **et** imports réels |
+| `image-manifests` | les motifs de workspace du manifeste racine, croisés aux `COPY` du `Dockerfile` |
+| `contract-targets` | `contract.source` / `contract.frozen`, déclarés par le client lui-même |
+| `release-coverage` | les workspaces publiables, plus les groupes `fixed` de la config changesets |
+| `registry-gap` | l'`IMAGE_PREFIX` et la matrice de cibles de `docker-build.yml` |
+
+Corollaire éprouvé sur les scripts racine : `--filter '*'` plutôt qu'une énumération. L'ancien
+`test` listait 14 workspaces, et un test délibérément cassé dans le quinzième sortait en **0**.
+
+Un `Record<Clé, …>` exhaustif joue le même rôle dans le type : une clé ajoutée sans entrée ne
+compile plus. C'est la version compilée du même principe.
+
+## Tenue des backlogs
+
+Les listes elles-mêmes sont indexées par [BACKLOG.md](../../BACKLOG.md), qui dit seulement où elles
+vivent. Comment on les tient est une convention, et vit donc ici.
+
+### Une tâche finie se supprime, elle ne se coche pas
+
+La garder cochée fabrique un journal parallèle : Git sait quand elle a été faite, le changelog ce
+qu'elle a changé, l'ADR pourquoi. Trois sources fiables contre une quatrième qui vieillit sans que
+personne ne le voie.
+
+Le `[x]` ne sert que de marqueur **transitoire à l'intérieur d'un chantier ouvert**, pour dire où
+l'on en est dans une tâche à plusieurs pas. Quand le chantier se clôt, le bloc entier disparaît,
+cases cochées comprises. Autrement dit : un `[x]` visible signale un chantier en cours, et aucun ne
+survit à sa section.
+
+**Avant la purge, consolider ce que le chantier a produit de durable** — une règle de conception
+ici, une décision dans un ADR. C'est le seul moment où on peut encore le faire : après, la
+formulation n'existe plus. Le chantier ADR-0050 l'avait anticipé en écrivant ses huit règles dans
+l'ADR ; celui de l'outillage ne l'avait pas fait, et le principe « l'outillage découvre » a failli
+partir avec ses cases.
+
+### Où vit le détail d'une tâche
+
+Une ligne de backlog dit *quoi* et *pourquoi*, en quelques lignes. Au-delà, le détail sort du
+fichier, et sa durée de vie décide de sa destination :
+
+| Nature du détail | Où | Durée de vie |
+|---|---|---|
+| Une décision et ses raisons | un ADR | permanent — amendé, jamais supprimé |
+| Une règle de conception réutilisable | ce fichier | permanent |
+| Un relevé, un plan de travail, un audit | une note dans `docs-internal/` | **supprimée avec la tâche** |
+
+La troisième ligne est celle qui se perd de vue : une note de chantier n'a pas vocation à survivre
+au chantier. Elle est citée par la tâche qui la motive, et elle part avec elle.
+
 ## Où vit un fichier
 
 **Un fichier appartient au module de son concept, pas à celui qui l'utilise.** Plusieurs

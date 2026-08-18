@@ -1,7 +1,8 @@
 # Backlog — Prisme
 
-Travail propre au CMS Prisme. La [roadmap](../design/roadmap-prisme.md) décrit les jalons produit ;
-ce fichier ne contient que les actions encore ouvertes. Les packages réutilisables vivent dans le
+Travail propre au CMS Prisme. La [roadmap produit](../design/roadmap-prisme.md) décrit les jalons ;
+ce fichier ne contient que les actions V1 encore ouvertes, et l'après vit dans la même
+roadmap, § V2. Les packages réutilisables vivent dans le
 [backlog shared](./shared.md).
 
 ## V1 — prouver le produit headless
@@ -23,15 +24,3 @@ ce fichier ne contient que les actions encore ouvertes. Les packages réutilisab
 - [ ] 🟠 Emplacement de la liste des langues et localisation éventuelle des statuts.
 - [ ] 🟠 Mécanisme de prévisualisation des brouillons.
 - [ ] 🟡 i18n de l'interface d'administration.
-
-## V2 — produit utilisable sans développeur
-
-- [ ] 🔴 Concevoir le déploiement pour utilisateur non technique : image tout-en-un, installeur ou
-  hébergement.
-- [ ] 🟠 Livrer `prisme-store` avec rendu générique des entités et sections listes.
-- [ ] 🟠 Implémenter les presets d'entités, leur activation et leur retrait.
-- [ ] 🟠 Concevoir les thèmes utilisateurs et les remplacements de rendu.
-- [ ] 🟠 Concevoir la GUI de définition d'entités sans affaiblir la souveraineté du schéma.
-- [ ] 🟡 Ajouter des deploy hooks après changement de contenu.
-- [ ] 🟡 Réévaluer une interpolation enrichie uniquement à partir d'usages observés.
-
