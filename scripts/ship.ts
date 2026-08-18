@@ -36,7 +36,7 @@ function isUnit(value: string): value is Unit {
   return value in UNITS;
 }
 function isLevel(value: string): value is Level {
-  return (LEVELS as readonly string[]).includes(value);
+  return LEVELS.some((level) => level === value);
 }
 
 const dry = process.argv.includes('--dry');

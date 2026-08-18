@@ -67,10 +67,11 @@ async function discover(): Promise<readonly Target[]> {
 }
 
 function readOut(module: unknown): string | null {
+  // `in` rétrécit lui-même depuis TS 4.9 : la propriété devient lisible sans rien asserter.
   if (typeof module !== 'object' || module === null || !('default' in module)) return null;
-  const config: unknown = (module as { default: unknown }).default;
+  const config: unknown = module.default;
   if (typeof config !== 'object' || config === null || !('out' in config)) return null;
-  const out: unknown = (config as { out: unknown }).out;
+  const out: unknown = config.out;
   return typeof out === 'string' ? out : null;
 }
 

@@ -85,9 +85,9 @@ function ownerOf(ws: Workspace, products: ReadonlySet<string>): string | null {
 
 const all = workspaces();
 const products = new Set(
-  all
-    .filter((w) => w.isApp && w.scope !== null && w.scope !== SHARED_SCOPE)
-    .map((w) => w.scope as string),
+  all.flatMap((w) =>
+    w.isApp && w.scope !== null && w.scope !== SHARED_SCOPE ? [w.scope] : [],
+  ),
 );
 
 if (products.size < 2) {

@@ -87,6 +87,22 @@ export default [
   // Composants Astro : même raison que Vue.
   ...astro.configs.recommended,
 
+  // Interdiction des assertions de type, étendue par LOT.
+  //
+  // `as X` n'est pas un cast : rien n'est converti à l'exécution, la vérification est simplement
+  // effacée. Une assertion signale presque toujours une garde qui existe mais reste invisible au
+  // type — la sortie est de la rendre visible (narrowing, `Exclude<>`, `satisfies`, type guard),
+  // pas de faire taire le compilateur.
+  //
+  // 244 occurrences au 2026-08-18. La règle s'étend à chaque lot nettoyé, et ce qui est nettoyé ne
+  // peut plus régresser. `as const` reste permis : il restreint au lieu d'élargir.
+  {
+    files: ['scripts/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
+    },
+  },
+
   // Fronts : `console` et `debugger` n'ont rien à faire dans une interface livrée.
   // Repris de l'ancienne config d'`echoppe-admin`, généralisé par NATURE (front), pas par produit.
   {

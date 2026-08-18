@@ -67,8 +67,12 @@ function inspect(core: Workspace, packageNames: ReadonlySet<string>): readonly L
   const seen = new Set<string>();
 
   // File d'attente : le fichier à lire, et le chemin de réexports qui y a mené.
-  const queue = entryPoints(core)
-    .map((entry) => ({ file: resolve(ROOT, core.dir, entry), via: [] as readonly string[] }))
+  interface Pending {
+    readonly file: string;
+    readonly via: readonly string[];
+  }
+  const queue: Pending[] = entryPoints(core)
+    .map((entry) => ({ file: resolve(ROOT, core.dir, entry), via: [] }))
     .filter((item) => existsSync(item.file));
 
   for (let item = queue.shift(); item; item = queue.shift()) {
