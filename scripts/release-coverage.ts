@@ -15,14 +15,7 @@
 // schéma aux MIGRATIONS. Les deux mesurent une cohérence interne au dépôt. Personne ne mesurait
 // l'écart entre ce qui est committé et ce qui est PUBLIÉ.
 //
-// Elle DÉCOUVRE les unités, elle ne les connaît pas. Une unité de release, c'est :
-//   - tout workspace publiable (manifeste sans `private: true`) ;
-//   - tout groupe `fixed` de la configuration changesets — c'est ainsi que le runtime, privé,
-//     se déclare comme une unité versionnée d'un seul tenant.
-//
-// Un workspace privé qui n'est ni l'un ni l'autre (`@repo/*`, `@echoppe/core`) ne se publie pas
-// seul : il est PORTÉ par les unités qui en dépendent (ADR-0023). Ses modifications sont donc
-// imputées à chacune d'elles, en suivant le graphe de dépendances internes.
+// Elle DÉCOUVRE les unités, elle ne les connaît pas — cf. `lib/release-units.ts`.
 //
 // La référence est locale, jamais le registre : la dernière release d'une unité est le dernier
 // commit qui a MODIFIÉ son `CHANGELOG.md`, que `changeset version` réécrit à chaque publication.
@@ -32,9 +25,14 @@
 
 import { Glob } from 'bun';
 import { readFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
-
-const ROOT = resolve(import.meta.dir, '..');
+import { dirname, join } from 'node:path';
+import {
+  allWorkspaces,
+  buildUnits,
+  git,
+  ROOT,
+  type Unit,
+} from './lib/release-units';
 
 /** Ne peuvent pas atteindre l'artefact publié : le journal que la release écrit, et les tests. */
 const IRRELEVANT = [/(^|\/)CHANGELOG\.md$/, /\.test\.[cm]?[jt]sx?$/];
@@ -43,123 +41,6 @@ const IRRELEVANT = [/(^|\/)CHANGELOG\.md$/, /\.test\.[cm]?[jt]sx?$/];
 const PURE_RENAME = 'R100';
 
 const SHOWN_PER_UNIT = 5;
-
-interface Workspace {
-  readonly name: string;
-  readonly dir: string;
-  readonly private: boolean;
-  readonly deps: readonly string[];
-}
-
-interface Unit {
-  /** Les paquets versionnés ensemble. Un changeset sur l'un vaut pour tous. */
-  readonly members: readonly Workspace[];
-  /** Ce dont l'unité est faite : ses membres, plus les workspaces privés qu'elle porte. */
-  readonly dirs: readonly string[];
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function readJson(path: string): unknown {
-  return JSON.parse(readFileSync(join(ROOT, path), 'utf8'));
-}
-
-function git(...args: readonly string[]): string {
-  const result = Bun.spawnSync(['git', ...args], { cwd: ROOT });
-  if (!result.success) {
-    const stderr = new TextDecoder().decode(result.stderr).trim();
-    throw new Error(`git ${args.join(' ')} — ${stderr}`);
-  }
-  return new TextDecoder().decode(result.stdout);
-}
-
-/** Tous les workspaces, découverts par les motifs du manifeste racine. */
-function allWorkspaces(): ReadonlyMap<string, Workspace> {
-  const rootManifest = readJson('package.json');
-  const patterns =
-    isRecord(rootManifest) && Array.isArray(rootManifest.workspaces)
-      ? rootManifest.workspaces.filter((pattern): pattern is string => typeof pattern === 'string')
-      : [];
-
-  const found = new Map<string, Workspace>();
-  for (const pattern of patterns) {
-    for (const hit of new Glob(`${pattern}/package.json`).scanSync({ cwd: ROOT, onlyFiles: true })) {
-      const manifest = readJson(hit);
-      if (!isRecord(manifest) || typeof manifest.name !== 'string') continue;
-
-      const deps = new Set<string>();
-      for (const field of ['dependencies', 'devDependencies', 'peerDependencies']) {
-        const block = manifest[field];
-        if (isRecord(block)) for (const dep of Object.keys(block)) deps.add(dep);
-      }
-
-      found.set(manifest.name, {
-        name: manifest.name,
-        dir: dirname(hit),
-        private: manifest.private === true,
-        deps: [...deps],
-      });
-    }
-  }
-  return found;
-}
-
-/** Les groupes de paquets que changesets versionne d'un seul tenant. */
-function fixedGroups(): readonly (readonly string[])[] {
-  const config = readJson('.changeset/config.json');
-  if (!isRecord(config) || !Array.isArray(config.fixed)) return [];
-  return config.fixed
-    .filter((group): group is unknown[] => Array.isArray(group))
-    .map((group) => group.filter((name): name is string => typeof name === 'string'));
-}
-
-function buildUnits(workspaces: ReadonlyMap<string, Workspace>): readonly Unit[] {
-  const groups: string[][] = [];
-  const grouped = new Set<string>();
-
-  for (const group of fixedGroups()) {
-    const members = group.filter((name) => workspaces.has(name));
-    if (members.length === 0) continue;
-    groups.push(members);
-    for (const name of members) grouped.add(name);
-  }
-
-  for (const workspace of workspaces.values()) {
-    if (workspace.private || grouped.has(workspace.name)) continue;
-    groups.push([workspace.name]);
-    grouped.add(workspace.name);
-  }
-
-  return groups.map((names) => {
-    const members = names
-      .map((name) => workspaces.get(name))
-      .filter((workspace): workspace is Workspace => workspace !== undefined);
-    const dirs = new Set<string>(members.map((member) => member.dir));
-
-    // Descente dans les dépendances internes : un workspace privé traversé appartient à l'unité,
-    // un workspace qui se publie lui-même arrête la descente — il répond de ses propres changements.
-    const queue = [...names];
-    const seen = new Set<string>(names);
-    while (queue.length > 0) {
-      const current = queue.shift();
-      const workspace = current === undefined ? undefined : workspaces.get(current);
-      if (!workspace) continue;
-
-      for (const dep of workspace.deps) {
-        const target = workspaces.get(dep);
-        if (!target || seen.has(dep)) continue;
-        seen.add(dep);
-        if (grouped.has(dep) && !names.includes(dep)) continue;
-        dirs.add(target.dir);
-        queue.push(dep);
-      }
-    }
-
-    return { members, dirs: [...dirs].sort() };
-  });
-}
 
 /**
  * Tous les dossiers qu'un paquet a occupés, retrouvés par l'historique de son `CHANGELOG.md`. Sans

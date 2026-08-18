@@ -31,6 +31,7 @@
     "reserved-space": "bun run scripts/reserved-space.ts",
     "image-manifests": "bun run scripts/image-manifests.ts",
     "release-coverage": "bun run scripts/release-coverage.ts",
+    "registry-gap": "bun run scripts/registry-gap.ts",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "sh scripts/release.sh",

@@ -248,3 +248,22 @@ circonstancielle plutôt que sur une garde.
   variables et la surface bouge encore (identité/OIDC, stockage média, Redis) ; une garde écrite
   maintenant figerait une nomenclature qu'on est en train de remuer. À reprendre quand la file de
   décisions de configuration sera vidée.
+- [ ] 🟡 **Brancher `registry-gap` en fin de workflow `Release`.** La commande existe et se lance à
+  la main (`bun run registry-gap`) ; elle vérifie que toute version committée est bien servie par
+  son registre — npm pour les paquets, GHCR pour les images. Reste à en faire un job final de
+  `release.yml`, en `needs: [release, images]` et `if: always()`, avec `packages: read` et
+  `GH_TOKEN`.
+
+  **Le placement est déjà tranché, et il est le seul qui tienne.** Ni sur une PR — une publication
+  ratée y rendrait rouges des PR sans rapport, écrites par quelqu'un qui n'y peut rien —, ni au
+  DÉBUT d'une release, où la version committée est légitimement absente des registres puisqu'on
+  s'apprête à la publier : la garde n'aurait aucun repère. À la fin, un seul emplacement couvre les
+  deux cas sans les distinguer : si ce cycle a publié, on vérifie que ça a atterri ; s'il n'a rien
+  publié, on vérifie que la version du cycle précédent est toujours là. Et comme `Release` tourne à
+  chaque push sur `main`, la vérification se rejoue en continu — c'est ce qui rend un job planifié
+  inutile.
+
+  **Différé faute de pouvoir l'éprouver** : tout est publié et cohérent aujourd'hui, donc la CI ne
+  montrerait que le chemin vert. Le chemin rouge, lui, a été vérifié en local en falsifiant deux
+  versions — la commande les signale et nomme ce que le registre sert à la place. À brancher au
+  prochain cycle de release, où le comportement réel pourra être observé.
