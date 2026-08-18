@@ -1,7 +1,7 @@
 {
   "name": "@mrcasquette/content",
-  "version": "0.2.0",
-  "description": "D\u00e9claration de contenu config-as-code pour \u00c9choppe \u2014 components, sections et champs typ\u00e9s, synchronis\u00e9s vers l'API.",
+  "version": "0.3.0",
+  "description": "Déclaration de contenu config-as-code pour Échoppe — components, sections et champs typés, synchronisés vers l'API.",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",

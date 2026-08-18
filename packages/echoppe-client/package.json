@@ -1,6 +1,6 @@
 {
   "name": "@echoppe/client",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "SDK client typé pour l'API Échoppe — généré depuis l'OpenAPI.",
   "type": "module",
   "main": "./dist/index.js",
