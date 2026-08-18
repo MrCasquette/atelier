@@ -22,7 +22,7 @@ aujourd'hui : `1` pour le serveur Vite du dashboard.
 | API — le produit | `8100` | `8200` | `Dockerfile` (interne), `src/index.ts`, template `create-echoppe` |
 | API — `bun run dev` | `8101` | `8201` | `apps/echoppe-api/package.json` |
 | API — l'image publiée | `8102` | `8202` | `compose.yaml`, profil `release` |
-| API — le gate d'intégration | `8103` | — | `apps/echoppe-api/scripts/integration.ts` |
+| API — le gate d'intégration | `8103` | — | `apps/echoppe-api/scripts/test-image.ts` |
 | Vitrine du dépôt | `3100` | `3200` | `apps/echoppe-store/astro.config.mjs` |
 | Dashboard, serveur Vite | `3110` | `3210` | `apps/echoppe-admin/vite.config.ts` |
 | PostgreSQL · Redis | `5432` · `6379` | idem | `compose.yaml` |

@@ -44,7 +44,7 @@ Tous implémentés. T1 aurait attrapé l'incident directement.
 - **T1 — Garde anti-dérive (`ci.yml`, job `quality`).** Après `db:generate`,
   `git diff --exit-code` sur `packages/echoppe-core/drizzle/` doit être propre → échoue si
   `schéma ≠ migrations committées`. La CI n'utilise jamais `db:push`.
-- **T2 — Smoke « base vierge depuis l'image » (`apps/echoppe-api/scripts/integration.ts`).**
+- **T2 — Smoke « base vierge depuis l'image » (`apps/echoppe-api/scripts/test-image.ts`).**
   Postgres jetable → image `api` buildée (migrate au boot) → seed démo (produit `color`)
   → assert `/products/` `200` (images/swatches non vides), `/products/by-slug/{slug}`
   `200` avec `options[].type` / `values[].metadata`, `/countries/` `200` non vide.
@@ -59,7 +59,7 @@ Tous implémentés. T1 aurait attrapé l'incident directement.
 - **T5 — Idempotence seeds (même orchestrateur).** Re-boot de l'image (migrate rejoué)
   → healthy + `country` toujours à 1 France (upsert idempotent).
 
-**Branchement.** T1 dans `ci.yml` (push/PR) + smoke source-level (`test:smoke`). T2–T5
+**Branchement.** T1 dans `ci.yml` (push/PR) + smoke source-level (`test:api`). T2–T5
 dans `docker-build.yml`, job `integration` **dont dépend `build-and-push`** (`needs`) :
 aucune image ne part sur le registre si le gate échoue. Local : `bun run --cwd apps/echoppe-api
 test:integration` (auto-provisionne tout, `INTEGRATION_IMAGE` pour réutiliser un build).

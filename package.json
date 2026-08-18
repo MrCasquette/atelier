@@ -34,7 +34,8 @@
     "version-packages": "changeset version",
     "release": "sh scripts/release.sh",
     "test": "bun run --filter '*' test",
-    "test:integration": "bun run --cwd apps/echoppe-api test:smoke",
+    "test:api": "bun run --cwd apps/echoppe-api test:api",
+    "test:image": "bun run --cwd apps/echoppe-api test:image",
     "contracts": "bun run scripts/contracts.ts",
     "contracts:check": "bun run scripts/contracts.ts --check",
     "ship": "bun run scripts/ship.ts"

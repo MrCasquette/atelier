@@ -1,12 +1,12 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { collection, db, product, productCollection, variant } from '@echoppe/core';
-import { ensureCategory, ensureTaxRate, getJson, migrate, requireSmokeDb } from './harness';
+import { ensureCategory, ensureTaxRate, getJson, migrate, requireDisposableDb } from './harness';
 
 // Verrou B4 (tri des sous-listes produit) : `/categories/:id/products` et `/collections/:id/products`
 // délèguent à queryProductCards → honorent `?sort=price&order=…` (comme la liste globale) au lieu du
 // tri dateCreated figé. Catégorie/collection DÉDIÉES pour isoler le jeu de produits du tri.
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 let categoryId: string;
 let taxRateId: string;

@@ -7,7 +7,7 @@ import {
   getJson,
   migrate,
   req,
-  requireSmokeDb,
+  requireDisposableDb,
 } from './harness';
 
 // Verrouille deux comportements storefront (brief DPC A3 + B1), régressions vécues côté boutique :
@@ -15,8 +15,8 @@ import {
 //    PUBLIÉE, même sans `isDefault` (sinon faux out-of-stock). Fallback = 1re publiée par sortOrder.
 //  - B1 : le détail produit expose `variants[].featuredImage`, sourcé du média featuredForVariant.
 //
-// ⚠️ Même contrat d'exécution que storefront-smoke : base JETABLE via `bun run test:smoke` only.
-requireSmokeDb();
+// ⚠️ Même contrat d'exécution que storefront-smoke : base JETABLE via `bun run test:api` only.
+requireDisposableDb();
 
 // FK partagées (category + taxRate) — la base vierge migrée n'a ni catégorie ni taux.
 let categoryId: string;

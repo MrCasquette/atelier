@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { db, entityDefinition, eq, permission, role, session, user } from '@echoppe/core';
 import { invalidatePermissionCache, invalidateSystemRoleCache } from '@repo/auth';
-import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
+import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // `GET /roles/resources` est la SEULE liste de ce qui est protégeable (#38).
 //
@@ -10,8 +10,8 @@ import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
 // correctif ne vaut que si cette route dit vraiment TOUT — vocabulaire du socle ET entités
 // déclarées, que rien de compilé ne peut connaître à l'avance (ADR-0038).
 //
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 let ownerCookie: string;
 let limitedCookie: string;

@@ -1,16 +1,17 @@
 #!/usr/bin/env bun
 /**
- * Lance les tests de frontière de l'API — tout `tests/`, pas seulement le smoke storefront —
- * contre une base JETABLE.
+ * Exerce l'API ASSEMBLÉE contre une base JETABLE : tout `tests/`, pas seulement le smoke
+ * storefront. Contrat HTTP, matrice RBAC, SQL — ce que d'autres appellent des tests
+ * d'intégration ; ici une suite porte le nom de ce qu'elle exerce.
  *
- * - Si SMOKE_DATABASE_URL est défini (CI, service Postgres), on l'utilise.
+ * - Si TEST_DATABASE_URL est défini (CI, service Postgres), on l'utilise.
  * - Sinon, on provisionne un conteneur Postgres éphémère sur un port libre, détruit en
  *   fin de run.
  *
  * On N'utilise JAMAIS le DATABASE_URL ambiant : Bun auto-charge `.env`, qui pointe la
  * base de dev — la migrer/seed serait destructeur (cf. docs-internal/release/release-runbook.md).
  * Le DATABASE_URL passé au sous-process est explicite et écrase celui du `.env`, et le
- * test refuse de tourner sans le drapeau SMOKE_RUN posé ici.
+ * test refuse de tourner sans le drapeau DISPOSABLE_DB posé ici.
  */
 import { spawn } from 'node:child_process';
 
@@ -66,15 +67,15 @@ function runTest(databaseUrl: string): Promise<number> {
   return run('bun', ['test', 'tests/'], {
     ...process.env,
     DATABASE_URL: databaseUrl,
-    SMOKE_RUN: '1',
+    DISPOSABLE_DB: '1',
   });
 }
 
 async function main(): Promise<number> {
   // On ignore volontairement DATABASE_URL ambiant (Bun le charge depuis .env = base de dev).
-  const provided = process.env.SMOKE_DATABASE_URL;
+  const provided = process.env.TEST_DATABASE_URL;
   if (provided) {
-    console.log('→ SMOKE_DATABASE_URL fourni, run direct.');
+    console.log('→ TEST_DATABASE_URL fourni, run direct.');
     return runTest(provided);
   }
 

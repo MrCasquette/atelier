@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { db, entityDefinition, eq, role, session, sql, user } from '@echoppe/core';
 import { invalidatePermissionCache, invalidateSystemRoleCache } from '@repo/auth';
-import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
+import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // L'Administrateur défini par soustraction (ADR-0047).
 //
@@ -12,8 +12,8 @@ import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
 // vérifie ici n'est donc pas « il a des droits », mais les TROIS BORNES, et le fait que tout le
 // reste lui revienne SANS avoir été nommé.
 //
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 let ownerCookie: string;
 let adminCookie: string;

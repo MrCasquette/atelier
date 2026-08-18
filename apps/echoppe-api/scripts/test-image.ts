@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 /**
- * Test d'intégration « base vierge DEPUIS L'IMAGE » — gate de publication (T2–T5 du brief).
+ * Exerce l'IMAGE PUBLIABLE en base vierge — gate de publication (T2–T5 du brief). Distinct de
+ * `test:api`, qui exerce l'API depuis les sources : ici c'est l'artefact qu'on livre.
  *
  * Construit l'image `api` (le Dockerfile réellement publié), la boote contre un Postgres
  * neuf (migrations au boot via RUN_MIGRATIONS), puis :
@@ -12,7 +13,7 @@
  *        boot de la nouvelle image → migrations forward (0006) → T2.
  *
  * Tout est auto-provisionné (Postgres + image), détruit en fin de run. Utilisable en local
- * et en CI (`bun run --cwd apps/echoppe-api test:integration`). INTEGRATION_IMAGE réutilise une image
+ * et en CI (`bun run test:image`). INTEGRATION_IMAGE réutilise une image
  * déjà buildée (itération locale rapide). PREV_IMAGE = image n-1 pour le test d'upgrade.
  */
 import { spawn } from 'node:child_process';

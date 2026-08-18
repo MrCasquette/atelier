@@ -36,13 +36,14 @@ ce qui cassait :
   version `0.6.0` sont inchangés, le contrat figé ne bouge pas d'un octet), et
   `ECHOPPE_API_URL` → `CONTRACT_API_URL` — `scripts/` n'étant pas publié, le changement ne sort pas
   du dépôt.
-- [x] **Drapeau de tests `ECHOPPE_SMOKE` → `SMOKE_RUN`** — la garde « base jetable » du harness API
-  sera recopiée telle quelle par `prisme-api` ; elle ne nomme plus un produit. Même famille lexicale
-  que `SMOKE_DATABASE_URL`, déjà neutre.
+- [x] **Drapeau de tests `ECHOPPE_SMOKE` → `SMOKE_RUN` → `DISPOSABLE_DB`** — la garde « base jetable »
+  du harness API sera recopiée telle quelle par `prisme-api` ; elle ne nomme plus un produit. Second
+  temps le 2026-08-18 : le drapeau ne nomme plus non plus la suite qui l'utilise, mais l'invariant
+  qu'il atteste — la base peut être détruite. `SMOKE_DATABASE_URL` devient `TEST_DATABASE_URL`.
 
 Reste ouvert :
 
-- [ ] 🟠 **`dev`, `db:*` et `test:integration` restent câblés sur Échoppe** (`--cwd apps/echoppe-*`,
+- [ ] 🟠 **`dev`, `db:*`, `test:api` et `test:image` restent câblés sur Échoppe** (`--cwd apps/echoppe-*`,
   `packages/echoppe-core`). Ce sont les derniers scripts racine qui nomment un produit.
 - [ ] 🟠 **Distribution mono-produit** : `Dockerfile` (19 `COPY packages/*/package.json` énumérés,
   targets `api`/`admin`, user système `echoppe`), `docker-build.yml` (`IMAGE_PREFIX`), `release.yml`

@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { db, entityDefinition, sql } from '@echoppe/core';
-import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
+import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // Surface de lecture front des entités (ADR-0027, amendement du 2026-08-10). Deux choses s'y
 // vérifient, et la seconde est celle qui compte :
@@ -10,8 +10,8 @@ import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
 //     pour les deux les confondrait, et le front ne pourrait pas deviner laquelle il a sous les
 //     yeux : l'une est une tâche à faire, l'autre est un bug (ADR-0039).
 //
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 type Result = { data: unknown; meta?: { total: number; hasNextPage: boolean } };
 

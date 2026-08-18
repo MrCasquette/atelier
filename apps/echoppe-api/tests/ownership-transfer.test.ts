@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { db, eq, role, session, user } from '@echoppe/core';
 import { invalidatePermissionCache, invalidateSystemRoleCache } from '@repo/auth';
-import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
+import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // Le transfert de propriété (ADR-0047, décision 6).
 //
@@ -10,8 +10,8 @@ import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
 // rendre. Un transfert annulable unilatéralement serait un prêt, et le sortant garderait l'autorité
 // qu'il est censé avoir cédée.
 //
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 let ownerCookie: string;
 let ownerId: string;

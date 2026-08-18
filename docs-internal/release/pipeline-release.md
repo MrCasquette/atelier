@@ -79,7 +79,7 @@ publiée**, jamais `db:push` (dev only). Cf. [`release-runbook.md`](./release-ru
 | `bun run contracts:check` | idem + échoue si les types divergent des routes (garde CI) |
 | `bun run ship <unité> <niveau> "msg"` | cut une release d'une unité (runtime/sdk/content/cli) → changeset + push `main` (interactif sans args) |
 | `bun run --cwd apps/echoppe-api test:integration` | rejoue le gate T2–T5 en local |
-| `bun run --cwd apps/echoppe-api test:smoke` | smoke source-level (base jetable) |
+| `bun run test:api` | smoke source-level (base jetable) |
 
 ## Checklist minimale
 

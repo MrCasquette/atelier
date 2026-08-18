@@ -1,12 +1,12 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
+import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // Filet de sécurité AVANT le découpage de products.ts (audit2 #6b) : verrouille la matrice RBAC des
 // routes produits — chaque sous-ressource protégée refuse l'anonyme (403), les publiques passent
 // (200), et l'owner franchit les guards. Si le découpage égare un guard, une route protégée
 // répondra 2xx à un anonyme → ce test casse.
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 const UUID = '00000000-0000-4000-8000-000000000000';
 

@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
+import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // Filet posé AVEC le découpage de `routes/media.ts` en `modules/media/` (ADR-0042). Le découpage
 // scinde une instance Elysia unique en trois — dossiers, fichiers, livraison publique — et fait
@@ -9,8 +9,8 @@ import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
 // 2. l'ordre de déclaration perdu : `/media/folders` doit être posé AVANT `/media/:id`, sinon la
 //    liste des dossiers part dans le handler de fiche média.
 //
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 const UUID = '00000000-0000-4000-8000-000000000000';
 

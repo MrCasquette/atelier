@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { db, eq, option, optionValue } from '@echoppe/core';
 import { app } from '../src/app';
-import { migrate, requireSmokeDb } from './harness';
+import { migrate, requireDisposableDb } from './harness';
 
 // Smoke « base vierge depuis les migrations » (T2 du runbook). Régression directe de
 // l'incident 0.4.0 : les colonnes option.type / option_value.metadata, poussées en dev
@@ -9,12 +9,12 @@ import { migrate, requireSmokeDb } from './harness';
 // /countries/ vide. Ce test migre une base JETABLE puis vérifie que les routes clés
 // répondent.
 //
-// ⚠️ Il ne s'exécute QUE via `bun run test:smoke` (scripts/smoke.ts), qui provisionne une
+// ⚠️ Il ne s'exécute QUE via `bun run test:api` (scripts/test-api.ts), qui provisionne une
 // base disposable, injecte un DATABASE_URL explicite (écrasant le .env de dev) et pose le
-// drapeau requireSmokeDb. Un `bun test` direct hériterait du DATABASE_URL de dev via .env —
+// drapeau requireDisposableDb. Un `bun test` direct hériterait du DATABASE_URL de dev via .env —
 // la migrer serait destructeur, d'où le refus.
 
-requireSmokeDb();
+requireDisposableDb();
 
 const json = (res: Response) => res.json() as Promise<unknown>;
 

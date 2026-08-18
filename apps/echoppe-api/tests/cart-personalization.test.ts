@@ -8,13 +8,13 @@ import {
   getJson,
   migrate,
   req,
-  requireSmokeDb,
+  requireDisposableDb,
 } from './harness';
 
 // Verrou B2 (personnalisation produit, ADR-0010) : le détail expose les champs déclarés ; l'ajout
 // panier valide + calcule le supplément côté back (jamais le front) ; la commande le snapshote.
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 let categoryId: string;
 let taxRateId: string;

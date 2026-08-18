@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { db, entityDefinition, eq, permission, role, session, sql, user } from '@echoppe/core';
 import { invalidatePermissionCache } from '@repo/auth';
-import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
+import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // Administration des occurrences, et la ressource RBAC qui naît avec l'entité (#26).
 //
@@ -9,8 +9,8 @@ import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
 // elle est dérivée du registre à la volée (ADR-0038, amendement 2) — mais elle protège comme une
 // autre, et les droits ACCORDÉS, qui sont bien des lignes, meurent avec l'entité.
 //
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 let ownerCookie: string;
 let redacteurCookie: string;

@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { db, entityDefinition, permission, role, session, user } from '@echoppe/core';
 import { invalidatePermissionCache } from '@repo/auth';
-import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
+import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // « Ce que je peux administrer » (#37) — la question de la NAVIGATION, distincte de celle du
 // journal.
@@ -11,8 +11,8 @@ import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
 // vers son propre écran. Elle ne rend donc que ce qu'il détient, déclaration comprise — c'est ce
 // dont le générateur de formulaires a besoin.
 //
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 let ownerCookie: string;
 let redacteurCookie: string;

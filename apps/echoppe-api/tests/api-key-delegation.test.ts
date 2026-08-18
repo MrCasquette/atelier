@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { db, permission, role, session, user } from '@echoppe/core';
-import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
+import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // Une clé d'API est une DÉLÉGATION D'AUTORITÉ (ADR-0038, amendement du 2026-08-10). Pendant exact
 // de `permission-delegation.test.ts`, qui couvre la même règle pour les lignes de permission d'un
@@ -11,8 +11,8 @@ import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
 // un droit universel déguisé — qui le détenait se forgeait une clé portant n'importe quel scope,
 // y compris ce qu'il ne pouvait pas faire lui-même.
 //
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 let ownerCookie: string;
 let boundedCookie: string;

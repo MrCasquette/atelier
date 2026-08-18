@@ -11,8 +11,8 @@
     "api-key:create": "bun --env-file=../../.env run src/scripts/create-api-key.ts",
     "type-check": "tsc --noEmit",
     "test": "bun --env-file=../../.env test src",
-    "test:smoke": "bun run scripts/smoke.ts",
-    "test:integration": "bun run scripts/integration.ts"
+    "test:api": "bun run scripts/test-api.ts",
+    "test:image": "bun run scripts/test-image.ts"
   },
   "dependencies": {
     "@echoppe/core": "workspace:*",

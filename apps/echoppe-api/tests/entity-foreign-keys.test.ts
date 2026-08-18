@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { db, entityDefinition, sql } from '@echoppe/core';
-import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
+import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // Clés étrangères d'une entité (ADR-0045).
 //
@@ -10,8 +10,8 @@ import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
 // direct, comme le feraient un `psql` ou un outil de reprise. C'est l'argument même qui a fait
 // écarter le jsonb dans ADR-0027.
 //
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 let ownerCookie: string;
 

@@ -1,5 +1,5 @@
 // Découverte des contrats SDK à générer — source unique, partagée par `contracts.ts` (garde CI)
-// et par le gate de release (`apps/*-api/scripts/integration.ts`). Sans elle, les deux
+// et par le gate de release (`apps/*-api/scripts/test-image.ts`). Sans elle, les deux
 // dupliquaient la liste des fichiers figés et pouvaient diverger.
 //
 // DÉCOUVERTE PAR DÉCLARATION, pas par convention de nom. Un client est généré depuis une API ;

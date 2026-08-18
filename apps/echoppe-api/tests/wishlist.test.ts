@@ -6,13 +6,13 @@ import {
   ensureTaxRate,
   migrate,
   req,
-  requireSmokeDb,
+  requireDisposableDb,
 } from './harness';
 
 // Verrou B7 (wishlist) : surface client authentifiée sur des VARIANTES. Ajout idempotent, listing
 // enrichi, retrait, et garde d'auth (401 anonyme). La table existait déjà (nettoyage suppression
-// client) mais sans route. ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// client) mais sans route. ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 interface WishlistItem {
   variant: { id: string; priceHt: string; quantity: number };

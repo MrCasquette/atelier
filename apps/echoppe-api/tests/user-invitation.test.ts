@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from 'bun:test';
 import { db, eq, role, session, user, userPasswordToken } from '@echoppe/core';
 import { authenticateAdmin } from '@repo/auth';
-import { createAdminSession, migrate, req, requireSmokeDb, resetRateLimits } from './harness';
+import { createAdminSession, migrate, req, requireDisposableDb, resetRateLimits } from './harness';
 
 // Inviter un utilisateur (ADR-0048).
 //
@@ -13,8 +13,8 @@ import { createAdminSession, migrate, req, requireSmokeDb, resetRateLimits } fro
 // partagent la même IP : on remet les compteurs à zéro avant chaque cas, et l'on vérifie un mot de
 // passe par le chemin d'authentification plutôt qu'en frappant `/auth/login` douze fois.
 //
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 let ownerCookie: string;
 let ordinaryRoleId: string;

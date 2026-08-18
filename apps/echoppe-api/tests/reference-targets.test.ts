@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { db, eq, menu, page } from '@echoppe/core';
-import { createAdminSession, getJson, migrate, req, requireSmokeDb } from './harness';
+import { createAdminSession, getJson, migrate, req, requireDisposableDb } from './harness';
 
 // Filet posé AVEC l'ouverture de `RefTarget` en registre (ADR-0032, #8).
 //
@@ -13,8 +13,8 @@ import { createAdminSession, getJson, migrate, req, requireSmokeDb } from './har
 // Ces tests vérifient les deux moitiés du contrat déplacé : ce qui doit encore être refusé à
 // l'écriture, et ce qui doit encore être résolu à la lecture.
 //
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 type TargetSummary = { name: string; label: string; route: string | null };
 type Projection = { id: string; slug: string; name: string };

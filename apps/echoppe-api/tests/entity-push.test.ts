@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { db, entityDefinition, permission, role, session, sql, user } from '@echoppe/core';
-import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
+import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // Le chemin d'ADR-0027 : le dev déclare, la CLI pousse, l'API dérive la table. Ce qui se vérifie
 // ici n'est pas « ça marche » mais les REFUS — c'est là que le mécanisme est dangereux :
@@ -10,8 +10,8 @@ import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
 //   - une table non vide ne doit jamais être supprimée, ni en cascade (ADR-0028) ;
 //   - la contrainte de cardinalité doit vraiment tenir, en base et pas dans le code (ADR-0039).
 //
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 let ownerCookie: string;
 let editorCookie: string;

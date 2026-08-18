@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { db, entityDefinition, sql } from '@echoppe/core';
-import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
+import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // « Une entité déclarée devient référençable sans code » (ADR-0032, tenu par ADR-0046).
 //
@@ -8,8 +8,8 @@ import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
 // chargent — mais que la promesse tient de bout en bout : le dev ajoute une ligne à sa déclaration,
 // et l'entité apparaît dans le sélecteur de l'administration, avec une URL utilisable.
 //
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 let ownerCookie: string;
 

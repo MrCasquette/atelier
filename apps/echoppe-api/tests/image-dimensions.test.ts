@@ -1,12 +1,12 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { db, media, product, productMedia, variant } from '@echoppe/core';
-import { ensureCategory, ensureTaxRate, getJson, migrate, requireSmokeDb } from './harness';
+import { ensureCategory, ensureTaxRate, getJson, migrate, requireDisposableDb } from './harness';
 
 // Verrou B5 (dimensions image storefront) : le framework n'optimise PAS les images (pas de resize
 // serveur) — il expose l'original + ses dimensions intrinsèques (px). featuredImage/images sont des
 // refs {id,width,height} sur la carte ET le détail. Catégorie dédiée pour isoler le produit.
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 interface ImageRef {
   id: string;

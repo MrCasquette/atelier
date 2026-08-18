@@ -64,7 +64,7 @@ Ces variables ne servent qu'aux scripts du dépôt et n'ont pas leur place dans 
 | Variable | Description |
 |----------|-------------|
 | `CONTRACT_API_URL` | API dont le SDK est régénéré (`bun run contracts`) — défaut : l'API des sources |
-| `SMOKE_RUN` · `SMOKE_DATABASE_URL` | Autorisent la suite smoke et lui désignent sa base jetable |
+| `DISPOSABLE_DB` · `TEST_DATABASE_URL` | Attestent qu'une base peut être détruite, et laquelle. Sans le drapeau, `test:api` refuse de tourner |
 | `INTEGRATION_IMAGE` · `PREV_IMAGE` | Réutilisent une image déjà construite, et désignent l'image n-1 du test d'upgrade |
 
 ## CLI de contenu

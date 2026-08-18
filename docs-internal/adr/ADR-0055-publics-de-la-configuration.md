@@ -78,8 +78,8 @@ référence des variables.
 - Le README gagne l'étape manquante : copier `.env.example` avant de monter quoi que ce soit.
 - `docs/guide/configuration.md` doit couvrir les variables réellement lues par le code, y compris
   celles qu'aucun fichier ne mentionnait (`UPLOAD_DIR`, `SHOP_NAME`, `MIGRATIONS_DIR`,
-  `DASHBOARD_DIR`, `RUN_MIGRATIONS`) et celles des harnais (`SMOKE_*`, `INTEGRATION_IMAGE`,
-  `PREV_IMAGE`, `CONTRACT_API_URL`).
+  `DASHBOARD_DIR`, `RUN_MIGRATIONS`) et celles des harnais (`DISPOSABLE_DB`,
+  `TEST_DATABASE_URL`, `INTEGRATION_IMAGE`, `PREV_IMAGE`, `CONTRACT_API_URL`).
 - Cette référence peut diverger du code sans que rien ne le signale. C'est la dette assumée du
   fichier minimal. Elle se tiendra par une garde de découverte plutôt que par la discipline — même
   idiome que `drift-guard`, `product-isolation` et `reserved-space` — mais **pas maintenant** : la

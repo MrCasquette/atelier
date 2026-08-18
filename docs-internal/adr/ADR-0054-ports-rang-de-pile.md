@@ -79,7 +79,7 @@ regarde pas. `3100` revient donc directement à la vitrine du dépôt.
 
 PostgreSQL et Redis gardent leurs ports canoniques. Les déplacer coûterait de la surprise sans rien
 acheter : la validation d'image auto-provisionne déjà sa propre base sur un port à elle
-(`scripts/integration.ts`), et le compose du consommateur ne publie pas sa base.
+(`scripts/test-image.ts`), et le compose du consommateur ne publie pas sa base.
 
 `8200` est le port par défaut de HashiCorp Vault et `3100` celui de Grafana Loki. Le risque est
 accepté : ce sont des produits d'infrastructure spécifiques, pas des frameworks courants, et
@@ -94,7 +94,7 @@ construction. `API_PORT` reste surchargeable — c'est la variable de l'exploita
 ### Un seul compose à la racine
 
 `compose.dev.yaml` disparaît. Ses deux rôles s'étaient séparés : la validation de l'artefact
-depuis les sources est couverte, et plus complètement, par `apps/echoppe-api/scripts/integration.ts`
+depuis les sources est couverte, et plus complètement, par `apps/echoppe-api/scripts/test-image.ts`
 (migrations, idempotence au re-boot, upgrade depuis l'image n-1, parité du contrat SDK) ; ne restait
 que la fourniture de PostgreSQL et Redis à `bun run dev`.
 

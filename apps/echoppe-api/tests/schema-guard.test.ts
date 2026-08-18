@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { db, permission, role, session, user } from '@echoppe/core';
-import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
+import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // `PUT /content/registry` était gardé par `content:update` — le droit d'ÉDITER.
 //
@@ -9,8 +9,8 @@ import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
 // qu'éditer. La route passe donc sous `schema`, qui tient au rang (ADR-0038, amendement du
 // 2026-08-10) — le même droit que le push d'entités, un seul geste CLI, un seul droit.
 //
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 let ownerCookie: string;
 let editorCookie: string;

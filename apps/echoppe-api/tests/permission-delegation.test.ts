@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { db, eq, permission, role, session, user } from '@echoppe/core';
-import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
+import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // Délégation (ADR-0038) : on ne peut accorder que ce qu'on détient.
 //
@@ -8,8 +8,8 @@ import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
 // catalogue pouvait s'attribuer les droits sur `user` ou `api_key` via son propre rôle. Le drapeau
 // `locked` ne protège que les lignes qu'on a pensé à verrouiller, pas le principe.
 //
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 let ownerCookie: string;
 let boundedCookie: string;

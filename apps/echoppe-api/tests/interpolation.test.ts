@@ -1,15 +1,15 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { db, legalEntity, page, section, site } from '@echoppe/core';
 import { invalidateRegistryCache } from '@repo/pages';
-import { createAdminSession, migrate, req, requireSmokeDb } from './harness';
+import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // Interpolation de variables (ADR-0035, V1 humble).
 //
 // Le stockage garde `{{ legal.name }}` en clair ; la substitution a lieu À LA LECTURE. Ce fichier
 // vérifie surtout ce que le mécanisme REFUSE de faire — c'est là qu'est la décision.
 //
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 let ownerCookie: string;
 

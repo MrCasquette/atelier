@@ -1,12 +1,12 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { collection, db } from '@echoppe/core';
 import { app } from '../src/app';
-import { createAdminSession, migrate, requireSmokeDb } from './harness';
+import { createAdminSession, migrate, requireDisposableDb } from './harness';
 
 // Verrou audit2 #3 (visibilityFilter, ADR-0006) : une ressource invisible est 404 pour un anonyme,
 // mais visible pour un principal privilégié (session admin). Le helper porte la règle de sécurité.
-// ⚠️ Base JETABLE via `bun run test:smoke` uniquement.
-requireSmokeDb();
+// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+requireDisposableDb();
 
 let adminCookie: string;
 
