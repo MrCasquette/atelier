@@ -79,10 +79,16 @@ jobs:
       # Version runtime = `apps/echoppe-api/package.json` (paire `fixed` avec admin). Un bump runtime ne publie
       # RIEN sur npm (privé) → on ne peut pas se fier à `published` : on détecte le bump par l'ABSENCE
       # du tag `v x.y.z` sur origin. Un push sans release (version inchangée) → tag présent → no-op.
+      #
+      # `git show HEAD:` et non le fichier du disque : quand l'étape précédente PRÉPARE la PR de
+      # version, elle exécute `changeset version` dans l'arbre de travail du runner. Lire ce fichier
+      # revenait à lire une version qui n'est pas encore sur `main` — v0.7.0 a ainsi été taggée avant
+      # tout merge, sur le commit de la BRANCHE de la PR, et les runs suivants ont conclu « déjà
+      # taggé → aucune image ». Le commit, lui, ne ment pas.
       - name: Resolve runtime version
         id: runtime
         run: |
-          VERSION=$(jq -r .version apps/echoppe-api/package.json)
+          VERSION=$(git show HEAD:apps/echoppe-api/package.json | jq -r .version)
           if [ -n "$(git ls-remote --tags origin "refs/tags/v${VERSION}")" ]; then
             echo "bumped=false" >> "$GITHUB_OUTPUT"
             echo "Runtime v${VERSION} déjà taggé → aucune nouvelle image."
