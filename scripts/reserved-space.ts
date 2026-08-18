@@ -46,8 +46,8 @@ for (const hit of SCANNED.scanSync(ROOT)) {
     }
   }
 
-  // La LECTURE, pas le mot : `api-base.ts` cite la variable pour expliquer sa disparition, et
-  // cette explication doit rester lisible sans faire tomber la garde.
+  // La LECTURE, pas le mot : un commentaire ou un message d'erreur peut nommer la variable sans
+  // la lire, et ne mérite pas de faire tomber la garde.
   if (source.includes('import.meta.env.VITE_API_URL')) {
     problems.push(
       `${where} : lecture de VITE_API_URL — le dashboard déduit sa base de son origine ` +

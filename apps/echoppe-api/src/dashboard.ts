@@ -1,5 +1,5 @@
-// Service statique du dashboard sous `/-/admin` (ADR-0052) — ce que faisait Caddy avant la fusion
-// des images : repli SPA, cache immuable sur les assets hachés, compression.
+// Service statique du dashboard sous `/-/admin` (ADR-0052) : repli SPA, cache immuable sur les
+// assets hachés, compression.
 //
 // Monté SEULEMENT si le dossier existe (l'image le copie ; en dev il n'est pas construit, et Vite
 // sert le dashboard avec son HMR). Le repli est borné à ce préfixe : hors de lui, un chemin inconnu
