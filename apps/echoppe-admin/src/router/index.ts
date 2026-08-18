@@ -2,7 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
 
 const router = createRouter({
-  history: createWebHistory(),
+  // Même préfixe que `base` dans vite.config.ts : le dashboard vit sous `/-/admin` (ADR-0052),
+  // le routeur doit donc le retirer avant de résoudre ses propres chemins.
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/login',

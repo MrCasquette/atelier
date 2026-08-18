@@ -63,11 +63,11 @@ async function loadOrder() {
   }
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:7532';
+import { API_BASE } from '@/lib/api-base';
 
 async function loadInvoices() {
   try {
-    const res = await fetch(`${API_URL}/orders/${orderId.value}/invoices`, {
+    const res = await fetch(`${API_BASE}/orders/${orderId.value}/invoices`, {
       credentials: 'include',
     });
     if (res.ok) {
@@ -81,7 +81,7 @@ async function loadInvoices() {
 async function createInvoice() {
   invoiceLoading.value = true;
   try {
-    const res = await fetch(`${API_URL}/orders/${orderId.value}/invoice`, {
+    const res = await fetch(`${API_BASE}/orders/${orderId.value}/invoice`, {
       method: 'POST',
       credentials: 'include',
     });
@@ -103,7 +103,7 @@ async function createInvoice() {
 
 function downloadInvoice(invoiceId: string) {
   // Ouvrir le PDF dans un nouvel onglet (l'API gère la régénération si fichier manquant)
-  const url = `${API_URL}/orders/${orderId.value}/invoices/${invoiceId}/pdf`;
+  const url = `${API_BASE}/orders/${orderId.value}/invoices/${invoiceId}/pdf`;
   window.open(url, '_blank');
 }
 

@@ -9,6 +9,10 @@ export default defineConfig(({ mode }) => {
   const apiPort = env.API_PORT || '7532';
 
   return {
+    // Le dashboard est servi sous `/-/admin` par l'API (ADR-0052). Les assets doivent donc être
+    // référencés sous ce préfixe — sinon `index.html` les demande à la racine, où vit l'API.
+    // Vaut aussi en développement : Vite sert le même chemin, le code ne connaît qu'une topologie.
+    base: '/-/admin/',
     plugins: [vue(), tailwindcss()],
     resolve: {
       alias: {

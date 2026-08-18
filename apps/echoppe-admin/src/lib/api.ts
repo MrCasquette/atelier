@@ -1,9 +1,9 @@
 import { treaty } from '@elysiajs/eden';
 import type { App } from '@echoppe/api';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:7532';
+import { API_BASE } from './api-base';
 
-export const api = treaty<App>(API_URL, {
+export const api = treaty<App>(API_BASE, {
   fetch: {
     credentials: 'include',
   },

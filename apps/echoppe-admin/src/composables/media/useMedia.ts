@@ -2,14 +2,14 @@ import { ref, computed, type Ref } from 'vue';
 import { api } from '@/lib/api';
 import type { Folder, FolderNode, Media, SortBy, SortOrder, MediaType } from './types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:7532';
+import { API_BASE } from '@/lib/api-base';
 
 // =============================================================================
 // UTILS
 // =============================================================================
 
 export function getMediaUrl(item: Media): string {
-  return `${API_URL}/assets/${item.id}`;
+  return `${API_BASE}/assets/${item.id}`;
 }
 
 export function isImage(item: Media): boolean {
@@ -219,7 +219,7 @@ export function useMedia(
       if (folder) formData.append('folder', folder);
       if (folderName && !folder) formData.append('folderName', folderName);
 
-      const response = await fetch(`${API_URL}/media/upload`, { method: 'POST', body: formData, credentials: 'include' });
+      const response = await fetch(`${API_BASE}/media/upload`, { method: 'POST', body: formData, credentials: 'include' });
       const data = await response.json();
 
       if (data?.id) {

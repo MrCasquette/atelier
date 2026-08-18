@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { api } from '@/lib/api';
+import { API_BASE } from '@/lib/api-base';
 import { useToast } from '@/composables/useToast';
 import Button from '@/components/atoms/Button.vue';
 import Modal from '@/components/atoms/Modal.vue';
@@ -26,10 +27,9 @@ const paypalForm = ref({
   mode: 'sandbox' as 'sandbox' | 'live',
 });
 
-const apiBaseUrl = computed(() => {
-  const url = import.meta.env.VITE_API_URL || 'http://localhost:7532';
-  return url.replace(/\/$/, '');
-});
+// Affiché à l'opérateur pour qu'il colle l'URL de webhook chez Stripe/PayPal : elle doit donc
+// être absolue, d'où l'origine — et non un chemin relatif comme les appels du dashboard.
+const apiBaseUrl = computed(() => API_BASE.replace(/\/$/, ''));
 
 async function loadProviders() {
   loading.value = true;

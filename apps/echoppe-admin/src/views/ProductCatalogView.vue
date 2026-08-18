@@ -19,7 +19,7 @@ import { useRoute, useRouter } from 'vue-router';
 type ProductsResponse = ApiData<ReturnType<typeof api.products.admin.get>>;
 type Product = ProductsResponse['data'][number];
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:7532';
+import { API_BASE } from '@/lib/api-base';
 const DEFAULT_LIMIT = 20;
 
 const router = useRouter();
@@ -105,7 +105,7 @@ async function loadProductThumbnails() {
         if (productMediaList) {
           const featured = productMediaList.find((pm) => pm.isFeatured);
           if (featured) {
-            thumbnails.set(product.id, `${API_URL}/assets/${featured.media}`);
+            thumbnails.set(product.id, `${API_BASE}/assets/${featured.media}`);
           }
         }
       } catch {

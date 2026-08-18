@@ -2,7 +2,9 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <!-- `%BASE_URL%` suit la `base` de vite.config.ts : sans lui, l'icône serait demandée à la
+         racine, où vit l'API et non le dashboard (ADR-0052). -->
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Échoppe Admin</title>
   </head>

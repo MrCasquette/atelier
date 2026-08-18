@@ -12,7 +12,7 @@ import type {
 } from './types';
 import { type Media } from '@/composables/media';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:7532';
+import { API_BASE } from '@/lib/api-base';
 
 interface UseProductFormOptions {
   onProductLoaded?: (product: ProductDetail) => void;
@@ -131,7 +131,7 @@ export function useProductForm(config: UseProductFormOptions = {}): UseProductFo
             }
           }
           if (pm.featuredForVariant) {
-            thumbnails.set(pm.featuredForVariant, `${API_URL}/assets/${pm.media}`);
+            thumbnails.set(pm.featuredForVariant, `${API_BASE}/assets/${pm.media}`);
           }
         }
       }

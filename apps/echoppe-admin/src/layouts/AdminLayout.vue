@@ -9,7 +9,7 @@ import SidebarNav from '@/components/organisms/SidebarNav.vue';
 import SidebarUserMenu from '@/components/molecules/SidebarUserMenu.vue';
 import type { ApiData } from '@/types/api';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:7532';
+import { API_BASE } from '@/lib/api-base';
 
 const router = useRouter();
 const auth = useAuth();
@@ -19,7 +19,7 @@ const identity = ref<Identity | null>(null);
 
 const siteName = computed(() => identity.value?.site?.name || 'Échoppe');
 const logoUrl = computed(() =>
-  identity.value?.site?.logo ? `${API_URL}/assets/${identity.value.site.logo}` : null,
+  identity.value?.site?.logo ? `${API_BASE}/assets/${identity.value.site.logo}` : null,
 );
 
 const { entities, load: loadEntities } = useEntities();
