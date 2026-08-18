@@ -1,0 +1,2 @@
+CREATE TYPE "public"."payment_event_type" AS ENUM('checkout_created', 'success', 'failure', 'refund');--> statement-breakpoint
+ALTER TABLE "payment_event" ALTER COLUMN "type" SET DATA TYPE "public"."payment_event_type" USING "type"::"public"."payment_event_type";

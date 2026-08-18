@@ -75,7 +75,24 @@ export class CommunicationService {
   async send(params: SendEmailParams): Promise<EmailResult> {
     const adapter = await this.activeAdapter();
     if (!adapter) return { success: true, skipped: true };
+    return this.dispatch(adapter, params);
+  }
 
+  /**
+   * Envoie par un provider IMPOSÉ, sans consulter lequel est actif — un message de test de
+   * configuration, qui vise justement celui qu'on vient de renseigner.
+   *
+   * Existe pour que ce chemin passe par le journal comme les autres : l'appelant écrivait sa propre
+   * ligne dans `communication_log`, en dupliquant jusqu'à la traduction du statut.
+   */
+  sendVia(provider: CommunicationProvider, params: SendEmailParams): Promise<EmailResult> {
+    return this.dispatch(this.deps.registry.get(provider), params);
+  }
+
+  private async dispatch(
+    adapter: CommunicationAdapter,
+    params: SendEmailParams,
+  ): Promise<EmailResult> {
     const site = await this.deps.siteIdentity();
     const data = { siteName: site.name, siteUrl: site.url, ...params.data };
 

@@ -1,6 +1,11 @@
-import type { PaymentProvider, PayPalCredentials, StripeCredentials } from '@echoppe/core';
+import type {
+  PaymentProvider,
+  PayPalCredentials,
+  SettledPaymentStatus,
+  StripeCredentials,
+} from '@echoppe/core';
 import type { CommunicationService } from '@repo/communication';
-import { cart, customer, faults, getPaymentAdapter, getProviderStatus, isPaymentProvider, order, orderItem, payment, paymentEvent, resetPaymentAdapters, saveProviderCredentials, sendOrderConfirmation, stockMove, variant } from '@echoppe/core';
+import { cart, customer, faults, PAYMENT_EVENT_BY_STATUS, getPaymentAdapter, getProviderStatus, isPaymentProvider, order, orderItem, payment, paymentEvent, resetPaymentAdapters, saveProviderCredentials, sendOrderConfirmation, stockMove, variant } from '@echoppe/core';
 import { and, db, eq, gte, sql } from '@repo/db';
 import { isEncryptionConfigured } from '@repo/shared';
 import { mailPlugin } from '../../lib/mail';
@@ -367,8 +372,16 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
 
           // Hors du `try` : ce qui échoue ici est de NOTRE côté. L'exception remonte au `onError`,
           // qui rend 500 + incident — et le provider réessaiera, ce qui est exactement voulu.
-          if (result.orderId && result.status !== 'pending') {
-            await handlePaymentResult(mail, result.orderId, params.provider, result);
+          //
+          // Le statut est extrait pour que la garde rétrécisse le TYPE et pas seulement l'exécution :
+          // c'est ce qui permet à `handlePaymentResult` d'exiger un paiement réglé, là où il
+          // acceptait n'importe quelle chaîne et rattrapait le tir par un cast.
+          const settled = result.status;
+          if (result.orderId && settled !== 'pending') {
+            await handlePaymentResult(mail, result.orderId, params.provider, {
+              ...result,
+              status: settled,
+            });
           }
 
           return { received: true };
@@ -483,7 +496,7 @@ async function handlePaymentResult(
   mail: CommunicationService,
   orderId: string,
   provider: PaymentProvider,
-  result: { transactionId: string; status: string; rawData: unknown },
+  result: { transactionId: string; status: SettledPaymentStatus; rawData: unknown },
 ) {
   const adapter = getPaymentAdapter(provider);
 
@@ -494,10 +507,12 @@ async function handlePaymentResult(
     return;
   }
 
-  // Journaliser l'événement reçu (audit), y compris les rejeux
+  // Journaliser l'événement reçu (audit), y compris les rejeux. La correspondance statut →
+  // événement est une table exhaustive : la traduire ici à la volée avait fini par écrire `refunded`
+  // là où le remboursement s'inscrit `refund` deux cents lignes plus haut.
   await db.insert(paymentEvent).values({
     payment: paymentData.id,
-    type: result.status === 'completed' ? 'success' : result.status,
+    type: PAYMENT_EVENT_BY_STATUS[result.status],
     data: result.rawData,
   });
 
@@ -506,7 +521,7 @@ async function handlePaymentResult(
     await db
       .update(payment)
       .set({
-        status: result.status as 'failed' | 'refunded',
+        status: result.status,
         providerTransactionId: result.transactionId,
         dateUpdated: new Date(),
       })

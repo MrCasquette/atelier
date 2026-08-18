@@ -10,6 +10,13 @@ export function isPaymentProvider(value: string): value is PaymentProvider {
 
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
 
+/**
+ * Un paiement dont le sort est joué. `pending` en est exclu : un webhook qui l'annonce ne dit rien
+ * de nouveau, et le code le filtre avant de journaliser. Le dire au TYPE plutôt qu'à l'exécution
+ * supprime le cast qui compensait jusqu'ici cette garde invisible.
+ */
+export type SettledPaymentStatus = Exclude<PaymentStatus, 'pending'>;
+
 export interface CheckoutSession {
   id: string;
   url: string;

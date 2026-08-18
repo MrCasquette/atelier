@@ -1,3 +1,4 @@
+import type { SettledPaymentStatus } from '../../adapters/payment/types';
 import {
   boolean,
   decimal,
@@ -48,12 +49,40 @@ export const payment = pgTable('payment', {
   dateUpdated: timestamp('date_updated', { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Ce qui ARRIVE à un paiement — un événement, pas un statut. Le vocabulaire est dérivé de ce que
+// le code écrit réellement, jamais d'un commentaire : la colonne était un `varchar` libre annonçant
+// « attempt, success, failure, refund, dispute », dont deux valeurs n'ont jamais été écrites, tandis
+// que `checkout_created` l'était sans être annoncée. Pire, le remboursement s'écrivait `refund` à un
+// endroit et `refunded` à un autre — deux valeurs pour un même événement, qu'un varchar acceptait
+// sans broncher (conventions § Fermer un vocabulaire).
+export const paymentEventTypeEnum = pgEnum('payment_event_type', [
+  'checkout_created',
+  'success',
+  'failure',
+  'refund',
+]);
+
+export type PaymentEventType = (typeof paymentEventTypeEnum.enumValues)[number];
+
 export const paymentEvent = pgTable('payment_event', {
   id: uuid('id').primaryKey().defaultRandom(),
   payment: uuid('payment')
     .notNull()
     .references(() => payment.id),
-  type: varchar('type', { length: 50 }).notNull(), // attempt, success, failure, refund, dispute
+  type: paymentEventTypeEnum('type').notNull(),
   data: jsonb('data'), // Raw provider payload
   dateCreated: timestamp('date_created', { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Ce qu'un paiement réglé inscrit au journal.
+ *
+ * `Record` exhaustif, et non un ternaire : un statut ajouté à `PaymentStatus` ne compilera plus
+ * tant qu'on n'aura pas dit quel événement il produit. C'est la version compilée de la règle —
+ * fermer un vocabulaire, puis empêcher qu'il se rouvre en silence.
+ */
+export const PAYMENT_EVENT_BY_STATUS = {
+  completed: 'success',
+  failed: 'failure',
+  refunded: 'refund',
+} as const satisfies Record<SettledPaymentStatus, PaymentEventType>;

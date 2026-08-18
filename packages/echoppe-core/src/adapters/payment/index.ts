@@ -17,6 +17,7 @@ export type {
   PaymentResult,
   PaymentStatus,
   RefundResult,
+  SettledPaymentStatus,
 } from './types';
 export { isPaymentProvider, PAYMENT_PROVIDERS } from './types';
 

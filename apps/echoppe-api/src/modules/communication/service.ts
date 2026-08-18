@@ -1,4 +1,3 @@
-import { communicationLog } from '@repo/communication';
 import type {
   BrevoCredentials,
   CommunicationConfig,
@@ -12,7 +11,6 @@ import {
   getProviderStatus,
   saveProviderCredentials,
 } from '@repo/communication';
-import { db } from '@repo/db';
 import { isEncryptionConfigured } from '@repo/shared';
 import { providerMeta } from './provider-meta';
 
@@ -81,7 +79,10 @@ export async function sendTestEmail(
   if (!(await adapter.isConfigured())) return { outcome: 'not-configured' };
   if (!(await adapter.verify())) return { outcome: 'unreachable' };
 
-  const result = await adapter.send({
+  // Par le service, comme tout envoi : il consigne. Écrire la ligne ici dupliquait ses colonnes et
+  // sa traduction du statut — et `isTest` voyage dans les données, qui SONT le `metadata` du
+  // journal.
+  const result = await mail.sendVia(provider, {
     to,
     subject: TEST_SUBJECT,
     template: 'welcome',
@@ -89,19 +90,8 @@ export async function sendTestEmail(
       customerName: 'Administrateur',
       shopName: 'Votre Boutique Échoppe',
       shopUrl: '#',
+      isTest: true,
     },
-  });
-
-  await db.insert(communicationLog).values({
-    provider,
-    channel: 'email',
-    template: 'welcome',
-    recipient: to,
-    subject: TEST_SUBJECT,
-    status: result.success ? 'sent' : 'failed',
-    providerMessageId: result.messageId,
-    error: result.error,
-    metadata: { isTest: true },
   });
 
   return { outcome: 'sent', result };
