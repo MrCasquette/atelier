@@ -1,5 +1,5 @@
 import { site } from '@repo/identity';
-import { sendContactFormEmail } from '@repo/communication';
+import type { CommunicationService } from '@repo/communication';
 import { db } from '@repo/db';
 
 // Logique du formulaire de contact, sans rien savoir du transport. Les quatre issues sont des
@@ -23,12 +23,15 @@ export type ContactOutcome =
   /** Le fournisseur a été appelé et a échoué. */
   | { outcome: 'send-failed' };
 
-export async function sendContactMessage(input: ContactMessage): Promise<ContactOutcome> {
+export async function sendContactMessage(
+  mail: CommunicationService,
+  input: ContactMessage,
+): Promise<ContactOutcome> {
   const [siteData] = await db.select().from(site).limit(1);
 
   if (!siteData?.publicEmail) return { outcome: 'no-recipient' };
 
-  const result = await sendContactFormEmail({
+  const result = await mail.sendContactForm({
     adminEmail: siteData.publicEmail,
     senderName: input.name,
     senderEmail: input.email,

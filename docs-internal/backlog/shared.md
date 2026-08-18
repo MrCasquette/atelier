@@ -10,10 +10,10 @@ passer après.** Refactorer une forme avec deux consommateurs coûte double — 
 deux suites à réécrire, une décision qui doit satisfaire les deux. Corriger un comportement coûte
 pareil quel que soit le moment.
 
-D'où quatre chantiers en tête de file, marqués **⏩ avant Prisme** ci-dessous. Le premier — faire
-tomber le barrel de réexport du cœur — est **fait** : les 54 symboles empruntés sont retournés à
-leur paquet, et `bun run core-passthrough` refuse leur retour. Restent le singleton de
-`@repo/communication`, la partie pure de `@repo/pages`, et la migration Markdown.
+D'où quatre chantiers en tête de file, marqués **⏩ avant Prisme** ci-dessous. Deux sont **faits** :
+le barrel de réexport du cœur — 54 symboles retournés à leur paquet, `bun run core-passthrough`
+refuse leur retour — et le singleton de `@repo/communication`, devenu un acteur composé au
+démarrage. Restent la partie pure de `@repo/pages` et la migration Markdown.
 
 Puis le [vertical slice Prisme](./prisme.md), qui débloque à lui seul les décisions suspendues à un
 second consommateur — dont la garde des credentials
@@ -72,21 +72,6 @@ Le conteneur, distinct des produits qu'il héberge. Le principe qui gouverne cet
 - [ ] 🟠 **Trancher l'injection DB** dans un ADR : singleton, factory de service, contexte de requête
   et unité transactionnelle. **Pendant** Prisme, pas avant : c'est la décision de forme qui a besoin
   du second consommateur pour être bien prise, et le vertical slice est son terrain d'épreuve.
-- [ ] 🟠 ⏩ **Retirer le singleton de `@repo/communication` au profit d'une composition injectable.**
-  `email.ts` résout son adapter via `getActiveCommunicationAdapter()`, importé d'un singleton de
-  module aux fabriques câblées en dur : **aucune couture** ne permet d'en substituer un faux. Les
-  credentials sont bien injectés (DIP), mais les stuber supprime la dépendance à la base, **pas au
-  réseau** — un adapter muni de credentials valides appelle la véritable API.
-
-  Ce qui protège les tests aujourd'hui est qu'aucun provider n'est configuré dans la base de test :
-  une propriété de la donnée, pas de l'architecture, sur un Postgres que tous les fichiers partagent.
-
-  Sortie retenue : une fabrique `createCommunicationRegistry(factories)` composée par le produit au
-  démarrage — la forme « acteur », conforme au sens de la flèche d'ADR-0025. Écarté : un garde
-  `NODE_ENV`, qui serait un test d'environnement dans du code de domaine, invisible au type, et ne
-  protégerait que le chemin qui pense à le consulter. Touche les 4 appelants de `sendEmail` plus le
-  câblage au boot. Débloque les tests du chemin d'envoi, aujourd'hui impossibles.
-  Détail : [audit de couverture documentaire](../audits/audit-couverture-documentaire.md).
 - [ ] 🟠 ⏩ **Séparer la partie pure de `@repo/pages` de sa partie connectée**, sur le modèle déjà
   appliqué dans `@repo/auth` (`permission.ts` / `permission-cache.ts`). `definition-service.ts`
   importe `db` au niveau module et `@repo/db` **lève à l'import** sans `DATABASE_URL` : la logique

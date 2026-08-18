@@ -1,6 +1,7 @@
 import { faults } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../lib/fault';
+import { mailPlugin } from '../../lib/mail';
 import { successSchema } from '../../lib/response';
 import { models } from '../../model';
 import { permissionGuard } from '../auth/rbac';
@@ -27,6 +28,7 @@ export const communicationsRoutes = new Elysia({
   prefix: '/communications',
   detail: { tags: ['Communications'] },
 })
+  .use(mailPlugin)
   .use(models)
 
   // === COMMUNICATION CONFIG READ ===
@@ -44,8 +46,9 @@ export const communicationsRoutes = new Elysia({
   // PUT /communications/providers/resend - Configure Resend
   .put(
     '/providers/resend',
-    async ({ body, status }) => {
+    async ({ body, mail, status }) => {
       const result = await saveProvider(
+        mail,
         'resend',
         { apiKey: body.apiKey },
         { fromEmail: body.fromEmail, fromName: body.fromName, replyTo: body.replyTo },
@@ -66,8 +69,9 @@ export const communicationsRoutes = new Elysia({
   // PUT /communications/providers/brevo - Configure Brevo
   .put(
     '/providers/brevo',
-    async ({ body, status }) => {
+    async ({ body, mail, status }) => {
       const result = await saveProvider(
+        mail,
         'brevo',
         { apiKey: body.apiKey },
         { fromEmail: body.fromEmail, fromName: body.fromName, replyTo: body.replyTo },
@@ -88,8 +92,9 @@ export const communicationsRoutes = new Elysia({
   // PUT /communications/providers/smtp - Configure SMTP
   .put(
     '/providers/smtp',
-    async ({ body, status }) => {
+    async ({ body, mail, status }) => {
       const result = await saveProvider(
+        mail,
         'smtp',
         {
           host: body.host,
@@ -116,8 +121,8 @@ export const communicationsRoutes = new Elysia({
   // POST /communications/test - Envoyer un email de test
   .post(
     '/test',
-    async ({ body, status }) => {
-      const result = await sendTestEmail(body.provider, body.to);
+    async ({ body, mail, status }) => {
+      const result = await sendTestEmail(mail, body.provider, body.to);
 
       switch (result.outcome) {
         case 'not-configured':

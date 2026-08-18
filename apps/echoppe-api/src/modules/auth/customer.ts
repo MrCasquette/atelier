@@ -2,6 +2,7 @@ import { faults } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
 import { faultBody } from '../../lib/fault';
+import { mailPlugin } from '../../lib/mail';
 import { authRateLimitOptions, strictRateLimitOptions } from '../../lib/rate-limit';
 import { rateLimitResponse, successSchema } from '../../lib/response';
 import { models } from '../../model';
@@ -47,12 +48,13 @@ function sessionContext(request: Request): SessionContext {
 
 // Rate-limited register route (strict: 5 requests / 15 min)
 const registerRoute = new Elysia()
+  .use(mailPlugin)
   .use(rateLimit(strictRateLimitOptions))
   .use(models)
   .post(
     '/register',
-    async ({ body, cookie, request, status }) => {
-      const result = await registerCustomer(body, sessionContext(request));
+    async ({ body, cookie, mail, request, status }) => {
+      const result = await registerCustomer(mail, body, sessionContext(request));
 
       if (result.outcome === 'email-taken') {
         return status(409, faultBody(faults.alreadyExists('customer', 'email')));
@@ -117,12 +119,13 @@ const loginRoute = new Elysia()
 // - reset : consomme le jeton (usage unique, non expiré) → change le mdp, révoque toutes
 //   les sessions du client.
 const passwordResetRoutes = new Elysia()
+  .use(mailPlugin)
   .use(models)
   .use(rateLimit(strictRateLimitOptions))
   .post(
     '/password/forgot',
-    async ({ body }) => {
-      await requestPasswordReset(body.email);
+    async ({ body, mail }) => {
+      await requestPasswordReset(mail, body.email);
 
       // Réponse identique que l'email existe ou non.
       return { success: true };

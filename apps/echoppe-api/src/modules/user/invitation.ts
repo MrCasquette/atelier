@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { session, user, userPasswordToken } from '@repo/auth';
-import { sendUserInvitationEmail } from '@repo/communication';
+import type { CommunicationService } from '@repo/communication';
 import { db, eq } from '@repo/db';
 
 // Le jeton de pose de mot de passe (ADR-0048).
@@ -73,15 +73,18 @@ export type Delivery =
  * Émet le jeton et tente de le remettre par courriel. Sans fournisseur configuré, rend le lien à
  * l'appelant plutôt que de laisser l'invitation dans le vide (ADR-0048, décision 3).
  */
-export async function inviteUser(input: {
-  userId: string;
-  email: string;
-  firstName: string;
-  invitedBy?: string;
-}): Promise<Delivery> {
+export async function inviteUser(
+  mail: CommunicationService,
+  input: {
+    userId: string;
+    email: string;
+    firstName: string;
+    invitedBy?: string;
+  },
+): Promise<Delivery> {
   const { invitation } = await issuePasswordToken(input.userId);
 
-  const sent = await sendUserInvitationEmail({
+  const sent = await mail.sendUserInvitation({
     email: input.email,
     firstName: input.firstName,
     inviteUrl: invitation.url,

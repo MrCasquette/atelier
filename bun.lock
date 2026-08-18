@@ -165,7 +165,6 @@
         "@getbrevo/brevo": "6",
         "@repo/adapters": "workspace:*",
         "@repo/db": "workspace:*",
-        "@repo/identity": "workspace:*",
         "@repo/shared": "workspace:*",
         "drizzle-orm": "^0.45.2",
         "nodemailer": "9",

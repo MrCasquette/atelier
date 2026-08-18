@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { customer, customerSession, passwordResetToken, sendWelcomeEmail } from '@echoppe/core';
-import { sendResetPasswordEmail } from '@repo/communication';
+import type { CommunicationService } from '@repo/communication';
 import { and, db, eq, gt, ne } from '@repo/db';
 
 // Authentification de la surface CLIENT, sans rien savoir du transport. Pendant de `service.ts`,
@@ -83,6 +83,7 @@ export type RegisterOutcome =
   | { outcome: 'email-taken' };
 
 export async function registerCustomer(
+  mail: CommunicationService,
   input: RegisterInput,
   context: SessionContext,
 ): Promise<RegisterOutcome> {
@@ -110,7 +111,7 @@ export async function registerCustomer(
 
   const token = await openSession(created.id, context);
 
-  await sendWelcomeEmail({ customerEmail: created.email, customerName: created.firstName });
+  await sendWelcomeEmail(mail, { customerEmail: created.email, customerName: created.firstName });
 
   return {
     outcome: 'registered',
@@ -242,7 +243,10 @@ export async function refreshCustomerSession(
  * Crée un jeton de réinitialisation et envoie le lien. Ne dit JAMAIS si l'e-mail existe — c'est
  * l'appelant qui répond invariablement 200, et cette fonction ne lui donne pas de quoi trahir.
  */
-export async function requestPasswordReset(email: string): Promise<void> {
+export async function requestPasswordReset(
+  mail: CommunicationService,
+  email: string,
+): Promise<void> {
   const [found] = await db
     .select({ id: customer.id, email: customer.email })
     .from(customer)
@@ -259,7 +263,7 @@ export async function requestPasswordReset(email: string): Promise<void> {
   });
 
   const resetUrl = `${STOREFRONT_URL}${PASSWORD_RESET_PATH}?token=${rawToken}`;
-  await sendResetPasswordEmail({ email: found.email, resetUrl, expiresIn: '1 heure' });
+  await mail.sendResetPassword({ email: found.email, resetUrl, expiresIn: '1 heure' });
 }
 
 export type ResetPasswordOutcome =

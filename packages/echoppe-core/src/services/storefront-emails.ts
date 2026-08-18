@@ -1,8 +1,8 @@
 import {
+  type CommunicationService,
   type EmailResult,
   emailLayout,
   registerEmailTemplate,
-  sendEmail,
 } from '@repo/communication';
 
 /**
@@ -12,7 +12,8 @@ import {
  * fonctions qui les utilisent. Aucun câblage de démarrage n'est nécessaire — on ne peut pas
  * appeler `sendOrderConfirmation` sans charger ce module, donc sans inscrire son gabarit.
  *
- * Destiné à partir dans `echoppe-core` (ADR-0033) ; il ne doit rien gagner de générique.
+ * Ces envois restent des fonctions LIBRES qui reçoivent le service : le cœur ajoute ses gabarits
+ * au socle, il ne possède pas l'acteur qui envoie.
  */
 
 // ============================================
@@ -91,8 +92,11 @@ export interface OrderEmailData {
 /**
  * Email de confirmation de commande
  */
-export async function sendOrderConfirmation(data: OrderEmailData): Promise<EmailResult> {
-  return sendEmail({
+export async function sendOrderConfirmation(
+  mail: CommunicationService,
+  data: OrderEmailData,
+): Promise<EmailResult> {
+  return mail.send({
     to: data.customerEmail,
     subject: `Confirmation de votre commande #${data.orderNumber}`,
     template: 'order-confirmation',
@@ -117,8 +121,11 @@ export interface ShipmentEmailData {
 /**
  * Email de notification d'expédition
  */
-export async function sendShipmentNotification(data: ShipmentEmailData): Promise<EmailResult> {
-  return sendEmail({
+export async function sendShipmentNotification(
+  mail: CommunicationService,
+  data: ShipmentEmailData,
+): Promise<EmailResult> {
+  return mail.send({
     to: data.customerEmail,
     subject: `Votre commande #${data.orderNumber} a été expédiée`,
     template: 'shipment',
@@ -140,8 +147,11 @@ export interface WelcomeEmailData {
 /**
  * Email de bienvenue après inscription
  */
-export async function sendWelcomeEmail(data: WelcomeEmailData): Promise<EmailResult> {
-  return sendEmail({
+export async function sendWelcomeEmail(
+  mail: CommunicationService,
+  data: WelcomeEmailData,
+): Promise<EmailResult> {
+  return mail.send({
     to: data.customerEmail,
     subject: 'Bienvenue !',
     template: 'welcome',

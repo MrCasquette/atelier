@@ -1,6 +1,6 @@
-import { createAdapterRegistry } from '@repo/adapters';
+import { createAdapterRegistry, type AdapterRegistry } from '@repo/adapters';
 import { BrevoAdapter } from './brevo';
-import { getProviderConfig, getProviderCredentials, getProviderStatus } from './config';
+import { getProviderConfig, getProviderCredentials } from './config';
 import { ResendAdapter } from './resend';
 import { SmtpAdapter } from './smtp';
 import {
@@ -9,50 +9,47 @@ import {
   type CommunicationProvider,
 } from './types';
 
-// Registre déclaratif : store réel (credentials + config d'envoi déchiffrés) injecté par fabrique.
-//
-// Séparé du barrel `index.ts` : `email.ts` a besoin de `getActiveCommunicationAdapter` et le barrel
-// réexporte `email.ts`. Passer par lui créerait un cycle.
-const registry = createAdapterRegistry<CommunicationProvider, CommunicationAdapter>(
-  COMMUNICATION_PROVIDERS,
-  {
-    resend: () =>
-      new ResendAdapter({
-        getCredentials: () => getProviderCredentials('resend'),
-        getConfig: () => getProviderConfig('resend'),
-      }),
-    brevo: () =>
-      new BrevoAdapter({
-        getCredentials: () => getProviderCredentials('brevo'),
-        getConfig: () => getProviderConfig('brevo'),
-      }),
-    smtp: () =>
-      new SmtpAdapter({
-        getCredentials: () => getProviderCredentials('smtp'),
-        getConfig: () => getProviderConfig('smtp'),
-      }),
-  },
-);
+export type CommunicationRegistry = AdapterRegistry<CommunicationProvider, CommunicationAdapter>;
+export type CommunicationFactories = Record<CommunicationProvider, () => CommunicationAdapter>;
 
-const isReady = async (provider: CommunicationProvider): Promise<boolean> => {
-  const status = await getProviderStatus(provider);
-  return status.isConfigured && status.isEnabled;
+/**
+ * Les fabriques réelles : trois adapters adossés à la base, qui déchiffrent leurs credentials au
+ * moment de l'envoi. Le paquet les possède — un produit n'a pas à savoir comment on parle à Brevo.
+ *
+ * Elles sont exportées pour être COMPOSÉES, pas appelées : c'est ce qu'un test remplace pour
+ * exercer le chemin d'envoi sans réseau.
+ */
+export const defaultCommunicationFactories: CommunicationFactories = {
+  resend: () =>
+    new ResendAdapter({
+      getCredentials: () => getProviderCredentials('resend'),
+      getConfig: () => getProviderConfig('resend'),
+    }),
+  brevo: () =>
+    new BrevoAdapter({
+      getCredentials: () => getProviderCredentials('brevo'),
+      getConfig: () => getProviderConfig('brevo'),
+    }),
+  smtp: () =>
+    new SmtpAdapter({
+      getCredentials: () => getProviderCredentials('smtp'),
+      getConfig: () => getProviderConfig('smtp'),
+    }),
 };
 
-export function getCommunicationAdapter(provider: CommunicationProvider): CommunicationAdapter {
-  return registry.get(provider);
-}
-
-// Premier provider configuré et activé (ordre déclaré dans COMMUNICATION_PROVIDERS).
-export async function getActiveCommunicationAdapter(): Promise<CommunicationAdapter | null> {
-  const [first] = await registry.available(isReady);
-  return first ? registry.get(first) : null;
-}
-
-export function getAvailableCommunicationProviders(): Promise<CommunicationProvider[]> {
-  return registry.available(isReady);
-}
-
-export function resetCommunicationAdapters(): void {
-  registry.reset();
+/**
+ * Un registre de providers, construit par celui qui l'utilisera.
+ *
+ * Il n'y a plus d'instance de module : c'est tout l'objet du changement. Le singleton précédent
+ * n'offrait aucune couture — un test muni de credentials valides appelait la véritable API, et
+ * seule l'absence de provider configuré dans la base de test protégeait le dépôt. Une propriété de
+ * la donnée, pas de l'architecture.
+ */
+export function createCommunicationRegistry(
+  factories: CommunicationFactories = defaultCommunicationFactories,
+): CommunicationRegistry {
+  return createAdapterRegistry<CommunicationProvider, CommunicationAdapter>(
+    COMMUNICATION_PROVIDERS,
+    factories,
+  );
 }

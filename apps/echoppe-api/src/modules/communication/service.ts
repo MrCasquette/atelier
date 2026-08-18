@@ -8,9 +8,8 @@ import type {
 } from '@repo/communication';
 import {
   COMMUNICATION_PROVIDERS,
-  getCommunicationAdapter,
+  type CommunicationService,
   getProviderStatus,
-  resetCommunicationAdapters,
   saveProviderCredentials,
 } from '@repo/communication';
 import { db } from '@repo/db';
@@ -55,6 +54,7 @@ export async function listProviderStatuses() {
  * fois : ils ne diffèrent que par la forme de leurs identifiants, que le controller a déjà validée.
  */
 export async function saveProvider(
+  mail: CommunicationService,
   provider: ProviderId,
   credentials: ProviderCredentials,
   config: CommunicationConfig,
@@ -63,7 +63,7 @@ export async function saveProvider(
   if (!isEncryptionConfigured()) return { outcome: 'encryption-missing' };
 
   await saveProviderCredentials(provider, credentials, config, isEnabled);
-  resetCommunicationAdapters();
+  mail.reset();
 
   return { outcome: 'saved' };
 }
@@ -71,8 +71,12 @@ export async function saveProvider(
 const TEST_SUBJECT = 'Test de configuration email - Échoppe';
 
 /** Vérifie la connexion puis envoie un message de test, tracé dans le journal comme tel. */
-export async function sendTestEmail(provider: ProviderId, to: string): Promise<TestEmailOutcome> {
-  const adapter = getCommunicationAdapter(provider);
+export async function sendTestEmail(
+  mail: CommunicationService,
+  provider: ProviderId,
+  to: string,
+): Promise<TestEmailOutcome> {
+  const adapter = mail.adapter(provider);
 
   if (!(await adapter.isConfigured())) return { outcome: 'not-configured' };
   if (!(await adapter.verify())) return { outcome: 'unreachable' };

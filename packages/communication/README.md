@@ -13,41 +13,52 @@ Sa seule dépendance à une table métier est `site`, pour le nom et l'URL dans 
 sera remplacée par la surface de variables quand celle-ci existera
 ([ADR-0035](../../docs-internal/adr/ADR-0035-interpolation-variables.md)).
 
-## L'injection : faite à un niveau, absente à l'autre
+## L'injection, jusqu'au bout
 
-**Credentials → adapter : injectés.** Chaque adapter reçoit un `CommunicationCredentialStore`
-(DIP) ; le registre l'adosse à la base avec déchiffrement, un test le stube. C'est ce qui rend un
-adapter constructible sans base de données.
+**Credentials → adapter.** Chaque adapter reçoit un `CommunicationCredentialStore` (DIP) ; le
+registre l'adosse à la base avec déchiffrement, un test le stube. C'est ce qui rend un adapter
+constructible sans base de données.
 
-**Adapter → `sendEmail` : pas injecté.** `email.ts` appelle `getActiveCommunicationAdapter()`, importé
-d'un singleton de module dont les fabriques sont câblées en dur. **Il n'existe aucune couture pour
-substituer un adapter.**
+**Adapter → envoi.** L'envoi est un **acteur** : `CommunicationService`, construit avec ses
+dépendances par le produit à son démarrage. Il n'y a pas d'instance de module — le paquet expose de
+quoi composer, jamais un objet déjà composé.
 
-⚠️ **Stuber les credentials n'empêche pas un envoi réel.** Ça supprime la dépendance à la base, pas
-celle au réseau : un `ResendAdapter` muni de credentials valides appelle la véritable API. Les deux
-préoccupations sont distinctes, et seule la première est traitée aujourd'hui.
+```ts
+new CommunicationService({
+  registry: createCommunicationRegistry(),   // ou des fabriques à soi
+  isReady: createDbProviderReadiness(),      // configuré ET activé, d'après la base
+  siteIdentity,                              // le produit sait où lire son identité
+  journal: createDbJournal(),                // la table `communication_log`
+});
+```
 
-Ce qui protège actuellement les tests, c'est que `isReady` exige `isConfigured && isEnabled` lus en
-base et qu'aucun provider n'est configuré dans la base de test : `sendEmail` rend alors
-`{ success: true, skipped: true }`. **C'est une propriété de la donnée, pas de l'architecture** — les
-tests partagent un seul Postgres, et y configurer un provider suffirait à transformer chaque test
-d'invitation en envoi réel.
+Les quatre dépendances ont la même nature : le paquet fournit l'implémentation réelle, le produit la
+branche, un test la remplace. C'est aussi ce qui a permis de retirer `@repo/identity` des
+dépendances de ce paquet — il ne lit plus la table `site` lui-même.
 
-Le traitement de fond est ouvert et non tranché : voir la section « Suivi » ci-dessous.
+### Ce que ça a corrigé
 
-## Ce qui se teste aujourd'hui
+`sendEmail` résolvait son adapter par un singleton aux fabriques câblées en dur, et importait
+directement `db` pour lire `site` et écrire dans `communication_log`. Aucune couture : stuber les
+credentials supprimait la dépendance à la base, **pas celle au réseau** — un `ResendAdapter` muni de
+credentials valides appelait la véritable API.
 
-`templates.ts` et le garde de type de `types.ts` — surface pure, sans effet externe. Le registre de
+Ce qui protégeait les tests était qu'aucun provider n'est configuré dans la base de test. Une
+propriété de la **donnée**, pas de l'architecture : les tests partagent un seul Postgres, et y
+configurer un provider aurait transformé chaque test d'invitation en envoi réel.
+
+## Ce qui se teste
+
+Le **chemin d'envoi complet** — `service.test.ts` : choix du provider dans l'ordre déclaré,
+enrichissement par l'identité du site, consignation du succès comme de l'échec, et le cas « aucun
+provider » qui rend `skipped` sans consigner. Sans base, sans réseau.
+
+`templates.ts` et le garde de type de `types.ts` restent testés comme surface pure. Le registre de
 gabarits est un **état global préchargé par le module** : un test qui inscrit un gabarit doit lui
 donner un nom qui lui est propre.
 
 ## Suivi
 
-- **Aucune couture d'injection pour l'envoi.** L'option la plus propre est que le paquet cesse de
-  posséder le singleton : une fabrique `createCommunicationRegistry(factories)` composée par le
-  produit au démarrage, conforme au sens de la flèche d'ADR-0025 et à la forme « acteur ». Un simple
-  garde `NODE_ENV` serait un test d'environnement placé dans du code de domaine, invisible au type,
-  et ne protégerait que le chemin qui pense à le consulter.
 - **Injection HTML dans `contact-form`.** Le gabarit interpole `name`, `email`, `phone`, `subject` et
   `message` bruts dans le HTML de l'e-mail, et ces valeurs viennent d'un formulaire **public**. À
   traiter avec le chantier sécurité.

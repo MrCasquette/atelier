@@ -1,7 +1,9 @@
 import type { PaymentProvider, PayPalCredentials, StripeCredentials } from '@echoppe/core';
+import type { CommunicationService } from '@repo/communication';
 import { cart, customer, faults, getPaymentAdapter, getProviderStatus, isPaymentProvider, order, orderItem, payment, paymentEvent, resetPaymentAdapters, saveProviderCredentials, sendOrderConfirmation, stockMove, variant } from '@echoppe/core';
 import { and, db, eq, gte, sql } from '@repo/db';
 import { isEncryptionConfigured } from '@repo/shared';
+import { mailPlugin } from '../../lib/mail';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
 import { faultBody } from '../../lib/fault';
@@ -109,6 +111,7 @@ const providerMeta: Record<
 };
 
 export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: ['Payments'] } })
+  .use(mailPlugin)
   .use(models)
 
   // === PAYMENT CONFIG READ ===
@@ -316,11 +319,12 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
   // Rate-limit IP dédié dans une sous-instance `scoped` → n'affecte pas les routes admin suivantes.
   .use(
     new Elysia()
+      .use(mailPlugin)
       .use(models)
       .use(rateLimit(webhookRateLimitOptions))
       .post(
         '/webhook/:provider',
-        async ({ params, request, status }) => {
+        async ({ mail, params, request, status }) => {
           if (!isPaymentProvider(params.provider)) {
             return status(404, faultBody(faults.notFound('payment_provider')));
           }
@@ -364,7 +368,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
           // Hors du `try` : ce qui échoue ici est de NOTRE côté. L'exception remonte au `onError`,
           // qui rend 500 + incident — et le provider réessaiera, ce qui est exactement voulu.
           if (result.orderId && result.status !== 'pending') {
-            await handlePaymentResult(result.orderId, params.provider, result);
+            await handlePaymentResult(mail, result.orderId, params.provider, result);
           }
 
           return { received: true };
@@ -476,6 +480,7 @@ class InsufficientStockError extends Error {
 
 // Helper pour traiter les résultats de paiement
 async function handlePaymentResult(
+  mail: CommunicationService,
   orderId: string,
   provider: PaymentProvider,
   result: { transactionId: string; status: string; rawData: unknown },
@@ -636,7 +641,7 @@ async function handlePaymentResult(
     .where(eq(customer.id, orderData.customerId));
 
   if (customerData) {
-    await sendOrderConfirmation({
+    await sendOrderConfirmation(mail, {
       customerEmail: customerData.email,
       customerName: customerData.firstName ?? undefined,
       orderNumber: orderData.orderNumber,

@@ -2,6 +2,7 @@ import { faults } from '@echoppe/core';
 import { Elysia, t } from 'elysia';
 import { rateLimit } from 'elysia-rate-limit';
 import { faultBody } from '../../lib/fault';
+import { mailPlugin } from '../../lib/mail';
 import { strictRateLimitOptions } from '../../lib/rate-limit';
 import { messageSchema, withRateLimitErrors, withServiceErrors } from '../../lib/response';
 import { models } from '../../model';
@@ -15,12 +16,13 @@ const contactBody = t.Object({
 });
 
 export const contactRoutes = new Elysia({ prefix: '/contact' })
+  .use(mailPlugin)
   .use(models)
   .use(rateLimit(strictRateLimitOptions))
   .post(
     '/',
-    async ({ body, status }) => {
-      const result = await sendContactMessage(body);
+    async ({ body, mail, status }) => {
+      const result = await sendContactMessage(mail, body);
 
       switch (result.outcome) {
         // RÉDUCTION SÉMANTIQUE, et c'est le seul endroit du dépôt qui en fasse une (ADR-0050).

@@ -66,3 +66,32 @@ export interface CommunicationAdapter {
    */
   isConfigured(): Promise<boolean>;
 }
+
+// ─── Ce que l'envoi demande à son produit ──────────────────────────────────────────────────────
+//
+// `sendEmail` lisait la table `site` et écrivait dans `communication_log` en important `@repo/db`
+// et `@repo/identity` : deux soudures qui rendaient tout test du chemin d'envoi dépendant d'un
+// Postgres. Le socle décrit désormais ce dont il a besoin ; le produit fournit de quoi le servir.
+
+/** L'identité affichée en pied d'e-mail (ADR-0040). */
+export interface SiteIdentity {
+  name: string;
+  url?: string;
+}
+
+/** Une tentative d'envoi, telle qu'on la consigne. */
+export interface CommunicationLogEntry {
+  provider: CommunicationProvider;
+  template: EmailTemplate;
+  recipient: string;
+  subject: string;
+  status: EmailStatus;
+  providerMessageId?: string;
+  error?: string;
+  metadata: Record<string, unknown>;
+}
+
+/** Où consigner les envois. Le paquet en fournit une implémentation adossée à sa propre table. */
+export interface CommunicationJournal {
+  record(entry: CommunicationLogEntry): Promise<void>;
+}

@@ -3,6 +3,7 @@ import { role, session, user } from '@repo/auth';
 import { and, count, db, desc, eq, ilike, or, sql } from '@repo/db';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../lib/fault';
+import { mailPlugin } from '../../lib/mail';
 import { buildListResponse, listResponse, parseListQuery } from '../../lib/pagination';
 import { successSchema, withCrudErrors } from '../../lib/response';
 import { models } from '../../model';
@@ -139,6 +140,7 @@ const invitationSentSchema = t.Object({
 });
 
 export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['Users'] } })
+  .use(mailPlugin)
   .use(models)
 
   // === USER READ ===
@@ -265,7 +267,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
   // POST /users - Créer utilisateur
   .post(
     '/',
-    async ({ body, status, currentUser, request }) => {
+    async ({ body, mail, status, currentUser, request }) => {
       // Check if email already exists
       const [existing] = await db
         .select({ id: user.id })
@@ -302,7 +304,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
         })
         .returning({ id: user.id, email: user.email });
 
-      const delivery = await inviteUser({
+      const delivery = await inviteUser(mail, {
         userId: newUser.id,
         email: newUser.email,
         firstName: body.firstName,
@@ -524,7 +526,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
   // secret (ADR-0048). Même jeton que l'invitation — inviter et débloquer sont le même acte.
   .post(
     '/:id/reset',
-    async ({ params, status, currentUser, request, principal }) => {
+    async ({ params, mail, status, currentUser, request, principal }) => {
       const [target] = await db
         .select({ id: user.id, email: user.email, firstName: user.firstName })
         .from(user)
@@ -541,7 +543,7 @@ export const usersRoutes = new Elysia({ prefix: '/users', detail: { tags: ['User
         return status(403, rankRefusal('invite'));
       }
 
-      const delivery = await inviteUser({
+      const delivery = await inviteUser(mail, {
         userId: target.id,
         email: target.email,
         firstName: target.firstName,

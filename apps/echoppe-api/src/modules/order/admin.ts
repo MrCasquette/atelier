@@ -5,6 +5,7 @@ import { folder, media } from '@repo/assets';
 import { and, db, desc, eq, gte, like, lte, or, sql } from '@repo/db';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../lib/fault';
+import { mailPlugin } from '../../lib/mail';
 import { buildListResponse, listResponse, parseListQuery } from '../../lib/pagination';
 import { successSchema, withCrudErrors } from '../../lib/response';
 import { models } from '../../model';
@@ -183,6 +184,7 @@ const invoiceCreatedSchema = t.Object({
 });
 
 export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Orders'] } })
+  .use(mailPlugin)
   .use(models)
 
   // === ORDER READ ===
@@ -346,7 +348,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
   // PATCH /orders/:id/status - Changer statut
   .patch(
     '/:id/status',
-    async ({ params, body, status }) => {
+    async ({ params, body, mail, status }) => {
       const [existing] = await db
         .select({ id: order.id, status: order.status })
         .from(order)
@@ -405,7 +407,7 @@ export const ordersRoutes = new Elysia({ prefix: '/orders', detail: { tags: ['Or
             .where(eq(shipment.order, params.id));
 
           if (customerData) {
-            await sendShipmentNotification({
+            await sendShipmentNotification(mail, {
               customerEmail: customerData.email,
               customerName: customerData.firstName ?? undefined,
               orderNumber: orderData.orderNumber,
