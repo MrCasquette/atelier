@@ -71,16 +71,21 @@ Le décalage vit dans **deux endroits, et deux seulement** :
   `ADMIN_PORT` à la racine) et le store. Chacun l'ajuste à sa machine ; `.env.example` ne le suit
   pas ;
 - **`compose.dev.yaml`**, la pile Docker construite depuis les sources, qui publie sur
-  `${API_PORT:-7533}` et `${ADMIN_PORT:-3212}`. Le port **interne** du conteneur reste `7532` —
-  c'est celui du `Dockerfile`, de son `EXPOSE` et de son healthcheck. Seul le mapping hôte se
-  décale, et un `.env` le surcharge.
+  `${API_PORT:-7533}`. Le port **interne** du conteneur reste `7532` — c'est celui du `Dockerfile`,
+  de son `EXPOSE` et de son healthcheck. Seul le mapping hôte se décale, et un `.env` le surcharge.
+
+> **Depuis [ADR-0052](../adr/ADR-0052-surfaces-exploitation-image-unique.md), le dashboard n'a plus
+> de port.** Il est servi par l'API sous `/-/admin` — une seule image, un seul port en production.
+> `ADMIN_PORT` ne sert plus qu'au serveur Vite du développement, et `3211` n'est donc plus un port
+> de produit. Ce fichier décrit encore l'allocation d'avant sur les autres points : les plages
+> elles-mêmes sont en cours de révision.
 
 Nulle part ailleurs. Les défauts en dur du code (`API_PORT ?? 7532` dans `src/index.ts`, les
 `|| 'http://localhost:7532'` de l'admin, `compose.yaml`, tout `packages/create-echoppe`) restent
 sur l'identité : ils décrivent le produit livré, pas le poste de travail.
 
 **Un consommateur à connaître** : `packages/echoppe-client/scripts/generate.ts` interroge
-`http://localhost:7533/docs/json` pour régénérer le SDK. Il vise donc l'API **des sources**, pas un
+`http://localhost:7533/-/docs/json` pour régénérer le SDK. Il vise donc l'API **des sources**, pas un
 conteneur. Override par `CONTRACT_API_URL` pour pointer ailleurs — c'est ce que fait le test
 d'intégration, qui vise l'API du conteneur.
 

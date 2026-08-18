@@ -68,14 +68,12 @@ jobs:
     strategy:
       matrix:
         include:
-          # API : binaire natif compilé → multi-arch réel (amd64 + arm64).
+          # UNE image : le binaire natif de l'API, qui sert aussi le dashboard sous /-/admin
+          # (ADR-0052). Multi-arch réel — le `dist` du dashboard est construit une seule fois
+          # sur la plateforme de build (`--platform=$BUILDPLATFORM`), donc plus d'amd64 seul
+          # ni d'émulation QEMU pour un résultat pourtant arch-indépendant.
           - target: api
             platforms: linux/amd64,linux/arm64
-          # Admin : site statique (caddy) → amd64 seul. Le build vite sous émulation arm64
-          # coûte ~4 min pour un résultat arch-indépendant ; l'image tourne en émulation
-          # négligeable sur un hôte arm64.
-          - target: admin
-            platforms: linux/amd64
 
     steps:
       - name: Checkout

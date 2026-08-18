@@ -38,7 +38,7 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://echoppe:${POSTGRES_PASSWORD:-echoppe}@db:5432/echoppe
-      ADMIN_URL: ${ADMIN_URL:-http://localhost:3211}
+      ADMIN_URL: ${ADMIN_URL:-http://localhost:7532/-/admin}
       STORE_URL: ${STORE_URL:-http://localhost:4321}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@echoppe.dev}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
@@ -53,15 +53,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-
-  admin:
-    image: ghcr.io/mrcasquette/echoppe-admin:${VERSION:-latest}
-    container_name: echoppe-admin
-    restart: unless-stopped
-    ports:
-      - '${ADMIN_PORT:-3211}:80'
-    depends_on:
-      - api
 
 volumes:
   echoppe-data:

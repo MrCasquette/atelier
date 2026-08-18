@@ -45,7 +45,7 @@ services:
       DATABASE_URL: postgresql://echoppe:echoppe@postgres:5432/echoppe
       ENCRYPTION_KEY: ${ENCRYPTION_KEY} # requis au boot (garde env) ; source .env
       REDIS_URL: redis://redis:6379
-      ADMIN_URL: ${ADMIN_URL:-http://localhost:3212}
+      ADMIN_URL: ${ADMIN_URL:-http://localhost:7533/-/admin}
       STORE_URL: ${STORE_URL:-http://localhost:3142}
       UPLOAD_DIR: /app/uploads
     # Port HÔTE décalé : les ports d'identité (7532/3211/3141) appartiennent aux images publiées
@@ -60,20 +60,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-
-  admin:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: admin
-      args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:7533}
-    container_name: echoppe-admin
-    restart: unless-stopped
-    ports:
-      - '${ADMIN_PORT:-3212}:80'
-    depends_on:
-      - api
 
 volumes:
   echoppe-data:

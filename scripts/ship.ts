@@ -4,7 +4,7 @@
 // Packages » ; son merge publie l'unité (npm pour un paquet, images + tag `v*` pour le runtime).
 //
 // Unités indépendantes :
-//   runtime → @echoppe/api (+ admin, paire fixed)  → images Docker + tag/Release git `v*`
+//   runtime → @echoppe/api (+ admin, paire fixed)  → image Docker + tag/Release git `v*`
 //   sdk     → @echoppe/client                       → npm (pas de tag git)
 //   content → @mrcasquette/content                      → npm
 //   cli     → create-echoppe                        → npm

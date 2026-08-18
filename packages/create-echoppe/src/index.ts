@@ -43,9 +43,9 @@ POSTGRES_USER=echoppe
 POSTGRES_PASSWORD=echoppe
 POSTGRES_DB=echoppe
 
-# ─── Ports exposés sur l'hôte ───────────────────────────────────────────
+# ─── Port exposé sur l'hôte ────────────────────────────────────────────
+# Un seul : le dashboard est servi par l'API sous /-/admin.
 API_PORT=7532
-ADMIN_PORT=3211
 
 # URL publique du front, transmise à l'API (CORS / liens absolus).
 STORE_URL=http://localhost:4321
@@ -165,8 +165,9 @@ async function main(): Promise<void> {
     [
       `cd ${projectName}`,
       '',
-      '# Backend (API + Admin + DB) — renseignez ADMIN_EMAIL/PASSWORD dans .env',
+      '# Backend (API + DB) — renseignez ADMIN_EMAIL/PASSWORD dans .env',
       'docker compose up -d',
+      `# Administration : ${apiUrl}/-/admin`,
       '',
       '# Front Astro',
       'pnpm install',

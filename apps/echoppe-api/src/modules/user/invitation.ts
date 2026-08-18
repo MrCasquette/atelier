@@ -10,8 +10,12 @@ import { db, eq, sendUserInvitationEmail, session, user, userPasswordToken } fro
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 const PASSWORD_COST = { algorithm: 'bcrypt', cost: 10 } as const;
 
-/** Là où le destinataire pose son mot de passe — un écran de l'administration. */
-const ADMIN_URL = (process.env.ADMIN_URL || 'http://localhost:3211').replace(/\/+$/, '');
+/**
+ * Là où le destinataire pose son mot de passe — un écran de l'administration. Le dashboard étant
+ * servi par l'API sous `/-/admin` (ADR-0052), `ADMIN_URL` porte désormais ce chemin, pas un port
+ * à part.
+ */
+const ADMIN_URL = (process.env.ADMIN_URL || 'http://localhost:7532/-/admin').replace(/\/+$/, '');
 const INVITATION_PATH = '/invitation';
 
 const sha256 = (value: string): string => createHash('sha256').update(value).digest('hex');

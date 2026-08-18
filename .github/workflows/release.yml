@@ -104,7 +104,7 @@ jobs:
           git tag "v${VERSION}"
           git push origin "v${VERSION}"
           gh release create "v${VERSION}" --title "v${VERSION}" --verify-tag --latest \
-            --notes "Échoppe ${VERSION} — images \`echoppe-api\`/\`echoppe-admin:${VERSION}\`."
+            --notes "Échoppe ${VERSION} — image \`echoppe-api:${VERSION}\` (dashboard inclus, /-/admin)."
 
   # Images à la version runtime — gate T2–T5 inclus (aucune image cassée ne part). Construit
   # UNIQUEMENT si le runtime a été bumpé (un release npm-seul ne rebâtit pas d'image).
