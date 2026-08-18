@@ -149,7 +149,7 @@ export const auditLogsRoutes = new Elysia({ prefix: '/audit-logs', detail: { tag
         .from(auditLog)
         .where(isNotNull(auditLog.entityType));
 
-      return types.filter((t) => t.entityType).map((t) => t.entityType as string);
+      return types.flatMap((t) => (t.entityType ? [t.entityType] : []));
     },
     {
       permission: true,

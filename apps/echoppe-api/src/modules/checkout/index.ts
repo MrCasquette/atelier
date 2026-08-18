@@ -5,7 +5,7 @@ import { faultBody } from '../../lib/fault';
 import { checkoutRateLimitOptions } from '../../lib/rate-limit';
 import { errorSchema, withReadErrors } from '../../lib/response';
 import { models } from '../../model';
-import { customerAuthPlugin, type SessionCustomer } from '../auth/customer-session';
+import { customerAuthPlugin } from '../auth/customer-session';
 import {
   calculateOrderTotals,
   createAddressSnapshot,
@@ -77,7 +77,7 @@ export const checkoutRoutes = new Elysia({
   .post(
     '/',
     async ({ body, currentCustomer, status }) => {
-      const customer = currentCustomer as SessionCustomer;
+      const customer = currentCustomer;
 
       // 1. Validate URLs
       const rejectedUrl = rejectedRedirectField(body.successUrl, body.cancelUrl);

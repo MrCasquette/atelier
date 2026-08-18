@@ -5,7 +5,6 @@ import { models } from '../../model';
 import {
   customerAuthPlugin,
   customerCookieSchema,
-  type SessionCustomer,
 } from '../auth/customer-session';
 
 // Compte client (données du profil) — distinct de `customer-auth` (credentials/session).
@@ -26,7 +25,7 @@ export const customerAccountRoutes = new Elysia({
   .patch(
     '/profile',
     async ({ body, currentCustomer }) => {
-      const c = currentCustomer as SessionCustomer;
+      const c = currentCustomer;
 
       const updates: Partial<typeof customer.$inferInsert> = { dateUpdated: new Date() };
       if (body.firstName !== undefined) updates.firstName = body.firstName;

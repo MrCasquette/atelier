@@ -7,7 +7,6 @@ import { models } from '../../model';
 import {
   customerAuthPlugin,
   customerCookieSchema,
-  type SessionCustomer,
 } from '../auth/customer-session';
 import { imageRef, loadMediaDimensions } from '../media/image-ref';
 
@@ -25,7 +24,7 @@ export const wishlistRoutes = new Elysia({ prefix: '/wishlist', detail: { tags: 
   .get(
     '/',
     async ({ currentCustomer }) => {
-      const customer = currentCustomer as SessionCustomer;
+      const customer = currentCustomer;
 
       const rows = await db
         .select({
@@ -83,7 +82,7 @@ export const wishlistRoutes = new Elysia({ prefix: '/wishlist', detail: { tags: 
   .post(
     '/',
     async ({ currentCustomer, body, status }) => {
-      const customer = currentCustomer as SessionCustomer;
+      const customer = currentCustomer;
 
       const [exists] = await db
         .select({ id: variant.id })
@@ -110,7 +109,7 @@ export const wishlistRoutes = new Elysia({ prefix: '/wishlist', detail: { tags: 
   .delete(
     '/:variantId',
     async ({ currentCustomer, params }) => {
-      const customer = currentCustomer as SessionCustomer;
+      const customer = currentCustomer;
       await db
         .delete(wishlistItem)
         .where(

@@ -22,7 +22,6 @@ import {
   CUSTOMER_COOKIE_NAME,
   customerAuthPlugin,
   customerCookieSchema,
-  type SessionCustomer,
 } from './customer-session';
 
 // Les réponses sont des modèles nommés (src/models/customer.ts → module `customer`), référencés par nom :
@@ -239,7 +238,7 @@ export const customerAuthRoutes = new Elysia({
   .post(
     '/password',
     async ({ body, cookie, currentCustomer, status }) => {
-      const c = currentCustomer as SessionCustomer;
+      const c = currentCustomer;
 
       const result = await changeCustomerPassword(c.id, body, cookie[CUSTOMER_COOKIE_NAME].value);
 

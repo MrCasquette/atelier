@@ -54,7 +54,7 @@ export const collectionsRoutes = new Elysia({
     async ({ query, cookie, headers }) => {
       const { page, limit, offset } = getPaginationParams(query);
       const all = await isPrivilegedRequest(
-        cookie as Record<string, { value?: string }>,
+        cookie,
         headers.authorization,
       );
       const visible = visibilityFilter(collection.isVisible, all);
@@ -83,7 +83,7 @@ export const collectionsRoutes = new Elysia({
     '/:id',
     async ({ params, status, cookie, headers }) => {
       const all = await isPrivilegedRequest(
-        cookie as Record<string, { value?: string }>,
+        cookie,
         headers.authorization,
       );
       const [found] = await db
@@ -104,7 +104,7 @@ export const collectionsRoutes = new Elysia({
     '/by-slug/:slug',
     async ({ params, status, cookie, headers }) => {
       const all = await isPrivilegedRequest(
-        cookie as Record<string, { value?: string }>,
+        cookie,
         headers.authorization,
       );
       const [found] = await db
@@ -125,7 +125,7 @@ export const collectionsRoutes = new Elysia({
     '/:id/products',
     async ({ params, query, status, cookie, headers }) => {
       const all = await isPrivilegedRequest(
-        cookie as Record<string, { value?: string }>,
+        cookie,
         headers.authorization,
       );
       const [collectionExists] = await db

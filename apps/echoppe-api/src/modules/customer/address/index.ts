@@ -8,7 +8,6 @@ import { models } from '../../../model';
 import {
   customerAuthPlugin,
   customerCookieSchema,
-  type SessionCustomer,
 } from '../../auth/customer-session';
 
 // Schéma d'entité adresse (Address, AddressList) → src/models/address.ts
@@ -40,7 +39,7 @@ export const customerAddressesRoutes = new Elysia({
   .get(
     '/',
     async ({ currentCustomer }) => {
-      const customer = currentCustomer as SessionCustomer;
+      const customer = currentCustomer;
 
       const addresses = await db
         .select({
@@ -79,7 +78,7 @@ export const customerAddressesRoutes = new Elysia({
   .get(
     '/:id',
     async ({ params, currentCustomer, status }) => {
-      const customer = currentCustomer as SessionCustomer;
+      const customer = currentCustomer;
 
       const [addressData] = await db
         .select({
@@ -123,7 +122,7 @@ export const customerAddressesRoutes = new Elysia({
   .post(
     '/',
     async ({ body, currentCustomer, status }) => {
-      const customer = currentCustomer as SessionCustomer;
+      const customer = currentCustomer;
 
       // Verify country exists
       const [countryData] = await db
@@ -191,7 +190,7 @@ export const customerAddressesRoutes = new Elysia({
   .put(
     '/:id',
     async ({ params, body, currentCustomer, status }) => {
-      const customer = currentCustomer as SessionCustomer;
+      const customer = currentCustomer;
 
       // Check address belongs to customer
       const [existing] = await db
@@ -270,7 +269,7 @@ export const customerAddressesRoutes = new Elysia({
   .delete(
     '/:id',
     async ({ params, currentCustomer, status }) => {
-      const customer = currentCustomer as SessionCustomer;
+      const customer = currentCustomer;
 
       // Check address belongs to customer
       const [existing] = await db

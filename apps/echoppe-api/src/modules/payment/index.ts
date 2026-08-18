@@ -15,7 +15,7 @@ import { faultBody } from '../../lib/fault';
 import { webhookRateLimitOptions } from '../../lib/rate-limit';
 import { errorSchema, successSchema } from '../../lib/response';
 import { models } from '../../model';
-import { customerAuthPlugin, type SessionCustomer } from '../auth/customer-session';
+import { customerAuthPlugin } from '../auth/customer-session';
 import { permissionGuard } from '../auth/rbac';
 import { rejectedRedirectField } from '../checkout/url-validation';
 
@@ -208,7 +208,7 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
   .post(
     '/checkout',
     async ({ body, currentCustomer, status }) => {
-      const customerData = currentCustomer as SessionCustomer;
+      const customerData = currentCustomer;
 
       // Validate redirect URLs (prevent open redirect)
       const rejectedUrl = rejectedRedirectField(body.successUrl, body.cancelUrl);
@@ -446,7 +446,17 @@ export const paymentsRoutes = new Elysia({ prefix: '/payments', detail: { tags: 
         throw new Error(`Completed payment ${paymentData.id} has no providerTransactionId`);
       }
 
-      const adapter = getPaymentAdapter(paymentData.provider as PaymentProvider);
+      // La colonne accepte quatre providers, deux seulement ont un adapter : un virement ou un
+      // chèque se rembourse hors ligne. L'affirmation envoyait ces deux-là dans `getPaymentAdapter`,
+      // qui lève « Unknown provider » — une 500 là où c'est un refus métier parfaitement clair.
+      if (!isPaymentProvider(paymentData.provider)) {
+        return status(
+          400,
+          faultBody(faults.invalidState('payment', paymentData.provider, 'stripe|paypal')),
+        );
+      }
+
+      const adapter = getPaymentAdapter(paymentData.provider);
       const amountCents = body.amount ? Math.round(body.amount * 100) : undefined;
 
       const result = await adapter.refund(paymentData.providerTransactionId, amountCents);

@@ -2,6 +2,7 @@ import { faults } from '@echoppe/core';
 import { getSessionFromToken } from '@repo/auth';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../lib/fault';
+import { cookieValue } from '../../lib/cookie';
 
 // Ce qui reste du transport : le nom du cookie, son schéma, et la macro qui refuse en 401. La
 // lecture de session vit dans `@repo/auth` (ADR-0044).
@@ -21,7 +22,7 @@ export const cookieSchema = t.Cookie({
 export const authPlugin = new Elysia({ name: 'auth' }).macro({
   auth: {
     async resolve({ cookie, request, status }) {
-      const token = (cookie as Record<string, { value?: string }>)[COOKIE_NAME]?.value;
+      const token = cookieValue(cookie, COOKIE_NAME);
       const sessionData = await getSessionFromToken(token);
 
       if (!sessionData.isAuthenticated) {

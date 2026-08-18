@@ -24,6 +24,7 @@ import {
   type SessionCustomer,
 } from './customer-session';
 import { COOKIE_NAME } from './session';
+import { readableCookies } from '../../lib/cookie';
 
 export type { PermissionSet };
 
@@ -211,7 +212,7 @@ export function isFirstRank(principal: EchoppePrincipal): boolean {
  * dupliquer l'endpoint quand seule la visibilité des lignes diffère.
  */
 export async function isPrivilegedRequest(
-  cookie: Record<string, { value?: string }>,
+  cookie: Record<string, { value?: unknown }>,
   authHeader?: string,
 ): Promise<boolean> {
   const principal = await getPrincipal(cookie, authHeader);
@@ -222,10 +223,10 @@ export async function isPrivilegedRequest(
  * Résout le principal de la requête via le registre.
  */
 export async function getPrincipal(
-  cookie: Record<string, { value?: string }>,
+  cookie: Record<string, { value?: unknown }>,
   authHeader?: string,
 ): Promise<EchoppePrincipal> {
-  const request: PrincipalRequest = { cookie, authHeader };
+  const request: PrincipalRequest = { cookie: readableCookies(cookie), authHeader };
   return principals.resolve(request);
 }
 
@@ -276,7 +277,7 @@ export function entityPermissionGuard(action: Action) {
           params && typeof params === 'object' && 'name' in params ? String(params.name) : '';
 
         const principal = await getPrincipal(
-          cookie as Record<string, { value?: string }>,
+          cookie,
           headers.authorization,
         );
 
@@ -314,7 +315,7 @@ export function permissionGuard(
     permission: {
       async resolve({ cookie, headers, status }) {
         const principal = await getPrincipal(
-          cookie as Record<string, { value?: string }>,
+          cookie,
           headers.authorization,
         );
 

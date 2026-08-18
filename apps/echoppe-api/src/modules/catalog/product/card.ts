@@ -23,12 +23,20 @@ interface Swatch {
   image: ImageRef | null; // média de la variante portant cette couleur, si défini
 }
 
-const emptyCard = {
-  featuredImage: null as ImageRef | null,
+interface CardExtras {
+  featuredImage: ImageRef | null;
+  defaultVariant: null;
+  images: ImageRef[];
+  swatches: Swatch[];
+  tags: string[];
+}
+
+const emptyCard: CardExtras = {
+  featuredImage: null,
   defaultVariant: null,
-  images: [] as ImageRef[],
-  swatches: [] as Swatch[],
-  tags: [] as string[],
+  images: [],
+  swatches: [],
+  tags: [],
 };
 
 // Sérialise une couleur oklch stockée en chaîne CSS rendue par le navigateur (gamut-mappée).

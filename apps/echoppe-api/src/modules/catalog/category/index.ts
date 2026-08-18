@@ -67,7 +67,7 @@ export const categoriesRoutes = new Elysia({
     '/',
     async ({ cookie, headers }) => {
       const all = await isPrivilegedRequest(
-        cookie as Record<string, { value?: string }>,
+        cookie,
         headers.authorization,
       );
       return db
@@ -84,7 +84,7 @@ export const categoriesRoutes = new Elysia({
     '/:id',
     async ({ params, status, cookie, headers }) => {
       const all = await isPrivilegedRequest(
-        cookie as Record<string, { value?: string }>,
+        cookie,
         headers.authorization,
       );
       const [found] = await db
@@ -105,7 +105,7 @@ export const categoriesRoutes = new Elysia({
     '/by-slug/:slug',
     async ({ params, status, cookie, headers }) => {
       const all = await isPrivilegedRequest(
-        cookie as Record<string, { value?: string }>,
+        cookie,
         headers.authorization,
       );
       const [found] = await db
@@ -126,7 +126,7 @@ export const categoriesRoutes = new Elysia({
     '/:id/products',
     async ({ params, query, status, cookie, headers }) => {
       const all = await isPrivilegedRequest(
-        cookie as Record<string, { value?: string }>,
+        cookie,
         headers.authorization,
       );
       const [categoryExists] = await db

@@ -2,6 +2,7 @@ import { legalEntity, site } from '@repo/identity';
 import { db } from '@repo/db';
 import type { SerializedField } from '@repo/fields';
 import { loadRegistry } from '@repo/pages';
+import { isRecord } from '@repo/shared';
 
 // Interpolation de variables dans le contenu (ADR-0035, V1 humble).
 //
@@ -59,7 +60,11 @@ const VARIABLE_SOURCES = {
 /** Le jeu exposé, en union — SSOT unique (ADR-0035). */
 export type ContentVariable = keyof typeof VARIABLE_SOURCES;
 
-export const CONTENT_VARIABLES = Object.keys(VARIABLE_SOURCES) as ContentVariable[];
+// `Object.keys` rend `string[]` : c'est une limite de sa signature, pas une inconnue. Les clés
+// sont énumérées à partir du Record qui les déclare, ce qui reste exhaustif par construction.
+export const CONTENT_VARIABLES: ContentVariable[] = Object.keys(VARIABLE_SOURCES).filter(
+  (key): key is ContentVariable => key in VARIABLE_SOURCES,
+);
 
 // `{{ nom.chemin }}`, espaces tolérés. Rien d'autre : pas d'argument, pas de filtre, pas d'appel.
 const PLACEHOLDER = /\{\{\s*([a-z][a-zA-Z0-9_]*(?:\.[a-zA-Z0-9_]+)*)\s*\}\}/g;
@@ -127,9 +132,9 @@ function interpolateFields(
   fields: readonly SerializedField[],
   context: Context,
 ): unknown {
-  if (data === null || typeof data !== 'object' || Array.isArray(data)) return data;
+  if (!isRecord(data)) return data;
 
-  const source = data as Record<string, unknown>;
+  const source = data;
   const result: Record<string, unknown> = { ...source };
 
   // La DÉCLARATION est une séquence (ADR-0049), la DONNÉE reste indexée par nom de champ : on

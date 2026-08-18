@@ -122,10 +122,10 @@ export const rolesRoutes = new Elysia({ prefix: '/roles', detail: { tags: ['Role
     async ({ principal }) => {
       const entities = Object.values(await loadEntities()).map((declaration) => ({
         name: entityResourceName(declaration.name),
-        label: declaration.label as string | null,
+        label: declaration.label ?? null,
       }));
       const framework = Object.values(RESOURCES).map((name) => ({
-        name: name as string,
+        name,
         label: null,
       }));
 

@@ -2,6 +2,7 @@ import { customer, customerSession, faults } from '@echoppe/core';
 import { and, db, eq, gt } from '@repo/db';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../lib/fault';
+import { cookieValue } from '../../lib/cookie';
 
 export const CUSTOMER_COOKIE_NAME = 'echoppe_customer_session';
 
@@ -18,19 +19,29 @@ export type SessionCustomer = {
   emailVerified: boolean;
 };
 
-export type CustomerAuthContext = {
-  currentCustomer: SessionCustomer | null;
-  isAuthenticated: boolean;
-};
-
-type SessionWithMeta = CustomerAuthContext & {
-  storedUserAgent: string | null;
-  storedIpAddress: string | null;
-};
+/**
+ * Union discriminée, et non un objet à champs nullables : la macro refuse en 401 quand la session
+ * est absente, mais son type l'annonçait quand même `| null`. Quinze contrôleurs affirmaient donc
+ * en aval ce que la garde avait déjà établi. `isAuthenticated` porte la garantie, TypeScript la
+ * propage, et plus personne n'a rien à affirmer.
+ */
+export type CustomerAuthContext =
+  | {
+      isAuthenticated: false;
+      currentCustomer: null;
+      storedUserAgent: null;
+      storedIpAddress: null;
+    }
+  | {
+      isAuthenticated: true;
+      currentCustomer: SessionCustomer;
+      storedUserAgent: string | null;
+      storedIpAddress: string | null;
+    };
 
 export async function getCustomerSessionFromToken(
   token: string | undefined,
-): Promise<SessionWithMeta> {
+): Promise<CustomerAuthContext> {
   if (!token) {
     return {
       currentCustomer: null,
@@ -69,7 +80,7 @@ export async function getCustomerSessionFromToken(
   }
 
   return {
-    currentCustomer: sessionData.customer as SessionCustomer,
+    currentCustomer: sessionData.customer,
     isAuthenticated: true,
     storedUserAgent: sessionData.session.userAgent,
     storedIpAddress: sessionData.session.ipAddress,
@@ -79,7 +90,7 @@ export async function getCustomerSessionFromToken(
 export const customerAuthPlugin = new Elysia({ name: 'customerAuth' }).macro({
   customerAuth: {
     async resolve({ cookie, request, status }) {
-      const token = (cookie as Record<string, { value?: string }>)[CUSTOMER_COOKIE_NAME]?.value;
+      const token = cookieValue(cookie, CUSTOMER_COOKIE_NAME);
       const session = await getCustomerSessionFromToken(token);
 
       if (!session.isAuthenticated) {

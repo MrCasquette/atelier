@@ -42,7 +42,7 @@ export const entityMineRoutes = new Elysia({
     '/mine',
     async ({ cookie, headers, status }) => {
       const principal = await getPrincipal(
-        cookie as Record<string, { value?: string }>,
+        cookie,
         headers.authorization,
       );
 

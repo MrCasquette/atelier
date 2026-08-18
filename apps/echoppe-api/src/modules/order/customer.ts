@@ -8,7 +8,6 @@ import { models } from '../../model';
 import {
   customerAuthPlugin,
   customerCookieSchema,
-  type SessionCustomer,
 } from '../auth/customer-session';
 
 // Espace commandes du client connecté (lecture seule). Chaque requête est filtrée sur
@@ -28,7 +27,7 @@ export const customerOrdersRoutes = new Elysia({
   .get(
     '/',
     async ({ query, currentCustomer }) => {
-      const customer = currentCustomer as SessionCustomer;
+      const customer = currentCustomer;
       const { page, limit, offset } = getPaginationParams(query);
 
       const [orders, countResult] = await Promise.all([
@@ -67,7 +66,7 @@ export const customerOrdersRoutes = new Elysia({
   .get(
     '/:id',
     async ({ params, currentCustomer, status }) => {
-      const customer = currentCustomer as SessionCustomer;
+      const customer = currentCustomer;
 
       const [orderData] = await db
         .select({
