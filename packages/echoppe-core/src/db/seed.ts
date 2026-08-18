@@ -3,31 +3,26 @@ import { mkdir, readdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { db } from '@repo/db';
 import { eq } from 'drizzle-orm';
+import { folder, media } from '@repo/assets';
+import { permission, role, user } from '@repo/auth';
+import { country, legalEntity, site } from '@repo/identity';
 import {
   type ColorMetadata,
   category,
-  country,
   customer,
-  folder,
-  legalEntity,
-  media,
   option,
   optionValue,
   order,
   orderItem,
   payment,
-  permission,
   product,
   productMedia,
   productOption,
-  role,
   shipment,
   shippingCountry,
   shippingProvider,
-  site,
   stockMove,
   taxRate,
-  user,
   variant,
   variantOptionValue,
 } from './schema';

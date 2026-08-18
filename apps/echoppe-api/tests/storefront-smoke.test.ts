@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { db, eq, option, optionValue } from '@echoppe/core';
+import { option, optionValue } from '@echoppe/core';
+import { db, eq } from '@repo/db';
 import { app } from '../src/app';
 import { migrate, requireDisposableDb } from './harness';
 

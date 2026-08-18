@@ -15,20 +15,25 @@ deux produits. Prisme aura le sien.
 - **Les services** — facturation, calculs de commande.
 - **Les migrations**, y compris celles des tables livrées par les paquets partagés.
 
-## Le barrel de schémas, et la dette qu'il porte
+## Le manifeste de migration, et pourquoi il est seul à énumérer
 
-`src/db/schema/index.ts` réexporte les tables de sept paquets partagés — `@repo/assets`,
+Le cœur embarque dans SES migrations les tables de sept paquets partagés — `@repo/assets`,
 `@repo/auth`, `@repo/identity`, `@repo/menus`, `@repo/pages`, `@repo/entities`,
-`@repo/communication`. C'est **volontaire et nécessaire** : le cœur les inclut dans son barrel, donc
-dans ses migrations, et `drizzle.config.ts` ne lit que ce barrel.
+`@repo/communication`. Drizzle ne migre que ce qu'il voit depuis un point d'entrée unique : cette
+énumération est donc **nécessaire**, et elle vit dans `src/db/schema/migrations.ts`, seul fichier
+que `drizzle.config.ts` lit.
 
-Mais ce barrel réexporte aussi vers le reste du code, et là c'est une dette mesurée : l'API compte
-**61 imports de `@echoppe/core` contre 29 de `@repo/*`**, et **46 usages de symboles vivant dans un
-paquet partagé** y entrent par ce raccourci. Une frontière que personne n'emprunte cesse d'être
-vraie. Le geste — faire tomber le barrel de réexport hors du besoin de migration — est tracé dans
-[le backlog socle](../../docs-internal/backlog/shared.md), section « Architecture et contrats ».
+Ce fichier n'est **pas** dans les `exports` du paquet. C'est délibéré : rien ne peut l'importer,
+donc il ne peut pas redevenir un raccourci. Le barrel visible, `src/db/schema/index.ts`, n'expose
+que les tables du cœur.
 
-**En attendant : importer une table partagée depuis son paquet, pas depuis le cœur.**
+Ce partage règle une dette qui était mesurée : 54 symboles de paquets partagés entraient par le
+cœur — `db` dans 75 fichiers, `eq` dans 53, `user` dans 17. L'API consommait `@repo/db` et
+`@repo/assets` sans même les déclarer. Une frontière que personne n'emprunte cesse d'être vraie.
+
+**Une capacité partagée s'importe depuis son paquet, jamais depuis le cœur** — et ce n'est plus une
+consigne : `bun run core-passthrough` échoue sur tout réexport atteignable depuis un point d'entrée
+déclaré.
 
 ## Slicing horizontal, assumé et daté
 

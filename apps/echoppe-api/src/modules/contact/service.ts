@@ -1,4 +1,6 @@
-import { db, sendContactFormEmail, site } from '@echoppe/core';
+import { site } from '@repo/identity';
+import { sendContactFormEmail } from '@repo/communication';
+import { db } from '@repo/db';
 
 // Logique du formulaire de contact, sans rien savoir du transport. Les quatre issues sont des
 // valeurs de retour, pas des exceptions ni des codes HTTP : c'est le controller qui les traduit

@@ -1,88 +1,9 @@
 // @echoppe/core — le cœur du produit Échoppe : il possède la base et ses migrations (ADR-0025).
 //
-// Ce barrel réexporte des symboles de sept paquets partagés. Ne pas s'en servir comme raccourci :
-// une table partagée s'importe depuis SON paquet. Voir README.md.
+// Ce barrel n'exporte QUE ce qui appartient au cœur. Une capacité partagée s'importe depuis SON
+// paquet — `db` et le vocabulaire de requête depuis `@repo/db`, l'envoi depuis
+// `@repo/communication`, le chiffrement depuis `@repo/shared`. C'est gardé, pas seulement écrit.
 
-// Vocabulaire de requête — vient de @repo/db, réexporté pour ne pas changer la surface.
-
-// Abstraction d'injection des credentials (DIP) partagée par les familles d'adapters
-export type { CredentialStore } from '@repo/adapters';
-// Communication adapters
-// Envoi d'e-mails générique — @repo/communication (ADR-0033)
-export {
-  BrevoAdapter,
-  type BrevoCredentials,
-  COMMUNICATION_PROVIDERS,
-  // Types
-  type CommunicationAdapter,
-  type CommunicationConfig,
-  type CommunicationProvider,
-  type ContactFormEmailData,
-  type EmailMessage,
-  type EmailResult,
-  type EmailStatus,
-  type EmailTemplate,
-  getActiveCommunicationAdapter,
-  getAllProvidersStatus as getAllCommunicationProvidersStatus,
-  getAvailableCommunicationProviders,
-  // Factory
-  getCommunicationAdapter,
-  getProviderConfig as getCommunicationProviderConfig,
-  // Config (renamed to avoid conflicts)
-  getProviderCredentials as getCommunicationProviderCredentials,
-  getProviderStatus as getCommunicationProviderStatus,
-  isCommunicationProvider,
-  // Adapters
-  ResendAdapter,
-  type ResendCredentials,
-  type ResetPasswordEmailData,
-  // Templates
-  renderTemplate,
-  resetCommunicationAdapters,
-  type SendEmailParams,
-  type SendResult,
-  SmtpAdapter,
-  type SmtpCredentials,
-  saveProviderCredentials as saveCommunicationProviderCredentials,
-  sendContactFormEmail,
-  sendEmail,
-  sendResetPasswordEmail,
-  sendUserInvitationEmail,
-  setProviderEnabled as setCommunicationProviderEnabled,
-  type UserInvitationEmailData,
-} from '@repo/communication';
-export type { Column, SQL } from '@repo/db';
-// Connexion et runner de migrations : @repo/db (ADR-0025). Réexportés ici pour que la surface
-// d'@echoppe/core ne bouge pas — les routes continuent d'écrire `import { product, db, eq }`.
-export {
-  and,
-  asc,
-  client,
-  count,
-  type Database,
-  db,
-  desc,
-  eq,
-  getTableName,
-  gt,
-  gte,
-  ilike,
-  inArray,
-  isNotNull,
-  isNull,
-  like,
-  lt,
-  lte,
-  ne,
-  notInArray,
-  or,
-  runMigrations,
-  sql,
-} from '@repo/db';
-// Contrat de faute (ADR-0050) : la forme vient du socle, le vocabulaire se ferme ici.
-export type { ErrorResponse, Fault, FaultCode } from '@repo/shared';
-// Utils
-export { decrypt, encrypt, generateEncryptionKey, isEncryptionConfigured } from '@repo/shared';
 // Payment adapters
 export * from './adapters/payment';
 // Shipping adapters

@@ -1,4 +1,5 @@
-import { type Action, faults, type ProtectedResource, RESOURCES } from '@echoppe/core';
+import { faults, type ProtectedResource, RESOURCES } from '@echoppe/core';
+import type { Action } from '@repo/auth';
 import {
   type Authority,
   createPrincipalRegistry,

@@ -1,12 +1,6 @@
-import {
-  country,
-  db,
-  eq,
-  legalEntity,
-  readStoreSettings,
-  saveStoreSettings,
-  site,
-} from '@echoppe/core';
+import { readStoreSettings, saveStoreSettings } from '@echoppe/core';
+import { country, legalEntity, site } from '@repo/identity';
+import { db, eq } from '@repo/db';
 
 // Logique de l'identité du site et de l'entité légale (ADR-0040), sans rien savoir du transport.
 //

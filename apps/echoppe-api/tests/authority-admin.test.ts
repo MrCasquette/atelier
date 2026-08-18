@@ -1,7 +1,9 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { db, entityDefinition, eq, role, session, sql, user } from '@echoppe/core';
+import { role, session, user } from '@repo/auth';
+import { entityDefinition } from '@repo/entities';
+import { db, eq, sql } from '@repo/db';
 import { invalidatePermissionCache, invalidateSystemRoleCache } from '@repo/auth';
 import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 

@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { db, entityDefinition, sql } from '@echoppe/core';
+import { entityDefinition } from '@repo/entities';
+import { db, sql } from '@repo/db';
 import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // Clés étrangères d'une entité (ADR-0045).

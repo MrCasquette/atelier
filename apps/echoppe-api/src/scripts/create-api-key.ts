@@ -1,5 +1,6 @@
 import { parseArgs } from 'node:util';
-import { apiKey, db } from '@echoppe/core';
+import { apiKey } from '@repo/auth';
+import { db } from '@repo/db';
 import { generateApiKey, isValidScope } from '../modules/api-key/service';
 
 // Commande serveur d'AMORÇAGE d'une clé d'API (P2b) — accès DB direct, sans HTTP ni cookie.

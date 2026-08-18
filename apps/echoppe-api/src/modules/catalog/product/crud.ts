@@ -1,15 +1,5 @@
-import {
-  db,
-  eq,
-  faults,
-  option,
-  optionValue,
-  personalizationField,
-  product,
-  productOption,
-  variant,
-  variantOptionValue,
-} from '@echoppe/core';
+import { faults, option, optionValue, personalizationField, product, productOption, variant, variantOptionValue } from '@echoppe/core';
+import { db, eq } from '@repo/db';
 import { slugify } from '@repo/shared';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../../lib/fault';

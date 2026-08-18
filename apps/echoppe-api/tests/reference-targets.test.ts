@@ -1,5 +1,7 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { db, eq, menu, page } from '@echoppe/core';
+import { menu } from '@repo/menus';
+import { page } from '@repo/pages';
+import { db, eq } from '@repo/db';
 import { createAdminSession, getJson, migrate, req, requireDisposableDb } from './harness';
 
 // Filet posé AVEC l'ouverture de `RefTarget` en registre (ADR-0032, #8).

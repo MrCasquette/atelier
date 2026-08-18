@@ -1,7 +1,7 @@
 import './env'; // garde-fou config — DOIT précéder tout import de @echoppe/core / ./app (cf. env.ts)
 import { fileURLToPath } from 'node:url';
-import { db, runMigrations } from '@echoppe/core';
-import { user } from '@echoppe/core/db/schema';
+import { db, runMigrations } from '@repo/db';
+import { user } from '@repo/auth';
 import { app } from './app';
 import { cleanupExpiredOrders } from './jobs/cleanup-expired-orders';
 import { syncEntityReferences } from './modules/reference/sync';

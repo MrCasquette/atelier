@@ -1,5 +1,7 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { db, entityDefinition, permission, role, session, sql, user } from '@echoppe/core';
+import { permission, role, session, user } from '@repo/auth';
+import { entityDefinition } from '@repo/entities';
+import { db, sql } from '@repo/db';
 import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // Le chemin d'ADR-0027 : le dev déclare, la CLI pousse, l'API dérive la table. Ce qui se vérifie

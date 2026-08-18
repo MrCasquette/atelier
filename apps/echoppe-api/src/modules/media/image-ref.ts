@@ -1,4 +1,5 @@
-import { db, inArray, media } from '@echoppe/core';
+import { media } from '@repo/assets';
+import { db, inArray } from '@repo/db';
 
 // Référence image storefront : UUID du média + ses dimensions intrinsèques (pixels). Le framework
 // n'optimise PAS les images (pas de resize serveur) — il expose l'original ET ses dimensions, à

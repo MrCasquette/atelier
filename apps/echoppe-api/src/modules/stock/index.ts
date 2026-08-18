@@ -1,4 +1,5 @@
-import { db, desc, eq, faults, product, sql, stockMove, variant } from '@echoppe/core';
+import { faults, product, stockMove, variant } from '@echoppe/core';
+import { db, desc, eq, sql } from '@repo/db';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../lib/fault';
 import {

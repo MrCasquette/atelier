@@ -1,4 +1,6 @@
-import { apiKey, asc, db, eq, faults } from '@echoppe/core';
+import { faults } from '@echoppe/core';
+import { apiKey } from '@repo/auth';
+import { asc, db, eq } from '@repo/db';
 import { undelegatableScopes } from '@repo/auth';
 import { listEntityNames } from '@repo/entities';
 import { Elysia, t } from 'elysia';

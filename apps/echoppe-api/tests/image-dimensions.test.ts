@@ -1,5 +1,7 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { db, media, product, productMedia, variant } from '@echoppe/core';
+import { product, productMedia, variant } from '@echoppe/core';
+import { media } from '@repo/assets';
+import { db } from '@repo/db';
 import { ensureCategory, ensureTaxRate, getJson, migrate, requireDisposableDb } from './harness';
 
 // Verrou B5 (dimensions image storefront) : le framework n'optimise PAS les images (pas de resize

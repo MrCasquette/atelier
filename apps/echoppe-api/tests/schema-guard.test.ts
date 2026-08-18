@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { db, permission, role, session, user } from '@echoppe/core';
+import { permission, role, session, user } from '@repo/auth';
+import { db } from '@repo/db';
 import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // `PUT /content/registry` était gardé par `content:update` — le droit d'ÉDITER.

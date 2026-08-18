@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { db, permission, role, session, user } from '@echoppe/core';
+import { permission, role, session, user } from '@repo/auth';
+import { db } from '@repo/db';
 import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // Une clé d'API est une DÉLÉGATION D'AUTORITÉ (ADR-0038, amendement du 2026-08-10). Pendant exact

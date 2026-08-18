@@ -1,4 +1,6 @@
-import { address, and, country, db, eq, faults } from '@echoppe/core';
+import { address, faults } from '@echoppe/core';
+import { country } from '@repo/identity';
+import { and, db, eq } from '@repo/db';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../../lib/fault';
 import { successSchema } from '../../../lib/response';

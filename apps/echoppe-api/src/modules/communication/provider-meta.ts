@@ -1,4 +1,4 @@
-import type { CommunicationProvider } from '@echoppe/core';
+import type { CommunicationProvider } from '@repo/communication';
 
 // Métadonnées d'affichage des fournisseurs : de quoi l'administration dessine son formulaire de
 // configuration sans rien savoir des fournisseurs. C'est de la donnée, pas de la validation — elle

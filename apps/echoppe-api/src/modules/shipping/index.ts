@@ -1,21 +1,6 @@
-import {
-  type ColissimoCredentials,
-  db,
-  eq,
-  faults,
-  getShippingAdapter,
-  getShippingProviderStatus,
-  isEncryptionConfigured,
-  type MondialRelayCredentials,
-  order,
-  resetShippingAdapters,
-  type SendcloudCredentials,
-  SHIPPING_PROVIDERS,
-  type ShippingProvider,
-  saveShippingProviderCredentials,
-  shipment,
-  shippingProvider,
-} from '@echoppe/core';
+import { type ColissimoCredentials, faults, getShippingAdapter, getShippingProviderStatus, type MondialRelayCredentials, order, resetShippingAdapters, saveShippingProviderCredentials, type SendcloudCredentials, shipment, SHIPPING_PROVIDERS, shippingProvider, type ShippingProvider } from '@echoppe/core';
+import { db, eq } from '@repo/db';
+import { isEncryptionConfigured } from '@repo/shared';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../lib/fault';
 import { successSchema, withAuthErrors } from '../../lib/response';

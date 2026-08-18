@@ -1,16 +1,7 @@
 import { fileURLToPath } from 'node:url';
-import {
-  category,
-  customer,
-  customerSession,
-  db,
-  eq,
-  role,
-  runMigrations,
-  session,
-  taxRate,
-  user,
-} from '@echoppe/core';
+import { category, customer, customerSession, taxRate } from '@echoppe/core';
+import { role, session, user } from '@repo/auth';
+import { db, eq, runMigrations } from '@repo/db';
 import { app } from '../src/app';
 
 // Harness partagé des tests d'intégration API (audit test 2026-07-19, §builders/factories).

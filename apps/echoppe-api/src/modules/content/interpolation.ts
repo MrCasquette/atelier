@@ -1,4 +1,5 @@
-import { db, legalEntity, site } from '@echoppe/core';
+import { legalEntity, site } from '@repo/identity';
+import { db } from '@repo/db';
 import type { SerializedField } from '@repo/fields';
 import { loadRegistry } from '@repo/pages';
 

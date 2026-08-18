@@ -1,20 +1,20 @@
+import { communicationLog } from '@repo/communication';
 import type {
   BrevoCredentials,
   CommunicationConfig,
   ResendCredentials,
   SendResult,
   SmtpCredentials,
-} from '@echoppe/core';
+} from '@repo/communication';
 import {
   COMMUNICATION_PROVIDERS,
-  communicationLog,
-  db,
   getCommunicationAdapter,
-  getCommunicationProviderStatus,
-  isEncryptionConfigured,
+  getProviderStatus,
   resetCommunicationAdapters,
-  saveCommunicationProviderCredentials,
-} from '@echoppe/core';
+  saveProviderCredentials,
+} from '@repo/communication';
+import { db } from '@repo/db';
+import { isEncryptionConfigured } from '@repo/shared';
 import { providerMeta } from './provider-meta';
 
 // Configuration des fournisseurs d'e-mail, sans rien savoir du transport. Ce module ne sait pas
@@ -44,7 +44,7 @@ export async function listProviderStatuses() {
     COMMUNICATION_PROVIDERS.map(async (id) => ({
       id,
       ...providerMeta[id],
-      ...(await getCommunicationProviderStatus(id)),
+      ...(await getProviderStatus(id)),
       encryptionReady,
     })),
   );
@@ -62,7 +62,7 @@ export async function saveProvider(
 ): Promise<SaveProviderOutcome> {
   if (!isEncryptionConfigured()) return { outcome: 'encryption-missing' };
 
-  await saveCommunicationProviderCredentials(provider, credentials, config, isEnabled);
+  await saveProviderCredentials(provider, credentials, config, isEnabled);
   resetCommunicationAdapters();
 
   return { outcome: 'saved' };

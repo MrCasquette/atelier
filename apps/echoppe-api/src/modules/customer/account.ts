@@ -1,4 +1,5 @@
-import { customer, db, eq } from '@echoppe/core';
+import { customer } from '@echoppe/core';
+import { db, eq } from '@repo/db';
 import { Elysia, t } from 'elysia';
 import { models } from '../../model';
 import {

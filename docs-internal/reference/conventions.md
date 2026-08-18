@@ -82,6 +82,7 @@ nom, qui tiendrait sans que rien ne la vérifie.
 |---|---|
 | `drift-guard` | les `drizzle.config.ts` du dépôt, et lit `out` dans chaque config |
 | `product-isolation` | les préfixes de paquets, sur dépendances déclarées **et** imports réels |
+| `core-passthrough` | les cœurs produit par leur `drizzle.config.ts`, puis leurs points d'entrée déclarés |
 | `image-manifests` | les motifs de workspace du manifeste racine, croisés aux `COPY` du `Dockerfile` |
 | `contract-targets` | `contract.source` / `contract.frozen`, déclarés par le client lui-même |
 | `release-coverage` | les workspaces publiables, plus les groupes `fixed` de la config changesets |

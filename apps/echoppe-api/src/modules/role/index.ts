@@ -1,4 +1,6 @@
-import { and, db, eq, faults, permission, RESOURCES, role, sql, user } from '@echoppe/core';
+import { faults, RESOURCES } from '@echoppe/core';
+import { permission, role, user } from '@repo/auth';
+import { and, db, eq, sql } from '@repo/db';
 import {
   delegatableActions,
   invalidatePermissionCache,

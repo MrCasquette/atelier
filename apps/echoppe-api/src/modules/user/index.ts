@@ -1,17 +1,6 @@
-import {
-  and,
-  count,
-  db,
-  desc,
-  eq,
-  faults,
-  ilike,
-  or,
-  role,
-  session,
-  sql,
-  user,
-} from '@echoppe/core';
+import { faults } from '@echoppe/core';
+import { role, session, user } from '@repo/auth';
+import { and, count, db, desc, eq, ilike, or, sql } from '@repo/db';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../lib/fault';
 import { buildListResponse, listResponse, parseListQuery } from '../../lib/pagination';

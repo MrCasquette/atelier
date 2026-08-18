@@ -1,15 +1,5 @@
-import {
-  and,
-  type ColorMetadata,
-  db,
-  eq,
-  inArray,
-  option,
-  optionValue,
-  productMedia,
-  variant,
-  variantOptionValue,
-} from '@echoppe/core';
+import { type ColorMetadata, option, optionValue, productMedia, variant, variantOptionValue } from '@echoppe/core';
+import { and, db, eq, inArray } from '@repo/db';
 import { type ImageRef, imageRef, loadMediaDimensions } from '../../media/image-ref';
 import { selectDefaultVariants } from './default-variant';
 import { getTagsByProduct } from './tags';

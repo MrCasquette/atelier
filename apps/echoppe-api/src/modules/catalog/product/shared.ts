@@ -1,5 +1,6 @@
-import type { SQL } from '@echoppe/core';
-import { and, asc, count, db, desc, eq, ilike, inArray, or, product } from '@echoppe/core';
+import type { SQL } from '@repo/db';
+import { product } from '@echoppe/core';
+import { and, asc, count, db, desc, eq, ilike, inArray, or } from '@repo/db';
 import { t } from 'elysia';
 import {
   buildEqFilters,

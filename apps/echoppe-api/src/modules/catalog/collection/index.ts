@@ -1,14 +1,5 @@
-import {
-  and,
-  collection,
-  count,
-  db,
-  eq,
-  faults,
-  inArray,
-  product,
-  productCollection,
-} from '@echoppe/core';
+import { collection, faults, product, productCollection } from '@echoppe/core';
+import { and, count, db, eq, inArray } from '@repo/db';
 import { slugify } from '@repo/shared';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../../lib/fault';

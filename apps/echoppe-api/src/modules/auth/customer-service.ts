@@ -1,16 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
-import {
-  and,
-  customer,
-  customerSession,
-  db,
-  eq,
-  gt,
-  ne,
-  passwordResetToken,
-  sendResetPasswordEmail,
-  sendWelcomeEmail,
-} from '@echoppe/core';
+import { customer, customerSession, passwordResetToken, sendWelcomeEmail } from '@echoppe/core';
+import { sendResetPasswordEmail } from '@repo/communication';
+import { and, db, eq, gt, ne } from '@repo/db';
 
 // Authentification de la surface CLIENT, sans rien savoir du transport. Pendant de `service.ts`,
 // qui sert l'administration : deux publics, deux cycles de vie, deux jeux d'identifiants.

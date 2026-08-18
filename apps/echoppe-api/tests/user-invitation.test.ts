@@ -1,5 +1,6 @@
 import { beforeAll, beforeEach, describe, expect, it } from 'bun:test';
-import { db, eq, role, session, user, userPasswordToken } from '@echoppe/core';
+import { role, session, user, userPasswordToken } from '@repo/auth';
+import { db, eq } from '@repo/db';
 import { authenticateAdmin } from '@repo/auth';
 import { createAdminSession, migrate, req, requireDisposableDb, resetRateLimits } from './harness';
 

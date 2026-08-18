@@ -71,9 +71,9 @@ Avant de committer : `bun run lint && bun run type-check`.
 
 ## Les gardes
 
-Six scripts refusent une dérive plutôt que de la documenter — `drift-guard`, `product-isolation`,
-`reserved-space`, `image-manifests`, `release-coverage`, `registry-gap`, plus `contracts:check` pour
-le SDK. Chacun se lance par `bun run <nom>`.
+Sept scripts refusent une dérive plutôt que de la documenter — `drift-guard`,
+`product-isolation`, `core-passthrough`, `reserved-space`, `image-manifests`, `release-coverage`,
+`registry-gap`, plus `contracts:check` pour le SDK. Chacun se lance par `bun run <nom>`.
 
 **Leur invariant : une garde découvre, elle n'énumère pas.** Elle ne contient jamais la liste des
 paquets ou des produits qu'elle traite, elle la reconstitue à chaque exécution. En ajouter une, ou en

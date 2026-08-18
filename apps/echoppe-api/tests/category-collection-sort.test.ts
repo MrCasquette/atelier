@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { collection, db, product, productCollection, variant } from '@echoppe/core';
+import { collection, product, productCollection, variant } from '@echoppe/core';
+import { db } from '@repo/db';
 import { ensureCategory, ensureTaxRate, getJson, migrate, requireDisposableDb } from './harness';
 
 // Verrou B4 (tri des sous-listes produit) : `/categories/:id/products` et `/collections/:id/products`

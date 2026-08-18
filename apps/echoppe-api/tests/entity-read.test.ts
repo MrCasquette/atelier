@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { db, entityDefinition, sql } from '@echoppe/core';
+import { entityDefinition } from '@repo/entities';
+import { db, sql } from '@repo/db';
 import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // Surface de lecture front des entités (ADR-0027, amendement du 2026-08-10). Deux choses s'y

@@ -4,16 +4,8 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { db } from '@repo/db';
 import { eq } from 'drizzle-orm';
-import {
-  country,
-  customer,
-  invoice,
-  legalEntity,
-  order,
-  orderItem,
-  site,
-  storeSettings,
-} from '../db/schema';
+import { customer, invoice, order, orderItem, storeSettings } from '../db/schema';
+import { country, legalEntity, site } from '@repo/identity';
 import { getStoreSettings } from './store-settings';
 
 // Types pour les snapshots (archivage légal)

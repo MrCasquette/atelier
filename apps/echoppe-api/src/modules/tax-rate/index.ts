@@ -1,4 +1,5 @@
-import { db, taxRate } from '@echoppe/core';
+import { taxRate } from '@echoppe/core';
+import { db } from '@repo/db';
 import { Elysia } from 'elysia';
 import { withReadErrors } from '../../lib/response';
 import { models } from '../../model';

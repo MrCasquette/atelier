@@ -1,24 +1,9 @@
 /**
  * Service checkout - logique métier extraite de la route
  */
-import {
-  and,
-  cart,
-  cartItem,
-  country,
-  db,
-  eq,
-  getPaymentAdapter,
-  inArray,
-  order,
-  orderItem,
-  type PaymentProvider,
-  payment,
-  product,
-  sql,
-  taxRate,
-  variant,
-} from '@echoppe/core';
+import { cart, cartItem, getPaymentAdapter, order, orderItem, payment, type PaymentProvider, product, taxRate, variant } from '@echoppe/core';
+import { country } from '@repo/identity';
+import { and, db, eq, inArray, sql } from '@repo/db';
 import {
   calculateAddonPrice,
   getPersonalizationFieldsByProduct,

@@ -1,15 +1,5 @@
-import {
-  and,
-  db,
-  desc,
-  eq,
-  inArray,
-  ne,
-  or,
-  product,
-  productCollection,
-  productRelated,
-} from '@echoppe/core';
+import { product, productCollection, productRelated } from '@echoppe/core';
+import { and, db, desc, eq, inArray, ne, or } from '@repo/db';
 
 // Produits liés (B8) — relation directionnelle curée (ADR-0022). Lecture ordonnée + écriture set
 // (le PUT produit remplace l'ensemble). Fallback voisinage (même catégorie / collection) calculé à

@@ -1,5 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { db, eq, sendUserInvitationEmail, session, user, userPasswordToken } from '@echoppe/core';
+import { session, user, userPasswordToken } from '@repo/auth';
+import { sendUserInvitationEmail } from '@repo/communication';
+import { db, eq } from '@repo/db';
 
 // Le jeton de pose de mot de passe (ADR-0048).
 //

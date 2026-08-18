@@ -1,5 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it } from 'bun:test';
-import { db, eq, inArray, media, product, productMedia, variant } from '@echoppe/core';
+import { product, productMedia, variant } from '@echoppe/core';
+import { media } from '@repo/assets';
+import { db, eq, inArray } from '@repo/db';
 import {
   createAdminSession,
   ensureCategory,

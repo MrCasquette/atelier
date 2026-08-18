@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { db, eq, permission, role, session, user } from '@echoppe/core';
+import { permission, role, session, user } from '@repo/auth';
+import { db, eq } from '@repo/db';
 import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 
 // Délégation (ADR-0038) : on ne peut accorder que ce qu'on détient.

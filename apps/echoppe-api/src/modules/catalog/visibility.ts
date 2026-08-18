@@ -1,4 +1,4 @@
-import { type Column, eq, type SQL } from '@echoppe/core';
+import { type Column, eq, type SQL } from '@repo/db';
 
 // Filtre de visibilité storefront (ADR-0006), nommé une seule fois plutôt que réécrit par route.
 // Un principal privilégié (admin / clé d'API) voit tout ; un anonyme est borné aux lignes visibles

@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { collection, db } from '@echoppe/core';
+import { collection } from '@echoppe/core';
+import { db } from '@repo/db';
 import { app } from '../src/app';
 import { createAdminSession, migrate, requireDisposableDb } from './harness';
 

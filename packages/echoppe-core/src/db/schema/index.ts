@@ -1,35 +1,10 @@
-// Sonde d'extraction (ADR-0025) : les tables média vivent dans @repo/assets et sont réexportées
-// ici. Le cœur reste propriétaire des migrations — drizzle.config.ts ne lit que ce barrel.
-export { folder, media } from '@repo/assets';
-// Authentification et droits : @repo/auth (ADR-0033). Le cœur les inclut dans SON barrel, donc
-// dans ses migrations.
-export {
-  apiKey,
-  auditLog,
-  permission,
-  role,
-  roleScopeEnum,
-  session,
-  user,
-  userPasswordToken,
-} from '@repo/auth';
-// Tables de communication : @repo/communication (ADR-0025) — le cœur les inclut dans SON
-// barrel, donc dans ses migrations.
-export {
-  communicationLog,
-  communicationProviderConfig,
-  communicationProviderEnum,
-} from '@repo/communication';
-// Journal des entités déclarées : @repo/entities (ADR-0027, ADR-0028). Seul le JOURNAL entre dans
-// les migrations — les tables d'entités, elles, sont dérivées au push et n'y sont jamais.
-export { entityDefinition } from '@repo/entities';
-// Identité et référentiel : @repo/identity (ADR-0040). Le cœur les inclut dans SON barrel,
-// donc dans ses migrations.
-export { country, legalEntity, site } from '@repo/identity';
-// Navigation : @repo/menus (ADR-0033). Le cœur l'inclut dans SON barrel, donc dans ses migrations.
-export { type MenuItem, type MenuLink, menu } from '@repo/menus';
-// Pages, sections et registre de définitions : @repo/pages (ADR-0033).
-export { contentDefinition, contentStatusEnum, page, section } from '@repo/pages';
+// Les tables du cœur d'Échoppe, et elles seules.
+//
+// Ce barrel a longtemps servi deux rôles : manifeste de migration ET raccourci d'import. Le
+// premier vit désormais dans `migrations.ts`, seul fichier que `drizzle.config.ts` lit. Une table
+// partagée s'importe depuis SON paquet — `media` depuis `@repo/assets`, `user` depuis
+// `@repo/auth`, et ainsi de suite.
+
 export * from './cart';
 export * from './catalog';
 export * from './customer';

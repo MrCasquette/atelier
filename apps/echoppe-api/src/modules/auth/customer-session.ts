@@ -1,4 +1,5 @@
-import { and, customer, customerSession, db, eq, faults, gt } from '@echoppe/core';
+import { customer, customerSession, faults } from '@echoppe/core';
+import { and, db, eq, gt } from '@repo/db';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../lib/fault';
 

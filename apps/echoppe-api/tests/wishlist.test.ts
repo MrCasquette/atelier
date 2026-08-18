@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { db, product, variant } from '@echoppe/core';
+import { product, variant } from '@echoppe/core';
+import { db } from '@repo/db';
 import {
   createCustomerSession,
   ensureCategory,

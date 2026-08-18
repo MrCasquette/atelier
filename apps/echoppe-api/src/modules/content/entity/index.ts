@@ -1,4 +1,6 @@
-import { faults, getTableName, media } from '@echoppe/core';
+import { faults } from '@echoppe/core';
+import { media } from '@repo/assets';
+import { getTableName } from '@repo/db';
 import {
   entityRegistrySchema,
   loadEntities,

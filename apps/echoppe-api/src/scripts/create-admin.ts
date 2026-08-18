@@ -1,6 +1,6 @@
 import { stdin, stdout } from 'node:process';
-import { db, eq } from '@echoppe/core';
-import { role, user } from '@echoppe/core/db/schema';
+import { db, eq } from '@repo/db';
+import { role, user } from '@repo/auth';
 
 // Commande serveur d'AMORÇAGE du propriétaire (ADR-0057) — accès DB direct, sans HTTP ni cookie.
 // Elle remplace les variables ADMIN_EMAIL/ADMIN_PASSWORD, qui faisaient vivre le secret du compte

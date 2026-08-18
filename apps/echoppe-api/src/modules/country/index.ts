@@ -1,4 +1,6 @@
-import { country, db, eq, shippingCountry } from '@echoppe/core';
+import { shippingCountry } from '@echoppe/core';
+import { country } from '@repo/identity';
+import { db, eq } from '@repo/db';
 import { Elysia } from 'elysia';
 import { withReadErrors } from '../../lib/response';
 import { models } from '../../model';

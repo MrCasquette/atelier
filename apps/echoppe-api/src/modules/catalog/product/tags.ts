@@ -1,4 +1,5 @@
-import { db, eq, inArray, productTag, tag } from '@echoppe/core';
+import { productTag, tag } from '@echoppe/core';
+import { db, eq, inArray } from '@repo/db';
 import { slugify } from '@repo/shared';
 
 // Tags produit (B3). Surface storefront = `tags: string[]` (noms, triés). L'identité canonique

@@ -1,20 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { mkdir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
-import {
-  and,
-  asc,
-  count,
-  db,
-  desc,
-  eq,
-  folder,
-  isNull,
-  like,
-  media,
-  or,
-  type SQL,
-} from '@echoppe/core';
+import { folder, media } from '@repo/assets';
+import { and, asc, count, db, desc, eq, isNull, like, or, type SQL } from '@repo/db';
 import { UPLOAD_DIR } from './storage';
 
 // Logique de la médiathèque : fichiers, arborescence, disque. Sans rien savoir du transport — les

@@ -1,4 +1,5 @@
-import { and, category, db, eq, faults, product } from '@echoppe/core';
+import { category, faults, product } from '@echoppe/core';
+import { and, db, eq } from '@repo/db';
 import { slugify } from '@repo/shared';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../../lib/fault';

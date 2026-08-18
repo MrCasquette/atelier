@@ -1,4 +1,4 @@
-import { asc, type Column, desc, eq, inArray, type SQL } from '@echoppe/core';
+import { asc, type Column, desc, eq, inArray, type SQL } from '@repo/db';
 import { type TSchema, t } from 'elysia';
 
 // =============================================================================

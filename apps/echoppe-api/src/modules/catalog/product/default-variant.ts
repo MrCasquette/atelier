@@ -1,4 +1,5 @@
-import { and, asc, db, desc, eq, inArray, variant } from '@echoppe/core';
+import { variant } from '@echoppe/core';
+import { and, asc, db, desc, eq, inArray } from '@repo/db';
 
 // Variante effective par défaut d'un produit côté storefront : la variante isDefault=true si
 // elle existe, sinon la 1re variante publiée (sortOrder croissant, id en départage). Ne considère

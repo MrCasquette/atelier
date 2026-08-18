@@ -1,4 +1,5 @@
-import { and, db, eq, faults, product, productMedia } from '@echoppe/core';
+import { faults, product, productMedia } from '@echoppe/core';
+import { and, db, eq } from '@repo/db';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../../lib/fault';
 import { successSchema, withCrudErrors } from '../../../lib/response';

@@ -1,4 +1,5 @@
-import { asc, db, eq, inArray, personalizationField } from '@echoppe/core';
+import { personalizationField } from '@echoppe/core';
+import { asc, db, eq, inArray } from '@repo/db';
 
 // Domaine « personnalisation produit » (ADR-0010). La DÉCLARATION vit au catalogue
 // (personalization_field) ; les VALEURS saisies vivent sur la ligne (cart_item/order_item). Le prix

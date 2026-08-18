@@ -1,14 +1,5 @@
-import {
-  and,
-  asc,
-  db,
-  eq,
-  faults,
-  ilike,
-  option,
-  optionValue,
-  variantOptionValue,
-} from '@echoppe/core';
+import { faults, option, optionValue, variantOptionValue } from '@echoppe/core';
+import { and, asc, db, eq, ilike } from '@repo/db';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../../lib/fault';
 import { successSchema, withCrudErrors } from '../../../lib/response';

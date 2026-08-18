@@ -1,4 +1,5 @@
-import { auditLog, db } from '@echoppe/core';
+import { auditLog } from '@repo/auth';
+import { db } from '@repo/db';
 
 export type AuditAction =
   // Products

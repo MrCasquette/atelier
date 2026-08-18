@@ -1,5 +1,7 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { db, legalEntity, page, section, site } from '@echoppe/core';
+import { legalEntity, site } from '@repo/identity';
+import { page, section } from '@repo/pages';
+import { db } from '@repo/db';
 import { invalidateRegistryCache } from '@repo/pages';
 import { createAdminSession, migrate, req, requireDisposableDb } from './harness';
 

@@ -1,4 +1,6 @@
-import { asc, db, eq, faults, menu } from '@echoppe/core';
+import { faults } from '@echoppe/core';
+import { menu } from '@repo/menus';
+import { asc, db, eq } from '@repo/db';
 import { menuItemsSchema, unknownTargets } from '@repo/menus';
 import { Elysia, t } from 'elysia';
 import { faultBody } from '../../lib/fault';

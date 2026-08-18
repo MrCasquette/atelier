@@ -74,6 +74,11 @@ jobs:
       - name: Product isolation
         run: bun run product-isolation
 
+      # Un cœur produit ne prête pas sa surface aux paquets partagés : sans cette garde, `db`,
+      # `media` ou `user` réentrent par le raccourci du cœur et le découpage redevient du décor.
+      - name: Core passthrough
+        run: bun run core-passthrough
+
       # Espace réservé `/-/` et origine du dashboard (ADR-0052) — deux règles qui se perdent en
       # silence : une surface d'exploitation remontée à la racine, ou un VITE_API_URL qui repousse
       # et refige l'adresse de l'API dans le bundle publié.

@@ -10,10 +10,13 @@ passer après.** Refactorer une forme avec deux consommateurs coûte double — 
 deux suites à réécrire, une décision qui doit satisfaire les deux. Corriger un comportement coûte
 pareil quel que soit le moment.
 
-D'où quatre chantiers en tête de file, marqués **⏩ avant Prisme** ci-dessous : le barrel de réexport
-du cœur, le singleton de `@repo/communication`, la partie pure de `@repo/pages`, et la migration
-Markdown. Puis le [vertical slice Prisme](./prisme.md), qui débloque à lui seul les décisions
-suspendues à un second consommateur — dont la garde des credentials
+D'où quatre chantiers en tête de file, marqués **⏩ avant Prisme** ci-dessous. Le premier — faire
+tomber le barrel de réexport du cœur — est **fait** : les 54 symboles empruntés sont retournés à
+leur paquet, et `bun run core-passthrough` refuse leur retour. Restent le singleton de
+`@repo/communication`, la partie pure de `@repo/pages`, et la migration Markdown.
+
+Puis le [vertical slice Prisme](./prisme.md), qui débloque à lui seul les décisions suspendues à un
+second consommateur — dont la garde des credentials
 ([ADR-0051](../adr/ADR-0051-garde-credentials.md)), qui conditionne explicitement son choix à deux
 usages réels.
 
@@ -91,37 +94,20 @@ Le conteneur, distinct des produits qu'il héberge. Le principe qui gouverne cet
   d'imports alors qu'elle n'interroge rien. Ses tests doivent poser une URL factice, contournement
   consigné dans le fichier de test. La convention existe déjà dans le dépôt ; ce module ne l'applique
   pas. Détail : [audit de couverture documentaire](../audits/audit-couverture-documentaire.md).
-- [ ] 🔴 ⏩ **Encaisser le découpage en packages** — le constat, mesuré le 2026-08-12 : les frontières
-  existent dans l'arborescence mais pas dans les imports. L'API compte **61 imports de
-  `@echoppe/core` contre 29 de `@repo/*`**, et **46 usages de symboles qui vivent dans un `@repo/*`**
-  y entrent par le barrel du cœur — 14 fois `media`, 7 fois `user`, 4 fois `menu`, 3 fois `site`.
-  `packages/echoppe-core/src/db/schema/index.ts` réexporte les tables de sept packages, sous le
-  commentaire « réexporté pour ne pas changer la surface ». Rien n'empêche donc de contourner un
-  package : il y a juste un chemin plus court, et il gagne.
+- [ ] 🟡 **Refondre les feuilles sous ~100 lignes** dans leur consommateur unique, ou les regrouper.
+  Second volet d'« encaisser le découpage » — le premier, faire tomber le barrel de réexport du
+  cœur, est fait ; celui-ci est de l'hygiène et ne bloque rien.
 
-  Rien de dramatique — aucune indirection gratuite, le code interne est cohérent et testé. Mais
-  l'extraction a été **payée sans être encaissée**, et une frontière que personne n'emprunte cesse
-  d'être vraie : un package que plus rien n'importe directement finit par accueillir n'importe quoi.
-
-  Deux gestes, dans cet ordre. Le premier seul compte, le second est de l'hygiène :
-
-  1. **Faire tomber le barrel de réexport du cœur.** Que `media` s'importe depuis `@repo/assets` et
-     nulle part ailleurs. Mécanique, vérifiable par une règle de lint — c'est ce qui transforme le
-     découpage de décor en structure. Sans lui, tout le reste est cosmétique. Attention : le barrel
-     de `db/schema/index.ts` doit **survivre pour les migrations** — `drizzle.config.ts` ne lit que
-     lui. C'est son usage comme raccourci d'import qui doit tomber, pas son existence.
-  2. **Refondre les feuilles sous ~100 lignes** dans leur consommateur unique, ou les regrouper.
-     Cinq packages sont concernés : `assets` (**32 lignes**, deux tables et un `export`), `shared`
-     (88), `db` (90), `identity` (92), `adapters` (102). Aucun n'achète ce qu'une frontière est
-     censée acheter : ils sont `private` (pas de publication), tous en `0.0.1` sans tests propres
-     (pas de versionnage), et `assets` n'a aucune dépendance sortante — la frontière n'empêche donc
-     rien. À ressortir en dix minutes le jour où un deuxième lecteur apparaît.
+  Cinq packages sont concernés : `assets` (**32 lignes**, deux tables et un `export`), `shared`
+  (88), `db` (90), `identity` (92), `adapters` (102). Aucun n'achète ce qu'une frontière est censée
+  acheter : ils sont `private` (pas de publication), tous en `0.0.1` sans tests propres (pas de
+  versionnage), et `assets` n'a aucune dépendance sortante — la frontière n'empêche donc rien. À
+  ressortir en dix minutes le jour où un deuxième lecteur apparaît.
 
   Réserve honnête : le découpage vise un second produit qui n'existe pas encore, donc quatre
   packages (`assets`, `identity`, `menus`, `pages`) n'ont qu'**un seul consommateur**. C'est du
   partitionnement anticipé, pas de la sur-abstraction — ça se défait en fusionnant deux dossiers,
-  là où une mauvaise abstraction ne se défait pas. Le pari reste ouvert ; ce qui ne l'est pas, c'est
-  de le porter sans l'appliquer.
+  là où une mauvaise abstraction ne se défait pas.
 - [ ] 🟠 **Définir la compatibilité runtime/API/SDK** : matrice, dépréciation et politique pré-1.0.
 - [ ] 🟡 Réorganiser les domaines internes uniquement à l'apparition d'un deuxième consommateur.
 - [ ] ⚪ **Fusionner les petits paquets `@repo/*`**, une fois Prisme réel : lui seul dira lesquels ont

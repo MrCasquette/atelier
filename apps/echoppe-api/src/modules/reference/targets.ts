@@ -1,4 +1,5 @@
-import { category, collection, db, getTableName, ilike, inArray, product } from '@echoppe/core';
+import { category, collection, product } from '@echoppe/core';
+import { db, getTableName, ilike, inArray } from '@repo/db';
 import { pageReferenceTarget } from '@repo/pages';
 import { createReferenceRegistry, type EntityProjection } from '@repo/references';
 
