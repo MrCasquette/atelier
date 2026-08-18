@@ -204,7 +204,8 @@ async function handleDrop(e: DragEvent) {
 }
 
 async function handleFileSelect(e: Event) {
-  const input = e.target as HTMLInputElement;
+  const input = e.target;
+  if (!(input instanceof HTMLInputElement)) return;
   if (!input.files?.length) return;
   uploading.value = true;
   await uploadFiles(input.files, currentFolder.value);

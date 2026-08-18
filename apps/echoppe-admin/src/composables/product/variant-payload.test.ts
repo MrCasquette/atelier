@@ -34,7 +34,9 @@ describe('buildVariantPayload', () => {
 
   it('sortOrder=0 en édition reste transmis (0 ≠ absent)', () => {
     const payload = buildVariantPayload(form, 0);
-    expect((payload as { sortOrder?: number }).sortOrder).toBe(0);
+    // `sortOrder` n'apparaît que sur le chemin d'édition : la présence de la clé EST ce que le cas
+    // vérifie, et `in` le dit sans rien affirmer.
+    expect('sortOrder' in payload && payload.sortOrder).toBe(0);
   });
 
   it('parse les numériques et omet les optionnels vides', () => {

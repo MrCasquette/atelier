@@ -17,9 +17,9 @@ export function useSortable(
   options: UseSortableOptions | (UseTreeSortableOptions & { treeMode: true })
 ): ReturnType<typeof createSortable> | ReturnType<typeof createTreeSortable> {
   if ('treeMode' in options && options.treeMode) {
-    return createTreeSortable(options as UseTreeSortableOptions & { treeMode: true });
+    return createTreeSortable(options);
   }
-  return createSortable(options as UseSortableOptions);
+  return createSortable(options);
 }
 
 function createSortable(options: UseSortableOptions) {
@@ -32,7 +32,7 @@ function createSortable(options: UseSortableOptions) {
   // ---------------------------------------------------------------------------
   // STATE
   // ---------------------------------------------------------------------------
-  const dragState = ref<SortableState>({
+  const dragState = ref<SortableState<FlatDropPosition>>({
     draggedId: null,
     dropTargetId: null,
     dropPosition: null,
@@ -51,7 +51,9 @@ function createSortable(options: UseSortableOptions) {
   // HELPERS
   // ---------------------------------------------------------------------------
   function getDropPosition(e: DragEvent): FlatDropPosition {
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const element = currentElement(e);
+    // Sans élément porteur, aucune géométrie : on retient la position la plus neutre.
+    const rect = element?.getBoundingClientRect() ?? new DOMRect();
     const y = e.clientY - rect.top;
     const height = rect.height;
     return y < height / 2 ? 'before' : 'after';
@@ -103,7 +105,7 @@ function createSortable(options: UseSortableOptions) {
 
   function handleDragLeave(e: DragEvent) {
     // Ne reset que si on quitte vraiment la zone de drop
-    const relatedTarget = e.relatedTarget as HTMLElement;
+    const relatedTarget = relatedElement(e);
     if (!relatedTarget?.closest(`[${dropZoneAttr}]`)) {
       dragState.value.dropTargetId = null;
       dragState.value.dropPosition = null;
@@ -128,7 +130,7 @@ function createSortable(options: UseSortableOptions) {
       return;
     }
 
-    await onReorder(draggedId, targetId, position as FlatDropPosition);
+    await onReorder(draggedId, targetId, position);
     resetState();
   }
 
@@ -227,6 +229,7 @@ function createSortable(options: UseSortableOptions) {
 // VERSION ARBRE (avec position "inside")
 // ---------------------------------------------------------------------------
 import type { TreeDropPosition } from './types';
+import { currentElement, relatedElement } from '@/lib/dom';
 
 function createTreeSortable(options: UseTreeSortableOptions & { treeMode: true }) {
   const {
@@ -247,7 +250,9 @@ function createTreeSortable(options: UseTreeSortableOptions & { treeMode: true }
   const dropPosition = computed(() => dragState.value.dropPosition);
 
   function getDropPosition(e: DragEvent): TreeDropPosition {
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const element = currentElement(e);
+    // Sans élément porteur, aucune géométrie : on retient la position la plus neutre.
+    const rect = element?.getBoundingClientRect() ?? new DOMRect();
     const y = e.clientY - rect.top;
     const height = rect.height;
     // Mode arbre : 25% haut = before, 50% milieu = inside, 25% bas = after
@@ -298,7 +303,7 @@ function createTreeSortable(options: UseTreeSortableOptions & { treeMode: true }
   }
 
   function handleDragLeave(e: DragEvent) {
-    const relatedTarget = e.relatedTarget as HTMLElement;
+    const relatedTarget = relatedElement(e);
     if (!relatedTarget?.closest(`[${dropZoneAttr}]`)) {
       dragState.value.dropTargetId = null;
       dragState.value.dropPosition = null;
@@ -323,7 +328,7 @@ function createTreeSortable(options: UseTreeSortableOptions & { treeMode: true }
       return;
     }
 
-    await onReorder(draggedId, targetId, finalPosition as TreeDropPosition);
+    await onReorder(draggedId, targetId, finalPosition);
     resetState();
   }
 
@@ -344,7 +349,7 @@ function createTreeSortable(options: UseTreeSortableOptions & { treeMode: true }
 
   function getItemDropPosition(itemId: string): TreeDropPosition | null {
     if (!isDropTarget(itemId)) return null;
-    return dragState.value.dropPosition as TreeDropPosition | null;
+    return dragState.value.dropPosition;
   }
 
   return {

@@ -97,13 +97,15 @@ export default [
   // 210 occurrences au 2026-08-18. La règle s'étend à chaque lot nettoyé, et ce qui est nettoyé ne
   // peut plus régresser. `as const` reste permis : il restreint au lieu d'élargir.
   //
-  // Faits : `scripts/`, `packages/`, `docs/` et `apps/echoppe-api` sont clos. Reste le dashboard.
+  // Le dépôt entier est clos. Une seule exception subsiste, signalée sur place dans
+  // `packages/content/src/narrow.ts` : sans validation, aucune expression ne mène de `RawSection[]`
+  // au type déclaré par le développeur — la fonction EST cette affirmation.
   {
     files: [
       'scripts/**/*.ts',
       'packages/**/*.ts',
       'docs/**/*.{ts,vue}',
-      'apps/echoppe-api/**/*.ts',
+      'apps/**/*.{ts,vue}',
     ],
     rules: {
       '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],

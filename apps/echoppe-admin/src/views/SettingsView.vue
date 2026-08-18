@@ -17,9 +17,9 @@ import type { DataTableColumn } from '@/components/organisms/DataTable/types';
 import type { BatchAction, FilterOption } from '@/components/molecules/PageHeader/types';
 import type { StatusVariant } from '@/types/ui';
 import type { ApiData, ApiItem } from '@/types/api';
+import { query } from '@/lib/route';
 
 // Types
-type Identity = ApiData<ReturnType<typeof api.identity.get>>;
 type Country = ApiItem<ReturnType<typeof api.identity.countries.get>>;
 type UsersResponse = ApiData<ReturnType<typeof api.users.get>>;
 type User = UsersResponse['data'][number];
@@ -41,7 +41,7 @@ const tabs = [
 
 // Init tab from URL
 onMounted(() => {
-  const tab = route.query.tab as string;
+  const tab = query(route.query.tab);
   if (tab === 'roles' || tab === 'users' || tab === 'api-keys') {
     activeTab.value = tab;
   }
@@ -70,9 +70,38 @@ const legalForms = [
 
 // L'écran reste UN formulaire à plat, groupé visuellement, alors que la base porte deux tables
 // (ADR-0040). La frontière métier n'est pas la frontière d'interface — le mapping se fait ici.
-const form = ref({
+// Le seul champ nullable est `logo` : le déclarer une fois évite d'affirmer sa forme au milieu
+// d'un littéral, et rend le reste inférable.
+interface SettingsForm {
+  logo: string | null;
+  taxExempt: boolean;
+  siteName: string;
+  siteUrl: string;
+  publicEmail: string;
+  publicPhone: string;
+  legalName: string;
+  legalForm: string;
+  siren: string;
+  siret: string;
+  tvaIntra: string;
+  rcsCity: string;
+  shareCapital: string;
+  street: string;
+  street2: string;
+  postalCode: string;
+  city: string;
+  country: string;
+  documentPrefix: string;
+  invoicePrefix: string;
+  publisherName: string;
+  hostName: string;
+  hostAddress: string;
+  hostPhone: string;
+}
+
+const form = ref<SettingsForm>({
   siteName: '',
-  logo: null as string | null,
+  logo: null,
   siteUrl: '',
   publicEmail: '',
   publicPhone: '',
@@ -115,7 +144,7 @@ async function loadIdentity() {
   }
 
   if (identityRes.data) {
-    const { site, legal, settings } = identityRes.data as Identity;
+    const { site, legal, settings } = identityRes.data;
     form.value = {
       siteName: site?.name ?? '',
       logo: site?.logo ?? null,

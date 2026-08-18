@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
 import Button from '@/components/atoms/Button.vue';
+import { query } from '@/lib/route';
 
 const router = useRouter();
 const route = useRoute();
@@ -20,7 +21,7 @@ async function handleSubmit() {
   const result = await auth.login(email.value, password.value);
 
   if (result.success) {
-    const redirect = (route.query.redirect as string) || '/';
+    const redirect = query(route.query.redirect) || '/';
     router.push(redirect);
   } else {
     errorMessage.value = result.error || 'Erreur de connexion';

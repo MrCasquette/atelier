@@ -10,6 +10,7 @@ import {
 import { useToast } from '@/composables/useToast';
 import Button from '@/components/atoms/Button.vue';
 import PermissionMatrix from '@/components/organisms/PermissionMatrix.vue';
+import { param } from '@/lib/route';
 
 const route = useRoute();
 const router = useRouter();
@@ -55,7 +56,8 @@ onMounted(async () => {
   await loadResources();
 
   if (!isNew.value) {
-    const id = route.params.id as string;
+    const id = param(route.params.id);
+    if (!id) return;
     const data = await loadRoleWithPermissions(id);
     if (data) {
       role.value = data;
@@ -102,7 +104,8 @@ async function save() {
     toast.success('Role cree');
     router.push({ name: 'roles' });
   } else {
-    const id = route.params.id as string;
+    const id = param(route.params.id);
+    if (!id) return;
 
     // Mettre a jour le role (sauf si systeme)
     if (!isSystem.value) {

@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import ColumnsIcon from '@/components/atoms/icons/ColumnsIcon.vue';
 import type { ColumnInfo } from './types';
+import { targetNode } from '@/lib/dom';
 
 defineProps<{
   columns: ColumnInfo[];
@@ -22,9 +23,9 @@ function toggle() {
 function handleClickOutside(event: MouseEvent) {
   if (
     menuRef.value &&
-    !menuRef.value.contains(event.target as Node) &&
+    !menuRef.value.contains(targetNode(event)) &&
     buttonRef.value &&
-    !buttonRef.value.contains(event.target as Node)
+    !buttonRef.value.contains(targetNode(event))
   ) {
     isOpen.value = false;
   }

@@ -31,10 +31,17 @@ const total = ref(0);
 const showModal = ref(false);
 const saving = ref(false);
 const variants = ref<VariantOption[]>([]);
-const form = ref({
+interface MoveForm {
+  variant: string;
+  quantity: number;
+  type: 'adjustment' | 'restock';
+  note: string;
+}
+
+const form = ref<MoveForm>({
   variant: '',
   quantity: 0,
-  type: 'adjustment' as 'adjustment' | 'restock',
+  type: 'adjustment',
   note: '',
 });
 

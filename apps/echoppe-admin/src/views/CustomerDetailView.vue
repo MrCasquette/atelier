@@ -7,6 +7,7 @@ import Badge from '@/components/atoms/Badge.vue';
 import Button from '@/components/atoms/Button.vue';
 import Modal from '@/components/atoms/Modal.vue';
 import type { StatusVariant } from '@/types/ui';
+import { param } from '@/lib/route';
 
 // Types inférés depuis Eden
 type CustomerDetailResponse = Awaited<ReturnType<ReturnType<typeof api.customers>['get']>>;
@@ -25,7 +26,9 @@ const showStatusModal = ref(false);
 const showDeleteModal = ref(false);
 const newStatus = ref(true);
 
-const customerId = computed(() => route.params.id as string);
+// L'identifiant vient de l'URL : une adresse tronquée ne doit pas partir en requête
+// vide, elle doit se voir. Le repli sur chaîne vide est refusé par la route côté API.
+const customerId = computed(() => param(route.params.id) ?? '');
 
 async function loadCustomer() {
   loading.value = true;

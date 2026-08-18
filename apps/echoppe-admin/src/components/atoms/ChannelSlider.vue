@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { inputValue } from '@/lib/dom';
 // Un canal éditable : slider + saisie numérique inline (précision). Utilisé par le ColorPicker
 // pour les modes RGBA / OKLCH.
 defineProps<{
@@ -11,7 +12,7 @@ defineProps<{
 const emit = defineEmits<{ 'update:modelValue': [value: number] }>();
 
 function onInput(event: Event) {
-  const n = Number((event.target as HTMLInputElement).value);
+  const n = Number(inputValue(event));
   if (!Number.isNaN(n)) emit('update:modelValue', n);
 }
 </script>

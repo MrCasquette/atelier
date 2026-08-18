@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import CategoriesView from '@/views/CategoriesView.vue';
 import CollectionsView from '@/views/CollectionsView.vue';
+import { query } from '@/lib/route';
 
 const route = useRoute();
 const router = useRouter();
@@ -14,8 +15,12 @@ const tabs = [
 
 type TabId = (typeof tabs)[number]['id'];
 
+/** L'onglet demandé par l'URL, s'il existe — sinon rien, et l'appelant retombe sur le sien. */
+const asTabId = (value: string | null): TabId | null =>
+  tabs.find((tab) => tab.id === value)?.id ?? null;
+
 const activeTab = computed<TabId>({
-  get: () => (route.query.tab as TabId) || 'categories',
+  get: () => asTabId(query(route.query.tab)) ?? 'categories',
   set: (value) => {
     router.replace({ query: { tab: value } });
   },

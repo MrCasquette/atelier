@@ -230,7 +230,7 @@ export function useProductVariants({
               class: 'text-gray-400 hover:text-blue-600 hover:bg-blue-50',
               onClick: (e: Event) => {
                 e.stopPropagation();
-                openVariantModal(row.original as Variant);
+                openVariantModal(row.original);
               },
             },
             () => h(EditIcon, { class: 'w-4 h-4' })
@@ -254,7 +254,7 @@ export function useProductVariants({
   ]);
 
   // Data for DataTable
-  const variantsData = computed<VariantRecord[]>(() => variants.value as VariantRecord[]);
+  const variantsData = computed<VariantRecord[]>(() => variants.value);
 
   function getVariantRowId(row: VariantRecord): string {
     return row.id;

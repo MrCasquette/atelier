@@ -61,8 +61,23 @@ const currentVariantMedia = computed(() => {
 });
 
 // Form data
-const form = ref({
-  status: 'draft' as 'draft' | 'published' | 'archived',
+interface VariantForm {
+  status: 'draft' | 'published' | 'archived';
+  quantity: number;
+  costPrice: string;
+  priceHt: string;
+  compareAtPriceHt: string;
+  sku: string;
+  barcode: string;
+  length: string;
+  width: string;
+  height: string;
+  weight: string;
+  isDefault: boolean;
+}
+
+const form = ref<VariantForm>({
+  status: 'draft',
   quantity: 0,
   costPrice: '',
   priceHt: '',

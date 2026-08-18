@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { inputValue, targetNode } from '@/lib/dom';
 
 // Sélecteur de date générique (popover calendrier). Sortie ISO : `YYYY-MM-DD`, ou
 // `YYYY-MM-DDTHH:mm` si `time`. Aucune dépendance métier — utilisable pour tout champ `date`.
@@ -80,8 +81,8 @@ function selectDay(day: CalendarDay) {
 }
 
 function updateTime(event: Event) {
-  const value = (event.target as HTMLInputElement).value;
-  if (datePart.value) emitValue(datePart.value, value);
+  const value = inputValue(event);
+  if (datePart.value && value !== null) emitValue(datePart.value, value);
 }
 
 function toggle() {
@@ -99,7 +100,7 @@ function shiftMonth(delta: number) {
 }
 
 const handleClickOutside = (event: MouseEvent) => {
-  if (root.value && !root.value.contains(event.target as Node)) isOpen.value = false;
+  if (root.value && !root.value.contains(targetNode(event))) isOpen.value = false;
 };
 onMounted(() => document.addEventListener('mousedown', handleClickOutside));
 onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside));

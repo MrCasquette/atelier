@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import Button from '@/components/atoms/Button.vue';
 import { api } from '@/lib/api';
 import { errorMessage } from '@/lib/apiError';
+import { query } from '@/lib/route';
 
 // Où l'invité pose son mot de passe (ADR-0048). Écran PUBLIC : celui qui arrive ici n'a pas de
 // session, c'est précisément ce qu'il vient chercher.
@@ -11,7 +12,7 @@ import { errorMessage } from '@/lib/apiError';
 const route = useRoute();
 const router = useRouter();
 
-const token = computed(() => (route.query.token as string | undefined) ?? '');
+const token = computed(() => query(route.query.token) ?? '');
 const password = ref('');
 const confirmation = ref('');
 const submitting = ref(false);

@@ -3,6 +3,7 @@ import { api } from '@/lib/api';
 import type { Folder, FolderNode, Media, SortBy, SortOrder, MediaType } from './types';
 
 import { API_BASE } from '@/lib/api-base';
+import { relatedElement } from '@/lib/dom';
 
 // =============================================================================
 // UTILS
@@ -345,7 +346,7 @@ export function useMedia(
   }
 
   function handleFolderDragLeave(e: DragEvent) {
-    const relatedTarget = e.relatedTarget as HTMLElement;
+    const relatedTarget = relatedElement(e);
     if (!relatedTarget?.closest('[data-folder-drop]')) dropTargetFolderId.value = null;
   }
 

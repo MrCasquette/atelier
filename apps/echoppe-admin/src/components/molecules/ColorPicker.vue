@@ -3,6 +3,7 @@ import ChannelSlider from '@/components/atoms/ChannelSlider.vue';
 import type { ColorMetadata } from '@/composables/options/useOptionsCatalog';
 import { formatHex, formatHex8, hsv, oklch, parse, rgb } from 'culori';
 import { computed, ref, watch } from 'vue';
+import { inputValue } from '@/lib/dom';
 
 // Picker multi-mode. Contrat = couleur oklch canonique (`ColorMetadata`, SSOT). Chaque mode est un
 // ÉDITEUR différent lisant/écrivant la même valeur oklch :
@@ -100,7 +101,8 @@ const hexValue = computed(() => {
   return (props.modelValue.alpha < 1 ? formatHex8(c) : formatHex(c)) ?? '#000000';
 });
 function onHexChange(event: Event) {
-  const input = event.target as HTMLInputElement;
+  const input = event.target;
+  if (!(input instanceof HTMLInputElement)) return;
   const raw = input.value.trim();
   const parsed = HEX_RE.test(raw) ? oklch(parse(raw)) : undefined;
   if (!parsed) {
@@ -152,11 +154,11 @@ function onSquareMove(event: PointerEvent) {
   updateFromSquare(event);
 }
 function onHue(event: Event) {
-  hue.value = Number((event.target as HTMLInputElement).value);
+  hue.value = Number(inputValue(event));
   emitFromHsv();
 }
 function onPickerAlpha(event: Event) {
-  alpha.value = Number((event.target as HTMLInputElement).value);
+  alpha.value = Number(inputValue(event));
   emitFromHsv();
 }
 

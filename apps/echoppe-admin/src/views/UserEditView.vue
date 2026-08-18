@@ -9,6 +9,7 @@ import Button from '@/components/atoms/Button.vue';
 import Badge from '@/components/atoms/Badge.vue';
 import ConfirmModal from '@/components/atoms/ConfirmModal.vue';
 import type { ApiData } from '@/types/api';
+import { param } from '@/lib/route';
 
 // Types inférés depuis Eden
 type UserDetailResponse = Awaited<ReturnType<ReturnType<typeof api.users>['get']>>;
@@ -146,7 +147,8 @@ async function loadUser() {
   }
 
   try {
-    const id = route.params.id as string;
+    const id = param(route.params.id);
+    if (!id) return;
     const { data } = await api.users({ id }).get();
     if (data) {
       user.value = data;
@@ -214,7 +216,8 @@ async function save() {
       router.push('/utilisateurs');
     } else {
       // Update user
-      const id = route.params.id as string;
+      const id = param(route.params.id);
+    if (!id) return;
       const updates: Record<string, string> = {
         email: form.value.email,
         firstName: form.value.firstName,

@@ -13,6 +13,7 @@ import type {
 import { type Media } from '@/composables/media';
 
 import { API_BASE } from '@/lib/api-base';
+import { param } from '@/lib/route';
 
 interface UseProductFormOptions {
   onProductLoaded?: (product: ProductDetail) => void;
@@ -55,7 +56,7 @@ export function useProductForm(config: UseProductFormOptions = {}): UseProductFo
 
   // Route info
   const isNew = computed(() => route.params.id === 'new');
-  const productId = computed(() => (isNew.value ? null : (route.params.id as string)));
+  const productId = computed(() => (isNew.value ? null : (param(route.params.id))));
 
   // State
   const product = ref<Product | null>(null);
@@ -127,7 +128,7 @@ export function useProductForm(config: UseProductFormOptions = {}): UseProductFo
           if (!mediaCache.value.has(pm.media)) {
             const { data: mediaData } = await api.media({ id: pm.media }).get();
             if (mediaData && 'id' in mediaData) {
-              mediaCache.value.set(pm.media, mediaData as Media);
+              mediaCache.value.set(pm.media, mediaData);
             }
           }
           if (pm.featuredForVariant) {
@@ -179,7 +180,9 @@ export function useProductForm(config: UseProductFormOptions = {}): UseProductFo
       }
 
       await loadProductMedia();
-      config.onProductLoaded?.(data as ProductDetail);
+      // `ProductDetail` est l'alternative de l'union qui porte les variantes — le même
+      // discriminant que l'`Extract` de sa définition, vérifié ici au lieu d'être affirmé.
+      if ('variants' in data && Array.isArray(data.variants)) config.onProductLoaded?.(data);
     }
   }
 

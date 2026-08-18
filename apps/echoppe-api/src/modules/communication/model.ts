@@ -35,9 +35,12 @@ export const smtpConfigBody = t.Object({
   isEnabled: t.Optional(t.Boolean()),
 });
 
+// Littéraux explicites (l'inférence Eden exige des TLiteral précis) — garder en phase avec
+// COMMUNICATION_PROVIDERS.
+const providerLiteral = t.Union([t.Literal('resend'), t.Literal('brevo'), t.Literal('smtp')]);
+
 export const testEmailBody = t.Object({
-  // Littéraux explicites (l'inférence Eden exige des TLiteral précis) — garder en phase avec COMMUNICATION_PROVIDERS.
-  provider: t.Union([t.Literal('resend'), t.Literal('brevo'), t.Literal('smtp')]),
+  provider: providerLiteral,
   to: t.String({ format: 'email' }),
 });
 
@@ -50,7 +53,9 @@ export const providerFieldSchema = t.Object({
 });
 
 export const providerStatusSchema = t.Object({
-  id: t.String(),
+  // Le MÊME vocabulaire que `testEmailBody` : cette liste ne rendait qu'une chaîne, si bien que le
+  // dashboard réaffirmait le provider avant de le renvoyer à la route de test. Le contrat le dit.
+  id: providerLiteral,
   name: t.String(),
   description: t.String(),
   recommended: t.Optional(t.Boolean()),

@@ -114,7 +114,13 @@ watch(
 // Drag & drop sortable
 function getRowId(row: TData): string {
   if (props.rowId) return props.rowId(row);
-  return (row as Record<string, unknown>).id as string;
+  // Sans `rowId` fourni, la convention est un champ `id` : le lire échoue franchement s'il manque,
+  // là où l'affirmation rendait `undefined` et cassait la sélection plus loin, sans raison visible.
+  const id = row && typeof row === 'object' && 'id' in row ? row.id : null;
+  if (typeof id !== 'string') {
+    throw new Error('DataTable : ligne sans `id` — fournissez la prop `rowId`.');
+  }
+  return id;
 }
 
 function handleReorder(draggedId: string, targetId: string, position: FlatDropPosition) {
@@ -184,7 +190,7 @@ const tableColumns = computed<ColumnDef<TData, unknown>[]>(() => {
       size: col.size,
       minSize: col.minSize,
       maxSize: col.maxSize,
-    } as ColumnDef<TData, unknown>);
+    } satisfies ColumnDef<TData, unknown>);
   }
 
   return cols;

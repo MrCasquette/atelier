@@ -6,6 +6,7 @@ import EditIcon from '@/components/atoms/icons/EditIcon.vue';
 import CloseIcon from '@/components/atoms/icons/CloseIcon.vue';
 import ChevronRightIcon from '@/components/atoms/icons/ChevronRightIcon.vue';
 import ChevronDownIcon from '@/components/atoms/icons/ChevronDownIcon.vue';
+import { currentElement } from '@/lib/dom';
 
 const props = defineProps<{
   category: CategoryNode;
@@ -32,7 +33,8 @@ const dropPosition = computed(() => props.dragState.dropPosition);
 
 // Détection de la zone de drop (haut 25%, milieu 50%, bas 25%)
 function getDropPosition(e: DragEvent): 'before' | 'inside' | 'after' {
-  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+  const element = currentElement(e);
+  const rect = element?.getBoundingClientRect() ?? new DOMRect();
   const y = e.clientY - rect.top;
   const height = rect.height;
 

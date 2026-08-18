@@ -11,6 +11,8 @@ import Modal from '@/components/atoms/Modal.vue';
 // Types inférés depuis Eden
 type OrderDetailResponse = Awaited<ReturnType<ReturnType<typeof api.orders>['get']>>;
 type OrderDetail = NonNullable<OrderDetailResponse['data']>;
+/** Le vocabulaire des statuts vient du contrat, pas d'une liste réécrite ici. */
+type OrderStatus = OrderDetail['status'];
 
 interface Invoice {
   id: string;
@@ -39,13 +41,15 @@ const invoiceLoading = ref(false);
 
 // Status change modal
 const showStatusModal = ref(false);
-const newStatus = ref<string>('');
+const newStatus = ref<OrderStatus | ''>('');
 
 // Notes
 const internalNote = ref('');
 const notesEdited = ref(false);
 
-const orderId = computed(() => route.params.id as string);
+// L'identifiant vient de l'URL : une adresse tronquée ne doit pas partir en requête
+// vide, elle doit se voir. Le repli sur chaîne vide est refusé par la route côté API.
+const orderId = computed(() => param(route.params.id) ?? '');
 
 async function loadOrder() {
   loading.value = true;
@@ -64,6 +68,7 @@ async function loadOrder() {
 }
 
 import { API_BASE } from '@/lib/api-base';
+import { param } from '@/lib/route';
 
 async function loadInvoices() {
   try {
@@ -144,7 +149,13 @@ function formatPrice(amount: string | number) {
   }).format(value);
 }
 
-function formatAddress(address: Record<string, unknown>) {
+function formatAddress(value: unknown) {
+  // L'adresse est un `jsonb` : le SDK la rend telle quelle. On vérifie plutôt que d'affirmer, et
+  // une adresse absente donne une chaîne vide au lieu d'une exception à l'affichage.
+  const address: Record<string, unknown> =
+    typeof value === 'object' && value !== null && !Array.isArray(value)
+      ? Object.fromEntries(Object.entries(value))
+      : {};
   const parts = [
     address.firstName && address.lastName ? `${address.firstName} ${address.lastName}` : '',
     address.company,
@@ -161,7 +172,7 @@ const availableStatuses = computed(() => {
   const current = order.value.status;
 
   // Define allowed transitions
-  const transitions: Record<string, string[]> = {
+  const transitions: Record<OrderStatus, OrderStatus[]> = {
     pending: ['confirmed', 'cancelled'],
     confirmed: ['processing', 'cancelled'],
     processing: ['shipped', 'cancelled'],
@@ -174,18 +185,18 @@ const availableStatuses = computed(() => {
   return transitions[current] || [];
 });
 
-function openStatusModal(status: string) {
+function openStatusModal(status: OrderStatus) {
   newStatus.value = status;
   showStatusModal.value = true;
 }
 
 async function confirmStatusChange() {
-  if (!order.value || !newStatus.value) return;
+  if (!order.value || newStatus.value === '') return;
 
   saving.value = true;
   try {
     const { error } = await api.orders({ id: orderId.value }).status.patch({
-      status: newStatus.value as 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded',
+      status: newStatus.value,
     });
     if (error) {
       toast.error('Erreur lors de la mise à jour');
@@ -507,7 +518,7 @@ function getShipmentStatusLabel(status: string) {
           Adresse de livraison
         </h3>
         <p class="text-sm text-gray-600 whitespace-pre-line">
-          {{ formatAddress(order.shippingAddress as Record<string, unknown>) }}
+          {{ formatAddress(order.shippingAddress) }}
         </p>
       </div>
 
@@ -517,7 +528,7 @@ function getShipmentStatusLabel(status: string) {
           Adresse de facturation
         </h3>
         <p class="text-sm text-gray-600 whitespace-pre-line">
-          {{ formatAddress(order.billingAddress as Record<string, unknown>) }}
+          {{ formatAddress(order.billingAddress) }}
         </p>
       </div>
 

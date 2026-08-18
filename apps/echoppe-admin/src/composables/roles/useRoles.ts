@@ -36,7 +36,9 @@ export function useRoles() {
   async function loadRoleWithPermissions(id: string): Promise<RoleWithPermissions | null> {
     const { data, error } = await api.roles({ id }).get();
     if (error || !data) return null;
-    return data as RoleWithPermissions;
+    // La route rend un rôle avec ou sans ses permissions selon le cas : c'est la présence du
+    // champ qui distingue, et l'affirmer ne la vérifiait pas.
+    return 'permissions' in data && Array.isArray(data.permissions) ? data : null;
   }
 
   async function createRole(formData: RoleFormData): Promise<Role | null> {

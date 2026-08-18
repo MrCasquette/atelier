@@ -131,7 +131,7 @@ async function sendTestEmail() {
   testing.value = true;
   try {
     const { data, error } = await api.communications.test.post({
-      provider: editingProvider.value.id as 'resend' | 'brevo' | 'smtp',
+      provider: editingProvider.value.id,
       to: testEmail.value,
     });
 

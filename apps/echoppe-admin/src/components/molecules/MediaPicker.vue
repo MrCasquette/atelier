@@ -21,7 +21,7 @@ const selectedMedia = ref<Media | null>(null);
 async function loadSelected() {
   if (props.modelValue) {
     const { data } = await api.media({ id: props.modelValue }).get();
-    if (data && 'id' in data) selectedMedia.value = data as Media;
+    if (data && 'id' in data) selectedMedia.value = data;
   }
 }
 

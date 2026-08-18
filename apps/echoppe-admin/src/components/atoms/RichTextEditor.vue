@@ -130,7 +130,8 @@ function openLinkModal() {
   linkUrl.value = editor.value.getAttributes('link').href || '';
   showLinkModal.value = true;
   nextTick(() => {
-    const input = document.querySelector('[data-link-input]') as HTMLInputElement;
+    const input = document.querySelector('[data-link-input]');
+  if (!(input instanceof HTMLInputElement)) return;
     input?.focus();
   });
 }

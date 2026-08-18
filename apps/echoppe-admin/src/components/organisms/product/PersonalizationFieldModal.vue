@@ -19,12 +19,22 @@ const props = defineProps<{
 const isNew = computed(() => !props.field);
 const saving = ref(false);
 
-const form = ref({
+// La forme est déclarée, pas affirmée valeur par valeur : `ref` élargit correctement dès qu'un
+// type l'accompagne, et `maxLength`/`priceHt` sont des chaînes sans qu'on ait à le redire.
+interface FieldForm {
+  label: string;
+  type: 'text' | 'textarea';
+  required: boolean;
+  maxLength: string;
+  priceHt: string;
+}
+
+const form = ref<FieldForm>({
   label: '',
-  type: 'text' as 'text' | 'textarea',
+  type: 'text',
   required: false,
-  maxLength: '' as string,
-  priceHt: '' as string,
+  maxLength: '',
+  priceHt: '',
 });
 
 const typeOptions = [

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { targetNode } from '@/lib/dom';
 
 interface HiddenColumn {
   id: string;
@@ -29,9 +30,9 @@ function toggle() {
 function handleClickOutside(event: MouseEvent) {
   if (
     menuRef.value &&
-    !menuRef.value.contains(event.target as Node) &&
+    !menuRef.value.contains(targetNode(event)) &&
     buttonRef.value &&
-    !buttonRef.value.contains(event.target as Node)
+    !buttonRef.value.contains(targetNode(event))
   ) {
     isOpen.value = false;
   }

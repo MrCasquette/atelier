@@ -20,11 +20,18 @@ const editingProvider = ref<Provider | null>(null);
 
 // Form state
 const stripeForm = ref({ secretKey: '', webhookSecret: '' });
-const paypalForm = ref({
+interface PayPalForm {
+  clientId: string;
+  clientSecret: string;
+  webhookId: string;
+  mode: 'sandbox' | 'live';
+}
+
+const paypalForm = ref<PayPalForm>({
   clientId: '',
   clientSecret: '',
   webhookId: '',
-  mode: 'sandbox' as 'sandbox' | 'live',
+  mode: 'sandbox',
 });
 
 // Affiché à l'opérateur pour qu'il colle l'URL de webhook chez Stripe/PayPal : elle doit donc

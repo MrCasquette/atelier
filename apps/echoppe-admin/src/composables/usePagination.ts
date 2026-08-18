@@ -1,5 +1,6 @@
 import { ref, computed, type Ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { query } from '@/lib/route';
 
 export interface PaginationMeta {
   total: number;
@@ -76,7 +77,7 @@ export function usePagination<T>(
 
   // Init from URL if syncWithUrl is enabled
   if (syncWithUrl && route.query.page) {
-    const urlPage = parseInt(route.query.page as string, 10);
+    const urlPage = parseInt(query(route.query.page) ?? '', 10);
     if (!isNaN(urlPage) && urlPage > 0) {
       meta.value.page = urlPage;
     }

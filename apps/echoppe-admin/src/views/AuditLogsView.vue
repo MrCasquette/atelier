@@ -18,6 +18,7 @@ import type { DataTableColumn } from '@/components/organisms/DataTable/types';
 import type { FilterOption } from '@/components/molecules/PageHeader/types';
 import type { StatusVariant } from '@/types/ui';
 import type { AuditLog } from '@/composables/audit';
+import { query } from '@/lib/route';
 
 // Types pour les utilisateurs (pour le filtre)
 type UsersResponse = Awaited<ReturnType<typeof api.users.get>>['data'];
@@ -221,7 +222,7 @@ const activeFiltersCount = computed(() => {
 onMounted(async () => {
   // Init from URL
   if (route.query.page) {
-    const urlPage = parseInt(route.query.page as string, 10);
+    const urlPage = parseInt(query(route.query.page) ?? '', 10);
     if (!isNaN(urlPage) && urlPage > 0) {
       meta.value.page = urlPage;
     }
