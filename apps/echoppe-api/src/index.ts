@@ -1,9 +1,9 @@
 import './env'; // garde-fou config — DOIT précéder tout import de @echoppe/core / ./app (cf. env.ts)
 import { fileURLToPath } from 'node:url';
-import { runMigrations } from '@echoppe/core';
+import { db, runMigrations } from '@echoppe/core';
+import { user } from '@echoppe/core/db/schema';
 import { app } from './app';
 import { cleanupExpiredOrders } from './jobs/cleanup-expired-orders';
-import { initAdmin } from './modules/auth/init-admin';
 import { syncEntityReferences } from './modules/reference/sync';
 
 // Le contrat de faute sort par la même porte que le type de l'application : une surface qui lit une
@@ -11,6 +11,27 @@ import { syncEntityReferences } from './modules/reference/sync';
 // l'interface manuelle que le projet s'interdit.
 export type { EchoppeErrorResponse as ErrorResponse, EchoppeFault as Fault } from '@echoppe/core';
 export type { App } from './app';
+
+// Sous-commandes d'amorçage. L'image runtime ne porte qu'un binaire compilé — ni sources, ni
+// `package.json`, ni `node_modules` —, donc `bun run <script>` n'y existe pas. Les commandes
+// d'exploitation passent par le binaire lui-même :
+//
+//   docker compose exec -it api ./api admin:create
+//   docker compose exec api ./api api-key:create --name front --scopes write:schema
+//
+// L'argument est retiré d'`argv` avant délégation : chaque script voit la même ligne de commande
+// qu'en local, où `bun run --cwd apps/echoppe-api <script>` reste le chemin d'appel.
+const SUBCOMMANDS: Record<string, () => Promise<unknown>> = {
+  'admin:create': () => import('./scripts/create-admin'),
+  'api-key:create': () => import('./scripts/create-api-key'),
+};
+
+const subcommand = SUBCOMMANDS[process.argv[2] ?? ''];
+if (subcommand) {
+  process.argv.splice(2, 1);
+  await subcommand();
+  process.exit(0);
+}
 
 const port = process.env.API_PORT ?? 8100;
 
@@ -33,10 +54,20 @@ app.listen({ port: Number(port), hostname: '0.0.0.0' });
 
 console.log(`🏪 Échoppe API running at http://localhost:${port}`);
 
-// Create admin user if ADMIN_EMAIL and ADMIN_PASSWORD are set
-initAdmin().catch((err) => {
-  console.error('[Init] Admin creation error:', err);
-});
+// Amorçage du propriétaire (ADR-0057) : aucun compte ne naît d'une variable d'environnement. Une
+// installation vide se signale ici, sinon elle n'aboutit qu'à un formulaire de connexion qu'aucun
+// identifiant n'ouvre.
+db.select({ id: user.id })
+  .from(user)
+  .limit(1)
+  .then(([existing]) => {
+    if (existing) return;
+    console.log('\n⚠️  Aucun compte. Créez le propriétaire :');
+    console.log('    docker compose exec -it api ./api admin:create\n');
+  })
+  .catch((err) => {
+    console.error('[Init] Vérification du propriétaire impossible :', err);
+  });
 
 // Job de nettoyage des commandes expirées : au boot puis toutes les 15 min. Le cycle de vie du
 // timer est borné et on refuse de démarrer un run pendant l'extinction (cf. typescript.md §7 —

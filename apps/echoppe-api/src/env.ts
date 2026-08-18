@@ -29,7 +29,7 @@ interface EnvCheck {
 }
 
 // Variables CRITIQUES uniquement — leur absence casse le runtime ou la sécurité. Les optionnelles
-// (API_PORT, REDIS_URL, ADMIN_URL, STORE_URL, UPLOAD_DIR, ADMIN_EMAIL/PASSWORD…) ont des défauts sûrs.
+// (API_PORT, REDIS_URL, ADMIN_URL, STORE_URL, UPLOAD_DIR…) ont des défauts sûrs.
 export function validateEnv(): void {
   const checks: readonly EnvCheck[] = [
     {

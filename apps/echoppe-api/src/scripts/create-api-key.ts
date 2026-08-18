@@ -6,7 +6,7 @@ import { generateApiKey, isValidScope } from '../modules/api-key/service';
 // Usage typique au premier run / en CI, avant que l'admin ait une page de gestion :
 //
 //   bun run --cwd apps/echoppe-api api-key:create --name "CLI DPC" --scopes read:content,write:schema
-//   docker compose exec api bun run api-key:create --name CI --scopes write:schema --expires 2027-01-01
+//   docker compose exec api ./api api-key:create --name CI --scopes write:schema --expires 2027-01-01
 //
 // La clé est affichée UNE seule fois. `createdBy` est null (clé système, sans propriétaire humain
 // → visible/révocable uniquement par l'Owner en gouvernance, cf. modules/auth/rbac).

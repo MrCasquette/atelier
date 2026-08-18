@@ -52,7 +52,7 @@ optionnelle. Le secret s'affiche **une fois** — copiez-le immédiatement.
 Pour provisionner une première clé sans admin :
 
 ```bash
-docker compose exec api bun run api-key:create \
+docker compose exec api ./api api-key:create \
   --name front \
   --scopes write:schema
 ```

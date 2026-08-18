@@ -7,7 +7,7 @@ import { customerAuthRoutes } from './customer';
 // question posée, « qui es-tu ? », et un seul module destiné à partir dans `packages/auth`.
 //
 // Le reste du module n'expose pas de routes : `session.ts` et `customer-session.ts` portent les
-// gardes de session, `rbac.ts` les permissions et `init-admin.ts` l'amorçage du premier compte. Le
+// gardes de session, `rbac.ts` les permissions et `src/scripts/create-admin.ts` l'amorçage du propriétaire. Le
 // contrat de registre de principaux (ADR-0037) vit dans `@repo/auth`, avec les tables.
 
 export const authRoutes = new Elysia().use(authAdminRoutes).use(customerAuthRoutes);

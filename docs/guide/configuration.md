@@ -50,9 +50,12 @@ valeurs stockées deviennent illisibles. Générez-la avec `openssl rand -base64
 
 ## Premier démarrage
 
+Le compte propriétaire n'est **pas** une variable : il se crée après le démarrage, par
+`docker compose exec -it api ./api admin:create`, qui demande e-mail et mot de passe au terminal.
+Aucun secret de compte ne vit donc dans un fichier de configuration.
+
 | Variable | Description | Défaut |
 |----------|-------------|--------|
-| `ADMIN_EMAIL` · `ADMIN_PASSWORD` | Compte administrateur créé au tout premier boot, s'il n'en existe aucun | — |
 | `RUN_MIGRATIONS` | Applique les migrations au démarrage. Défini dans l'image publiée, absent en développement | — |
 | `MIGRATIONS_DIR` | Où trouver les migrations SQL | déduit du binaire |
 | `DASHBOARD_DIR` | Où trouver le dashboard compilé, servi sous `/-/admin` | déduit du binaire |

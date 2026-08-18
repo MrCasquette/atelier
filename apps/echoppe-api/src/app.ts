@@ -37,7 +37,7 @@ import { wishlistRoutes } from './modules/wishlist';
 import { securityHeaders } from './security-headers';
 
 // Application Elysia PURE : construction des routes/plugins, sans aucun side-effect de
-// bootstrap (pas de listen, migrations, initAdmin ni intervals — cf. index.ts). Importable
+// bootstrap (pas de listen, migrations ni intervals — cf. index.ts). Importable
 // tel quel dans les tests via `app.handle(request)`.
 export const app = new Elysia()
   // En premier : le gestionnaire doit couvrir tout ce qui est monté ensuite.

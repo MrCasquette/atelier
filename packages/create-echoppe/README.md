@@ -33,8 +33,8 @@ Un repo autonome, hors du monorepo framework :
 - **`compose.yaml`** — backend (API + Admin + PostgreSQL) via images publiées ;
   l'API crée et migre le schéma au démarrage.
 - **`.env`** pré-rempli — ports, identifiants DB, URL de l'API, et une
-  `ENCRYPTION_KEY` **générée automatiquement**. Seuls `ADMIN_EMAIL`/`ADMIN_PASSWORD`
-  sont à renseigner.
+  `ENCRYPTION_KEY` **générée automatiquement**. Rien à renseigner pour démarrer ; le
+  compte propriétaire se crée ensuite par `docker compose exec -it api ./api admin:create`.
 - `src/pages/` — accueil, `/produits`, `/produits/[slug]`
 - `src/lib/api.ts` — client `@echoppe/client` typé, pointé sur `PUBLIC_API_URL`
 - `src/layouts/`, `src/components/` — mise en page et carte produit

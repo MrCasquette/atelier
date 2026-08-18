@@ -34,8 +34,6 @@ services:
       # Le dashboard est servi par l'API sous /-/admin — pas de service ni de port à part.
       ADMIN_URL: http://localhost:${API_PORT}/-/admin
       STORE_URL: ${STORE_URL}
-      ADMIN_EMAIL: ${ADMIN_EMAIL}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
     ports:
       - '${API_PORT}:8100'

@@ -7,25 +7,19 @@ Générée avec `npm create echoppe@latest`. Ce repo contient **le front** (que 
 possédez et modifiez) ; le **backend** (API + Admin + base de données) tourne à côté
 via Docker, à partir d'images publiées.
 
-## Prérequis
-
-Avant le premier démarrage, renseignez dans `.env` :
-
-```bash
-ADMIN_EMAIL=vous@exemple.fr       # compte admin créé au premier lancement
-ADMIN_PASSWORD=un-mot-de-passe-solide
-# ENCRYPTION_KEY est déjà générée automatiquement par la CLI.
-```
-
 ## Démarrage
 
 ```bash
 # 1. Backend : API + Admin + PostgreSQL (l'API crée/migre le schéma au boot)
 docker compose up -d
+
+# 2. Compte propriétaire — e-mail et mot de passe demandés au terminal, jamais écrits
+#    dans un fichier. Une seule fois : la commande refuse dès qu'un compte existe.
+docker compose exec -it api ./api admin:create
 #    → API    http://localhost:8100
 #    → Admin  http://localhost:8100/-/admin
 
-# 2. Front : dépendances puis dev
+# 3. Front : dépendances puis dev
 pnpm install
 pnpm dev
 #    → Boutique http://localhost:4321

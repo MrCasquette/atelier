@@ -66,8 +66,6 @@ services:
       DATABASE_URL: postgresql://echoppe:echoppe@db:5432/echoppe
       ADMIN_URL: http://localhost:8100/-/admin
       # === À MODIFIER ===
-      ADMIN_EMAIL: admin@example.com        # Votre email
-      ADMIN_PASSWORD: votre-mot-de-passe    # Votre mot de passe
       ENCRYPTION_KEY: votre-cle-ici         # Générer avec: openssl rand -base64 32
     ports:
       - '8100:8100'
@@ -84,7 +82,15 @@ volumes:
 ```
 
 L'API **crée et migre le schéma au démarrage** (plus de conteneur d'init séparé).
-Renseignez `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ENCRYPTION_KEY`, puis `docker compose up -d`.
+Renseignez `ENCRYPTION_KEY`, puis :
+
+```bash
+docker compose up -d
+docker compose exec -it api ./api admin:create   # e-mail + mot de passe demandés
+```
+
+Aucun compte ne naît d'une variable d'environnement : le mot de passe du propriétaire ne transite
+par aucun fichier.
 
 **URLs :**
 - Admin : http://localhost:8100/-/admin

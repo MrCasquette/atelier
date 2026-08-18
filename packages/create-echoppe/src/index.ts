@@ -31,7 +31,7 @@ PUBLIC_API_URL=${apiUrl}
 # ─── Contenu (\`pnpm content:push\`) ──────────────────────────────────────
 # Clé d'API machine (scope write:schema) pour synchroniser vos définitions de
 # blocs vers l'API. Créez-la dans l'admin (« Clés d'API »), ou via :
-#   docker compose exec api bun run api-key:create --name front --scopes write:schema
+#   docker compose exec api ./api api-key:create --name front --scopes write:schema
 # puis collez-la ci-dessous.
 CONTENT_API_KEY=
 
@@ -49,10 +49,6 @@ API_PORT=8100
 
 # URL publique du front, transmise à l'API (CORS / liens absolus).
 STORE_URL=http://localhost:4321
-
-# ─── Compte admin — À MODIFIER avant le premier \`docker compose up\` ─────
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=change-me
 
 # Clé de chiffrement — générée automatiquement, gardez-la secrète.
 ENCRYPTION_KEY=${encryptionKey}
@@ -165,8 +161,11 @@ async function main(): Promise<void> {
     [
       `cd ${projectName}`,
       '',
-      '# Backend (API + DB) — renseignez ADMIN_EMAIL/PASSWORD dans .env',
+      '# Backend (API + DB)',
       'docker compose up -d',
+      '',
+      '# Créez le compte propriétaire (e-mail + mot de passe demandés)',
+      'docker compose exec -it api ./api admin:create',
       `# Administration : ${apiUrl}/-/admin`,
       '',
       '# Front Astro',

@@ -47,8 +47,6 @@ services:
       DATABASE_URL: postgresql://echoppe:echoppe@db:5432/echoppe
       ADMIN_URL: http://localhost:8100/-/admin
       # === À MODIFIER ===
-      ADMIN_EMAIL: admin@example.com        # Votre email
-      ADMIN_PASSWORD: votre-mot-de-passe    # Votre mot de passe
       ENCRYPTION_KEY: votre-cle-ici         # Générer avec: openssl rand -base64 32
     ports:
       - '8100:8100'
@@ -64,15 +62,16 @@ volumes:
   echoppe-uploads:
 ```
 
-### 2. Modifiez les 3 valeurs obligatoires
+### 2. Renseignez la clé de chiffrement
 
-Dans la section `api.environment`, modifiez :
+Dans la section `api.environment` :
 
 | Variable | Description | Exemple |
 |----------|-------------|---------|
-| `ADMIN_EMAIL` | Email du compte administrateur | `jean@maboutique.fr` |
-| `ADMIN_PASSWORD` | Mot de passe (min. 8 caractères) | `MonSuperMotDePasse!` |
 | `ENCRYPTION_KEY` | Clé de chiffrement AES-256 | Voir ci-dessous |
+
+Le compte administrateur, lui, ne se configure pas ici : il se crée après le démarrage (étape 4),
+pour qu'aucun mot de passe ne soit écrit dans un fichier.
 
 ::: tip Générer la clé de chiffrement
 ```bash
@@ -89,8 +88,28 @@ docker compose up -d
 
 ::: info Premier démarrage
 - L'API **crée et migre le schéma** au démarrage (plus de conteneur d'init séparé)
-- Le compte admin est créé avec vos identifiants
 - Les images sont téléchargées depuis Docker Hub
+- Aucun compte n'existe encore : les journaux vous le rappellent
+:::
+
+### 4. Créez le compte propriétaire
+
+```bash
+docker compose exec -it api ./api admin:create
+```
+
+La commande demande l'e-mail et le mot de passe, et n'accepte rien d'autre : pas d'option en ligne
+de commande, pas de lecture sur l'entrée standard. Le mot de passe n'apparaît donc ni à l'écran, ni
+dans l'historique du shell, ni dans un fichier de configuration — il ne quitte le terminal que sous
+forme d'empreinte Argon2id.
+
+Ce compte est le **propriétaire** de l'installation. Il n'y en a qu'un, et il peut transmettre sa
+propriété à un autre administrateur depuis l'administration. Les comptes suivants se créent par
+invitation, où le créateur ne connaît jamais le mot de passe.
+
+::: warning Une seule fois
+`admin:create` refuse de s'exécuter dès qu'un compte existe. Un mot de passe oublié se réinitialise
+depuis l'administration, pas en relançant la commande.
 :::
 
 ### Accès aux services
