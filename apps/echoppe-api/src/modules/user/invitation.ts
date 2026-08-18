@@ -14,7 +14,7 @@ const PASSWORD_COST = { algorithm: 'bcrypt', cost: 10 } as const;
  * Là où le destinataire pose son mot de passe — un écran de l'administration. Le dashboard étant
  * servi par l'API sous `/-/admin` (ADR-0052), `ADMIN_URL` porte un chemin, pas un port.
  */
-const ADMIN_URL = (process.env.ADMIN_URL || 'http://localhost:7532/-/admin').replace(/\/+$/, '');
+const ADMIN_URL = (process.env.ADMIN_URL || 'http://localhost:8100/-/admin').replace(/\/+$/, '');
 const INVITATION_PATH = '/invitation';
 
 const sha256 = (value: string): string => createHash('sha256').update(value).digest('hex');

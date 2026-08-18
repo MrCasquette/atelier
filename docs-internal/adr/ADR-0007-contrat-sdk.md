@@ -24,7 +24,7 @@ co-versionné dans le monorepo et peut se permettre un couplage fort pour la DX.
   exposé sur `/docs/json`. Le SDK fige un `openapi.json` (filtré sur la **surface storefront**) puis
   génère les types (`openapi-typescript`) + client fetch (`openapi-fetch`, `credentials:'include'`).
 - Régénération : `bun run --cwd packages/client generate` contre une API à jour. Astuce offline :
-  booter `app` (pur, `apps/api/src/app.ts`) sur :7533 sans migrations/DB.
+  booter `app` (pur, `apps/api/src/app.ts`) sur :8101 sans migrations/DB.
 
 ## Conséquences
 

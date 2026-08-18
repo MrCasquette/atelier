@@ -1,29 +1,32 @@
-# Échoppe - Production Docker Compose (backend : API + Admin + PostgreSQL)
+# Échoppe — pile locale du DÉPÔT. Ce fichier n'est pas une production et n'est livré à personne :
+# une boutique reçoit son propre `compose.yaml`, scaffoldé par `create-echoppe`.
 #
-# Quick start:
-#   # Images PRIVÉES sur GHCR → authentification requise sur l'hôte, une seule fois.
-#   # Utiliser un PAT DÉDIÉ au tirage d'images (moindre privilège, révocable seul) :
-#   # un jeton portant `read:packages` et rien d'autre — surtout pas le jeton de dev.
+# Deux usages, un seul fichier (ADR-0054) :
+#
+#   docker compose up -d                     PostgreSQL + Redis — l'infra de `bun run dev`.
+#   docker compose --profile release up -d   ajoute l'IMAGE PUBLIÉE, sur le rang 2 (:8102).
+#
+# Le second est la validation post-publication d'ADR-0004 : il prouve que l'image tirée de GHCR
+# boote en base vierge et applique ses migrations. Il exige d'être authentifié auprès du registre
+# (images privées) avec un PAT DÉDIÉ au tirage — `read:packages` et rien d'autre, jamais le jeton
+# de développement :
+#
 #   echo "$GHCR_TOKEN" | docker login ghcr.io -u mrcasquette --password-stdin
+#   ENCRYPTION_KEY=$(openssl rand -base64 32) VERSION=x.y.z docker compose --profile release up -d
 #
-#   # Clé de chiffrement (requise pour les credentials paiement/livraison)
-#   export ENCRYPTION_KEY=$(openssl rand -base64 32)
-#
-#   docker compose up -d
-#
-# Au premier démarrage, l'API crée le schéma (migrations) puis le compte admin
-# à partir de ADMIN_EMAIL/ADMIN_PASSWORD. Le front vit dans son propre repo
-# (généré par `create-echoppe`) et pointe sur l'API via son URL.
+# Aucun `container_name` : Compose préfixe par le nom du projet, donc cette pile cohabite avec une
+# boutique et avec toute autre pile de la machine.
 
 services:
-  db:
+  postgres:
     image: postgres:17-alpine
-    container_name: echoppe-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: echoppe
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-echoppe}
       POSTGRES_DB: echoppe
+    ports:
+      - '5432:5432'
     volumes:
       - echoppe-data:/var/lib/postgresql/data
     healthcheck:
@@ -32,28 +35,43 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - echoppe-redis:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   api:
+    profiles: [release]
     image: ghcr.io/mrcasquette/echoppe-api:${VERSION:-latest}
-    container_name: echoppe-api
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://echoppe:${POSTGRES_PASSWORD:-echoppe}@db:5432/echoppe
-      ADMIN_URL: ${ADMIN_URL:-http://localhost:7532/-/admin}
-      STORE_URL: ${STORE_URL:-http://localhost:4321}
+      DATABASE_URL: postgresql://echoppe:${POSTGRES_PASSWORD:-echoppe}@postgres:5432/echoppe
+      REDIS_URL: redis://redis:6379
+      ADMIN_URL: ${ADMIN_URL:-http://localhost:8102/-/admin}
+      STORE_URL: ${STORE_URL:-http://localhost:3101}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@echoppe.dev}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       UPLOAD_DIR: /app/uploads
-      # Optionnel : rate-limit distribué (fournir un Redis joignable)
-      # REDIS_URL: redis://redis:6379
+    # Rang 2 : le rang 0 (:8100) appartient au produit, le rang 1 (:8101) à `bun run dev`.
+    # Le port INTERNE, lui, vaut 8100 dans toutes les piles — c'est celui du Dockerfile.
     ports:
-      - '${API_PORT:-7532}:7532'
+      - '${API_PORT:-8102}:8100'
     volumes:
       - echoppe-uploads:/app/uploads
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
 
 volumes:
   echoppe-data:
+  echoppe-redis:
   echoppe-uploads:

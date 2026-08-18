@@ -59,7 +59,7 @@ type Product = components['schemas']['...'];
 Le SDK est généré depuis l'OpenAPI d'une API en cours d'exécution :
 
 ```bash
-# API des sources (http://localhost:7533) par défaut
+# API des sources (http://localhost:8101) par défaut
 bun run generate
 # ou une autre instance
 CONTRACT_API_URL=https://api.exemple.fr bun run generate

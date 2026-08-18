@@ -8,7 +8,7 @@ import { parseArgs } from 'node:util';
 import { cancel, confirm, intro, isCancel, note, outro, spinner, text } from '@clack/prompts';
 
 const DEFAULT_NAME = 'ma-boutique';
-const DEFAULT_API_URL = 'http://localhost:7532';
+const DEFAULT_API_URL = 'http://localhost:8100';
 const NAME_PATTERN = /^[a-z0-9-]+$/;
 
 const templateDir = resolve(dirname(fileURLToPath(import.meta.url)), '../template');
@@ -45,7 +45,7 @@ POSTGRES_DB=echoppe
 
 # ─── Port exposé sur l'hôte ────────────────────────────────────────────
 # Un seul : le dashboard est servi par l'API sous /-/admin.
-API_PORT=7532
+API_PORT=8100
 
 # URL publique du front, transmise à l'API (CORS / liens absolus).
 STORE_URL=http://localhost:4321

@@ -12,7 +12,7 @@ import { syncEntityReferences } from './modules/reference/sync';
 export type { EchoppeErrorResponse as ErrorResponse, EchoppeFault as Fault } from '@echoppe/core';
 export type { App } from './app';
 
-const port = process.env.API_PORT ?? 7532;
+const port = process.env.API_PORT ?? 8100;
 
 // Migrations SQL versionnées appliquées au boot (activé dans l'image via
 // RUN_MIGRATIONS ; off en dev, où l'on utilise `db:push`). Idempotent.

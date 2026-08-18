@@ -1,7 +1,7 @@
 import { createEchoppeClient } from '@echoppe/client';
 
 // URL de l'API Échoppe. PUBLIC_ car l'URL des images est aussi utilisée côté navigateur.
-export const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:7532';
+export const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8100';
 
 // Client typé, généré depuis l'OpenAPI de l'API. Les appels se font côté serveur (SSR).
 export const api = createEchoppeClient({ baseUrl: API_URL });

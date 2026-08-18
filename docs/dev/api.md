@@ -4,12 +4,12 @@ L'API Échoppe est construite avec [Elysia](https://elysiajs.com/) et expose une
 
 ## Documentation interactive
 
-Accédez à Swagger UI : http://localhost:7532/swagger
+Accédez à Swagger UI : http://localhost:8100/swagger
 
 ## Base URL
 
 ```
-http://localhost:7532  # Développement
+http://localhost:8100  # Développement
 https://api.votresite.com  # Production
 ```
 
@@ -20,7 +20,7 @@ L'API utilise des cookies de session (pas de JWT).
 ### Login
 
 ```bash
-curl -X POST http://localhost:7532/auth/login \
+curl -X POST http://localhost:8100/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@echoppe.dev","password":"admin123"}' \
   -c cookies.txt
@@ -29,7 +29,7 @@ curl -X POST http://localhost:7532/auth/login \
 ### Requête authentifiée
 
 ```bash
-curl http://localhost:7532/auth/me -b cookies.txt
+curl http://localhost:8100/auth/me -b cookies.txt
 ```
 
 ## Endpoints principaux
@@ -83,7 +83,7 @@ bun add @elysiajs/eden
 import { treaty } from '@elysiajs/eden';
 import type { App } from '@echoppe/api';
 
-const api = treaty<App>('http://localhost:7532');
+const api = treaty<App>('http://localhost:8100');
 
 // Requêtes type-safe
 const { data } = await api.products.get();

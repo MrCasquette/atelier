@@ -12,7 +12,7 @@ import { serialize } from './serialize.js';
 import type { ContentDefinition, Registry } from './types.js';
 
 export interface PushOptions {
-  apiUrl: string; // origine de l'API, ex. http://localhost:7532
+  apiUrl: string; // origine de l'API, ex. http://localhost:8100
   apiKey: string; // clé machine (scope write:schema pour push, read:content pour check), ex. eck_…
   fetch?: typeof fetch; // injectable (tests)
   /** Autorise un push qui DÉTRUIT des données (colonne ou table supprimée). Jamais par défaut. */

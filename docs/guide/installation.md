@@ -45,13 +45,13 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://echoppe:echoppe@db:5432/echoppe
-      ADMIN_URL: http://localhost:7532/-/admin
+      ADMIN_URL: http://localhost:8100/-/admin
       # === À MODIFIER ===
       ADMIN_EMAIL: admin@example.com        # Votre email
       ADMIN_PASSWORD: votre-mot-de-passe    # Votre mot de passe
       ENCRYPTION_KEY: votre-cle-ici         # Générer avec: openssl rand -base64 32
     ports:
-      - '7532:7532'
+      - '8100:8100'
     volumes:
       - echoppe-uploads:/app/uploads
     depends_on:
@@ -97,9 +97,9 @@ docker compose up -d
 
 | Service | URL |
 |---------|-----|
-| **Admin** | http://localhost:7532/-/admin |
-| **API** | http://localhost:7532 |
-| **API Docs** | http://localhost:7532/-/docs |
+| **Admin** | http://localhost:8100/-/admin |
+| **API** | http://localhost:8100 |
+| **API Docs** | http://localhost:8100/-/docs |
 
 Le **front** (boutique) vit dans son propre repo — généré par `create-echoppe` — et
 pointe sur l'API via `PUBLIC_API_URL`.
@@ -113,7 +113,7 @@ environment:
   ADMIN_URL: https://admin.maboutique.fr   # URL publique de l'admin
   STORE_URL: https://maboutique.fr         # URL publique du front (CORS)
 ports:
-  - '8080:7532'  # Changer le port exposé
+  - '8080:8100'  # Changer le port exposé
 ```
 
 ::: tip Redis (optionnel)
@@ -151,7 +151,7 @@ bun install
 cp .env.example .env
 
 # 4. Lancer PostgreSQL (compose de dev : Postgres exposé sur 5432)
-docker compose -f compose.dev.yaml up -d postgres
+docker compose up -d postgres
 
 # 5. Initialiser la base de données
 bun run db:push --force

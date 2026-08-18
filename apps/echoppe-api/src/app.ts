@@ -51,7 +51,7 @@ export const app = new Elysia()
       // Le dashboard n'y figure plus : il est servi par l'API, donc same-origin (ADR-0052).
       // Seule la boutique reste un front séparé — et l'y laisser inutilement élargirait la
       // surface autorisée.
-      origin: [process.env.STORE_URL || 'http://localhost:3141'],
+      origin: [process.env.STORE_URL || 'http://localhost:3100'],
       credentials: true,
     }),
   )

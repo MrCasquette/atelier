@@ -4,7 +4,7 @@ Le dashboard d'administration d'Échoppe permet de gérer l'ensemble de votre bo
 
 ## Accès
 
-- **URL** : http://localhost:3211 (développement)
+- **URL** : http://localhost:8100/-/admin (développement)
 - **Identifiants par défaut** : `admin@echoppe.dev` / `admin123`
 
 ## Navigation

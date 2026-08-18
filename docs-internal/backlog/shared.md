@@ -47,7 +47,7 @@ Reste ouvert :
 - [ ] 🟠 **Distribution mono-produit** : `Dockerfile` (19 `COPY packages/*/package.json` énumérés,
   targets `api`/`admin`, user système `echoppe`), `docker-build.yml` (`IMAGE_PREFIX`), `release.yml`
   (version runtime = `apps/echoppe-api/package.json`), `ship.ts` (4 canaux Échoppe), `compose.yaml`
-  et `compose.dev.yaml`. **Volontairement différé** : Prisme n'a aucun cycle de publication, et
+  et `compose.yaml`. **Volontairement différé** : Prisme n'a aucun cycle de publication, et
   paramétrer avant d'avoir un second artefact serait de l'abstraction par anticipation. Piège à
   connaître : l'image n'est construite qu'**à la release** (`docker-build.yml` → `integration.ts`),
   jamais par `ci.yml` — une dérive du `Dockerfile` ne se voit qu'au moment de publier. Ne jamais

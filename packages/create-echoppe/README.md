@@ -45,7 +45,7 @@ jour (`docker compose pull`).
 ## Options non-interactives (CI)
 
 ```bash
-create-echoppe ma-boutique --api http://localhost:7532 --yes
+create-echoppe ma-boutique --api http://localhost:8100 --yes
 ```
 
 ## Licence

@@ -102,7 +102,7 @@ La CLI sérialise votre `defineContent` en **registre JSON** et le pousse en `PU
 /content/registry`. Deux prérequis dans le `.env` :
 
 ```dotenv
-PUBLIC_API_URL=http://localhost:7532
+PUBLIC_API_URL=http://localhost:8100
 CONTENT_API_KEY=eck_votre_cle   # portée write:schema
 ```
 

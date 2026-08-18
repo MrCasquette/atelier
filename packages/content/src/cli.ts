@@ -3,8 +3,8 @@
 // par create-echoppe. Elle N'EST PAS un `bin` node (un shim node ne saurait importer le `.ts` de
 // config du dev).
 //
-//   CONTENT_API_KEY=eck_… PUBLIC_API_URL=http://localhost:7532  <runtime> cli.js push
-//   CONTENT_API_KEY=eck_… PUBLIC_API_URL=http://localhost:7532  <runtime> cli.js check
+//   CONTENT_API_KEY=eck_… PUBLIC_API_URL=http://localhost:8100  <runtime> cli.js push
+//   CONTENT_API_KEY=eck_… PUBLIC_API_URL=http://localhost:8100  <runtime> cli.js check
 
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';

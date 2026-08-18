@@ -23,10 +23,10 @@ normalement (dégradation sans erreur).
 
 | Variable | Description | Défaut |
 |----------|-------------|--------|
-| `API_PORT` | Port de l'API | `7532` |
-| `API_URL` | URL publique de l'API | `http://localhost:7532` |
-| `ADMIN_URL` | URL du dashboard admin (CORS) | `http://localhost:3211` |
-| `STORE_URL` | URL de la boutique (CORS) | `http://localhost:3141` |
+| `API_PORT` | Port publié sur l’hôte | `8100` |
+| `API_URL` | URL publique de l'API | `http://localhost:8100` |
+| `ADMIN_URL` | URL du dashboard admin (CORS) | `http://localhost:8100/-/admin` |
+| `STORE_URL` | URL de la boutique (CORS) | `http://localhost:3100` |
 
 ### Sécurité
 
@@ -83,10 +83,10 @@ DATABASE_URL=postgresql://echoppe:echoppe@localhost:5432/echoppe
 # REDIS_URL=redis://localhost:6379
 
 # API
-API_PORT=7532
-API_URL=http://localhost:7532
-ADMIN_URL=http://localhost:3211
-STORE_URL=http://localhost:3141
+API_PORT=8100
+API_URL=http://localhost:8100
+ADMIN_URL=http://localhost:8100/-/admin
+STORE_URL=http://localhost:3100
 
 # Security (generate with: openssl rand -base64 32)
 ENCRYPTION_KEY=votre-cle-base64-de-32-bytes

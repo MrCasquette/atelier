@@ -77,6 +77,6 @@ trigger `push: tags v*` subsiste comme échappatoire manuelle.
 ## Garde-fous environnement
 
 - **Ne jamais** migrer/seed une base de prod. Conteneurs `dpc-*` = boutique réelle.
-  Framework = `echoppe-*` (via `compose.dev.yaml` / `compose.yaml`) ou éphémère jetable.
+  Framework = `echoppe-*` (via `compose.yaml`) ou éphémère jetable.
 - `echoppe-db` et `dpc-db` partagent le port 5432 → ne pas lancer le stack framework
   pendant que dpc tourne ; préférer un conteneur jetable sur un port libre.

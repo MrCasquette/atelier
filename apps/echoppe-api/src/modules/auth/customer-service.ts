@@ -25,7 +25,7 @@ const sha256 = (value: string): string => createHash('sha256').update(value).dig
 // URL publique du storefront, pour les liens envoyés par e-mail (réinitialisation de mot de passe).
 // Réutilise `STORE_URL` — déjà l'origine de la boutique (CORS + liste blanche de redirection) : en
 // faire une variable d'environnement à part créerait deux sources de vérité pour la même adresse.
-const STOREFRONT_URL = (process.env.STORE_URL || 'http://localhost:4321').replace(/\/+$/, '');
+const STOREFRONT_URL = (process.env.STORE_URL || 'http://localhost:3100').replace(/\/+$/, '');
 // Le storefront est remplaçable, donc ce chemin POURRAIT varier par déploiement — mais personne ne
 // l'a demandé, et le jour venu `process.env.PASSWORD_RESET_PATH ?? …` est un changement d'une ligne.
 const PASSWORD_RESET_PATH = '/reset-password';

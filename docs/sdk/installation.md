@@ -42,7 +42,7 @@ Le client se crée une fois avec `createEchoppeClient`, puis se réutilise parto
 import { createEchoppeClient } from '@echoppe/client';
 
 export const echoppe = createEchoppeClient({
-  baseUrl: process.env.PUBLIC_API_URL ?? 'http://localhost:7532',
+  baseUrl: process.env.PUBLIC_API_URL ?? 'http://localhost:8100',
 });
 ```
 

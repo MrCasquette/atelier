@@ -52,7 +52,7 @@ ON CONFLICT ("code") DO NOTHING;
 
 | Étape | Fichier compose | Prouve |
 |-------|-----------------|--------|
-| **Pré-publication** (sources) | `compose.dev.yaml` | Le working tree migre et boot correctement |
+| **Pré-publication** (sources) | `bun run test:integration` | Le working tree migre et boot correctement |
 | **Post-publication** (artefact) | `compose.yaml` (`VERSION=x.y.z`) | L'**image publiée** boot en base vierge |
 
 Boucle serrée pré-commit (sans stack complet) : un Postgres jetable + migrate.
@@ -78,7 +78,7 @@ bun run contracts        # boote l'app pure offline, régénère openapi.json + 
 bun run contracts:check  # + échoue si les types figés divergent des routes (garde CI)
 ```
 
-`bun run contracts` remplace le rituel manuel (boot :7533 + generate). La garde `contracts:check`
+`bun run contracts` remplace le rituel manuel (boot :8101 + generate). La garde `contracts:check`
 tourne en CI (`ci.yml`) et **casse toute PR** qui change une route sans régénérer le SDK — la dérive
 contrat est attrapée dès la PR, plus seulement au gate release (T4).
 

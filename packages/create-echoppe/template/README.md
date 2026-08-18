@@ -22,8 +22,8 @@ ADMIN_PASSWORD=un-mot-de-passe-solide
 ```bash
 # 1. Backend : API + Admin + PostgreSQL (l'API crée/migre le schéma au boot)
 docker compose up -d
-#    → API    http://localhost:7532
-#    → Admin  http://localhost:3211
+#    → API    http://localhost:8100
+#    → Admin  http://localhost:8100/-/admin
 
 # 2. Front : dépendances puis dev
 pnpm install

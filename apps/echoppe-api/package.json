@@ -5,7 +5,7 @@
   "type": "module",
   "main": "./src/index.ts",
   "scripts": {
-    "dev": "bun --env-file=.env run --watch src/index.ts",
+    "dev": "API_PORT=8101 bun --env-file=.env run --watch src/index.ts",
     "build": "bun build src/index.ts --outdir dist --target bun",
     "start": "bun --env-file=../../.env run dist/index.js",
     "api-key:create": "bun --env-file=../../.env run src/scripts/create-api-key.ts",

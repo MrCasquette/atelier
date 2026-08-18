@@ -1,111 +1,71 @@
-# Configuration des ports
+# Ports
 
-## Ports par défaut
+Référence d'application de [ADR-0054](../adr/ADR-0054-ports-rang-de-pile.md), qui porte la décision
+et ses raisons.
 
-| Service | Port | Signification |
-|---------|------|---------------|
-| Store | `3141` | π (Pi) |
-| Admin | `3211` | 1123 inversé (Fibonacci) |
-| API | `7532` | 2357 inversé (Nombres premiers) |
+## La grille
 
-## Pourquoi ces choix ?
+Trois chiffres, et rien d'autre :
 
-### Une identité mathématique
+- **le millier dit la nature** — `8` un serveur, `3` un navigateur ;
+- **la centaine dit le produit** — `1` Échoppe, `2` Prisme ;
+- **l'unité dit le rang de l'instance sur la machine** — `0` la première, celle du produit lorsqu'il
+  y en a un.
 
-Axiome signifie *une vérité évidente, simple, fondamentale*. Les ports d'Échoppe reflètent cette philosophie en s'appuyant sur des constantes et suites mathématiques universelles :
+La dizaine distingue plusieurs surfaces de même nature au sein d'un produit. Un seul usage
+aujourd'hui : `1` pour le serveur Vite du dashboard.
 
-- **3141** — Les premiers chiffres de π, la constante la plus reconnaissable. Le store est la vitrine publique, ce que le monde voit en premier.
+## L'allocation
 
-- **3211** — La suite de Fibonacci (1, 1, 2, 3) lue à l'envers. Fibonacci représente la croissance organique — approprié pour l'interface d'administration où l'on fait grandir son commerce.
+| Pile | Échoppe | Prisme | Où le rang est écrit |
+|------|---------|--------|----------------------|
+| API — le produit | `8100` | `8200` | `Dockerfile` (interne), `src/index.ts`, template `create-echoppe` |
+| API — `bun run dev` | `8101` | `8201` | `apps/echoppe-api/package.json` |
+| API — l'image publiée | `8102` | `8202` | `compose.yaml`, profil `release` |
+| API — le gate d'intégration | `8103` | — | `apps/echoppe-api/scripts/integration.ts` |
+| Vitrine du dépôt | `3100` | `3200` | `apps/echoppe-store/astro.config.mjs` |
+| Dashboard, serveur Vite | `3110` | `3210` | `apps/echoppe-admin/vite.config.ts` |
+| PostgreSQL · Redis | `5432` · `6379` | idem | `compose.yaml` |
 
-- **7532** — Les quatre premiers nombres premiers (2, 3, 5, 7) en miroir. Les nombres premiers sont les briques élémentaires des mathématiques — comme l'API est la fondation technique de l'application.
+Deux ports vivent hors grille, délibérément : `8109` pour `serve-contract` lancé à la main — il ne
+doit viser aucun rang, sinon il meurt en silence sur un rang occupé et le contrat se régénère depuis
+l'API d'à côté — et `5440` pour la base jetable du gate d'intégration.
 
-### Le miroir comme signature
+Le front d'une boutique n'a pas de rang : il vit dans le dépôt du consommateur (ADR-0002) et garde
+le port par défaut d'Astro, `4321`.
 
-Deux des trois ports sont des inversions. C'est intentionnel : un axiome est une vérité qu'on peut lire dans tous les sens. Échoppe propose une autre perspective sur le e-commerce pour artisans.
+## Ce qu'il faut en retenir
 
-### Logique technique
+**Le port interne du conteneur vaut `8100` partout.** C'est celui du `Dockerfile`, de son `EXPOSE`
+et de son healthcheck. Il ne se négocie pas, ne se configure pas, et ne change pas d'une pile à
+l'autre. Seul le mapping vers l'hôte varie.
 
-- **3xxx** pour les frontends (Store & Admin) — reste dans la plage conventionnelle des applications web
-- **7xxx** pour le backend (API) — séparation claire, zone peu encombrée
+**Les rangs sont des littéraux, pas de la configuration.** Aucun `.env` ne les porte, aucun script
+ne les alloue. Les trois piles d'Échoppe — une boutique, `bun run dev`, l'image publiée — cohabitent
+par construction, sans rien à renseigner.
 
-## Pour les DevOps
+**`API_PORT` reste la variable de l'exploitant.** La renseigner déplace le mapping publié, jamais le
+port interne. C'est la seule qu'un hébergeur ait à connaître.
 
-Ces ports sont des *defaults*, pas des contraintes. Chaque port est configurable via variables d'environnement :
+**Aucun `container_name` dans les composes.** Un nom de conteneur est global à la machine : deux
+piles qui en partagent un ne démarrent pas ensemble, quels que soient leurs ports. C'est la
+collision qui mord en premier, avant celle des ports. Compose préfixe par le nom du projet, ce qui
+suffit.
 
-```dotenv
-# .env
-STORE_PORT=3141
-ADMIN_PORT=3211
-API_PORT=7532
+## Les deux piles du dépôt
+
+```bash
+docker compose up -d                    # PostgreSQL + Redis — l'infra de `bun run dev`
+bun run dev                             # API :8101 · dashboard :3110 · vitrine :3100
+
+docker compose --profile release up -d  # l'image publiée sur :8102 (validation post-publication)
 ```
 
-Vous préférez une configuration classique ? Aucun problème :
+Redis n'est pas optionnel en développement : sans lui, `/auth/login` remonte une page d'erreur Bun
+au lieu d'échouer proprement.
 
-```dotenv
-STORE_PORT=3000
-ADMIN_PORT=3001
-API_PORT=8000
-```
+## Consommateurs à connaître
 
-### Deux plages : l'identité (prod) et le +1 (dev)
-
-`7532` / `3211` / `3141` sont **LES** ports d'Échoppe. Ils appartiennent au produit : les images
-Docker, la prod, le template `create-echoppe`, les défauts du code, et `.env.example` qui les porte
-tels quels. **Ils ne bougent pas** — c'est la cible, pas une valeur de circonstance.
-
-Le décalage **+1** est une accommodation **locale**, et rien d'autre. Raison : une pile Échoppe de
-prod tourne souvent sur la même machine (une instance de démo, un déploiement local) et occupe déjà
-l'identité. Sans décalage, `bun run dev` échoue en `EADDRINUSE` — sur l'API comme sur l'admin.
-
-| Service | Le port (produit, prod, `.env.example`) | Poste de dev encombré |
-|---------|------------------------------------------|-----------------------|
-| API | `7532` | `7533` |
-| Admin | `3211` | `3212` |
-| Store | `3141` | `3142` |
-
-Le décalage vit dans **deux endroits, et deux seulement** :
-
-- le **`.env` racine, non versionné** (`API_PORT` / `ADMIN_PORT` / `STORE_PORT` + les URL de CORS).
-  C'est lui qui pilote `bun run dev`, le proxy Vite de l'admin (`vite.config.ts` lit `API_PORT` et
-  `ADMIN_PORT` à la racine) et le store. Chacun l'ajuste à sa machine ; `.env.example` ne le suit
-  pas ;
-- **`compose.dev.yaml`**, la pile Docker construite depuis les sources, qui publie sur
-  `${API_PORT:-7533}`. Le port **interne** du conteneur reste `7532` — c'est celui du `Dockerfile`,
-  de son `EXPOSE` et de son healthcheck. Seul le mapping hôte se décale, et un `.env` le surcharge.
-
-> **Depuis [ADR-0052](../adr/ADR-0052-surfaces-exploitation-image-unique.md), le dashboard n'a plus
-> de port.** Il est servi par l'API sous `/-/admin` — une seule image, un seul port en production.
-> `ADMIN_PORT` ne sert plus qu'au serveur Vite du développement, et `3211` n'est donc plus un port
-> de produit. Ce fichier décrit encore l'allocation d'avant sur les autres points : les plages
-> elles-mêmes sont en cours de révision.
-
-Nulle part ailleurs. Les défauts en dur du code (`API_PORT ?? 7532` dans `src/index.ts`, les
-`|| 'http://localhost:7532'` de l'admin, `compose.yaml`, tout `packages/create-echoppe`) restent
-sur l'identité : ils décrivent le produit livré, pas le poste de travail.
-
-**Un consommateur à connaître** : `packages/echoppe-client/scripts/generate.ts` interroge
-`http://localhost:7533/-/docs/json` pour régénérer le SDK. Il vise donc l'API **des sources**, pas un
-conteneur. Override par `CONTRACT_API_URL` pour pointer ailleurs — c'est ce que fait le test
-d'intégration, qui vise l'API du conteneur.
-
-`7533`, `3212` et `3142` n'ont aucune valeur symbolique : ce sont des ports de travail local, pas
-une identité produit.
-
-### Pourquoi des ports "originaux" par défaut ?
-
-1. **Éviter les conflits** — Les ports standards (3000, 8000, 8080) sont souvent déjà occupés en environnement de développement
-2. **Identité** — Comme Directus avec son 8055, des ports reconnaissables créent une signature technique
-3. **Zéro ambiguïté** — En voyant `3141` dans vos logs, vous savez immédiatement que c'est Échoppe
-
-## Vérification des conflits
-
-| Port | Conflits connus | Verdict |
-|------|-----------------|---------|
-| 3141 | Aucun | ✓ Safe |
-| 3211 | Aucun | ✓ Safe |
-| 7532 | Aucun | ✓ Safe |
-
----
-
-*Échoppe fait partie d'[Axiome](https://axiome.app), une organisation open source créant des outils pour les artisans.*
+`packages/echoppe-client/scripts/generate.ts` interroge `http://localhost:8101/-/docs/json` pour
+régénérer le SDK — l'API des sources, donc, pas un conteneur. `CONTRACT_API_URL` le fait viser
+ailleurs, ce dont se sert le gate d'intégration pour interroger l'API du conteneur qu'il teste.

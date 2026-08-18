@@ -29,7 +29,8 @@ const NET = 'echoppe-int-net';
 const DB_C = 'echoppe-int-db';
 const API_C = 'echoppe-int-api';
 const DB_HOST_PORT = 5440;
-const API_HOST_PORT = 7540;
+const API_HOST_PORT = 8103; // rang 3 : la pile jetable du gate, jamais celle du produit (ADR-0054)
+const API_INTERNAL_PORT = 8100;
 const PG_IMAGE = 'postgres:17-alpine';
 
 const hostDbUrl = `postgresql://echoppe:echoppe@localhost:${DB_HOST_PORT}/echoppe`;
@@ -94,17 +95,24 @@ async function waitPg(container: string): Promise<void> {
   fail(`Postgres ${container} non prêt.`);
 }
 
+// T3 boote l'image n-1, publiée AVANT qu'ADR-0052 ne déplace le healthcheck sous `/-/`. Ce harnais
+// croise donc deux générations de surface : il sonde les deux chemins, sinon l'upgrade échoue sur
+// une image parfaitement saine. La sonde tombera d'elle-même quand n-1 aura passé la bascule.
+const HEALTH_PATHS = ['/-/health', '/health'] as const;
+
 async function waitHealth(): Promise<void> {
   for (let i = 0; i < 90; i++) {
-    try {
-      const res = await fetch(`${baseUrl}/-/health`);
-      if (res.ok) return;
-    } catch {
-      // pas encore up
+    for (const path of HEALTH_PATHS) {
+      try {
+        const res = await fetch(`${baseUrl}${path}`);
+        if (res.ok) return;
+      } catch {
+        // pas encore up
+      }
     }
     await Bun.sleep(1000);
   }
-  fail(`API ${baseUrl}/-/health non disponible.`);
+  fail(`API ${baseUrl} non disponible (${HEALTH_PATHS.join(', ')}).`);
 }
 
 async function getJson(path: string): Promise<{ status: number; body: unknown }> {
@@ -177,8 +185,12 @@ async function startApi(image: string = IMAGE): Promise<void> {
     // Fixe → stable entre les boots T2/T3/T5 sur la même base.
     '-e',
     'ENCRYPTION_KEY=ZWNob3BwZS1pbnRlZ3JhdGlvbi10ZXN0LWtleS0zMmI=',
+    // Le port interne est IMPOSÉ, jamais supposé : T3 boote l'image n-1, qui peut être d'une
+    // génération antérieure à la grille de ports (ADR-0054) et écouter ailleurs par défaut.
+    '-e',
+    `API_PORT=${API_INTERNAL_PORT}`,
     '-p',
-    `${API_HOST_PORT}:7532`,
+    `${API_HOST_PORT}:${API_INTERNAL_PORT}`,
     image,
   ]);
   if (code !== 0) {
@@ -293,7 +305,7 @@ async function assertContractParity(): Promise<void> {
   const typeFiles = [...target.frozen];
   const allGenerated = [`${target.client}/openapi.json`, ...typeFiles];
   // CONTRACT_API_URL vise l'API DU CONTENEUR : sans lui, `generate` retombe sur son défaut
-  // (l'API des sources, 7533) et T4 comparerait les types d'une autre API que celle testée.
+  // (l'API des sources, 8101) et T4 comparerait les types d'une autre API que celle testée.
   const gen = await sh('bun', ['run', '--cwd', target.client, 'generate'], {
     inheritStdio: false,
     env: { ...process.env, CONTRACT_API_URL: baseUrl },

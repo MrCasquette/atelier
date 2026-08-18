@@ -28,7 +28,7 @@ Portée : socle | <package> | échoppe | prisme
 |----|-------|--------|--------|
 | [0002](./ADR-0002-distribution.md) | Distribution : Docker (runtime) + npm (SDK/CLI), modèle déploiement A | accepté | [distribution-architecture.md](../reference/distribution-architecture.md) |
 | [0003](./ADR-0003-runtime-pm.md) | Runtime & package manager : PM-agnostique, Bun API / Node front | accepté | [contraintes-outillage.md](../reference/contraintes-outillage.md) |
-| [0004](./ADR-0004-migrations-release.md) | Migrations au boot + validation release (compose dev vs prod) | accepté | [release-runbook.md](../release/release-runbook.md) |
+| [0004](./ADR-0004-migrations-release.md) | Migrations au boot + validation release (sources vs artefact) | accepté · amendé par [0054](./ADR-0054-ports-rang-de-pile.md) | [release-runbook.md](../release/release-runbook.md) |
 | [0015](./ADR-0015-validation-typebox.md) | Validation à la frontière : TypeBox / Elysia (pas Zod) | accepté | — |
 | [0016](./ADR-0016-conventions-front-admin.md) | Conventions front admin (atomic design, imports directs, types Eden) | accepté | [PATTERNS.md](../reference/PATTERNS.md) |
 | [0023](./ADR-0023-versioning-tags.md) | Versioning : épine `v*` produit, packages versionnés sur npm | accepté | [pipeline-release.md](../release/pipeline-release.md) |
@@ -41,6 +41,7 @@ Portée : socle | <package> | échoppe | prisme
 | [0034](./ADR-0034-identite-referentiel-reglages.md) | Identité, référentiel et réglages : ce que l'outil possède | accepté, partiellement amendé par [0040](./ADR-0040-identite-site-entite-legale.md) | — |
 | [0052](./ADR-0052-surfaces-exploitation-image-unique.md) | Les surfaces d'exploitation sous `/-/`, le dashboard servi par l'API | accepté · amende [0002](./ADR-0002-distribution.md) | [ports.md](../reference/ports.md) |
 | [0053](./ADR-0053-commentaire-passe-agissant.md) | Un commentaire garde le passé seulement s'il est encore agissant | accepté | — |
+| [0054](./ADR-0054-ports-rang-de-pile.md) | Un port publié appartient à l'instance : la grille et le rang de pile | accepté · amende [0004](./ADR-0004-migrations-release.md) | [ports.md](../reference/ports.md) |
 
 ## Index — `client` · SDK et contrat d'API
 

@@ -1,6 +1,6 @@
-# ADR-0004 — Migrations au boot + validation release (compose dev vs prod)
+# ADR-0004 — Migrations au boot + validation release (sources vs artefact)
 
-Statut : accepté · 2026-07-08 · politique de tags/versions affinée par [ADR-0023](./ADR-0023-versioning-tags.md)
+Statut : accepté · 2026-07-08 · politique de tags/versions affinée par [ADR-0023](./ADR-0023-versioning-tags.md) · validation amendée par [ADR-0054](./ADR-0054-ports-rang-de-pile.md) le 2026-08-18
 Portée : socle
 
 ## Contexte
@@ -23,10 +23,12 @@ l'image → 500 en base vierge.
 - **Dev = `db:push`** (rapide), **prod = migrations drizzle versionnées**. Discipline : après un
   changement de `schema/`, `bun run db:generate` + committer le SQL.
 - **Validation release en deux temps** :
-  1. Pré-publication → **sources** : `compose.dev.yaml` (ou postgres éphémère + `drizzle-kit migrate`)
-     prouve que le working tree est bon.
-  2. Post-publication → **artefact** : `compose.yaml` avec `VERSION=<x>` prouve que l'image publiée
-     boot en base vierge.
+  1. Pré-publication → **sources** : `bun run test:integration` construit l'image depuis le working
+     tree, la boote contre un Postgres neuf et vérifie migrations, idempotence, upgrade depuis n-1
+     et parité du contrat SDK. *(Amendé le 2026-08-18 : ce rôle revenait à `compose.dev.yaml`, que
+     le gate d'intégration couvre plus complètement ; cf. ADR-0054.)*
+  2. Post-publication → **artefact** : `docker compose --profile release up -d` avec `VERSION=<x>`
+     prouve que l'image publiée boot en base vierge.
 
 ## Conséquences
 

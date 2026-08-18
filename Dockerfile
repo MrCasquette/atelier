@@ -122,10 +122,10 @@ COPY --chown=echoppe:echoppe packages/echoppe-core/drizzle ./drizzle
 RUN mkdir -p /app/uploads && chown -R echoppe:echoppe /app/uploads
 
 USER echoppe
-EXPOSE 7532
+EXPOSE 8100
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:7532/-/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:8100/-/health || exit 1
 
 CMD ["./api"]
 
