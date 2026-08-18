@@ -75,6 +75,13 @@ jobs:
       - name: Reserved space
         run: bun run reserved-space
 
+      # `bun install --frozen-lockfile` refuse un lockfile dont un workspace manque, y compris ceux
+      # dont rien n'entre dans l'image — et Docker aplatit les motifs, donc la liste des COPY est
+      # écrite à la main. `@repo/fields` ne l'avait jamais rejointe : la release a échoué des
+      # semaines plus tard. Trois secondes ici valent mieux qu'un échec au moment de publier.
+      - name: Image manifests
+        run: bun run image-manifests
+
       # Garde anti-dérive du CONTRAT SDK : régénère le client depuis l'app pure (offline) et échoue
       # si les types figés (openapi.ts/models.ts/facade.ts) divergent des routes. Miroir du drift-guard
       # Drizzle : attrape « route changée, SDK figé oublié » dès la PR (au lieu du seul gate release
@@ -83,6 +90,32 @@ jobs:
         env:
           DATABASE_URL: postgres://placeholder:placeholder@localhost:5432/placeholder
         run: bun run contracts:check
+
+  # Construction de l'image, sans publication. Jusqu'ici elle n'était bâtie qu'à la release
+  # (`docker-build.yml`) : une dérive du `Dockerfile` ne se voyait qu'au moment de publier, sur un
+  # dépôt par ailleurs vert. `image-manifests` couvre le cas d'un workspace oublié ; ce job couvre
+  # tous les autres — un chemin qui bouge, un `ENV` perdu, une compilation qui casse.
+  #
+  # Une seule plateforme, celle du runner : on vérifie que l'image SE CONSTRUIT, pas qu'elle se
+  # construit partout. Le multi-arch reste à la publication, qui seule en a besoin. Le cache est
+  # partagé avec elle (`type=gha`), donc la release ne repart pas de zéro.
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          target: api
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   # T2 — Tests de frontière sur base vierge depuis les migrations : Postgres neuf → migrate → la
   # suite `tests/` complète (contrat HTTP, matrice RBAC, SQL). Le smoke storefront en fait partie —

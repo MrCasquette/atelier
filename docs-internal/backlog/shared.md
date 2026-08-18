@@ -49,9 +49,10 @@ Reste ouvert :
   (version runtime = `apps/echoppe-api/package.json`), `ship.ts` (4 canaux Échoppe) et
   `compose.yaml`. **Volontairement différé** : Prisme n'a aucun cycle de publication, et
   paramétrer avant d'avoir un second artefact serait de l'abstraction par anticipation. Piège à
-  connaître : l'image n'est construite qu'**à la release** (`docker-build.yml` → `integration.ts`),
-  jamais par `ci.yml` — une dérive du `Dockerfile` ne se voit qu'au moment de publier. Ne jamais
-  renommer un volume Compose : la donnée de production y est attachée.
+  connaître : ne jamais renommer un volume Compose, la donnée de production y est attachée.
+  *(Le piège « l'image n'est construite qu'à la release » est levé depuis le 2026-08-18 : `ci.yml`
+  la construit à chaque PR, et `image-manifests` vérifie que la liste des `COPY` couvre tous les
+  workspaces.)*
 - [x] **Renommer le dossier de travail local** `~/dev/Axiome/echoppe` → `…/atelier`. Fait. La
   précaution qui manquait à cette note, découverte le 2026-08-18 : Compose dérive le **nom de
   projet** du nom du dossier, donc le renommage a détaché la pile de ses volumes

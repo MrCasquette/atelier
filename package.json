@@ -29,6 +29,7 @@
     "drift-guard": "bun run scripts/drift-guard.ts",
     "product-isolation": "bun run scripts/product-isolation.ts",
     "reserved-space": "bun run scripts/reserved-space.ts",
+    "image-manifests": "bun run scripts/image-manifests.ts",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "sh scripts/release.sh",
