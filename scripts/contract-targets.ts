@@ -20,7 +20,7 @@ import { dirname, join, resolve } from 'node:path';
 
 export const ROOT = resolve(import.meta.dir, '..');
 
-/** Point d'entrée qui sert l'app pure sur `/docs/json`, relatif au workspace source. */
+/** Point d'entrée qui sert l'app pure sur `/-/docs/json`, relatif au workspace source. */
 const SERVE_CONTRACT = 'src/scripts/serve-contract.ts';
 
 export type ContractTarget = {

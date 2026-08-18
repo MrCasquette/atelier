@@ -8,7 +8,8 @@ export const securityHeaders = new Elysia({ name: 'security-headers' }).onBefore
   { as: 'global' },
   ({ set, request }) => {
     const url = new URL(request.url);
-    const isDocsRoute = url.pathname.startsWith('/docs');
+    const isDocsRoute = url.pathname.startsWith('/-/docs');
+    const isDashboardRoute = url.pathname.startsWith('/-/admin');
 
     // Empêche le MIME-type sniffing
     set.headers['X-Content-Type-Options'] = 'nosniff';
@@ -33,8 +34,24 @@ export const securityHeaders = new Elysia({ name: 'security-headers' }).onBefore
 
     // Content-Security-Policy
     // - Routes API : CSP strict (JSON only)
-    // - Route /docs (Scalar) : CSP permissif pour permettre l'interface
-    if (isDocsRoute) {
+    // - `/-/docs` (Scalar) : permissif, l'interface a besoin d'inline
+    // - `/-/admin` (dashboard) : le strict `default-src 'none'` bloquerait tout — la SPA a besoin
+    //   de charger ses propres bundles. `connect-src 'self'` suffit parce que le dashboard est
+    //   servi PAR l'API : il n'appelle aucune autre origine (ADR-0052).
+    if (isDashboardRoute) {
+      set.headers['Content-Security-Policy'] = [
+        "default-src 'self'",
+        "script-src 'self'",
+        // Vue applique des styles dynamiques (`:style`, transitions) que le navigateur voit
+        // comme de l'inline.
+        "style-src 'self' 'unsafe-inline'",
+        // `blob:` = prévisualisation locale d'un média avant son envoi.
+        "img-src 'self' data: blob:",
+        "font-src 'self'",
+        "connect-src 'self'",
+        "frame-ancestors 'none'",
+      ].join('; ');
+    } else if (isDocsRoute) {
       // CSP permissif pour Scalar (inline scripts/styles nécessaires)
       set.headers['Content-Security-Policy'] = [
         "default-src 'self'",

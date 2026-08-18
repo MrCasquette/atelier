@@ -69,10 +69,16 @@ jobs:
       - name: Product isolation
         run: bun run product-isolation
 
+      # Espace réservé `/-/` et origine du dashboard (ADR-0052) — deux règles qui se perdent en
+      # silence : une surface d'exploitation remontée à la racine, ou un VITE_API_URL qui repousse
+      # et refige l'adresse de l'API dans le bundle publié.
+      - name: Reserved space
+        run: bun run reserved-space
+
       # Garde anti-dérive du CONTRAT SDK : régénère le client depuis l'app pure (offline) et échoue
       # si les types figés (openapi.ts/models.ts/facade.ts) divergent des routes. Miroir du drift-guard
       # Drizzle : attrape « route changée, SDK figé oublié » dès la PR (au lieu du seul gate release
-      # T4). DATABASE_URL placeholder — l'app pure ne fait aucune requête, sert juste /docs/json.
+      # T4). DATABASE_URL placeholder — l'app pure ne fait aucune requête, sert juste /-/docs/json.
       - name: Contract drift guard
         env:
           DATABASE_URL: postgres://placeholder:placeholder@localhost:5432/placeholder

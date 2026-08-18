@@ -63,7 +63,7 @@ for (const target of targets) {
   });
 
   try {
-    await waitReady(`http://127.0.0.1:${port}/docs/json`);
+    await waitReady(`http://127.0.0.1:${port}/-/docs/json`);
     await $`bun run --cwd ${join(ROOT, target.client)} generate`.env({
       ...process.env,
       CONTRACT_API_URL: `http://127.0.0.1:${port}`,

@@ -97,14 +97,14 @@ async function waitPg(container: string): Promise<void> {
 async function waitHealth(): Promise<void> {
   for (let i = 0; i < 90; i++) {
     try {
-      const res = await fetch(`${baseUrl}/health`);
+      const res = await fetch(`${baseUrl}/-/health`);
       if (res.ok) return;
     } catch {
       // pas encore up
     }
     await Bun.sleep(1000);
   }
-  fail(`API ${baseUrl}/health non disponible.`);
+  fail(`API ${baseUrl}/-/health non disponible.`);
 }
 
 async function getJson(path: string): Promise<{ status: number; body: unknown }> {

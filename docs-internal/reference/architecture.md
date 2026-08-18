@@ -27,7 +27,7 @@ scaffolding. La boutique réelle vit **hors** du monorepo (consommateur, pas mor
 ## Contrats (deux surfaces)
 
 - **Interne (admin)** : **Eden Treaty** sur les types de l'API, couplage fort assumé (monorepo).
-- **Externe (storefront)** : **SDK OpenAPI** figé, généré depuis `/docs/json`, surface **publique
+- **Externe (storefront)** : **SDK OpenAPI** figé, généré depuis `/-/docs/json`, surface **publique
   uniquement**. → [ADR-0007](../adr/ADR-0007-contrat-sdk.md).
 
 La SSOT du contrat = les schémas **TypeBox** (`apps/echoppe-api/src/models/*`). Les projections publiques

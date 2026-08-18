@@ -9,7 +9,6 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-FFFFFF?logo=tailwind-css&logoColor=34B7F1)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
-![Caddy](https://img.shields.io/badge/Caddy-123043?logo=caddy&logoColor=17B717)
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=github-actions&logoColor=white)
 
 > Framework e-commerce pour artisans français.
@@ -20,7 +19,7 @@
 > `@echoppe/client`, `@mrcasquette/content` et `create-echoppe` — parce que les boutiques
 > les consomment depuis leur propre dépôt. Aucune contribution externe n'est ouverte.
 
-**Documentation** : `bun run docs:dev` · **API Docs** : http://localhost:7532/docs
+**Documentation** : `bun run docs:dev` · **API Docs** : http://localhost:7532/-/docs
 
 ## Démarrage rapide
 
@@ -65,7 +64,7 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://echoppe:echoppe@db:5432/echoppe
-      ADMIN_URL: http://localhost:3211
+      ADMIN_URL: http://localhost:7532/-/admin
       # === À MODIFIER ===
       ADMIN_EMAIL: admin@example.com        # Votre email
       ADMIN_PASSWORD: votre-mot-de-passe    # Votre mot de passe
@@ -78,13 +77,6 @@ services:
       db:
         condition: service_healthy
 
-  admin:
-    image: ghcr.io/mrcasquette/echoppe-admin:latest
-    restart: unless-stopped
-    ports:
-      - '3211:80'
-    depends_on:
-      - api
 
 volumes:
   echoppe-data:
@@ -95,9 +87,9 @@ L'API **crée et migre le schéma au démarrage** (plus de conteneur d'init sép
 Renseignez `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ENCRYPTION_KEY`, puis `docker compose up -d`.
 
 **URLs :**
-- Admin : http://localhost:3211
+- Admin : http://localhost:7532/-/admin
 - API : http://localhost:7532
-- API Docs : http://localhost:7532/docs (OpenAPI/Scalar)
+- API Docs : http://localhost:7532/-/docs (OpenAPI/Scalar)
 
 > Redis n'est plus requis (rate-limit distribué optionnel via `REDIS_URL`).
 

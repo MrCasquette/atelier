@@ -45,7 +45,7 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://echoppe:echoppe@db:5432/echoppe
-      ADMIN_URL: http://localhost:3211
+      ADMIN_URL: http://localhost:7532/-/admin
       # === À MODIFIER ===
       ADMIN_EMAIL: admin@example.com        # Votre email
       ADMIN_PASSWORD: votre-mot-de-passe    # Votre mot de passe
@@ -58,13 +58,6 @@ services:
       db:
         condition: service_healthy
 
-  admin:
-    image: ghcr.io/mrcasquette/echoppe-admin:latest
-    restart: unless-stopped
-    ports:
-      - '3211:80'
-    depends_on:
-      - api
 
 volumes:
   echoppe-data:
@@ -104,9 +97,9 @@ docker compose up -d
 
 | Service | URL |
 |---------|-----|
-| **Admin** | http://localhost:3211 |
+| **Admin** | http://localhost:7532/-/admin |
 | **API** | http://localhost:7532 |
-| **API Docs** | http://localhost:7532/docs |
+| **API Docs** | http://localhost:7532/-/docs |
 
 Le **front** (boutique) vit dans son propre repo — généré par `create-echoppe` — et
 pointe sur l'API via `PUBLIC_API_URL`.

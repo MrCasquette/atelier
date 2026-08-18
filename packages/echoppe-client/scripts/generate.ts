@@ -85,7 +85,7 @@ function normalizeRecursiveSchemas(spec: OpenApiSpec): number {
 // Défaut = API dev *depuis les sources* (API_PORT=7533, cf. .env), pas le conteneur Docker
 // (7532). Override par CONTRACT_API_URL pour viser une API distante.
 const apiUrl = (process.env.CONTRACT_API_URL ?? 'http://localhost:7533').replace(/\/+$/, '');
-const specUrl = `${apiUrl}/docs/json`;
+const specUrl = `${apiUrl}/-/docs/json`;
 
 const response = await fetch(specUrl);
 if (!response.ok) {

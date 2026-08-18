@@ -1,6 +1,7 @@
 import { cors } from '@elysiajs/cors';
 import { openapi } from '@elysiajs/openapi';
 import { Elysia } from 'elysia';
+import { dashboard } from './dashboard';
 import { errorHandler } from './error-handler';
 import { apiKeyRoutes } from './modules/api-key';
 import { auditLogsRoutes } from './modules/audit';
@@ -42,18 +43,23 @@ export const app = new Elysia()
   // En premier : le gestionnaire doit couvrir tout ce qui est monté ensuite.
   .use(errorHandler)
   .use(securityHeaders)
+  // Dashboard sous `/-/admin` (ADR-0052) — inerte si le dossier n'a pas été construit, ce qui est
+  // le cas en développement : Vite le sert alors lui-même, avec son HMR.
+  .use(dashboard)
   .use(
     cors({
-      origin: [
-        process.env.ADMIN_URL || 'http://localhost:3211',
-        process.env.STORE_URL || 'http://localhost:3141',
-      ],
+      // Le dashboard n'y figure plus : il est servi par l'API, donc same-origin (ADR-0052).
+      // Seule la boutique reste un front séparé — et l'y laisser inutilement élargirait la
+      // surface autorisée.
+      origin: [process.env.STORE_URL || 'http://localhost:3141'],
       credentials: true,
     }),
   )
   .use(
     openapi({
-      path: '/docs',
+      // `/-/` : espace des surfaces d'exploitation (ADR-0052). Un premier segment `-` n'est jamais
+      // une ressource, donc aucune route métier ne peut entrer en collision avec celles-ci.
+      path: '/-/docs',
       scalar: {
         theme: 'bluePlanet',
         darkMode: true,
@@ -103,7 +109,7 @@ export const app = new Elysia()
     { detail: { tags: ['General'], summary: 'Informations API' } },
   )
   .get(
-    '/health',
+    '/-/health',
     () => ({
       status: 'ok',
       timestamp: new Date().toISOString(),
