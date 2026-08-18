@@ -79,19 +79,21 @@ export interface SiteIdentity {
   url?: string;
 }
 
-/** Une tentative d'envoi, telle qu'on la consigne. */
-export interface CommunicationLogEntry {
+/**
+ * Une tentative d'envoi, telle que l'ENVOI la connaît : qui a envoyé, le message tel qu'il est
+ * parti, et ce que le provider a répondu.
+ *
+ * Rien de plus. L'envoi ne compose pas la ligne de journal — il ne connaît ni ses colonnes ni son
+ * vocabulaire de statut. `EmailStatus` compte d'ailleurs une valeur qu'un envoi ne peut pas
+ * produire : un rebond arrive plus tard, par webhook du provider.
+ */
+export interface SendAttempt {
   provider: CommunicationProvider;
-  template: EmailTemplate;
-  recipient: string;
-  subject: string;
-  status: EmailStatus;
-  providerMessageId?: string;
-  error?: string;
-  metadata: Record<string, unknown>;
+  message: EmailMessage;
+  result: SendResult;
 }
 
 /** Où consigner les envois. Le paquet en fournit une implémentation adossée à sa propre table. */
 export interface CommunicationJournal {
-  record(entry: CommunicationLogEntry): Promise<void>;
+  record(attempt: SendAttempt): Promise<void>;
 }

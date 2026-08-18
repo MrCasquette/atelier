@@ -79,24 +79,16 @@ export class CommunicationService {
     const site = await this.deps.siteIdentity();
     const data = { siteName: site.name, siteUrl: site.url, ...params.data };
 
-    const result = await adapter.send({
+    const message = {
       to: params.to,
       subject: params.subject,
       template: params.template,
       data,
       replyTo: params.replyTo,
-    });
+    };
 
-    await this.deps.journal.record({
-      provider: adapter.provider,
-      template: params.template,
-      recipient: params.to,
-      subject: params.subject,
-      status: result.success ? 'sent' : 'failed',
-      providerMessageId: result.messageId,
-      error: result.error,
-      metadata: data,
-    });
+    const result = await adapter.send(message);
+    await this.deps.journal.record({ provider: adapter.provider, message, result });
 
     return result;
   }

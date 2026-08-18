@@ -52,12 +52,12 @@ export type {
   CommunicationConfig,
   CommunicationCredentialStore,
   CommunicationJournal,
-  CommunicationLogEntry,
   CommunicationProvider,
   EmailMessage,
   EmailStatus,
   EmailTemplate,
   EmailTemplateRenderer,
+  SendAttempt,
   SendResult,
   SiteIdentity,
 } from './types';

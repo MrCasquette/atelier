@@ -3,9 +3,9 @@ import { createAdapterRegistry } from '@repo/adapters';
 import { CommunicationService } from './service';
 import type {
   CommunicationAdapter,
-  CommunicationLogEntry,
   CommunicationProvider,
   EmailMessage,
+  SendAttempt,
   SendResult,
 } from './types';
 import { COMMUNICATION_PROVIDERS } from './types';
@@ -40,7 +40,7 @@ function serviceWith(
   ready: readonly CommunicationProvider[],
   adapters: Partial<Record<CommunicationProvider, CommunicationAdapter>>,
 ) {
-  const written: CommunicationLogEntry[] = [];
+  const written: SendAttempt[] = [];
   // Record exhaustif plutôt qu'un `Object.fromEntries` casté : un provider ajouté à
   // COMMUNICATION_PROVIDERS ne compilera plus tant qu'il n'a pas d'entrée ici.
   const factories: Record<CommunicationProvider, () => CommunicationAdapter> = {
@@ -97,13 +97,13 @@ describe('CommunicationService', () => {
 
     await service.send({ to: 'a@b.test', subject: 'Sujet', template: 'welcome', data: {} });
 
+    // Le service transmet la tentative telle qu'il la connaît ; traduire le résultat en statut
+    // de journal ne le regarde pas.
     expect(written).toHaveLength(1);
     expect(written[0]).toMatchObject({
       provider: 'resend',
-      recipient: 'a@b.test',
-      subject: 'Sujet',
-      status: 'sent',
-      providerMessageId: 'msg-1',
+      message: { to: 'a@b.test', subject: 'Sujet', template: 'welcome' },
+      result: { success: true, messageId: 'msg-1' },
     });
   });
 
@@ -114,8 +114,7 @@ describe('CommunicationService', () => {
     const result = await service.send({ to: 'a@b.test', subject: 's', template: 'welcome', data: {} });
 
     expect(result.success).toBe(false);
-    expect(written[0]?.status).toBe('failed');
-    expect(written[0]?.error).toBe('quota dépassé');
+    expect(written[0]?.result).toEqual({ success: false, error: 'quota dépassé' });
   });
 
   test('aucun provider prêt : skipped, et rien n’est consigné', async () => {

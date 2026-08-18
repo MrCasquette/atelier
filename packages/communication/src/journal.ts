@@ -12,17 +12,19 @@ import type { CommunicationJournal, CommunicationProvider } from './types';
  */
 export function createDbJournal(): CommunicationJournal {
   return {
-    async record(entry) {
+    async record({ provider, message, result }) {
       await db.insert(communicationLog).values({
-        provider: entry.provider,
+        provider,
         channel: 'email',
-        template: entry.template,
-        recipient: entry.recipient,
-        subject: entry.subject,
-        status: entry.status,
-        providerMessageId: entry.providerMessageId,
-        error: entry.error,
-        metadata: entry.metadata,
+        template: message.template,
+        recipient: message.to,
+        subject: message.subject,
+        // La traduction du résultat en statut appartient au journal : `bounced`, la troisième
+        // valeur, ne viendra jamais d'un envoi mais d'un webhook du provider.
+        status: result.success ? 'sent' : 'failed',
+        providerMessageId: result.messageId,
+        error: result.error,
+        metadata: message.data,
       });
     },
   };

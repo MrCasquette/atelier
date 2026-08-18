@@ -33,7 +33,13 @@ new CommunicationService({
 ```
 
 Les quatre dépendances ont la même nature : le paquet fournit l'implémentation réelle, le produit la
-branche, un test la remplace. C'est aussi ce qui a permis de retirer `@repo/identity` des
+branche, un test la remplace.
+
+Le service leur passe **ce qu'il connaît**, jamais ce qu'elles attendent : le journal reçoit une
+`SendAttempt` — le provider, le message tel qu'il est parti, la réponse — et dérive lui-même sa
+ligne. C'est `EmailStatus` qui a tranché : il compte trois valeurs dont une, `bounced`, ne peut pas
+venir d'un envoi mais d'un webhook. Un envoi qui composait ce statut tenait une responsabilité qui
+n'était pas la sienne. C'est aussi ce qui a permis de retirer `@repo/identity` des
 dépendances de ce paquet — il ne lit plus la table `site` lui-même.
 
 ### Ce que ça a corrigé
