@@ -1,108 +1,85 @@
 # Configuration
 
-Échoppe utilise des variables d'environnement pour sa configuration. Copiez le fichier `.env.example` vers `.env` et adaptez les valeurs.
+Cette page est la **référence des variables d'environnement** réellement lues par Échoppe. Elle
+suit le code : une variable qui n'y figure pas n'a aucun effet.
 
-## Variables d'environnement
+Selon ce que vous faites, votre point de départ diffère :
 
-### Base de données
+| Vous… | Votre fichier |
+|-------|---------------|
+| hébergez une boutique | le `.env` écrit par `create-echoppe`, que vous éditez |
+| développez le framework | `cp .env.example .env` à la racine du dépôt |
 
-| Variable | Description | Défaut |
-|----------|-------------|--------|
-| `DATABASE_URL` | URL de connexion PostgreSQL | `postgresql://echoppe:echoppe@localhost:5432/echoppe` |
-
-### Redis (optionnel)
-
-Fournir `REDIS_URL` active le rate-limit distribué ; sans lui, l'API fonctionne
-normalement (dégradation sans erreur).
-
-| Variable | Description | Défaut |
-|----------|-------------|--------|
-| `REDIS_URL` | URL de connexion Redis | *(non défini)* |
-
-### API
-
-| Variable | Description | Défaut |
-|----------|-------------|--------|
-| `API_PORT` | Port publié sur l’hôte | `8100` |
-| `API_URL` | URL publique de l'API | `http://localhost:8100` |
-| `ADMIN_URL` | URL du dashboard admin (CORS) | `http://localhost:8100/-/admin` |
-| `STORE_URL` | URL de la boutique (CORS) | `http://localhost:3100` |
-
-### Sécurité
-
-| Variable | Description | Défaut |
-|----------|-------------|--------|
-| `ENCRYPTION_KEY` | Clé de chiffrement AES-256 (32 bytes base64) | - |
-
-::: warning ENCRYPTION_KEY obligatoire
-Cette clé est requise pour chiffrer les credentials des prestataires (Stripe, PayPal, SMTP...).
-
-Générez-la avec :
-```bash
-openssl rand -base64 32
-```
-
-**Important :** Conservez cette clé précieusement. Si vous la perdez, vous devrez reconfigurer tous vos prestataires.
+::: tip Les credentials des prestataires ne sont pas ici
+Stripe, PayPal, SMTP, Colissimo, Sendcloud… se configurent **dans le dashboard**, sous
+« Prestataires ». Ils sont stockés chiffrés en base — aucune variable d'environnement ne les porte,
+et en définir une n'aurait aucun effet.
 :::
 
-### Email
+## Requis
+
+L'API refuse de démarrer sans ces variables, et affiche laquelle manque.
 
 | Variable | Description | Défaut |
 |----------|-------------|--------|
-| `SMTP_HOST` | Serveur SMTP | - |
-| `SMTP_PORT` | Port SMTP | `587` |
-| `SMTP_USER` | Utilisateur SMTP | - |
-| `SMTP_PASS` | Mot de passe SMTP | - |
-| `SMTP_FROM` | Email expéditeur | - |
+| `DATABASE_URL` | Connexion PostgreSQL | — |
+| `ENCRYPTION_KEY` | Clé de chiffrement des credentials — 32 octets en base64 | — |
 
-### Paiements
+::: warning Conservez `ENCRYPTION_KEY`
+Elle chiffre les credentials de vos prestataires. La perdre oblige à tous les ressaisir : les
+valeurs stockées deviennent illisibles. Générez-la avec `openssl rand -base64 32`.
+:::
 
-| Variable | Description | Défaut |
-|----------|-------------|--------|
-| `STRIPE_SECRET_KEY` | Clé secrète Stripe | - |
-| `STRIPE_WEBHOOK_SECRET` | Secret webhook Stripe | - |
-| `PAYPAL_CLIENT_ID` | Client ID PayPal | - |
-| `PAYPAL_CLIENT_SECRET` | Secret PayPal | - |
-
-### Livraison
+## Réseau et URL
 
 | Variable | Description | Défaut |
 |----------|-------------|--------|
-| `COLISSIMO_CONTRACT` | Numéro de contrat Colissimo | - |
-| `COLISSIMO_PASSWORD` | Mot de passe Colissimo | - |
-| `SENDCLOUD_PUBLIC_KEY` | Clé publique Sendcloud | - |
-| `SENDCLOUD_SECRET_KEY` | Clé secrète Sendcloud | - |
+| `API_PORT` | Port publié sur l'hôte. Le port **interne** du conteneur vaut toujours `8100` | `8100` |
+| `ADMIN_URL` | Où joindre le dashboard — liens d'invitation, redirections autorisées | `http://localhost:8100/-/admin` |
+| `STORE_URL` | Origine de la boutique, pour le CORS et les liens absolus des e-mails | `http://localhost:3100` |
+| `PUBLIC_API_URL` | Origine de l'API, lue par le front et par la CLI de contenu | — |
 
-## Exemple de fichier .env
+## Fonctionnement
 
-```bash
-# Database
-DATABASE_URL=postgresql://echoppe:echoppe@localhost:5432/echoppe
+| Variable | Description | Défaut |
+|----------|-------------|--------|
+| `REDIS_URL` | Active le rate-limit distribué. Sans elle, l'API fonctionne, en dégradation silencieuse | — |
+| `UPLOAD_DIR` | Racine de stockage des médias | `apps/echoppe-api/uploads` (`/app/uploads` en image) |
+| `SHOP_NAME` | Nom de la boutique affiché par PayPal au paiement | `Shop` |
+| `NODE_ENV` | `production` durcit les cookies (`secure`) et les en-têtes de sécurité | — |
 
-# Redis (optionnel — rate-limit distribué)
-# REDIS_URL=redis://localhost:6379
+## Premier démarrage
 
-# API
-API_PORT=8100
-API_URL=http://localhost:8100
-ADMIN_URL=http://localhost:8100/-/admin
-STORE_URL=http://localhost:3100
+| Variable | Description | Défaut |
+|----------|-------------|--------|
+| `ADMIN_EMAIL` · `ADMIN_PASSWORD` | Compte administrateur créé au tout premier boot, s'il n'en existe aucun | — |
+| `RUN_MIGRATIONS` | Applique les migrations au démarrage. Défini dans l'image publiée, absent en développement | — |
+| `MIGRATIONS_DIR` | Où trouver les migrations SQL | déduit du binaire |
+| `DASHBOARD_DIR` | Où trouver le dashboard compilé, servi sous `/-/admin` | déduit du binaire |
 
-# Security (generate with: openssl rand -base64 32)
-ENCRYPTION_KEY=votre-cle-base64-de-32-bytes
+## Outillage du contributeur
 
-# Email (development)
-SMTP_HOST=localhost
-SMTP_PORT=1025
-SMTP_FROM=noreply@echoppe.local
-```
+Ces variables ne servent qu'aux scripts du dépôt et n'ont pas leur place dans un `.env`.
 
-## Configuration des prestataires
+| Variable | Description |
+|----------|-------------|
+| `CONTRACT_API_URL` | API dont le SDK est régénéré (`bun run contracts`) — défaut : l'API des sources |
+| `SMOKE_RUN` · `SMOKE_DATABASE_URL` | Autorisent la suite smoke et lui désignent sa base jetable |
+| `INTEGRATION_IMAGE` · `PREV_IMAGE` | Réutilisent une image déjà construite, et désignent l'image n-1 du test d'upgrade |
 
-Les prestataires de paiement et livraison se configurent dans l'interface d'administration :
+## CLI de contenu
 
-1. Aller dans **Prestataires**
-2. Configurer les clés API pour chaque service
-3. Activer les prestataires souhaités
+Lues par `@mrcasquette/content` (`content push` / `content check`).
 
-Voir la documentation [Paramètres](/admin/settings) pour plus de détails.
+| Variable | Description |
+|----------|-------------|
+| `CONTENT_API_KEY` | Clé d'API machine, portée `write:schema`, créée dans le dashboard |
+| `CONTENT_CONFIG` | Chemin du fichier de définitions, si vous ne suivez pas la convention |
+
+## Ce qui ne se configure pas par l'environnement
+
+**Les ports des piles de développement.** Chaque pile porte son rang en dur, dans le fichier qui la
+définit — l'API des sources sur `8101`, le dashboard Vite sur `3110`, la vitrine sur `3100`. Seul
+`API_PORT` reste à vous : il déplace le port publié sur l'hôte.
+
+**Les credentials des prestataires**, comme rappelé plus haut : dashboard, section « Prestataires ».

@@ -231,3 +231,12 @@ circonstancielle plutôt que sur une garde.
 - [ ] 🟡 Vérifier les trusted publishers npm/OIDC des trois artefacts publics.
 - [ ] 🟡 Purger l'ancien registre Docker Hub après migration des consommateurs encore concernés.
 - [ ] 🟡 Garder npm 11 tant que Changesets est incompatible avec npm 12.
+- [ ] 🟢 **Garde de découverte des variables d'environnement.** ADR-0055 fait de
+  `docs/guide/configuration.md` la référence des variables, et le `.env.example` du contributeur ne
+  porte plus que le nécessaire — la référence peut donc diverger du code sans que rien ne le
+  signale. Une garde scannerait les `process.env.*` d'`apps` et `packages` et échouerait sur toute
+  variable que ni le fichier ni la doc ne mentionnent, comme `drift-guard` / `product-isolation` /
+  `reserved-space` découvrent au lieu de connaître. **Volontairement différé** : le code lit 24
+  variables et la surface bouge encore (identité/OIDC, stockage média, Redis) ; une garde écrite
+  maintenant figerait une nomenclature qu'on est en train de remuer. À reprendre quand la file de
+  décisions de configuration sera vidée.

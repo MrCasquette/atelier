@@ -5,12 +5,12 @@
   "type": "module",
   "main": "./src/index.ts",
   "scripts": {
-    "dev": "API_PORT=8101 bun --env-file=.env run --watch src/index.ts",
+    "dev": "API_PORT=8101 bun --env-file=../../.env run --watch src/index.ts",
     "build": "bun build src/index.ts --outdir dist --target bun",
     "start": "bun --env-file=../../.env run dist/index.js",
     "api-key:create": "bun --env-file=../../.env run src/scripts/create-api-key.ts",
     "type-check": "tsc --noEmit",
-    "test": "bun test src",
+    "test": "bun --env-file=../../.env test src",
     "test:smoke": "bun run scripts/smoke.ts",
     "test:integration": "bun run scripts/integration.ts"
   },

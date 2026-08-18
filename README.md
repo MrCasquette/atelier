@@ -110,14 +110,18 @@ git clone git@github.com:MrCasquette/atelier.git
 cd atelier
 bun install
 
-# 2. Lancer PostgreSQL + Redis
+# 2. Configurer — l'API refuse de démarrer sans ENCRYPTION_KEY
+cp .env.example .env
+openssl rand -base64 32   # à coller dans ENCRYPTION_KEY
+
+# 3. Lancer PostgreSQL + Redis
 docker compose up -d
 
-# 3. Initialiser la DB
+# 4. Initialiser la DB
 bun run db:push --force
 bun run db:seed
 
-# 4. Lancer le dev
+# 5. Lancer le dev
 bun run dev
 ```
 

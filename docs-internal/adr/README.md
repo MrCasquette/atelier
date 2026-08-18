@@ -42,6 +42,7 @@ Portée : socle | <package> | échoppe | prisme
 | [0052](./ADR-0052-surfaces-exploitation-image-unique.md) | Les surfaces d'exploitation sous `/-/`, le dashboard servi par l'API | accepté · amende [0002](./ADR-0002-distribution.md) | [ports.md](../reference/ports.md) |
 | [0053](./ADR-0053-commentaire-passe-agissant.md) | Un commentaire garde le passé seulement s'il est encore agissant | accepté | — |
 | [0054](./ADR-0054-ports-rang-de-pile.md) | Un port publié appartient à l'instance : la grille et le rang de pile | accepté · amende [0004](./ADR-0004-migrations-release.md) | [ports.md](../reference/ports.md) |
+| [0055](./ADR-0055-publics-de-la-configuration.md) | Trois publics de la configuration, un fichier chacun | accepté | [configuration.md](../../docs/guide/configuration.md) |
 
 ## Index — `client` · SDK et contrat d'API
 
