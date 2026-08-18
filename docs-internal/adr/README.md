@@ -31,7 +31,7 @@ Portée : socle | <package> | échoppe | prisme
 | [0004](./ADR-0004-migrations-release.md) | Migrations au boot + validation release (sources vs artefact) | accepté · amendé par [0054](./ADR-0054-ports-rang-de-pile.md) | [release-runbook.md](../release/release-runbook.md) |
 | [0015](./ADR-0015-validation-typebox.md) | Validation à la frontière : TypeBox / Elysia (pas Zod) | accepté | — |
 | [0016](./ADR-0016-conventions-front-admin.md) | Conventions front admin (atomic design, imports directs, types Eden) | accepté | [PATTERNS.md](../reference/PATTERNS.md) |
-| [0023](./ADR-0023-versioning-tags.md) | Versioning : épine `v*` produit, packages versionnés sur npm | accepté · amendé (rang `1.0.0`, garde de couverture) | [pipeline-release.md](../release/pipeline-release.md) |
+| [0023](./ADR-0023-versioning-tags.md) | Versioning : épine `v*` produit, packages versionnés sur npm | accepté · amendé (rang `1.0.0`, surfaces publiées, garde de couverture) | [pipeline-release.md](../release/pipeline-release.md) |
 | [0024](./ADR-0024-portee-adr.md) | Portée des ADR : un compteur unique, un champ de portée | accepté | — |
 | [0025](./ADR-0025-deux-produits-un-repo.md) | Deux produits, un repo : frontière core / packages | accepté | — |
 | [0033](./ADR-0033-organisation-monorepo.md) | Organisation du monorepo : disposition à plat, deux cores, packages partagés | accepté | — |

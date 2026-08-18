@@ -7,6 +7,23 @@ roadmap, § V2. Les packages réutilisables vivent dans le
 
 ## V1 — prouver le produit headless
 
+**Le vertical slice vient tôt**, juste après les quatre chantiers de forme du
+[backlog socle](./shared.md#lordre-du-moment). Trois raisons, dans l'ordre de force :
+
+1. **Il débloque l'identité.** [ADR-0051](../adr/ADR-0051-garde-credentials.md) conditionne
+   explicitement le choix du mode — garde locale, OIDC, service géré — à l'existence de **deux
+   usages réels**. Prisme est ce second usage : sans lui, la décision ne s'instruit pas, quel que
+   soit le temps qu'on y passe.
+2. **Les décisions suspendues au second consommateur attendent avec elle** : l'injection DB, la
+   fusion des petits paquets, la réorganisation des domaines internes.
+3. **La garde d'isolation dort.** `product-isolation` sort en succès silencieux tant qu'un seul
+   scope possède une application — la frontière entre produits n'est donc pas vérifiée aujourd'hui.
+
+Il ne conditionne en revanche **pas** la V1 stable d'Échoppe, qui ne promet que ses surfaces
+publiées ([ADR-0023](../adr/ADR-0023-versioning-tags.md), amendement). Prisme prouve l'architecture,
+pas le contrat.
+
+
 - [ ] 🔴 **Créer un vertical slice exécutable** : `prisme-core` et `prisme-api`, migrations propres,
   auth admin, une page, une entité, un média et un contrat HTTP propre.
 - [ ] 🔴 **Définir la topologie de déploiement V1** : images, base dédiée, migrations, bootstrap et

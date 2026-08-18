@@ -59,7 +59,8 @@ Détail : [ADR-0005](../adr/ADR-0005-panier-stock.md).
 - [ ] 🟡 Ajouter un logger structuré et une corrélation de requête.
 - [ ] 🟡 Fermer proprement PostgreSQL, Redis et les jobs au shutdown.
 - [ ] 🟡 Refactors ciblés : génération de facture et réordonnancement des variantes.
-- [ ] 🟠 **Requalifier ~32 statuts HTTP.** Chantier SÉPARÉ, qui n'a jamais fait partie
+- [ ] 🔴 **Requalifier ~32 statuts HTTP — dernière rupture connue du contrat HTTP, donc frontière
+  de `1.0.0` ([ADR-0023](../adr/ADR-0023-versioning-tags.md), amendement).** Chantier SÉPARÉ, qui n'a jamais fait partie
   d'[ADR-0050](../adr/ADR-0050-exception-jamais-reponse-http.md) — celle-ci a fixé la forme des
   CORPS, celui-ci change le comportement observable des clients, donc jamais mêlé au précédent.
   Recensé lors du classement des 400 : `configuration_missing` → 503 (13 sites), `invalid_state` /

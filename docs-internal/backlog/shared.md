@@ -3,6 +3,25 @@
 Travail sur les packages, contrats et décisions qui concernent Échoppe et Prisme. Une abstraction
 nouvelle doit avoir deux usages réels ; à défaut, elle reste dans le produit qui la porte.
 
+## L'ordre du moment
+
+Le discriminant : **ce qui change une FORME passe avant Prisme, ce qui change un COMPORTEMENT peut
+passer après.** Refactorer une forme avec deux consommateurs coûte double — deux produits à migrer,
+deux suites à réécrire, une décision qui doit satisfaire les deux. Corriger un comportement coûte
+pareil quel que soit le moment.
+
+D'où quatre chantiers en tête de file, marqués **⏩ avant Prisme** ci-dessous : le barrel de réexport
+du cœur, le singleton de `@repo/communication`, la partie pure de `@repo/pages`, et la migration
+Markdown. Puis le [vertical slice Prisme](./prisme.md), qui débloque à lui seul les décisions
+suspendues à un second consommateur — dont la garde des credentials
+([ADR-0051](../adr/ADR-0051-garde-credentials.md)), qui conditionne explicitement son choix à deux
+usages réels.
+
+Le durcissement de la § Sécurité n'attend rien et peut avancer en parallèle : il ne change aucune
+forme.
+
+Cette section est périssable — elle disparaît quand le vertical slice tourne.
+
 ## Workspace et outillage (`atelier`)
 
 Le conteneur, distinct des produits qu'il héberge. Le principe qui gouverne cet outillage —
@@ -36,7 +55,7 @@ Le conteneur, distinct des produits qu'il héberge. Le principe qui gouverne cet
 
 ## Contenu config-as-code
 
-- [ ] 🔴 **Migrer `richText` de HTML vers Markdown** selon [ADR-0030](../adr/ADR-0030-texte-riche-markdown.md) :
+- [ ] 🔴 ⏩ **Migrer `richText` de HTML vers Markdown** selon [ADR-0030](../adr/ADR-0030-texte-riche-markdown.md) :
   convertir les données, désactiver le HTML brut et tester le rendu contre le XSS stocké.
 - [ ] 🟠 **Générateur de formulaires d'administration** depuis le registre. Annoncé en « Maintenant »
   sur la [roadmap publique](../../docs/roadmap.md), au même titre que les menus.
@@ -48,8 +67,9 @@ Le conteneur, distinct des produits qu'il héberge. Le principe qui gouverne cet
 ## Architecture et contrats
 
 - [ ] 🟠 **Trancher l'injection DB** dans un ADR : singleton, factory de service, contexte de requête
-  et unité transactionnelle. L'éprouver d'abord dans le vertical slice Prisme.
-- [ ] 🟠 **Retirer le singleton de `@repo/communication` au profit d'une composition injectable.**
+  et unité transactionnelle. **Pendant** Prisme, pas avant : c'est la décision de forme qui a besoin
+  du second consommateur pour être bien prise, et le vertical slice est son terrain d'épreuve.
+- [ ] 🟠 ⏩ **Retirer le singleton de `@repo/communication` au profit d'une composition injectable.**
   `email.ts` résout son adapter via `getActiveCommunicationAdapter()`, importé d'un singleton de
   module aux fabriques câblées en dur : **aucune couture** ne permet d'en substituer un faux. Les
   credentials sont bien injectés (DIP), mais les stuber supprime la dépendance à la base, **pas au
@@ -64,14 +84,14 @@ Le conteneur, distinct des produits qu'il héberge. Le principe qui gouverne cet
   protégerait que le chemin qui pense à le consulter. Touche les 4 appelants de `sendEmail` plus le
   câblage au boot. Débloque les tests du chemin d'envoi, aujourd'hui impossibles.
   Détail : [audit de couverture documentaire](../audits/audit-couverture-documentaire.md).
-- [ ] 🟡 **Séparer la partie pure de `@repo/pages` de sa partie connectée**, sur le modèle déjà
+- [ ] 🟠 ⏩ **Séparer la partie pure de `@repo/pages` de sa partie connectée**, sur le modèle déjà
   appliqué dans `@repo/auth` (`permission.ts` / `permission-cache.ts`). `definition-service.ts`
   importe `db` au niveau module et `@repo/db` **lève à l'import** sans `DATABASE_URL` : la logique
   pure — `assertRegistryCoherent`, `unknownRefTargets` — est soudée à la connexion par le graphe
   d'imports alors qu'elle n'interroge rien. Ses tests doivent poser une URL factice, contournement
   consigné dans le fichier de test. La convention existe déjà dans le dépôt ; ce module ne l'applique
   pas. Détail : [audit de couverture documentaire](../audits/audit-couverture-documentaire.md).
-- [ ] 🟠 **Encaisser le découpage en packages** — le constat, mesuré le 2026-08-12 : les frontières
+- [ ] 🔴 ⏩ **Encaisser le découpage en packages** — le constat, mesuré le 2026-08-12 : les frontières
   existent dans l'arborescence mais pas dans les imports. L'API compte **61 imports de
   `@echoppe/core` contre 29 de `@repo/*`**, et **46 usages de symboles qui vivent dans un `@repo/*`**
   y entrent par le barrel du cœur — 14 fois `media`, 7 fois `user`, 4 fois `menu`, 3 fois `site`.

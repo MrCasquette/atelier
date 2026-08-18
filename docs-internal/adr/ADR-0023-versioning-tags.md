@@ -70,6 +70,40 @@ qu'on ne peut pas encore promettre, et l'annonce ne se reprend pas.
 Ce que cela n'autorise pas : minimiser la rupture dans le texte. Le rang mesure l'engagement de
 stabilité, le changelog décrit ce qui casse. Les deux ne disent pas la même chose.
 
+### Stabilité de quoi — les cinq surfaces publiées
+
+Dire que `1.0.0` promet la stabilité n'engage à rien tant qu'on n'a pas dit **de quoi**. Le dépôt ne
+publie que cinq choses :
+
+| Surface | Artefact |
+|---|---|
+| Le SDK | `@echoppe/client` |
+| Le DSL de contenu | `@mrcasquette/content` |
+| Le scaffold | `create-echoppe` et son template |
+| Le contrat HTTP | l'OpenAPI servi par l'image |
+| Le contrat d'exploitation | variables, volumes, ports, amorçage |
+
+Tout le reste est **privé** — les `@repo/*`, `@echoppe/core`, les applications. Leur forme peut
+changer après `1.0.0` sans rien casser chez personne. **Le découpage en paquets ne conditionne donc
+pas la V1 stable** : c'est une dette d'architecture, pas une dette de contrat, et les confondre ferait
+attendre la version à un chantier qui ne la concerne pas.
+
+`1.0.0` se pose quand il ne reste **aucune rupture connue** sur ces cinq surfaces. Deux subsistent au
+2026-08-18, et elles sont donc la frontière de la version :
+
+- les **~32 requalifications de statut HTTP**, qui changent le comportement observable des clients
+  (backlog Échoppe) ;
+- la **migration de `richText` vers Markdown**, qui change la sérialisation du contenu
+  (backlog socle, [ADR-0030](./ADR-0030-texte-riche-markdown.md)).
+
+Le contrat d'exploitation, lui, est stabilisé depuis les ADR
+[0052](./ADR-0052-surfaces-exploitation-image-unique.md), [0054](./ADR-0054-ports-rang-de-pile.md),
+[0056](./ADR-0056-racine-de-donnees.md) et [0057](./ADR-0057-amorcage-du-proprietaire.md), et le
+contrat de faute depuis la clôture d'[ADR-0050](./ADR-0050-exception-jamais-reponse-http.md).
+
+S'y ajoutent deux conditions qui ne sont pas des ruptures mais des preuves : la ligne de durcissement
+de sécurité purgée, et une vraie boutique déployée hors du monorepo.
+
 **Une garde le mesure désormais.** `release-coverage` (`scripts/release-coverage.ts`, `bun run
 release-coverage`) échoue si une unité de release a bougé sans changeset. Elle découvre les unités
 au lieu de les connaître — workspaces publiables, plus les groupes `fixed` de la configuration
