@@ -36,6 +36,7 @@ COPY packages/entities/package.json ./packages/entities/
 COPY packages/fields/package.json ./packages/fields/
 COPY packages/pages/package.json ./packages/pages/
 COPY packages/pages-registry/package.json ./packages/pages-registry/
+COPY packages/prose/package.json ./packages/prose/
 COPY packages/menus/package.json ./packages/menus/
 COPY packages/references/package.json ./packages/references/
 COPY packages/communication/package.json ./packages/communication/
