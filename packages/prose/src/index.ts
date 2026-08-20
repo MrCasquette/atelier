@@ -1,10 +1,25 @@
 // La surface publique de `@repo/prose`.
 //
-// L'ARBRE est le contrat (ADR-0061 §6) : il peut tout exprimer et s'enrichit sans rompre, quand une
-// sortie HTML est plate. Ce qui n'est pas exporté ici n'existe pas pour l'extérieur — en particulier
-// `mdast`, qui s'arrête à `parse.ts`.
+// L'ARBRE est le contrat (ADR-0061 §6) : il exprime tout et s'enrichit sans rompre, quand une sortie
+// HTML est plate. `proseToHtml` est une COMMODITÉ — elle rend tout le noyau et porte la
+// prévisualisation de l'administration, mais une directive du dev qui doit produire de la structure
+// passe par l'arbre.
+//
+// Ce qui n'est pas exporté ici n'existe pas pour l'extérieur — `mdast` en particulier, qui s'arrête
+// à `parse.ts`.
 
 export { parseProse } from './parse';
+export { proseToHtml, safeUrl } from './html';
+export {
+  CORE_DIRECTIVES,
+  describeIssue,
+  proseIssues,
+  type AttributeSpec,
+  type DirectiveRegistry,
+  type DirectiveShape,
+  type DirectiveSpec,
+  type ProseIssue,
+} from './core';
 export {
   visitDirectives,
   type HeadingLevel,

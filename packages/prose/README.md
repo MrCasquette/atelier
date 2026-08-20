@@ -35,6 +35,42 @@ propriétaire avec deux sources de vérité — c'est la seule dérive qui détr
 `mdast` s'arrête à `parse.ts` : au-delà, seul l'arbre de `tree.ts` circule. C'est ce qui rend l'outil
 de parsing remplaçable — s'il est abandonné, on en réécrit un et **aucune donnée ne bouge**.
 
+## Le noyau, et pourquoi il n'a que des enveloppes
+
+Sept directives que nos thèmes s'engagent à dessiner : `warning`, `note`, `tip`, `figure`, `quote`,
+`cta`, `highlight`. **Aucune n'est un `leaf`**, et c'est la contrainte qui garde le sérialiseur HTML
+purement générique — sans table de structures par directive.
+
+Le critère qui la tient :
+
+> **Si Markdown sait produire le contenu, on enveloppe. Sinon, c'est un `leaf`.**
+
+Une image, un lien, du texte : Markdown les produit. Une vidéo intégrée, une iframe : non — ce sera
+un `leaf`, il exigera que le rendu connaisse sa structure, et ce sera pour plus tard.
+
+Tout le reste traverse **sans validation ni garantie de style**. On ne valide que ce qu'on garantit :
+une V1 qui refuserait les directives du dev offrirait moins que le HTML, et le choix de Markdown ne
+se défendrait plus.
+
+## Deux sorties, et laquelle est le contrat
+
+`proseToHtml` est une **commodité** : elle rend tout le noyau et porte la prévisualisation de
+l'administration. Mais une directive du dev qui doit produire de la **structure** — un média, une
+iframe — passe par l'arbre, puisqu'on ne fabrique pas un `<img>` en CSS.
+
+Le rendu par le HTML impose aussi `v-html` / `set:html`, sort les liens internes du routeur et perd
+l'optimisation d'images. **L'arbre est donc le contrat**, le HTML le raccourci.
+
+## La sécurité tient à trois choses, toutes testées
+
+1. **Le HTML brut est refusé à l'entrée** — un `<script>` ressort en texte.
+2. **Les URL sont filtrées** — désactiver le HTML n'arrête pas `[clic](javascript:alert(1))`. Seuls
+   `http`, `https`, `mailto`, `tel` et le relatif passent ; la casse et les caractères de contrôle ne
+   masquent pas un schéma. Une URL refusée fait perdre son `href` au lien, qui reste **inerte et
+   visible** plutôt que redirigé ailleurs.
+3. **Les noms d'attributs sont filtrés** — ils viennent du texte, donc de n'importe où, et le préfixe
+   `data-` n'y suffirait pas : c'est le nom lui-même qui doit être inerte.
+
 ## Les trois formes d'une directive
 
 ```md

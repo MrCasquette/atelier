@@ -155,18 +155,15 @@ Deux différences structurelles achèvent la séparation :
   directives. Un modèle de champs décrit des champs, pas une récursion sur l'arbre de texte. Une
   section n'a pas de notion de corps.
 
-`@repo/prose` porte donc son propre modèle d'attribut, et il tient en trois informations : quels
-attributs existent, lesquels sont requis, et parfois un format à vérifier.
+`@repo/prose` porte donc son propre modèle d'attribut, et il tient en deux informations : quels
+attributs existent, et lesquels sont requis.
 
 ```ts
-defineDirective('figure', {
-  shape: 'leaf',
-  attributes: { src: { required: true, format: 'uuid' }, caption: {} },
-});
+defineDirective('quote', { shape: 'container', attributes: { author: {} } });
 ```
 
-L'existence réelle du média se vérifie ailleurs, comme elle l'est déjà pour les sections : le
-validateur de forme ne consulte pas la base.
+Pas de `format` : aucune directive du noyau n'en a besoin, et l'ajouter avant l'usage serait de
+l'abstraction par anticipation. Il se rajoutera sans rupture, comme tout le reste de ce modèle.
 
 Conséquence heureuse : **`@repo/prose` n'a aucune dépendance interne** — ni `@repo/db`, ni
 `@repo/fields`. Du texte en entrée, un arbre en sortie. Ce qui reste du parallèle avec `defineEntity`
@@ -230,15 +227,28 @@ Ce qui a besoin d'être classé n'est ni le thème ni la sémantique, mais **ce 
 produire en HTML** — c'est cet axe qui structure la documentation, le sérialiseur et le renderer du
 dev :
 
-| | Produit | Rendu générique ? | Exemples |
-|---|---|---|---|
-| **Enveloppe** | un conteneur autour de ses enfants | ✅ | `warning`, `note`, `cta`, `quote` |
-| **Média** | un élément vide à attributs (`<img>`, `<iframe>`) | ❌ | `figure` |
-| **Inline** | un élément inline portant son label | ❌ | `highlight` |
+| | Produit | Rendu générique ? |
+|---|---|---|
+| **Enveloppe** | un conteneur autour de ses enfants | ✅ |
+| **Inline** | un élément inline portant son label | ✅ |
+| **Leaf** | un élément vide à attributs (`<img>`, `<iframe>`) | ❌ |
 
-D'où : **le sérialiseur HTML n'est pas purement générique.** Il connaît la structure de chaque
-directive du noyau — `figure` sort `<figure><img><figcaption>`, pas un `<div>` à data-attributs — et
-ne retombe sur le rendu générique que pour les enveloppes et pour l'inconnu.
+Et le critère qui décide de la forme :
+
+> **Si Markdown sait produire le contenu, on enveloppe. Sinon, c'est un `leaf`.**
+
+Une image, un lien, du texte : Markdown les produit. Une vidéo intégrée, une iframe : non.
+
+**D'où un noyau V1 sans aucun `leaf`** — `warning`, `note`, `tip`, `figure`, `quote`, `cta`,
+`highlight` — et un **sérialiseur HTML purement générique**, sans table de structures par directive.
+
+`figure` en est la démonstration : plutôt qu'un `::figure{src=…}` où l'image deviendrait un attribut,
+elle **enveloppe une vraie image Markdown et sa légende**. L'image reste alors un `![alt](src)`
+standard, lisible par tout outil — exactement la raison qui a fait préférer `:::cta` à
+`:button{href=…}`. Le prix est un `<div>` plutôt qu'un `<figure><figcaption>` sémantiquement pur.
+
+Le jour où un `leaf` entrera au noyau, le sérialiseur devra connaître sa structure. **Ce jour-là
+seulement.**
 
 **Deux sorties, et une hiérarchie explicite : l'arbre est le contrat, le HTML une commodité.**
 
@@ -270,6 +280,15 @@ reste ajoutable plus tard sans rupture, comme tout le reste de ce modèle.
 
 Le parseur refuse le HTML brut dans le Markdown. Sans cela, la sortie n'est plus close et tout le
 raisonnement de sécurité s'effondre : c'est l'entrée qui rend la sortie sûre.
+
+**Mais cela ne suffit pas, et l'implémentation l'a montré.** Désactiver le HTML n'arrête pas
+`[clic](javascript:alert(1))` : une URL est un vecteur à part entière, et un lien Markdown
+parfaitement licite peut la porter. Le rendu n'admet donc que `http`, `https`, `mailto`, `tel` et le
+relatif — la casse et les caractères de contrôle ne masquant pas un schéma. Une URL refusée fait
+perdre au lien son `href` : il reste **inerte et visible**, plutôt que silencieusement redirigé.
+
+Même raison pour les **noms d'attributs**, qui viennent du texte et donc de n'importe où. Le préfixe
+`data-` n'y suffirait pas : c'est le nom lui-même qui doit être inerte.
 
 ### 8. L'arbre est le nôtre, éphémère, et l'outil est un détail
 
