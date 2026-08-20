@@ -9,6 +9,7 @@
 ## Contexte
 
 L'audit du système RBAC a révélé :
+
 - **Journal d'audit** : Table `auditLog` existe mais aucune route API ni vue admin
 - **Ressources orphelines** : `cart`, `wishlist`, `address`, `audit_log` ont des permissions mais aucune route
 - **Routes non protégées** : Certaines routes PATCH sans guard explicite
@@ -25,12 +26,12 @@ L'audit du système RBAC a révélé :
 ```typescript
 export async function logAudit(params: {
   userId?: string;
-  action: string;        // 'product.create', 'order.update', etc.
+  action: string; // 'product.create', 'order.update', etc.
   entityType?: string;
   entityId?: string;
   data?: Record<string, unknown>;
   ipAddress?: string;
-}): Promise<void>
+}): Promise<void>;
 ```
 
 ### 1.2 Route API
@@ -52,16 +53,16 @@ export async function logAudit(params: {
 
 **Routes critiques à instrumenter** :
 
-| Route | Actions à logger |
-|-------|------------------|
-| `products.ts` | create, update, delete |
-| `orders.ts` | status change, notes update |
-| `users.ts` | create, update, login |
-| `roles.ts` | create, update, delete, permissions update |
-| `categories.ts` | create, update, delete |
-| `collections.ts` | create, update, delete |
-| `media.ts` | upload, delete |
-| `settings.ts` | company update |
+| Route            | Actions à logger                           |
+| ---------------- | ------------------------------------------ |
+| `products.ts`    | create, update, delete                     |
+| `orders.ts`      | status change, notes update                |
+| `users.ts`       | create, update, login                      |
+| `roles.ts`       | create, update, delete, permissions update |
+| `categories.ts`  | create, update, delete                     |
+| `collections.ts` | create, update, delete                     |
+| `media.ts`       | upload, delete                             |
+| `settings.ts`    | company update                             |
 
 ---
 
@@ -70,6 +71,7 @@ export async function logAudit(params: {
 ### 2.1 Composable
 
 **Fichiers** : `apps/admin/src/composables/audit/`
+
 - `types.ts` : Types inférés de l'API
 - `useAuditLogs.ts` : État + actions
 - `index.ts` : Exports
@@ -79,6 +81,7 @@ export async function logAudit(params: {
 **Fichier** : `apps/admin/src/views/AuditLogsView.vue`
 
 **Fonctionnalités** :
+
 - DataTable avec colonnes : Date, Utilisateur, Action, Type entité, ID entité, IP
 - Panel de filtres avancés :
   - Sélecteur d'utilisateur (dropdown)
@@ -117,6 +120,7 @@ Créer `ADMIN_RESOURCE_GROUPS` et `STORE_RESOURCE_GROUPS` distincts :
 ### 3.3 Guards PATCH explicites
 
 **Fichiers** :
+
 - `apps/api/src/routes/categories.ts` : Guard avant `/batch/order`
 - `apps/api/src/routes/products.ts` : Vérifier guards PATCH
 
@@ -124,31 +128,31 @@ Créer `ADMIN_RESOURCE_GROUPS` et `STORE_RESOURCE_GROUPS` distincts :
 
 ## Fichiers à créer
 
-| Fichier | Description |
-|---------|-------------|
-| `apps/api/src/lib/audit.ts` | Helper logAudit |
-| `apps/api/src/routes/audit-logs.ts` | Route GET /audit-logs |
-| `apps/admin/src/composables/audit/types.ts` | Types |
-| `apps/admin/src/composables/audit/useAuditLogs.ts` | Composable |
-| `apps/admin/src/composables/audit/index.ts` | Exports |
-| `apps/admin/src/views/AuditLogsView.vue` | Vue admin |
+| Fichier                                            | Description           |
+| -------------------------------------------------- | --------------------- |
+| `apps/api/src/lib/audit.ts`                        | Helper logAudit       |
+| `apps/api/src/routes/audit-logs.ts`                | Route GET /audit-logs |
+| `apps/admin/src/composables/audit/types.ts`        | Types                 |
+| `apps/admin/src/composables/audit/useAuditLogs.ts` | Composable            |
+| `apps/admin/src/composables/audit/index.ts`        | Exports               |
+| `apps/admin/src/views/AuditLogsView.vue`           | Vue admin             |
 
 ## Fichiers à modifier
 
-| Fichier | Modification |
-|---------|--------------|
-| `apps/api/src/index.ts` | Import auditLogsRoutes |
-| `apps/api/src/routes/products.ts` | Appels logAudit |
-| `apps/api/src/routes/orders.ts` | Appels logAudit |
-| `apps/api/src/routes/users.ts` | Appels logAudit |
-| `apps/api/src/routes/roles.ts` | Appels logAudit |
-| `apps/api/src/routes/categories.ts` | Appels logAudit + guard PATCH |
-| `apps/api/src/routes/collections.ts` | Appels logAudit |
-| `apps/api/src/routes/media.ts` | Appels logAudit |
-| `apps/api/src/routes/settings.ts` | Appels logAudit |
-| `apps/admin/src/router/index.ts` | Route /audit |
+| Fichier                                     | Modification                      |
+| ------------------------------------------- | --------------------------------- |
+| `apps/api/src/index.ts`                     | Import auditLogsRoutes            |
+| `apps/api/src/routes/products.ts`           | Appels logAudit                   |
+| `apps/api/src/routes/orders.ts`             | Appels logAudit                   |
+| `apps/api/src/routes/users.ts`              | Appels logAudit                   |
+| `apps/api/src/routes/roles.ts`              | Appels logAudit                   |
+| `apps/api/src/routes/categories.ts`         | Appels logAudit + guard PATCH     |
+| `apps/api/src/routes/collections.ts`        | Appels logAudit                   |
+| `apps/api/src/routes/media.ts`              | Appels logAudit                   |
+| `apps/api/src/routes/settings.ts`           | Appels logAudit                   |
+| `apps/admin/src/router/index.ts`            | Route /audit                      |
 | `apps/admin/src/composables/roles/types.ts` | Séparer RESOURCE_GROUPS par scope |
-| `packages/core/src/db/seed.ts` | Nettoyer permissions admin |
+| `packages/core/src/db/seed.ts`              | Nettoyer permissions admin        |
 
 ---
 
