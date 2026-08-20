@@ -137,19 +137,40 @@ entités : « **même grammaire de champs, autre nature, autre stockage** ».
 
 **Le verbe est `defineDirective`** — nu, comme `defineSection`, `defineComponent` et `defineEntity`,
 dont aucun ne porte de préfixe. `defineProse` a été écarté après coup : la prose est une **matière**,
-pas un objet dénombrable — c'est d'ailleurs l'argument qui justifie le singulier du paquet au §9. On
+pas un objet dénombrable — c'est d'ailleurs l'argument qui justifie le singulier du paquet au §10. On
 ne définit pas *une* prose.
 
-**Ce qui est partagé, c'est la grammaire des champs de `@repo/fields`**, et elle seule — comme
-l'entité la partage déjà. Le registre de sections, `compileSections`, `checkSection` restent hors
-sujet, pour deux raisons structurelles :
+**Les directives n'empruntent rien au modèle des sections** — pas même le vocabulaire des attributs.
+Le rapprochement était tentant, la forme se ressemblant (un nom, des attributs), mais le décompte le
+défait : sur les douze `kind` de `@repo/fields`, une directive en emploierait trois, et de travers.
+`list`, `repeater`, `component`, `ref`, `enum multiple` n'ont aucun sens dans une chaîne de
+caractères. Il n'y a **pas de formulaire à générer**, et **rien à inférer** — un attribut de directive
+est une `string`, toujours.
+
+Deux différences structurelles achèvent la séparation :
 
 - **les attributs d'une directive sont toujours des chaînes**, parsées depuis du texte : `{count=3}`
-  arrive en `"3"`, quand la donnée d'une section est du JSON déjà typé. La coercion n'a aucune raison
-  d'exister dans le validateur des pages ;
+  arrive en `"3"`, quand la donnée d'une section est du JSON déjà typé ;
 - **une directive conteneur a un corps, et ce corps est de la prose** — des paragraphes, d'autres
-  directives. Le modèle `fields` décrit des champs, pas une récursion sur l'arbre de texte. Une
+  directives. Un modèle de champs décrit des champs, pas une récursion sur l'arbre de texte. Une
   section n'a pas de notion de corps.
+
+`@repo/prose` porte donc son propre modèle d'attribut, et il tient en trois informations : quels
+attributs existent, lesquels sont requis, et parfois un format à vérifier.
+
+```ts
+defineDirective('figure', {
+  shape: 'leaf',
+  attributes: { src: { required: true, format: 'uuid' }, caption: {} },
+});
+```
+
+L'existence réelle du média se vérifie ailleurs, comme elle l'est déjà pour les sections : le
+validateur de forme ne consulte pas la base.
+
+Conséquence heureuse : **`@repo/prose` n'a aucune dépendance interne** — ni `@repo/db`, ni
+`@repo/fields`. Du texte en entrée, un arbre en sortie. Ce qui reste du parallèle avec `defineEntity`
+est seulement la **place du verbe**, pas le partage d'un modèle.
 
 **Rien ne va en base.** Une directive est déclarative de bout en bout : elle ne crée pas de table et
 n'y range aucune ligne. Le **noyau** vit dans `@repo/prose`, donc l'API et l'administration le
@@ -166,9 +187,13 @@ brute. C'est exactement cohérent avec le §4, et réversible sans migration.
 
 « Sans garantie » ne veut pas dire « en vrac ». Le parseur reconnaît la **syntaxe** universellement ;
 ce qu'il ignore, c'est le **nom**. Une directive inconnue arrive donc au front **structurée** comme
-une autre — `{ name, attributes, children }` — et sort en `data-directive="…"`, si bien qu'une règle
-CSS suffit à l'habiller. Le dev n'a rien à re-parser et rien à implémenter : il lui reste à
-**styler**. Sans cela on aurait un format à deux vitesses, dont personne n'emprunterait la seconde.
+une autre — `{ name, attributes, children }` — et sort en `data-directive="…"`. Le dev n'a donc rien à
+re-parser. Sans cela on aurait un format à deux vitesses, dont personne n'emprunterait la seconde.
+
+Ce qu'il lui reste à faire dépend de ce que sa directive doit **produire**, et la nuance est réelle :
+une directive **enveloppe** se style en CSS seul ; une directive qui doit produire de la
+**structure** — un média, une iframe — exige de consommer l'arbre, puisqu'on ne crée pas un `<img>`
+en CSS.
 
 Tant qu'aucun thème n'existe, la différence entre noyau et directive du dev n'est d'ailleurs pas le
 style : c'est la **validation**.
@@ -199,12 +224,54 @@ absent du manifeste de `pages-registry` rend l'import irrésolvable au lieu de l
 Corollaire pour les thèmes : les directives se stylent en CSS dédié
 (`[data-directive='warning'] { … }`), pas en utilitaires générés.
 
-### 6. HTML inline désactivé — non négociable
+### 6. Une directive se classe par ce qu'elle produit, et l'arbre est le contrat
+
+Ce qui a besoin d'être classé n'est ni le thème ni la sémantique, mais **ce que la directive doit
+produire en HTML** — c'est cet axe qui structure la documentation, le sérialiseur et le renderer du
+dev :
+
+| | Produit | Rendu générique ? | Exemples |
+|---|---|---|---|
+| **Enveloppe** | un conteneur autour de ses enfants | ✅ | `warning`, `note`, `cta`, `quote` |
+| **Média** | un élément vide à attributs (`<img>`, `<iframe>`) | ❌ | `figure` |
+| **Inline** | un élément inline portant son label | ❌ | `highlight` |
+
+D'où : **le sérialiseur HTML n'est pas purement générique.** Il connaît la structure de chaque
+directive du noyau — `figure` sort `<figure><img><figcaption>`, pas un `<div>` à data-attributs — et
+ne retombe sur le rendu générique que pour les enveloppes et pour l'inconnu.
+
+**Deux sorties, et une hiérarchie explicite : l'arbre est le contrat, le HTML une commodité.**
+
+| | HTML `data-directive` | Arbre |
+|---|---|---|
+| Coût pour le dev | nul, du CSS | un renderer |
+| Custom enveloppe | ✅ | ✅ |
+| Custom structurel | ❌ | ✅ |
+| Composants, liens routés, images optimisées | ❌ | ✅ |
+| `v-html` / `set:html` | requis | jamais |
+
+L'arbre est le contrat parce qu'il peut tout exprimer et s'enrichir sans rompre, quand le HTML est
+plat ; parce qu'il évite `v-html`, dont le dépôt fait par ailleurs un signal de sécurité ; et parce
+que sans lui, un `:::video{id=…}` déclaré par un dev serait irrécupérable.
+
+Le HTML reste fourni parce qu'il rend **tout le noyau** correctement, qu'il rend une directive
+custom d'enveloppe gratuite, et parce que la **prévisualisation de l'administration** en a besoin —
+là, le contenu vient de l'éditeur lui-même, et le `v-html` est sans risque comme sans alternative
+raisonnable.
+
+**Les familles sont écartées.** Elles avaient servi à raisonner sur le coût pour les thèmes — ouvrir
+une famille coûte, ajouter une variante presque pas — et elles restent utiles à ce titre pour décider
+quoi admettre au noyau. Mais une seule aurait plusieurs membres (`warning`, `note`, `tip`) ; les
+autres sont des singletons déguisés en taxonomie, et un sélecteur CSS groupé suffit à la seule vraie.
+Ce qu'elles auraient acheté — un thème sachant dessiner une directive inconnue d'après sa famille —
+reste ajoutable plus tard sans rupture, comme tout le reste de ce modèle.
+
+### 7. HTML inline désactivé — non négociable
 
 Le parseur refuse le HTML brut dans le Markdown. Sans cela, la sortie n'est plus close et tout le
 raisonnement de sécurité s'effondre : c'est l'entrée qui rend la sortie sûre.
 
-### 7. L'arbre est le nôtre, éphémère, et l'outil est un détail
+### 8. L'arbre est le nôtre, éphémère, et l'outil est un détail
 
 Le parseur traduit **immédiatement** vers un arbre défini ici. `mdast` n'est jamais exposé, pas plus
 que ne l'auraient été les tokens de markdown-it.
@@ -230,7 +297,7 @@ vivants au 20 août 2026 (publiés en février 2026 et février 2025). L'écosys
 beaucoup de paquets mais **~242 Ko publiés**, contre ~2,38 Mo pour `markdown-it` et son greffon
 d'attributs.
 
-### 8. L'éditeur sort du chemin critique
+### 9. L'éditeur sort du chemin critique
 
 **V1 : le `<Textarea>` existant.** L'utilisateur avancé écrit la syntaxe.
 
@@ -251,7 +318,7 @@ Un bouton n'a plus qu'à insérer du texte au curseur.
 Rien de tout ceci n'est décidé ici : **le format ne dépendant pas de l'éditeur, l'éditeur s'améliore
 sans jamais migrer une donnée.**
 
-### 9. `@repo/prose`
+### 10. `@repo/prose`
 
 La logique — parseur, arbre, validation, sérialisation HTML — vit dans **`@repo/prose`**. Le
 vocabulaire d'authoring rejoint `@mrcasquette/content`, à côté de `defineSection`. C'est le partage
@@ -265,7 +332,7 @@ Le singulier ne déroge à rien. Le dépôt met au pluriel les **collections d'o
 **matières ou capacités** : `auth`, `identity`, `communication`, `content`, `db`. La prose est une
 matière.
 
-Écartés : **`@repo/markdown`** nomme l'outil et non le concept, alors que le §6 vient précisément de
+Écartés : **`@repo/markdown`** nomme l'outil et non le concept, alors que le §8 vient précisément de
 rendre l'outil remplaçable — le nom mentirait au premier changement. **`@repo/richtext`** reprend le
 nom du `kind`, mais « rich text » ne désigne rien de précis et ferait écho à `RichTextEditor.vue`,
 qui est justement ce dont on se passe.
