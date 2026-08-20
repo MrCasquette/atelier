@@ -13,7 +13,18 @@ pareil quel que soit le moment.
 D'où quatre chantiers en tête de file, marqués **⏩ avant Prisme** ci-dessous. Deux sont **faits** :
 le barrel de réexport du cœur — 54 symboles retournés à leur paquet, `bun run core-passthrough`
 refuse leur retour — et le singleton de `@repo/communication`, devenu un acteur composé au
-démarrage. Restent la partie pure de `@repo/pages` et la migration Markdown.
+démarrage.
+
+Le troisième est **tranché mais pas codé** : [ADR-0059](../adr/ADR-0059-nom-nu-et-prefixe-de-scission.md)
+scinde `@repo/pages` en `@repo/pages-registry` — vocabulaire et logique, **sans `@repo/db` dans son
+manifeste**, donc l'import ne résout même pas — et `@repo/pages`, qui garde les tables, le cache,
+`syncRegistry`, `page-service` et `reference`. Le défaut qui la motive se lit dans le test :
+`definition-service.ts` importe `db` au niveau module, si bien qu'éprouver deux fonctions qui
+n'interrogent rien oblige à poser une fausse `DATABASE_URL` puis à différer l'import. Effet de bord
+mesuré : `compileSections` et `definitionToSchema` — la traduction d'un champ déclaré en validateur
+exécutable, le cœur du paquet — ne sont couvertes par **rien**.
+
+Reste ensuite la migration `richText` → Markdown.
 
 Puis le [vertical slice Prisme](./prisme.md), qui débloque à lui seul les décisions suspendues à un
 second consommateur — dont la garde des credentials
