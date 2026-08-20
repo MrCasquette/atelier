@@ -32,4 +32,4 @@ types et des états dérive. Il faut des règles stables, lisibles et outillable
 
 ## Détail
 
-→ [PATTERNS.md](../reference/PATTERNS.md)
+→ [conventions § `apps/echoppe-admin`](../conventions.md#appsechoppe-admin--atomic--composables)

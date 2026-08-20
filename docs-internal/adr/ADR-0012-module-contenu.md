@@ -43,4 +43,4 @@ Package **`@echoppe/content`**, léger par design :
 
 ## Détail
 
-→ [content-module.md](../reference/content-module.md)
+→ [content-module.md](../architecture/contenu.md)

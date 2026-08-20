@@ -100,7 +100,7 @@ l'infrastructure.
 
 ## Amendement 2026-08-10 — la lecture d'une entité passe par une route générique
 
-Question laissée ouverte par [`systeme-contenu-leger.md`](../design/systeme-contenu-leger.md) :
+Question laissée ouverte par [`systeme-contenu-leger.md`](../backlog/systeme-contenu-leger.md) :
 endpoint générique ou endpoints dédiés par entité. Tranchée avant d'implémenter, parce qu'elle
 décide de la forme du contrat.
 

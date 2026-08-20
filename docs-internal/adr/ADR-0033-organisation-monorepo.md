@@ -95,7 +95,7 @@ disponibilité du scope sur npm, à vérifier au moment de la publication.
 
 L'arborescence de la décision porte `prisme-api prisme-admin prisme-store (V2, cf. ADR-0029)`. Le
 marqueur est faux pour deux des trois, et il contredit
-[`roadmap-prisme.md`](../design/roadmap-prisme.md), qui place « Prisme headless, dev only » en **V1**
+[`roadmap-prisme.md`](../roadmap/prisme.md), qui place « Prisme headless, dev only » en **V1**
 avec ses prérequis d'infrastructure — dont cet ADR lui-même.
 
 L'erreur est une confusion de portée. [ADR-0029](./ADR-0029-rendu-generique.md) traite du **rendu

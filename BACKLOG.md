@@ -12,8 +12,8 @@ produit Prisme ; l'inverse vaut aussi. Cette frontière n'est pas une intention 
 | Périmètre | Backlog | Roadmap |
 |---|---|---|
 | **`atelier`** — workspace, outillage racine, CI et gardes | [Shared § Workspace](docs-internal/backlog/shared.md#workspace-et-outillage-atelier) | — |
-| Échoppe — framework e-commerce | [Échoppe](docs-internal/backlog/echoppe.md) | [interne](docs-internal/design/roadmap-echoppe.md) · [publique](docs/roadmap.md) |
-| Prisme — CMS headless config-as-code | [Prisme](docs-internal/backlog/prisme.md) | [interne](docs-internal/design/roadmap-prisme.md) |
+| Échoppe — framework e-commerce | [Échoppe](docs-internal/backlog/echoppe.md) | [interne](docs-internal/roadmap/echoppe.md) · [publique](docs/roadmap.md) |
+| Prisme — CMS headless config-as-code | [Prisme](docs-internal/backlog/prisme.md) | [interne](docs-internal/roadmap/prisme.md) |
 | Socle partagé — packages et architecture commune | [Shared](docs-internal/backlog/shared.md) | — |
 
 ## Règles de classement
@@ -32,10 +32,10 @@ produit Prisme ; l'inverse vaut aussi. Cette frontière n'est pas une intention 
 Légende commune : `[ ]` ouvert · 🔴 fort impact · 🟠 moyen · 🟡 faible / durcissement · ⚪ dépendant.
 
 Comment on tient ces listes — quand supprimer une tâche plutôt que la cocher, où loger son détail —
-est une convention : [conventions § Tenue des backlogs](docs-internal/reference/conventions.md#tenue-des-backlogs).
+est une convention : [conventions § Tenue des backlogs](docs-internal/conventions.md#tenue-des-backlogs).
 
 ## Références transverses
 
 - [Décisions architecturales](docs-internal/adr/README.md)
-- [Pipeline de publication](docs-internal/release/pipeline-release.md)
-- [Contraintes d'outillage](docs-internal/reference/contraintes-outillage.md)
+- [Pipeline de publication](docs-internal/runbook/pipeline-release.md)
+- [Conventions](docs-internal/conventions.md)

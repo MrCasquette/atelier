@@ -4,7 +4,7 @@ Doc de **décision** (le _pourquoi_) du page builder headless et de son outillag
 `@mrcasquette/content` (P2). La doc utilisateur (le _comment_) vit dans
 [dev/content](../../docs/dev/content.md).
 
-Voir aussi [Clés d'API](./api-keys.md) : l'auth machine que consomme `content:push`.
+Voir aussi [Clés d'API](./cles-api.md) : l'auth machine que consomme `content:push`.
 
 ## Ce qu'on construit (et ce qu'on ne construit pas)
 

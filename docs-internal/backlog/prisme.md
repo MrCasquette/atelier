@@ -1,6 +1,6 @@
 # Backlog — Prisme
 
-Travail propre au CMS Prisme. La [roadmap produit](../design/roadmap-prisme.md) décrit les jalons ;
+Travail propre au CMS Prisme. La [roadmap produit](../roadmap/prisme.md) décrit les jalons ;
 ce fichier ne contient que les actions V1 encore ouvertes, et l'après vit dans la même
 roadmap, § V2. Les packages réutilisables vivent dans le
 [backlog shared](./shared.md).

@@ -2,16 +2,16 @@
 
 Travail propre au framework e-commerce, **cible V1**. Les briques communes et le CMS Prisme ont
 leurs [backlogs dédiés](../../BACKLOG.md) ; ce qui vient après la V1 vit dans la
-[roadmap Échoppe](../design/roadmap-echoppe.md).
+[roadmap Échoppe](../roadmap/echoppe.md).
 
 ## Finition V1
 
 ### Catalogue storefront
 
 - [ ] 🟠 **Facettes catalogue** : fourchette de prix, `inStock`, puis facettes par option →
-  [détail](../design/facettes-catalogue.md).
+  [détail](../backlog/facettes-catalogue.md).
 - [ ] 🟡 **Signal low-stock public** : exposer `isLowStock`, jamais le seuil →
-  [détail](../design/signal-low-stock.md), [ADR-0006](../adr/ADR-0006-visibilite-catalogue.md).
+  [détail](../backlog/signal-low-stock.md), [ADR-0006](../adr/ADR-0006-visibilite-catalogue.md).
 
 ### Compte et checkout
 
@@ -83,4 +83,4 @@ Détail : [ADR-0005](../adr/ADR-0005-panier-stock.md).
 ## Publication
 
 Avant tout bump : migration committée, SDK régénéré, smoke fresh/upgrade vert et versions alignées.
-Voir [pipeline de publication](../release/pipeline-release.md).
+Voir [pipeline de publication](../runbook/pipeline-release.md).

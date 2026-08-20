@@ -2,8 +2,8 @@
 
 Référence interne du mécanisme d'[ADR-0027](../adr/ADR-0027-entites-tables-reelles.md) et
 [ADR-0028](../adr/ADR-0028-activation-entites.md). Pour le vocabulaire, voir
-[lexique-prisme.md](./lexique-prisme.md) ; pour les blocs de page, voir
-[content-module.md](./content-module.md).
+[lexique-prisme.md](../glossaire.md) ; pour les blocs de page, voir
+[content-module.md](./contenu.md).
 
 ## Le chemin
 

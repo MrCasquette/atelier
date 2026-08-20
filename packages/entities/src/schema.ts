@@ -11,7 +11,7 @@ import { boolean, jsonb, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core
 //
 // ⚠️ `bun run db:push` compare le schéma Drizzle à la base VIVE : il proposerait de supprimer les
 // tables d'entités, qu'il ne connaît pas. `db:generate` + `db:migrate`, qui ne lisent que les
-// fichiers, n'ont pas ce défaut. Cf. docs-internal/reference/entites.md.
+// fichiers, n'ont pas ce défaut. Cf. docs-internal/architecture/entites.md.
 export const entityDefinition = pgTable('entity_definition', {
   // Nom déclaré par le dev (`article`), sans le préfixe `entity:` sous lequel il est cité de
   // l'extérieur. Borné à `[a-z][a-z0-9_]*` : il devient un identifiant SQL.

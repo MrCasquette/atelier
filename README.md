@@ -187,7 +187,7 @@ atelier/
 │   ├── create-prisme/    # CLI de scaffolding Prisme
 │   └── …                 # briques communes @repo/* (voir ci-dessous)
 ├── docs/                 # Documentation publique (VitePress)
-├── docs-internal/        # ADR, backlogs, références, notes de chantier
+├── docs-internal/        # ADR, architecture, conventions, glossaire, runbook, backlogs
 └── scripts/              # Outillage racine et gardes
 ```
 
@@ -222,10 +222,17 @@ porte sa charte dans son propre `README.md` :
 ## Suivi
 
 Le travail ouvert vit dans [`BACKLOG.md`](BACKLOG.md), ce qui vient après la V1 dans
-[`ROADMAP.md`](ROADMAP.md), et les décisions structurantes dans
-[les ADR](docs-internal/adr/README.md). Les conventions de code sont dans
-[`docs-internal/reference/conventions.md`](docs-internal/reference/conventions.md), et le manuel
-d'opération destiné aux agents dans [`AGENTS.md`](AGENTS.md).
+[`ROADMAP.md`](ROADMAP.md).
+
+La documentation interne a cinq natures, et une seule question mène à chacune
+([ADR-0060](docs-internal/adr/ADR-0060-natures-de-la-documentation.md)) : comment le système est fait
+aujourd'hui → [`architecture/`](docs-internal/architecture/overview.md) · pourquoi il l'est →
+[les ADR](docs-internal/adr/README.md) · comment on écrit du code ici →
+[`conventions.md`](docs-internal/conventions.md) · ce qu'un mot veut dire →
+[`glossaire.md`](docs-internal/glossaire.md) · comment on publie et exploite →
+[`runbook/`](docs-internal/runbook/pipeline-release.md).
+
+Le manuel d'opération destiné aux agents est [`AGENTS.md`](AGENTS.md).
 
 Pas d'Issues ni de Discussions : dépôt privé, un seul mainteneur.
 

@@ -7,7 +7,7 @@ import { t } from 'elysia';
 // définitions (`@repo/pages`) et la validation fine de `data` se fait à l'exécution
 // contre lui, pas par une union statique.
 //
-// Vocabulaire : voir docs-internal/reference/lexique-prisme.md, ratifié par ADR-0043.
+// Vocabulaire : voir docs-internal/glossaire.md, ratifié par ADR-0043.
 
 const uuidStr = (description: string) => t.String({ format: 'uuid', description });
 // ── Écriture d'une section (admin) ────────────────────────────────────────────────────────────

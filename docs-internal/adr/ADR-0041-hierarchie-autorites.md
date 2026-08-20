@@ -71,7 +71,7 @@ Tout écart retenu est inscrit dans l'ADR qui le décide, avec sa raison.
 
 ### Où vit la SSOT produit
 
-Les ADR et `docs-internal/reference/conventions.md` **sont** la SSOT de ce dépôt. Ils ont autorité
+Les ADR et `docs-internal/conventions.md` **sont** la SSOT de ce dépôt. Ils ont autorité
 là où la SSOT personnelle n'est qu'un document de travail — laquelle vit hors du dépôt, en lecture
 seule, et n'est jamais modifiée depuis ici.
 

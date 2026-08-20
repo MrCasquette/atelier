@@ -1047,9 +1047,9 @@ un paiement perdu, pas une fuite. Même motif, deux conséquences sans rapport.
 Deux règles nées de cette migration vivent **hors de cet ADR**, parce qu'elles le dépassent :
 
 - **dériver un vocabulaire fermé d'une mesure, pas d'une documentation** →
-  [conventions § Fermer un vocabulaire](../reference/conventions.md) ;
+  [conventions § Fermer un vocabulaire](../conventions.md) ;
 - **un contrat typé ne protège que ses consommateurs typés** →
-  [contraintes d'outillage](../reference/contraintes-outillage.md), entrée `@mrcasquette/content`.
+  [conventions § Un contrat typé ne protège que ses consommateurs typés](../conventions.md).
 
 ---
 

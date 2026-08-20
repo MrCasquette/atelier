@@ -3,7 +3,7 @@
 Statut : accepté · 2026-08-05
 Portée : content
 
-> Ratifie [`lexique-prisme.md`](../reference/lexique-prisme.md), établi comme **provisoire** en cours
+> Ratifie [`lexique-prisme.md`](../glossaire.md), établi comme **provisoire** en cours
 > de conception, et le complète sur les deux points qu'il ne couvrait pas. Aucun terme existant n'est
 > modifié.
 
@@ -43,7 +43,7 @@ d'ADR-0038). On croyait se comprendre.
 
 ### Ratification
 
-[`lexique-prisme.md`](../reference/lexique-prisme.md) n'est plus provisoire. Ses sept termes font
+[`lexique-prisme.md`](../glossaire.md) n'est plus provisoire. Ses sept termes font
 foi.
 
 ### `definition` — le terme qui manquait

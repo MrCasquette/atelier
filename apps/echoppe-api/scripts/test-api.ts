@@ -9,7 +9,7 @@
  *   fin de run.
  *
  * On N'utilise JAMAIS le DATABASE_URL ambiant : Bun auto-charge `.env`, qui pointe la
- * base de dev — la migrer/seed serait destructeur (cf. docs-internal/release/release-runbook.md).
+ * base de dev — la migrer/seed serait destructeur (cf. docs-internal/runbook/release-runbook.md).
  * Le DATABASE_URL passé au sous-process est explicite et écrase celui du `.env`, et le
  * test refuse de tourner sans le drapeau DISPOSABLE_DB posé ici.
  */

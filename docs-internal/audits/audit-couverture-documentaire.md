@@ -61,7 +61,7 @@ paraphrase partout, et `fields` — le pilote — n'en contenait pas une ligne.
   aucun script `test` ou n'étaient pas au script racine. Le dépôt passe de 8 à 13 espaces de travail
   testés.
 - **13 README de charte**, sous une convention actée dans
-  [conventions.md](../reference/conventions.md) : la charte vit dans le README, le barrel garde la
+  [conventions.md](../conventions.md) : la charte vit dans le README, le barrel garde la
   règle impérative et y renvoie. Les paquets publiés sont exemptés — leur README est la page npm.
 - **[ADR-0050](../adr/ADR-0050-exception-jamais-reponse-http.md)** et son amendement : une exception
   ne compose jamais une réponse HTTP.

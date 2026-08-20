@@ -1,8 +1,8 @@
 # Conservation des factures — instruction préalable
 
 > Note de chantier. Elle disparaît avec l'ADR qu'elle prépare — cf.
-> [conventions § Tenue des backlogs](../reference/conventions.md#tenue-des-backlogs).
-> Entrée de la [roadmap Échoppe](./roadmap-echoppe.md).
+> [conventions § Tenue des backlogs](../conventions.md#tenue-des-backlogs).
+> Entrée de la [roadmap Échoppe](../roadmap/echoppe.md).
 
 ## Le constat
 

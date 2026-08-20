@@ -19,7 +19,7 @@ monorepo installe une boutique, la garnit et la met en production sans lire le c
 
 **Conservation des factures.** Une facture est aujourd'hui un `media` ordinaire, supprimable depuis
 la médiathèque, contre une obligation légale de conservation. Le sujet demande un ADR ;
-l'instruction préalable est écrite : [conservation-factures.md](./conservation-factures.md).
+l'instruction préalable est écrite : [conservation-factures.md](../backlog/conservation-factures.md).
 
 **Protocole RGPD complet** — consentement, export, archivage légal et anonymisation. Le
 self-service d'export et de suppression reste un chantier V1 ; c'est le protocole complet qui

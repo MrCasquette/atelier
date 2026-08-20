@@ -3,7 +3,7 @@
 Doc de **décision** (le _pourquoi_) du système d'auth non-interactive introduit en P2b.
 La doc utilisateur (le _comment_) vit dans [dev/api-keys](../../docs/dev/api-keys.md).
 
-Voir aussi [Module contenu](./content-module.md) : la CLI `content:push` est le premier
+Voir aussi [Module contenu](./contenu.md) : la CLI `content:push` est le premier
 consommateur de ces clés.
 
 ## Problème

@@ -5,7 +5,7 @@ Portée : content
 
 ## Contexte
 
-[systeme-contenu-leger.md](../design/systeme-contenu-leger.md) décrivait un « système d'entités de
+[systeme-contenu-leger.md](../backlog/systeme-contenu-leger.md) décrivait un « système d'entités de
 contenu léger » comme **fonctionnalité annexe** d'Échoppe — ses consommateurs cibles étaient les
 pages légales, les onglets produit et la FAQ. Dans Prisme, ce même système **est le produit**.
 
@@ -71,5 +71,5 @@ qui rend la collision impossible **par construction** là où elle aurait compt�
 
 ## Détail
 
-→ [lexique-prisme.md](../reference/lexique-prisme.md) — vocabulaire (section, component, entité,
+→ [lexique-prisme.md](../glossaire.md) — vocabulaire (section, component, entité,
 schema), **provisoire, à ratifier**.

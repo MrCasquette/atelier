@@ -3,7 +3,7 @@
 Statut : accepté · 2026-08-18
 Portée : socle
 
-> Remplace l'allocation de [ports.md](../reference/ports.md) (identité mathématique) et amende
+> Remplace l'allocation de [ports.md](../architecture/ports.md) (identité mathématique) et amende
 > [ADR-0004](./ADR-0004-migrations-release.md), dont la validation pré-publication reposait sur
 > `compose.dev.yaml`.
 
@@ -114,7 +114,7 @@ de projet, comme le fait déjà le template livré.
 
 ## Conséquences
 
-- `docs-internal/reference/ports.md` est réécrit : l'identité mathématique et le décalage `+1`
+- `docs-internal/architecture/ports.md` est réécrit : l'identité mathématique et le décalage `+1`
   disparaissent, y compris la section « Pourquoi ces choix ».
 - ADR-0004 est amendé : la validation pré-publication ne passe plus par `compose.dev.yaml` mais par
   le test d'intégration. Son constat de conflit sur `5432` avec `dpc-db` reste vrai.

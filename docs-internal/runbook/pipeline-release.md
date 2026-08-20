@@ -3,7 +3,7 @@
 Point d'entrée unique de la mécanique de publication. Le **comment** pas-à-pas vit dans
 [`docs/dev/releasing.md`](../../docs/dev/releasing.md) ; les **invariants + post-mortem** dans
 [`release-runbook.md`](./release-runbook.md) ; le détail **npm/changesets** dans
-[`distribution-architecture.md`](../reference/distribution-architecture.md). Ici : la **vue d'ensemble** qui les
+[`distribution-architecture.md`](../architecture/distribution.md). Ici : la **vue d'ensemble** qui les
 relie.
 
 ## En une phrase

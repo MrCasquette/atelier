@@ -29,7 +29,7 @@ Cette section est périssable — elle disparaît quand le vertical slice tourne
 
 Le conteneur, distinct des produits qu'il héberge. Le principe qui gouverne cet outillage —
 **il découvre, il n'énumère pas** — est acquis et consigné dans les
-[conventions](../reference/conventions.md#loutillage-découvre-il-nénumère-pas).
+[conventions](../conventions.md#loutillage-découvre-il-nénumère-pas).
 
 - [ ] 🟠 **`dev`, `db:*`, `test:api` et `test:image` restent câblés sur Échoppe** (`--cwd apps/echoppe-*`,
   `packages/echoppe-core`). Ce sont les derniers scripts racine qui nomment un produit.
@@ -152,12 +152,39 @@ circonstancielle plutôt que sur une garde.
 
 ## Documentation et gouvernance
 
+- [ ] 🟠 **Écrire la garde de dérive documentaire**, et elle seule. Son périmètre est **clos** par
+  [ADR-0060 § 4](../adr/ADR-0060-natures-de-la-documentation.md) : une affirmation n'est gardée que
+  si elle est **dérivable** (sa négation se détecte sans jugement) **et volatile**. Cinq vérifications,
+  pas une de plus — tout lien pointe vers un fichier existant ; tout chemin cité dans `architecture/`
+  existe ; la liste des paquets d'`overview.md` correspond aux paquets découverts ; toute commande
+  citée existe dans les `scripts` ; une dépendance annoncée absente l'est vraiment.
+
+  Le brouillon de la première vérification a servi pendant la redistribution (une quinzaine de lignes,
+  jetées depuis). Comme toute garde du dépôt, elle **découvre** : aucune liste de fichiers en dur.
+
+  ⚠️ **Le piège à ne pas commettre** : élargir la garde à ce qui n'est pas dérivable — le pourquoi
+  d'une frontière, ce qu'un paquet a le droit de faire, le sens d'un mot. Une garde qui prétend
+  vérifier cela produit du faux positif jusqu'à ce qu'on la coupe. Quand une page affirme quelque
+  chose de volatil et non dérivable, la réponse est de **retirer la phrase**, pas de coder un test.
+
+- [ ] 🟠 **Dégonfler les ADR obèses par déménagement, jamais par réécriture.** Quatre portent de la
+  référence écrite là faute d'un autre endroit : ADR-0050 (**1 099 lignes** — contrat de faute
+  complet, tables par statut HTTP), ADR-0047 (264), ADR-0042 (246), ADR-0038 (223). Ce qui est de la
+  référence part vers `architecture/` ; l'ADR garde sa décision et un renvoi. Le journal n'est pas
+  réécrit : rien n'est reformulé, seulement déplacé.
+
+- [ ] 🟡 **Auditer `docs/` (public) contre la nouvelle structure** — 26 fichiers, ~3 500 lignes,
+  jamais passés en revue depuis la redistribution. Vérifier surtout qu'aucune page publique ne
+  reprend un chemin interne déplacé, et que `docs/dev/` ne redit pas ce que `architecture/` porte
+  désormais.
+
 - [ ] 🟠 **Ajouter à l'index ADR les états d'implémentation, de vérification et d'horizon**, sans
   réécrire le statut historique de décision.
-- [ ] 🟡 **Resserrer le maillage documentaire** : liens depuis le code, références actives vérifiées
-  et liens vers les ADR successeurs.
+- [ ] 🟡 **Resserrer le maillage documentaire** : liens depuis le code et liens vers les ADR
+  successeurs. Les liens morts, eux, sont à zéro depuis la redistribution
+  ([ADR-0060](../adr/ADR-0060-natures-de-la-documentation.md)) — reste à les empêcher de revenir,
+  cf. la garde ci-dessous.
 - [ ] 🟡 Corriger les chemins, versions et exemples devenus obsolètes dans les README actifs.
-- [ ] 🟡 Distinguer explicitement documentation historique, référence active et vision.
 - [ ] 🟡 **Passe de nettoyage des commentaires narratifs**, selon le critère d'[ADR-0053](../adr/ADR-0053-commentaire-passe-agissant.md) :
   *si je supprime cette phrase, quelqu'un peut-il refaire l'erreur ?* Un balayage donne une
   trentaine d'occurrences dont la majorité sont des **faux positifs** — « avant le `listen` »,

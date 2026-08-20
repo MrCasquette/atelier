@@ -5,7 +5,7 @@
 > [backlog Prisme](../backlog/prisme.md), et les briques communes dans le
 > [backlog shared](../backlog/shared.md). Ce document fait le lien.
 >
-> Périmètre mesuré : [perimetre-prisme.md](./perimetre-prisme.md).
+> Périmètre mesuré : [perimetre-prisme.md](../audits/audit-perimetre-prisme.md).
 
 ## Ce qu'est Prisme
 
@@ -111,4 +111,4 @@ Tranchés antérieurement, que ce tableau listait encore à tort :
 - **Nom du package d'identité** — `@repo/identity` existe depuis #15.
 - **Lexique** — ratifié par [ADR-0043](../adr/ADR-0043-lexique-contenu.md).
 - **Surface storefront** — la question elle-même portait un mot d'Échoppe ; on dit « front » dans
-  tout ce qui est partagé (cf. [lexique](../reference/lexique-prisme.md)).
+  tout ce qui est partagé (cf. [lexique](../glossaire.md)).

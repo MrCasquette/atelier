@@ -44,5 +44,5 @@ agnostique connecté via l'API + CLI de scaffolding. Deux publics distincts : ce
 
 ## Détail
 
-→ [distribution-architecture.md](../reference/distribution-architecture.md) (canaux, repo split, release CI,
+→ [distribution-architecture.md](../architecture/distribution.md) (canaux, repo split, release CI,
 images Docker, historique npm).

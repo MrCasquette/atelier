@@ -23,18 +23,39 @@ produit principal :
 pas une intention, c'est gardé — `bun run product-isolation` refuse toute dépendance croisée,
 déclarée **ou seulement importée**.
 
+**Frères, mais pas de même périmètre** ([ADR-0058](docs-internal/adr/ADR-0058-fraternite-des-produits.md)).
+Ils le sont en dépendance et en priorité ; ils ne le sont pas en recomposition — Échoppe recompose
+les mêmes paquets de contenu que Prisme, **plus** ceux du commerce. Échoppe n'empaquette pas Prisme
+pour autant : aucun des deux n'est traversé par l'autre.
+
+D'où la règle de placement : **une capacité qui ne parle que de contenu appartient aux paquets
+partagés ; une capacité qui parle de commerce appartient à `echoppe-core`.** Le critère est le
+vocabulaire du code, pas son lieu de naissance — le dépôt a été écrit dans l'ordre `Échoppe →
+Prisme`, l'inverse de l'ordre logique.
+
 Un chantier se découpe par **portée de décision**, pas par arborescence.
 
 ## Où vit la vérité
 
-| Question | Fichier |
-|---|---|
-| Comment on écrit le code ici | [`docs-internal/reference/conventions.md`](docs-internal/reference/conventions.md) |
-| Pourquoi une décision a été prise | [`docs-internal/adr/`](docs-internal/adr/README.md) |
-| Ce qu'il reste à faire (V1) | [`BACKLOG.md`](BACKLOG.md) → un backlog par périmètre |
-| Ce qui vient après la V1 | [`ROADMAP.md`](ROADMAP.md) |
-| Comment on publie | [`docs-internal/release/pipeline-release.md`](docs-internal/release/pipeline-release.md) |
-| La charte d'un paquet | le `README.md` de ce paquet |
+La documentation a **cinq natures**, et une seule question mène à chacune
+([ADR-0060](docs-internal/adr/ADR-0060-natures-de-la-documentation.md)) :
+
+| Question | Nature | Où |
+|---|---|---|
+| Comment le système est fait **aujourd'hui** | architecture | [`docs-internal/architecture/`](docs-internal/architecture/overview.md) |
+| **Pourquoi** une décision a été prise | ADR | [`docs-internal/adr/`](docs-internal/adr/README.md) |
+| Comment on **écrit du code** ici | conventions | [`docs-internal/conventions.md`](docs-internal/conventions.md) |
+| Ce qu'un **mot** veut dire | glossaire | [`docs-internal/glossaire.md`](docs-internal/glossaire.md) |
+| Comment on **publie et exploite** | runbook | [`docs-internal/runbook/`](docs-internal/runbook/pipeline-release.md) |
+| La charte d'un **paquet** | — | le `README.md` de ce paquet |
+| Ce qu'il reste à faire (V1) | — | [`BACKLOG.md`](BACKLOG.md) → un backlog par périmètre |
+| Ce qui vient après la V1 | — | [`ROADMAP.md`](ROADMAP.md) |
+
+**Un ADR est un journal, pas une référence.** Il ne se réécrit pas : une coquille se corrige, une
+décision qui change s'écrit dans un **nouvel** ADR. Et il **parle au passé daté** — il peut montrer
+une arborescence ou un chemin si c'est la photographie qui rend la décision compréhensible, jamais
+comme l'état courant. Ce qui décrit le présent pour qu'on s'en serve vit dans l'architecture, qui se
+remplace. `backlog/` et `audits/` sont des artefacts de travail, sans autorité.
 
 Une règle générale de style ou d'idiome ne s'invente pas ici : elle vient de `~/.code-conform/docs/`
 (philosophie, langages, atomic design), qui est en **lecture seule**. Si `conventions.md` contredit
@@ -78,7 +99,7 @@ Sept scripts refusent une dérive plutôt que de la documenter — `drift-guard`
 **Leur invariant : une garde découvre, elle n'énumère pas.** Elle ne contient jamais la liste des
 paquets ou des produits qu'elle traite, elle la reconstitue à chaque exécution. En ajouter une, ou en
 modifier une, se fait sous cette règle — détail et table de correspondance dans
-[conventions § L'outillage découvre](docs-internal/reference/conventions.md#loutillage-découvre-il-nénumère-pas).
+[conventions § L'outillage découvre](docs-internal/conventions.md#loutillage-découvre-il-nénumère-pas).
 
 ## Politique de commit (CRITIQUE)
 

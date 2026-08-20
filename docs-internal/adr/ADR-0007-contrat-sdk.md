@@ -37,4 +37,4 @@ co-versionné dans le monorepo et peut se permettre un couplage fort pour la DX.
 
 ## Détail
 
-→ [distribution-architecture.md](../reference/distribution-architecture.md) (§ contrat API, § SDK).
+→ [distribution-architecture.md](../architecture/distribution.md) (§ contrat API, § SDK).

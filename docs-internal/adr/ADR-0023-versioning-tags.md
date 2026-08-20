@@ -118,5 +118,5 @@ un vrai `1.0.0`.
 
 ## Détail
 
-→ [pipeline-release.md](../release/pipeline-release.md) (mécanique à jour) ·
-[distribution-architecture.md § Politique de versions](../reference/distribution-architecture.md)
+→ [pipeline-release.md](../runbook/pipeline-release.md) (mécanique à jour) ·
+[distribution-architecture.md § Politique de versions](../architecture/distribution.md)

@@ -6,7 +6,7 @@ Portée : content
 ## Contexte
 
 Certaines entités n'ont qu'une occurrence — CGV, politique de livraison, page « à propos » —, d'autres
-sont des listes — articles, événements, membres. [systeme-contenu-leger.md](../design/systeme-contenu-leger.md)
+sont des listes — articles, événements, membres. [systeme-contenu-leger.md](../backlog/systeme-contenu-leger.md)
 posait la question sans la trancher : « singleton vs liste, contrainte au niveau schéma ou au niveau
 type déclaré ? »
 

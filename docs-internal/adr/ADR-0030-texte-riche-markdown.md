@@ -5,7 +5,7 @@ Portée : content
 
 ## Contexte
 
-[systeme-contenu-leger.md](../design/systeme-contenu-leger.md) marquait ce choix « **décision
+[systeme-contenu-leger.md](../backlog/systeme-contenu-leger.md) marquait ce choix « **décision
 bloquante, à trancher AVANT toute implémentation** ». Il s'applique à tout contenu prose, dans les
 deux produits.
 

@@ -36,4 +36,4 @@ Dockerfile de `oven/bun:1-alpine` à `oven/bun:1` (Debian/glibc) neutralise la c
 
 ## Détail
 
-→ [contraintes-outillage.md](../reference/contraintes-outillage.md)
+→ [conventions.md](../conventions.md)
