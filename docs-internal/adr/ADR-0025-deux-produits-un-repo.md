@@ -1,6 +1,6 @@
 # ADR-0025 — Deux produits, un repo : frontière core / packages
 
-Statut : accepté · 2026-08-01
+Statut : accepté · 2026-08-01 · rapport entre périmètres précisé par [ADR-0058](./ADR-0058-fraternite-des-produits.md) le 2026-08-20
 Portée : socle
 
 ## Contexte
@@ -8,6 +8,10 @@ Portée : socle
 Échoppe (framework e-commerce) et Prisme (CMS) ne sont **pas un système à découper en deux**. Ce sont
 **deux applications distinctes** qui résolvent chacune un problème différent, partagent des packages,
 une philosophie et un repo. Aucune ne nécessite l'autre.
+
+*(Cette phrase parle de **dépendance**, et reste vraie telle quelle. Elle ne dit rien du rapport
+entre les périmètres — les deux produits recomposent les mêmes paquets de contenu, Échoppe en
+recompose davantage. Cf. [ADR-0058](./ADR-0058-fraternite-des-produits.md).)*
 
 Il faut donc fixer où passe la frontière, et à qui appartient la base de données.
 

@@ -1,6 +1,6 @@
 # ADR-0011 — Adapters de providers externes (paiement / livraison / communication)
 
-Statut : accepté
+Statut : accepté · découpage en trois paquets tranché par [ADR-0033](./ADR-0033-organisation-monorepo.md) le 2026-08-02
 Portée : adapters
 
 ## Contexte
@@ -18,6 +18,12 @@ PayPal, virement, chèque), livraison (Colissimo, Mondial Relay, Sendcloud), ema
 ## Décision
 
 Un **adapter par famille**, structure uniforme sous `packages/core/src/adapters/<famille>/` :
+
+*(Ce chemin unique n'existe plus. [ADR-0033](./ADR-0033-organisation-monorepo.md) a scindé le dossier
+selon qui en a besoin : la mécanique générique — registre et port de credentials — dans
+`@repo/adapters`, la communication dans `@repo/communication`, et **paiement et livraison dans
+`echoppe-core`**, parce qu'ils parlent commerce ([ADR-0058](./ADR-0058-fraternite-des-produits.md)).
+Ce qui suit décrit la forme d'un adapter, qui n'a pas changé — pas l'endroit où il vit.)*
 - `types.ts` — l'interface commune (ex. `PaymentAdapter`, `CommunicationAdapter`) ;
 - une implémentation par provider (`stripe.ts`, `paypal.ts`, `colissimo.ts`, `resend.ts`…) ;
 - `config.ts` + `index.ts` — sélection/résolution du provider actif depuis la configuration en base.

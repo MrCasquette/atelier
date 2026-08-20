@@ -26,38 +26,41 @@ Portée : socle | <package> | échoppe | prisme
 
 | N° | Titre | Statut | Détail |
 |----|-------|--------|--------|
-| [0002](./ADR-0002-distribution.md) | Distribution : Docker (runtime) + npm (SDK/CLI), modèle déploiement A | accepté | [distribution-architecture.md](../reference/distribution-architecture.md) |
-| [0003](./ADR-0003-runtime-pm.md) | Runtime & package manager : PM-agnostique, Bun API / Node front | accepté | [contraintes-outillage.md](../reference/contraintes-outillage.md) |
-| [0004](./ADR-0004-migrations-release.md) | Migrations au boot + validation release (sources vs artefact) | accepté · amendé par [0054](./ADR-0054-ports-rang-de-pile.md) | [release-runbook.md](../release/release-runbook.md) |
+| [0002](./ADR-0002-distribution.md) | Distribution : Docker (runtime) + npm (SDK/CLI), modèle déploiement A | accepté | [distribution-architecture.md](../architecture/distribution.md) |
+| [0003](./ADR-0003-runtime-pm.md) | Runtime & package manager : PM-agnostique, Bun API / Node front | accepté | [conventions.md](../conventions.md) |
+| [0004](./ADR-0004-migrations-release.md) | Migrations au boot + validation release (sources vs artefact) | accepté · amendé par [0054](./ADR-0054-ports-rang-de-pile.md) | [release-runbook.md](../runbook/release-runbook.md) |
 | [0015](./ADR-0015-validation-typebox.md) | Validation à la frontière : TypeBox / Elysia (pas Zod) | accepté | — |
-| [0016](./ADR-0016-conventions-front-admin.md) | Conventions front admin (atomic design, imports directs, types Eden) | accepté | [PATTERNS.md](../reference/PATTERNS.md) |
-| [0023](./ADR-0023-versioning-tags.md) | Versioning : épine `v*` produit, packages versionnés sur npm | accepté · amendé (rang `1.0.0`, surfaces publiées, garde de couverture) | [pipeline-release.md](../release/pipeline-release.md) |
-| [0024](./ADR-0024-portee-adr.md) | Portée des ADR : un compteur unique, un champ de portée | accepté | — |
-| [0025](./ADR-0025-deux-produits-un-repo.md) | Deux produits, un repo : frontière core / packages | accepté | — |
-| [0033](./ADR-0033-organisation-monorepo.md) | Organisation du monorepo : disposition à plat, deux cores, packages partagés | accepté | — |
+| [0016](./ADR-0016-conventions-front-admin.md) | Conventions front admin (atomic design, imports directs, types Eden) | accepté | [conventions.md](../conventions.md) |
+| [0023](./ADR-0023-versioning-tags.md) | Versioning : épine `v*` produit, packages versionnés sur npm | accepté · amendé (rang `1.0.0`, surfaces publiées, garde de couverture) | [pipeline-release.md](../runbook/pipeline-release.md) |
+| [0024](./ADR-0024-portee-adr.md) | Portée des ADR : un compteur unique, un champ de portée | accepté · précisé par [0060](./ADR-0060-natures-de-la-documentation.md) | — |
+| [0025](./ADR-0025-deux-produits-un-repo.md) | Deux produits, un repo : frontière core / packages | accepté · précisé par [0058](./ADR-0058-fraternite-des-produits.md) | — |
+| [0033](./ADR-0033-organisation-monorepo.md) | Organisation du monorepo : disposition à plat, deux cores, packages partagés | accepté · précisé par [0059](./ADR-0059-nom-nu-et-prefixe-de-scission.md) | — |
 | [0041](./ADR-0041-hierarchie-autorites.md) | Hiérarchie des autorités : framework → décision produit → SSOT personnelle | accepté | — |
 | [0044](./ADR-0044-surface-http-paquets-partages.md) | Un paquet partagé n'expose pas de routes : `service` + `model`, jamais Elysia | accepté | — |
 | [0050](./ADR-0050-exception-jamais-reponse-http.md) | Une exception ne compose jamais une réponse HTTP | accepté, amendé 2026-08-16 | [audit-couverture-documentaire.md](../audits/audit-couverture-documentaire.md) |
 | [0034](./ADR-0034-identite-referentiel-reglages.md) | Identité, référentiel et réglages : ce que l'outil possède | accepté, partiellement amendé par [0040](./ADR-0040-identite-site-entite-legale.md) | — |
-| [0052](./ADR-0052-surfaces-exploitation-image-unique.md) | Les surfaces d'exploitation sous `/-/`, le dashboard servi par l'API | accepté · amende [0002](./ADR-0002-distribution.md) | [ports.md](../reference/ports.md) |
+| [0052](./ADR-0052-surfaces-exploitation-image-unique.md) | Les surfaces d'exploitation sous `/-/`, le dashboard servi par l'API | accepté · amende [0002](./ADR-0002-distribution.md) | [ports.md](../architecture/ports.md) |
 | [0053](./ADR-0053-commentaire-passe-agissant.md) | Un commentaire garde le passé seulement s'il est encore agissant | accepté | — |
-| [0054](./ADR-0054-ports-rang-de-pile.md) | Un port publié appartient à l'instance : la grille et le rang de pile | accepté · amende [0004](./ADR-0004-migrations-release.md) | [ports.md](../reference/ports.md) |
+| [0054](./ADR-0054-ports-rang-de-pile.md) | Un port publié appartient à l'instance : la grille et le rang de pile | accepté · amende [0004](./ADR-0004-migrations-release.md) | [ports.md](../architecture/ports.md) |
 | [0055](./ADR-0055-publics-de-la-configuration.md) | Trois publics de la configuration, un fichier chacun | accepté | [configuration.md](../../docs/guide/configuration.md) |
 | [0056](./ADR-0056-racine-de-donnees.md) | Une racine de données, montée hors du répertoire applicatif | accepté · amende [0018](./ADR-0018-stockage-media.md) | — |
+| [0058](./ADR-0058-fraternite-des-produits.md) | Deux produits frères, des recompositions inégales | accepté · précise [0025](./ADR-0025-deux-produits-un-repo.md) | — |
+| [0059](./ADR-0059-nom-nu-et-prefixe-de-scission.md) | Un paquet garde son nom, sa scission se qualifie | accepté · précise [0033](./ADR-0033-organisation-monorepo.md) | — |
+| [0060](./ADR-0060-natures-de-la-documentation.md) | La documentation a cinq natures, l'ADR n'en est qu'une | accepté · précise [0024](./ADR-0024-portee-adr.md) | — |
 
 ## Index — `client` · SDK et contrat d'API
 
 | N° | Titre | Statut | Détail |
 |----|-------|--------|--------|
-| [0007](./ADR-0007-contrat-sdk.md) | Contrat API & SDK figé (OpenAPI SSOT, Eden interne / SDK externe) | accepté | [distribution-architecture.md](../reference/distribution-architecture.md) |
+| [0007](./ADR-0007-contrat-sdk.md) | Contrat API & SDK figé (OpenAPI SSOT, Eden interne / SDK externe) | accepté | [distribution-architecture.md](../architecture/distribution.md) |
 
 ## Index — `auth` · Authentification et autorisation
 
 | N° | Titre | Statut | Détail |
 |----|-------|--------|--------|
-| [0008](./ADR-0008-auth-sessions.md) | Auth : sessions Postgres (pas JWT), cookies HTTP-only, RBAC | accepté · amendé par 0037/0038 | [api-keys.md](../reference/api-keys.md) |
+| [0008](./ADR-0008-auth-sessions.md) | Auth : sessions Postgres (pas JWT), cookies HTTP-only, RBAC | accepté · amendé par 0037/0038 | [api-keys.md](../architecture/cles-api.md) |
 | [0013](./ADR-0013-modele-rbac.md) | Modèle RBAC (rôles / permissions) | accepté · amendé par 0037/0038 | [audit-rbac-plan.md](../audits/audit-rbac-plan.md) |
-| [0014](./ADR-0014-cles-api-machine.md) | Authentification machine (clés d'API) | accepté | [api-keys.md](../reference/api-keys.md) |
+| [0014](./ADR-0014-cles-api-machine.md) | Authentification machine (clés d'API) | accepté | [api-keys.md](../architecture/cles-api.md) |
 | [0037](./ADR-0037-principaux-surfaces.md) | Principaux, surfaces et sessions : un registre plutôt qu'une union fermée | accepté | — |
 | [0038](./ADR-0038-ressources-ouvertes-delegation.md) | Ressources ouvertes, délégation des droits, rôles système | accepté · amendé par 0047 | — |
 | [0047](./ADR-0047-autorite-principal.md) | Autorité d'un principal : un prédicat unique, l'administrateur par soustraction, la propriété comme drapeau | accepté · amendé le 2026-08-11 | — |
@@ -70,18 +73,18 @@ Portée : socle | <package> | échoppe | prisme
 
 | N° | Titre | Statut | Détail |
 |----|-------|--------|--------|
-| [0012](./ADR-0012-module-contenu.md) | Module contenu / page-builder headless (`@mrcasquette/content`) | accepté | [content-module.md](../reference/content-module.md) |
+| [0012](./ADR-0012-module-contenu.md) | Module contenu / page-builder headless (`@mrcasquette/content`) | accepté | [content-module.md](../architecture/contenu.md) |
 | [0030](./ADR-0030-texte-riche-markdown.md) | Texte riche : Markdown, attributs sémantiques, saut dur explicite | accepté | — |
 | [0031](./ADR-0031-i18n-champs-localises.md) | i18n de contenu : champs localisés, décidé mais non implémenté | accepté | — |
 | [0032](./ADR-0032-cibles-referencables.md) | Cibles référençables : le lien déclaré, la résolution ouverte | accepté | — |
 | [0035](./ADR-0035-interpolation-variables.md) | Interpolation de variables dans le contenu | accepté | — |
 | [0036](./ADR-0036-cycle-de-vie-contenu.md) | Cycle de vie du contenu : un statut déclaré, pas de versionnement | accepté | — |
-| [0026](./ADR-0026-sections-entites.md) | Sections et entités : deux natures de contenu | accepté | [lexique-prisme.md](../reference/lexique-prisme.md) |
+| [0026](./ADR-0026-sections-entites.md) | Sections et entités : deux natures de contenu | accepté | [lexique-prisme.md](../glossaire.md) |
 | [0027](./ADR-0027-entites-tables-reelles.md) | Entités en vraies tables, déclarées en code et poussées | accepté | — |
 | [0039](./ADR-0039-entites-singleton.md) | Cardinalité d'une entité : singleton déclaré, borne haute seulement | accepté | — |
-| [0043](./ADR-0043-lexique-contenu.md) | Ratification du lexique du contenu, `definition` et le découpage `content` / `menu` | accepté | [lexique-prisme.md](../reference/lexique-prisme.md) |
-| [0045](./ADR-0045-cles-etrangeres-entites.md) | Clés étrangères d'une entité : la cible déclare son stockage, `required` dit la politique | accepté | [entites.md](../reference/entites.md) |
-| [0046](./ADR-0046-entites-referencables.md) | Une entité déclare son lien : les trois modes résolus, inscription à la poussée | accepté | [entites.md](../reference/entites.md) |
+| [0043](./ADR-0043-lexique-contenu.md) | Ratification du lexique du contenu, `definition` et le découpage `content` / `menu` | accepté | [lexique-prisme.md](../glossaire.md) |
+| [0045](./ADR-0045-cles-etrangeres-entites.md) | Clés étrangères d'une entité : la cible déclare son stockage, `required` dit la politique | accepté | [entites.md](../architecture/entites.md) |
+| [0046](./ADR-0046-entites-referencables.md) | Une entité déclare son lien : les trois modes résolus, inscription à la poussée | accepté | [entites.md](../architecture/entites.md) |
 
 ## Index — `assets` · Média et images
 
@@ -100,7 +103,7 @@ Portée : socle | <package> | échoppe | prisme
 
 | N° | Titre | Statut | Détail |
 |----|-------|--------|--------|
-| [0011](./ADR-0011-adapters-providers.md) | Adapters de providers externes (paiement / livraison / communication) | accepté | — |
+| [0011](./ADR-0011-adapters-providers.md) | Adapters de providers externes (paiement / livraison / communication) | accepté · découpage tranché par [0033](./ADR-0033-organisation-monorepo.md) | — |
 
 ## Index — `échoppe` · Framework e-commerce
 
