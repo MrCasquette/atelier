@@ -48,7 +48,7 @@ priorité — et le chemin **destructeur** (`alter`, `drop`) autant que celui qu
 [ADR-0039](../../docs-internal/adr/ADR-0039-entites-singleton.md) (cardinalité),
 [ADR-0045](../../docs-internal/adr/ADR-0045-cles-etrangeres-entites.md) (clés étrangères),
 [ADR-0046](../../docs-internal/adr/ADR-0046-entites-referencables.md) (une entité déclare son lien),
-et [entites.md](../../docs-internal/reference/entites.md) pour le détail.
+et [entites.md](../../docs-internal/architecture/entites.md) pour le détail.
 
 ## Dépendances
 

@@ -3,7 +3,7 @@
 Capture les **choix et seuils projet non dérivables du code** (cf. philosophy §9). La SSOT des
 idiomes reste `~/.code-conform/docs/` ; ce fichier ne note que ce qui est **spécifique à ce repo**
 ou qui **tranche un point contextuel**. Les décisions structurantes vivent dans les
-[ADR](../adr/README.md) ; ici on capture les conventions de travail et les seuils.
+[ADR](./adr/README.md) ; ici on capture les conventions de travail et les seuils.
 
 ## Un registre, pas une union fermée
 
@@ -15,10 +15,10 @@ fois comme un couplage à défaire :
 
 | Où | Union fermée | Devient |
 |---|---|---|
-| `packages/content` — `RefTarget` | `'product' \| 'collection' \| 'category'` | registre de cibles référençables ([ADR-0032](../adr/ADR-0032-cibles-referencables.md)) |
-| `core/constants/resources.ts` — `RESOURCES` | 24 entrées dont 14 de commerce | espace `entity:` ouvert ([ADR-0038](../adr/ADR-0038-ressources-ouvertes-delegation.md)) |
-| `api/plugins/rbac.ts` — `RbacAuthContext` | `admin \| customer \| apikey \| public` | registre de principaux ([ADR-0037](../adr/ADR-0037-principaux-surfaces.md)) |
-| `core/db/schema/auth.ts` — `roleScopeEnum` | `['admin', 'store']` | ~~registre~~ → union fermée, valeur corrigée en `['admin', 'public']` ([ADR-0037 amendé](../adr/ADR-0037-principaux-surfaces.md)) |
+| `packages/content` — `RefTarget` | `'product' \| 'collection' \| 'category'` | registre de cibles référençables ([ADR-0032](./adr/ADR-0032-cibles-referencables.md)) |
+| `core/constants/resources.ts` — `RESOURCES` | 24 entrées dont 14 de commerce | espace `entity:` ouvert ([ADR-0038](./adr/ADR-0038-ressources-ouvertes-delegation.md)) |
+| `api/plugins/rbac.ts` — `RbacAuthContext` | `admin \| customer \| apikey \| public` | registre de principaux ([ADR-0037](./adr/ADR-0037-principaux-surfaces.md)) |
+| `core/db/schema/auth.ts` — `roleScopeEnum` | `['admin', 'store']` | ~~registre~~ → union fermée, valeur corrigée en `['admin', 'public']` ([ADR-0037 amendé](./adr/ADR-0037-principaux-surfaces.md)) |
 
 **Le signal à reconnaître** : une union, un `pgEnum` ou une constante du framework qui énumère des
 valeurs nommant des concepts d'un produit. `'product'` dans un paquet de contenu, `'store'` dans un
@@ -43,7 +43,7 @@ sert aussi à la maintenance (`LIKE 'entity:%'` pour purger).
 **Quand une échelle de valeurs doit être close, on l'obtient en observant ce que le code produit
 réellement — pas en recopiant ce que la bibliothèque sous-jacente déclare pouvoir produire.**
 
-Le cas d'école est `ValidationReason` ([ADR-0050](../adr/ADR-0050-exception-jamais-reponse-http.md)
+Le cas d'école est `ValidationReason` ([ADR-0050](./adr/ADR-0050-exception-jamais-reponse-http.md)
 §7). TypeBox déclare **64** types d'erreur. Le générateur de `@repo/fields` n'en émet que **15**,
 parce qu'il n'emploie que neuf constructions de schéma. Le vocabulaire retenu en compte **6** — les
 15 mesurés regroupés par *geste de correction*, `StringMinLength` / `NumberMinimum` / `ArrayMinItems`
@@ -96,7 +96,7 @@ compile plus. C'est la version compilée du même principe.
 
 ## Tenue des backlogs
 
-Les listes elles-mêmes sont indexées par [BACKLOG.md](../../BACKLOG.md), qui dit seulement où elles
+Les listes elles-mêmes sont indexées par [BACKLOG.md](../BACKLOG.md), qui dit seulement où elles
 vivent. Comment on les tient est une convention, et vit donc ici.
 
 ### Une tâche finie se supprime, elle ne se coche pas
@@ -134,7 +134,7 @@ au chantier. Elle est citée par la tâche qui la motive, et elle part avec elle
 
 **Un fichier appartient au module de son concept, pas à celui qui l'utilise.** Plusieurs
 consommateurs, c'est une dépendance entre modules — normal. Le transverse n'accueille que ce
-qu'**aucun concept ne revendique** ([ADR-0042](../adr/ADR-0042-structure-api-modules.md)).
+qu'**aucun concept ne revendique** ([ADR-0042](./adr/ADR-0042-structure-api-modules.md)).
 
 **Test d'admission dans un dossier transverse — les deux clauses :**
 
@@ -154,6 +154,17 @@ consommateur appartient à ce consommateur, jamais au dossier partagé.
 plusieurs natures. Pas d'arborescence posée d'avance (philosophy §4 appliquée à l'arbre).
 
 ## Structure des packages
+
+### Un contrat typé ne protège que ses consommateurs typés
+
+Toute frontière qui **reparse** un contrat au lieu de l'importer est un point de rupture silencieux :
+le compilateur ne peut pas avertir un paquet publié sans dépendance quand le contrat bouge. C'est
+arrivé — `@mrcasquette/content` filtrait des `blockers` sur `typeof === 'string'` ; le jour où ils
+sont devenus des objets structurés, le filtre les a tous éliminés sans bruit, et `content check`
+annonçait un registre synchronisé alors qu'il refusait tout.
+
+La règle qui en sort : quand une frontière reparse, le garde-fou vit **au point exact où la faute se
+commettrait** (ADR-0053), pas dans un registre tenu à part.
 
 ### La charte d'un paquet vit dans son `README.md`
 
@@ -196,8 +207,8 @@ philosophy §6 / typescript.md §8, acté ici :
 
 ### `apps/echoppe-api` — modules Elysia + SSOT contrat
 
-Structure dérivée de la doc Elysia ([ADR-0042](../adr/ADR-0042-structure-api-modules.md), en
-application d'[ADR-0041](../adr/ADR-0041-hierarchie-autorites.md)) : `modules/<concept>/` avec
+Structure dérivée de la doc Elysia ([ADR-0042](./adr/ADR-0042-structure-api-modules.md), en
+application d'[ADR-0041](./adr/ADR-0041-hierarchie-autorites.md)) : `modules/<concept>/` avec
 `index.ts` (controller), `service.ts` (logique), `model.ts` (validation). Un module par concept que
 l'utilisateur nomme spontanément — « 1 instance Elysia = 1 controller ».
 
@@ -227,14 +238,30 @@ précéder la route à paramètre qui l'absorberait (`/media/folders` avant `/me
 `model.ts` (TypeBox) = SSOT du contrat : validation runtime **+** OpenAPI **+** inférence Eden.
 Une donnée `jsonb` typée côté `core` **et** validée côté `api` suit le pattern à double
 représentation verrouillée (interface core + TypeBox api + guard `Static<> extends`) —
-cf. [ADR-0020](../adr/ADR-0020-colormetadata-double-representation.md).
+cf. [ADR-0020](./adr/ADR-0020-colormetadata-double-representation.md).
 
 ### `apps/echoppe-admin` — atomic + composables
 
-Détail dans [PATTERNS.md](./PATTERNS.md) / [ADR-0016](../adr/ADR-0016-conventions-front-admin.md) :
-atomic design, **imports directs** (pas de barrel pour les composants Vue), types **inférés depuis
-Eden** (jamais d'interface manuelle pour les données API), un composable par feature `{state,
-actions}`.
+Le cadre vient d'[ADR-0016](./adr/ADR-0016-conventions-front-admin.md) et de la SSOT personnelle
+(`atomic-design.md`) : atomic design, organisms « dumb » (props in, events out), **imports directs**
+des composants Vue (pas de barrel — mais barrel toléré pour composables, types et utils), variants en
+`Record<Variant, classes>`. Rien de tout cela n'est redit ici.
+
+Ce qui suit est **propre à ce dépôt**, et ne se déduit d'aucune règle générale.
+
+**Un composable par feature, en trois fichiers.** `composables/<feature>/` porte `types.ts` (les
+types de la feature), `use<Feature>.ts` (l'implémentation) et `index.ts` (le barrel). Le corps du
+composable est découpé par des bannières de commentaires — `STATE`, `COMPUTED`, `API OPERATIONS`… —
+qui donnent le même ordre de lecture à tous. Référence : `composables/media/`.
+
+**Les types d'API ne s'écrivent pas à la main, et ne s'extraient plus en ligne.** Les helpers de
+`src/types/api.ts` (`ApiData`, `ApiItem`, `ApiPaginatedItem`) portent l'extraction depuis les
+réponses Eden. La forme longue — `NonNullable<Awaited<ReturnType<typeof api.x.get>>['data']>` écrite
+sur place — est un reliquat : elle ne survit que dans `views/UserEditView.vue`.
+
+**Une vue orchestre, elle n'implémente pas.** Elle branche le composable, tient l'état d'interface
+local, et distribue aux organisms. Même convention de bannières que les composables — `UI STATE`,
+`COMPOSABLE`, `LIFECYCLE`. Référence : `views/MediaView.vue`.
 
 ## Gestion des erreurs
 
@@ -246,7 +273,7 @@ actions}`.
 - Jamais de catch silencieux. Pas de `console.log` de debug en prod (les logs structurés
   `[Contexte] …` sont volontaires).
 - **Le `message` d'une exception n'entre jamais dans un corps de réponse**
-  ([ADR-0050](../adr/ADR-0050-exception-jamais-reponse-http.md)). Une faute qui traverse HTTP est une
+  ([ADR-0050](./adr/ADR-0050-exception-jamais-reponse-http.md)). Une faute qui traverse HTTP est une
   valeur structurée — union discriminée plate sur `code` — dont chaque surface rend le texte. Le
   domaine n'écrit pas d'interface. **Migration terminée** : le contrat ne porte plus de champ
   `message`, et le serveur n'écrit plus de français. Trois surfaces tiennent leur catalogue —
@@ -257,19 +284,19 @@ actions}`.
   côté doit remonter au gestionnaire global et sortir en 5xx.
 - **Les règles de conception d'une faute** (unité migrable, classement par la garde, opérandes
   minimaux, réduction selon l'audience) sont consolidées en
-  [ADR-0050 §7](../adr/ADR-0050-exception-jamais-reponse-http.md).
+  [ADR-0050 §7](./adr/ADR-0050-exception-jamais-reponse-http.md).
 
 ## Frontière de validation
 
 Une seule frontière (philosophy §5) : **TypeBox/Elysia** à l'entrée HTTP
-([ADR-0015](../adr/ADR-0015-validation-typebox.md)). Pas de Zod (retiré de `core`/`shared`, deps
+([ADR-0015](./adr/ADR-0015-validation-typebox.md)). Pas de Zod (retiré de `core`/`shared`, deps
 mortes). En interne, on **truste** la donnée déjà parsée. `slugify`/dédup et autres normalisations
 sont des transformations, pas des revalidations.
 
 ## Providers & frontière HTTP
 
 `payments`/`shipping`/`communications` ne sont pas « le métier du paiement/livraison » mais la
-**frontière HTTP mince** vers le provisionner (adapters, [ADR-0011](../adr/ADR-0011-adapters-providers.md)).
+**frontière HTTP mince** vers le provisionner (adapters, [ADR-0011](./adr/ADR-0011-adapters-providers.md)).
 Ajouter un provider = un adapter + une entrée dans la SSOT `PAYMENT_PROVIDERS`, **zéro route**
 (webhook paramétrique `/:provider`). Seules restent des routes : création de session (secret serveur
 + montant autoritaire), webhook (le provider nous rappelle), config/statut/refund admin.
@@ -305,13 +332,8 @@ absente). Il refuse le démarrage avec un message clair si une variable **critiq
 `DATABASE_URL`, `ENCRYPTION_KEY` (32 octets base64). Les optionnelles ont des défauts sûrs. Autonome
 (n'importe pas core) pour pouvoir s'exécuter avant lui. Non chargé par `app.ts` (pure) ni les tests.
 
-**Sauvegarde (opérateur boutique).** La vérité de prod = Postgres + le volume d'uploads.
-- **Base** : `pg_dump` planifié (ex. quotidien) hors du conteneur, rétention à définir — ex.
-  `docker exec <db> pg_dump -U echoppe echoppe | gzip > backup-$(date +%F).sql.gz`. Restauration :
-  `gunzip -c … | docker exec -i <db> psql -U echoppe echoppe`.
-- **Uploads** : snapshot du volume `UPLOAD_DIR` (médias) — les migrations recréent le schéma, **pas**
-  les fichiers. Sauvegarder base **et** uploads ensemble (cohérence des références média).
-- ⚠️ Ne jamais tester une restauration sur la base de prod (`dpc-*`) ; utiliser une base jetable.
+**Sauvegarde et restauration** relèvent de l'exploitation, pas des conventions :
+→ [runbook/sauvegarde.md](./runbook/sauvegarde.md).
 
 ## Nommage & Git
 

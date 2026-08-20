@@ -39,7 +39,7 @@ déclaré.
 
 `core` est organisé par couche technique (`db/schema/*`, `adapters/<famille>/*`, `services/*`), pas
 en `domain/<concept>/`. C'est un **écart conscient** vis-à-vis du slicing vertical, acté dans
-[conventions.md](../../docs-internal/reference/conventions.md) avec son seuil de bascule : on y passe
+[conventions.md](../../docs-internal/conventions.md) avec son seuil de bascule : on y passe
 quand le wiring se duplique, typiquement à l'arrivée d'un second consommateur du cœur. À rouvrir en
 ADR avant exécution, pas au fil de l'eau.
 

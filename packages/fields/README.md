@@ -54,5 +54,5 @@ affaire de pages, et `@repo/entities` en dépendait à l'envers du bon sens (#35
 
 ## Vocabulaire
 
-`docs-internal/reference/lexique-prisme.md`, ratifié par
+`docs-internal/glossaire.md`, ratifié par
 [ADR-0043](../../docs-internal/adr/ADR-0043-lexique-contenu.md).
