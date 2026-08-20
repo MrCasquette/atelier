@@ -1,6 +1,6 @@
 # ADR-0030 — Texte riche : Markdown, attributs sémantiques, saut dur explicite
 
-Statut : accepté · 2026-08-01
+Statut : accepté · 2026-08-01 · notation et frontière prose / section révisées par [ADR-0061](./ADR-0061-prose-directives-declarees.md) le 2026-08-20
 Portée : content
 
 ## Contexte

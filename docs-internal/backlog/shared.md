@@ -15,16 +15,14 @@ le barrel de réexport du cœur — 54 symboles retournés à leur paquet, `bun 
 refuse leur retour — et le singleton de `@repo/communication`, devenu un acteur composé au
 démarrage.
 
-Le troisième est **tranché mais pas codé** : [ADR-0059](../adr/ADR-0059-nom-nu-et-prefixe-de-scission.md)
-scinde `@repo/pages` en `@repo/pages-registry` — vocabulaire et logique, **sans `@repo/db` dans son
+Le troisième est **fait** : [ADR-0059](../adr/ADR-0059-nom-nu-et-prefixe-de-scission.md) a scindé
+`@repo/pages` en `@repo/pages-registry` — vocabulaire et logique, **sans `@repo/db` dans son
 manifeste**, donc l'import ne résout même pas — et `@repo/pages`, qui garde les tables, le cache,
-`syncRegistry`, `page-service` et `reference`. Le défaut qui la motive se lit dans le test :
-`definition-service.ts` importe `db` au niveau module, si bien qu'éprouver deux fonctions qui
-n'interrogent rien oblige à poser une fausse `DATABASE_URL` puis à différer l'import. Effet de bord
-mesuré : `compileSections` et `definitionToSchema` — la traduction d'un champ déclaré en validateur
-exécutable, le cœur du paquet — ne sont couvertes par **rien**.
+`syncRegistry`, `page-service` et `reference`. `compileSections` et `definitionToSchema`, que rien ne
+couvrait, sont désormais testées sans base ni `DATABASE_URL` factice.
 
-Reste ensuite la migration `richText` → Markdown.
+Reste ensuite la **prose** : [ADR-0061](../adr/ADR-0061-prose-directives-declarees.md) l'a tranchée
+sans qu'une ligne soit écrite.
 
 Puis le [vertical slice Prisme](./prisme.md), qui débloque à lui seul les décisions suspendues à un
 second consommateur — dont la garde des credentials
@@ -69,8 +67,24 @@ Le conteneur, distinct des produits qu'il héberge. Le principe qui gouverne cet
 
 ## Contenu config-as-code
 
-- [ ] 🔴 ⏩ **Migrer `richText` de HTML vers Markdown** selon [ADR-0030](../adr/ADR-0030-texte-riche-markdown.md) :
-  convertir les données, désactiver le HTML brut et tester le rendu contre le XSS stocké.
+- [ ] 🔴 ⏩ **Implémenter la prose** selon
+  [ADR-0061](../adr/ADR-0061-prose-directives-declarees.md). Le titre précédent de cette ligne —
+  « migrer `richText` de HTML vers Markdown » — était faux : **aucun `richText` n'est en HTML**, le
+  champ est tenu pour du Markdown partout où il passe, et le seul HTML du dépôt est
+  `product.description`, une colonne du catalogue hors du modèle de champs que **rien ne rend**.
+
+  Le paquet `@repo/prose` reste à créer : parseur vers un arbre à nous, noyau de directives,
+  sérialisation en `data-directive`, HTML inline désactivé. Le verbe `defineDirective` rejoint
+  `@mrcasquette/content`. L'éditeur n'est **pas** sur le chemin critique — le `<Textarea>` existant
+  suffit à la V1.
+- [ ] 🟠 **Trancher le sort de `product.description`** : convertir son HTML ou repartir de zéro. À
+  décider sur la donnée réelle, pas sur le seed. TipTap n'a qu'un appelant — `ProductInfoCard.vue:30`
+  — et le coût de sortie ne sera jamais plus bas.
+- [ ] 🟡 **Garder l'arbre hors de la base.** Rien n'empêcherait de cacher l'arbre parsé à côté du
+  texte « pour la performance » : ce serait revenir à un format propriétaire avec deux sources de
+  vérité, et **aucun test ne tomberait**. Seule dérive qui détruirait la thèse d'ADR-0061.
+- [ ] 🟡 **Garder le noyau des directives** contre une redéfinition par un thème, et vérifier qu'un
+  paquet partagé n'émet jamais de `class` depuis la prose.
 - [ ] 🟠 **Générateur de formulaires d'administration** depuis le registre. Annoncé en « Maintenant »
   sur la [roadmap publique](../../docs/roadmap.md), au même titre que les menus.
 - [ ] 🟡 **Type-gen du DSL** pour les sections et composants de front — l'inférence est livrée, la
@@ -83,13 +97,6 @@ Le conteneur, distinct des produits qu'il héberge. Le principe qui gouverne cet
 - [ ] 🟠 **Trancher l'injection DB** dans un ADR : singleton, factory de service, contexte de requête
   et unité transactionnelle. **Pendant** Prisme, pas avant : c'est la décision de forme qui a besoin
   du second consommateur pour être bien prise, et le vertical slice est son terrain d'épreuve.
-- [ ] 🟠 ⏩ **Séparer la partie pure de `@repo/pages` de sa partie connectée**, sur le modèle déjà
-  appliqué dans `@repo/auth` (`permission.ts` / `permission-cache.ts`). `definition-service.ts`
-  importe `db` au niveau module et `@repo/db` **lève à l'import** sans `DATABASE_URL` : la logique
-  pure — `assertRegistryCoherent`, `unknownRefTargets` — est soudée à la connexion par le graphe
-  d'imports alors qu'elle n'interroge rien. Ses tests doivent poser une URL factice, contournement
-  consigné dans le fichier de test. La convention existe déjà dans le dépôt ; ce module ne l'applique
-  pas. Détail : [audit de couverture documentaire](../audits/audit-couverture-documentaire.md).
 - [ ] 🟡 **Refondre les feuilles sous ~100 lignes** dans leur consommateur unique, ou les regrouper.
   Second volet d'« encaisser le découpage » — le premier, faire tomber le barrel de réexport du
   cœur, est fait ; celui-ci est de l'hygiène et ne bloque rien.

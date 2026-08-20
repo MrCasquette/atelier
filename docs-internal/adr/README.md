@@ -74,7 +74,7 @@ Portée : socle | <package> | échoppe | prisme
 | N° | Titre | Statut | Détail |
 |----|-------|--------|--------|
 | [0012](./ADR-0012-module-contenu.md) | Module contenu / page-builder headless (`@mrcasquette/content`) | accepté | [content-module.md](../architecture/contenu.md) |
-| [0030](./ADR-0030-texte-riche-markdown.md) | Texte riche : Markdown, attributs sémantiques, saut dur explicite | accepté | — |
+| [0030](./ADR-0030-texte-riche-markdown.md) | Texte riche : Markdown, attributs sémantiques, saut dur explicite | accepté · précisé par [0061](./ADR-0061-prose-directives-declarees.md) | — |
 | [0031](./ADR-0031-i18n-champs-localises.md) | i18n de contenu : champs localisés, décidé mais non implémenté | accepté | — |
 | [0032](./ADR-0032-cibles-referencables.md) | Cibles référençables : le lien déclaré, la résolution ouverte | accepté | — |
 | [0035](./ADR-0035-interpolation-variables.md) | Interpolation de variables dans le contenu | accepté | — |
@@ -85,6 +85,7 @@ Portée : socle | <package> | échoppe | prisme
 | [0043](./ADR-0043-lexique-contenu.md) | Ratification du lexique du contenu, `definition` et le découpage `content` / `menu` | accepté | [lexique-prisme.md](../glossaire.md) |
 | [0045](./ADR-0045-cles-etrangeres-entites.md) | Clés étrangères d'une entité : la cible déclare son stockage, `required` dit la politique | accepté | [entites.md](../architecture/entites.md) |
 | [0046](./ADR-0046-entites-referencables.md) | Une entité déclare son lien : les trois modes résolus, inscription à la poussée | accepté | [entites.md](../architecture/entites.md) |
+| [0061](./ADR-0061-prose-directives-declarees.md) | La prose déclare ses directives, l'outil reste remplaçable | accepté · précise [0030](./ADR-0030-texte-riche-markdown.md) | — |
 
 ## Index — `assets` · Média et images
 
