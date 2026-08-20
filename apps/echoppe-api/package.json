@@ -28,6 +28,7 @@
     "@repo/identity": "workspace:*",
     "@repo/menus": "workspace:*",
     "@repo/pages": "workspace:*",
+    "@repo/pages-registry": "workspace:*",
     "@repo/references": "workspace:*",
     "@repo/shared": "workspace:*",
     "elysia": "^1.4.29",

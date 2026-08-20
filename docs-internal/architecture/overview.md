@@ -59,7 +59,8 @@ produit = un cœur = une base.** Un paquet partagé ne porte jamais de migration
 | `auth` | sessions, principaux, RBAC |
 | `identity` | identité du site et entité légale |
 | `fields` | la grammaire des champs — partagée par les pages et les entités |
-| `pages` | pages, sections, et le registre qui décrit comment une section est faite |
+| `pages-registry` | ce qu'est une définition de section, et tout ce qui s'en calcule — **sans `@repo/db`** |
+| `pages` | pages, sections, et le miroir en base du registre |
 | `entities` | déclaration → table réelle, comparaison au schéma, application |
 | `menus` | navigation — un menu pointe, il ne contient pas |
 | `references` | le registre des cibles référençables |

@@ -1,5 +1,6 @@
 import { faults } from '@echoppe/core';
-import { loadRegistry, registrySchema, syncRegistry } from '@repo/pages';
+import { loadRegistry, syncRegistry } from '@repo/pages';
+import { registrySchema } from '@repo/pages-registry';
 import { Elysia } from 'elysia';
 import { faultBody } from '../../../lib/fault';
 import { successSchema, withCrudErrors } from '../../../lib/response';

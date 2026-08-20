@@ -1,16 +1,17 @@
 import { describe, expect, it } from 'bun:test';
-import type { Registry } from './definition-model';
+import type { Registry } from './model';
+import {
+  checkSection,
+  compileSections,
+  registryIssues,
+  registryToRows,
+  rowsToRegistry,
+  unknownRefTargets,
+} from './registry';
 
-// `definition-service.ts` importe `db` au niveau module, et `@repo/db` LÈVE à l'import quand
-// `DATABASE_URL` manque. La logique pure de ce fichier — cohérence d'un registre, cibles inconnues —
-// est donc soudée à la connexion par le graphe d'imports, alors qu'elle n'interroge rien.
-//
-// On pose une URL factice : `postgres()` est paresseux, aucune connexion n'est ouverte. C'est un
-// contournement, pas un modèle — il disparaîtrait si la partie pure vivait dans un module qui
-// n'importe pas `db`.
-process.env.DATABASE_URL ??= 'postgres://unused@localhost:5432/unused';
-
-const { registryIssues, unknownRefTargets } = await import('./definition-service');
+// Ce fichier n'a plus rien à contourner. Il tenait naguère dans `@repo/pages`, où éprouver ces deux
+// fonctions — qui n'interrogent rien — obligeait à poser une fausse `DATABASE_URL` puis à différer
+// l'import, parce que le module voisin importait `db` au niveau module. ADR-0059 a séparé les deux.
 
 const registry = (parts: Partial<Registry> = {}): Registry => ({
   version: 1,
@@ -214,5 +215,85 @@ describe('cibles référençables inconnues', () => {
     });
 
     expect(unknownRefTargets(faute, ['product'])).toEqual(['inconnue']);
+  });
+});
+
+// La traduction d'un champ déclaré en validateur exécutable est le cœur du paquet, et elle n'était
+// couverte par RIEN : elle vivait derrière une lecture en base (ADR-0059).
+describe('compilation d’un registre', () => {
+  const hero = registry({
+    sections: {
+      hero: {
+        name: 'hero',
+        fields: [
+          { name: 'titre', kind: 'text' },
+          { name: 'sous_titre', kind: 'text', required: false },
+        ],
+      },
+    },
+  });
+
+  it('compile un validateur par section, et rien pour les composants', () => {
+    const compiled = registry({
+      sections: { hero: { name: 'hero', fields: [{ name: 'titre', kind: 'text' }] } },
+      components: { bouton: { name: 'bouton', fields: [{ name: 'libelle', kind: 'text' }] } },
+    });
+
+    const checks = compileSections(compiled);
+
+    expect([...checks.keys()]).toEqual(['hero']);
+  });
+
+  it('accepte une donnée conforme', () => {
+    const checks = compileSections(hero);
+
+    expect(checkSection(checks, 'hero', { titre: 'Bonjour' })).toEqual({ ok: true });
+  });
+
+  it('refuse une donnée invalide en nommant ses fautes', () => {
+    const checks = compileSections(hero);
+
+    const verdict = checkSection(checks, 'hero', { titre: 42 });
+
+    expect(verdict.ok).toBe(false);
+    if (verdict.ok || verdict.reason !== 'invalid') throw new Error('verdict inattendu');
+    expect(verdict.issues.length).toBeGreaterThan(0);
+  });
+
+  it('distingue une section introuvable d’une donnée invalide', () => {
+    const checks = compileSections(hero);
+
+    expect(checkSection(checks, 'inconnue', {})).toEqual({ ok: false, reason: 'unknown_type' });
+  });
+});
+
+// Les deux traductions se répondent : ce qui part en base doit revenir identique.
+describe('registre ↔ lignes', () => {
+  const full = registry({
+    sections: { hero: { name: 'hero', label: 'Bandeau', fields: [{ name: 'titre', kind: 'text' }] } },
+    components: { bouton: { name: 'bouton', fields: [{ name: 'libelle', kind: 'text' }] } },
+  });
+
+  it('aplatit sections et composants dans le même espace de noms', () => {
+    const rows = registryToRows(full);
+
+    expect(rows.map((row) => [row.name, row.role])).toEqual([
+      ['hero', 'section'],
+      ['bouton', 'component'],
+    ]);
+  });
+
+  it('fait l’aller-retour sans rien perdre', () => {
+    const rows = registryToRows(full).map((row) => ({ ...row, fields: row.fields }));
+
+    expect(rowsToRegistry(rows)).toEqual(full);
+  });
+
+  it('refuse un stockage corrompu plutôt que d’en déduire un registre', () => {
+    const corrupted = [
+      { name: 'hero', role: 'section', label: null, icon: null, fields: 'pas un tableau' },
+    ];
+
+    expect(() => rowsToRegistry(corrupted)).toThrow(/corruption/);
   });
 });

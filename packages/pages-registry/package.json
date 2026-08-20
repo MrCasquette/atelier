@@ -1,23 +1,20 @@
 {
-  "name": "@repo/pages",
+  "name": "@repo/pages-registry",
   "version": "0.0.1",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./schema": "./src/schema.ts"
+    ".": "./src/index.ts"
   },
   "scripts": {
+    "test": "bun test src",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@repo/db": "workspace:*",
-    "@repo/pages-registry": "workspace:*",
-    "@repo/references": "workspace:*",
+    "@repo/fields": "workspace:*",
     "@repo/shared": "workspace:*",
-    "drizzle-orm": "^0.45.2",
     "elysia": "^1.4.29"
   },
   "devDependencies": {

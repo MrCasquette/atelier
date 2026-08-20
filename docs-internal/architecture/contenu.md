@@ -80,7 +80,24 @@ insérables).
 
 L'ancien `models/content.ts` figeait une **union statique** de blocs dans le code de l'API.
 Incompatible avec un builder où **le dev** définit les blocs. On l'a remplacé par un
-**validateur dérivé du registre à l'exécution** (`services/content-registry.ts`).
+**validateur dérivé du registre à l'exécution**.
+
+### Deux paquets, et la ligne qui les sépare
+
+Ce qui **calcule** vit dans `@repo/pages-registry`, ce qui **interroge** dans `@repo/pages`
+([ADR-0059](../adr/ADR-0059-nom-nu-et-prefixe-de-scission.md)) :
+
+| `@repo/pages-registry` | `@repo/pages` |
+|---|---|
+| ce qu'est une définition (`model.ts`) | la table `content_definition` qui la range |
+| la compilation d'un validateur par section | le cache qui garde les validateurs compilés |
+| le diagnostic d'un registre — doublons, composants introuvables, cibles non inscrites | la décision de refuser la poussée, et la transaction qui remplace |
+| le verdict d'une donnée contre un validateur (`checkSection`) | d'aller chercher le registre pour l'obtenir (`validateSectionData`) |
+
+**`@repo/db` est absent du manifeste de `pages-registry`** : l'import ne résout pas. Un registre se
+valide donc sans base — au build, sur un fichier de configuration, dans un test —, ce qui est
+exactement ce qu'exige un CMS config-as-code où la source d'autorité est le fichier du dev et la base
+son miroir.
 
 ### Qu'est-ce qu'on gagne / perd vs un validateur maison ?
 

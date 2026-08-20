@@ -1,20 +1,16 @@
-// @repo/pages — les pages, leurs sections, et le registre qui dit comment une section est faite
-// (ADR-0033).
+// @repo/pages — les pages, leurs sections, et le miroir en base du registre (ADR-0033).
 //
-// Ni route, ni plugin Elysia. Ne pas réexporter la grammaire de `@repo/fields` d'ici : la frontière
-// n'existerait plus que dans l'arborescence. Voir README.md.
+// Ni route, ni plugin Elysia. Et aucune réexportation : ni la grammaire de `@repo/fields`, ni la
+// logique de `@repo/pages-registry` — un consommateur qui en a besoin les importe lui-même, sans
+// quoi la frontière n'existerait plus que dans l'arborescence (ADR-0059). Voir README.md.
 
 /** Ce que ce paquet possède, nommable dans une faute (ADR-0050). Un produit compose les siennes. */
 export type PagesResource = 'page' | 'section' | 'definition';
-export { type Registry, registrySchema, type SerializedDefinition } from './definition-model';
 export {
   invalidateRegistryCache,
   loadRegistry,
-  registryIssues,
   type SyncRegistryOutcome,
   syncRegistry,
-  unknownRefTargets,
-  type ValidationResult,
   validateSectionData,
 } from './definition-service';
 export {
