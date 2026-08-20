@@ -35,6 +35,7 @@ COPY packages/identity/package.json ./packages/identity/
 COPY packages/entities/package.json ./packages/entities/
 COPY packages/fields/package.json ./packages/fields/
 COPY packages/pages/package.json ./packages/pages/
+COPY packages/pages-registry/package.json ./packages/pages-registry/
 COPY packages/menus/package.json ./packages/menus/
 COPY packages/references/package.json ./packages/references/
 COPY packages/communication/package.json ./packages/communication/
@@ -68,6 +69,7 @@ COPY --from=deps /app/packages/identity/node_modules ./packages/identity/node_mo
 COPY --from=deps /app/packages/entities/node_modules ./packages/entities/node_modules
 COPY --from=deps /app/packages/fields/node_modules ./packages/fields/node_modules
 COPY --from=deps /app/packages/pages/node_modules ./packages/pages/node_modules
+COPY --from=deps /app/packages/pages-registry/node_modules ./packages/pages-registry/node_modules
 COPY --from=deps /app/packages/menus/node_modules ./packages/menus/node_modules
 COPY --from=deps /app/packages/references/node_modules ./packages/references/node_modules
 COPY --from=deps /app/packages/communication/node_modules ./packages/communication/node_modules
