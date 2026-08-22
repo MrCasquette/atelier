@@ -21,8 +21,9 @@ manifeste**, donc l'import ne résout même pas — et `@repo/pages`, qui garde 
 `syncRegistry`, `page-service` et `reference`. `compileSections` et `definitionToSchema`, que rien ne
 couvrait, sont désormais testées sans base ni `DATABASE_URL` factice.
 
-Reste ensuite la **prose** : [ADR-0061](../adr/ADR-0061-prose-directives-declarees.md) l'a tranchée
-sans qu'une ligne soit écrite.
+Reste ensuite la **prose**, et elle est **à moitié faite** — c'est l'état le plus coûteux à laisser
+en l'air : `@repo/prose` existe, complet et testé, mais **aucun paquet ne le consomme**. Ce qui reste
+n'est pas le moteur, c'est le branchement. Détail en § Contenu config-as-code.
 
 Puis le [vertical slice Prisme](./prisme.md), qui débloque à lui seul les décisions suspendues à un
 second consommateur — dont la garde des credentials
@@ -58,10 +59,11 @@ Le conteneur, distinct des produits qu'il héberge. Le principe qui gouverne cet
 - [ ] 🟡 **La garde d'isolation s'endort sous deux produits.** Elle sort en succès silencieux tant
   qu'un seul scope possède une application — donc dès que le squelette `prisme-*` disparaîtra, et
   jusqu'au vrai `prisme-api`.
-- [ ] 🟡 **Dette Biome révélée** : `$schema` figé en 2.3.9 alors que Biome est en 2.5.2, et
-  `linter.rules.recommended` déprécié au profit de `preset` (`biome migrate`). Par ailleurs
-  l'organisation automatique des imports, qui venait de `biome check`, disparaît avec le linter —
-  `biome format` ne la fait pas.
+- [ ] 🟡 **Dette Biome** : `$schema` toujours figé en 2.3.9 (`biome.json:2`) alors que la dépendance
+  est en `^2.5.2` — `biome migrate` reste à passer. Le volet `linter.rules.recommended` est en
+  revanche **caduc** : le bloc est désormais réduit à `"linter": { "enabled": false }`, il n'y a plus
+  de règle à migrer. Ce qui subsiste de ce choix, c'est que l'organisation automatique des imports
+  venait de `biome check` et disparaît avec le linter — `biome format` ne la fait pas.
 - [ ] 🟡 **18 warnings ESLint** : 17 `no-non-null-assertion` (statut inchangé, la règle était déjà
   en `warn` sous Biome) et 1 `vue/no-v-html` dans la doc — celui-ci est un signal de sécurité.
 
@@ -86,16 +88,28 @@ Tranché par [ADR-0062](../adr/ADR-0062-scope-et-critere-de-publication.md), rie
 
 ## Contenu config-as-code
 
-- [ ] 🔴 ⏩ **Implémenter la prose** selon
-  [ADR-0061](../adr/ADR-0061-prose-directives-declarees.md). Le titre précédent de cette ligne —
-  « migrer `richText` de HTML vers Markdown » — était faux : **aucun `richText` n'est en HTML**, le
-  champ est tenu pour du Markdown partout où il passe, et le seul HTML du dépôt est
-  `product.description`, une colonne du catalogue hors du modèle de champs que **rien ne rend**.
+- [ ] 🔴 ⏩ **Brancher la prose** — le moteur est livré, il ne sert à personne.
+  [ADR-0061](../adr/ADR-0061-prose-directives-declarees.md).
 
-  Le paquet `@repo/prose` reste à créer : parseur vers un arbre à nous, noyau de directives,
-  sérialisation en `data-directive`, HTML inline désactivé. Le verbe `defineDirective` rejoint
-  `@mrcasquette/content`. L'éditeur n'est **pas** sur le chemin critique — le `<Textarea>` existant
-  suffit à la V1.
+  **Fait** (`packages/prose/`, commits `64f99d2` et `9dcaacf`) : parseur vers un arbre à nous —
+  `mdast` s'arrête à `parse.ts` et n'est pas exporté —, noyau fermé de sept directives
+  (`warning`, `note`, `tip`, `figure`, `quote`, `cta`, `highlight`) avec sa validation par constats,
+  sérialisation générique en `data-directive`, HTML inline coupé à la source, et `safeUrl` qui rend
+  un lien inerte plutôt que redirigé. Trois suites de tests.
+
+  **Reste**, et c'est tout ce qui reste :
+  - le verbe `defineDirective` dans `@mrcasquette/content`, à côté de `defineSection` (§3, §10) —
+    **zéro occurrence dans le dépôt** ;
+  - `richText` cesse d'être un `t.String()` nu (`packages/fields/src/compile.ts:54`) : la validation
+    porte sur le noyau. C'est la conséquence n°1 de l'ADR, et le seul endroit où la décision devient
+    exécutoire ;
+  - la prévisualisation de l'administration par `proseToHtml` — gratuite, c'est le rendu de
+    production (§9). L'éditeur n'est **pas** sur le chemin critique : le `<Textarea>` existant suffit.
+
+  Note conservée parce qu'elle a déjà égaré cette ligne une fois : **aucun `richText` n'est en HTML**,
+  le champ est tenu pour du Markdown partout où il passe. Le seul HTML du dépôt est
+  `product.description`, une colonne du catalogue hors du modèle de champs que **rien ne rend** —
+  c'est la ligne suivante, et c'est un autre sujet.
 - [ ] 🟠 **Trancher le sort de `product.description`** : convertir son HTML ou repartir de zéro. À
   décider sur la donnée réelle, pas sur le seed. TipTap n'a qu'un appelant — `ProductInfoCard.vue:30`
   — et le coût de sortie ne sera jamais plus bas.
@@ -104,8 +118,6 @@ Tranché par [ADR-0062](../adr/ADR-0062-scope-et-critere-de-publication.md), rie
   vérité, et **aucun test ne tomberait**. Seule dérive qui détruirait la thèse d'ADR-0061.
 - [ ] 🟡 **Garder le noyau des directives** contre une redéfinition par un thème, et vérifier qu'un
   paquet partagé n'émet jamais de `class` depuis la prose.
-- [ ] 🟠 **Générateur de formulaires d'administration** depuis le registre. Annoncé en « Maintenant »
-  sur la [roadmap publique](../../docs/roadmap.md), au même titre que les menus.
 - [ ] 🟡 **Type-gen du DSL** pour les sections et composants de front — l'inférence est livrée, la
   génération explicite reste à trancher.
 - [ ] 🟡 Menus imbriqués, champs custom, fichiers/assets et i18n des enums.
@@ -215,6 +227,16 @@ circonstancielle plutôt que sur une garde.
   reprend un chemin interne déplacé, et que `docs/dev/` ne redit pas ce que `architecture/` porte
   désormais.
 
+- [ ] 🟠 **La roadmap publique est un chantier à part entière.** Elle ne se maintient pas à la main
+  à côté de l'interne : le cap est que **la roadmap interne dérive vers la publique**, l'interne
+  disant le travail à venir et la publique le cap au marché. Rien n'est instruit — ni le mécanisme,
+  ni ce qui se publie et ce qui reste interne, ni ce qu'ADR-0060 fait d'une nature « roadmap »
+  qu'elle ne compte pas parmi ses cinq. L'ADR viendra quand on l'instruira, pas avant.
+
+  Symptôme qui a ouvert le sujet : `docs/roadmap.md` annonce « formulaires d'édition dans l'admin et
+  menus à venir » alors que les deux sont livrés, et liste « Clés d'API machine » sous *Maintenant*
+  alors que l'écran l'est aussi. Une roadmap publique tenue séparément dérive sans que personne ne
+  le voie.
 - [ ] 🟠 **Ajouter à l'index ADR les états d'implémentation, de vérification et d'horizon**, sans
   réécrire le statut historique de décision.
 - [ ] 🟡 **Resserrer le maillage documentaire** : liens depuis le code et liens vers les ADR

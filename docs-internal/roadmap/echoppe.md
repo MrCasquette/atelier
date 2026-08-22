@@ -47,10 +47,14 @@ attend, avec sa bannière de consentement et sa politique d'archivage.
 
 ## Ce qui n'attend pas la V2
 
-Deux sujets reviennent souvent dans cette liste alors qu'ils appartiennent à la V1, et le rappeler
-évite de les repousser par habitude :
+Un sujet revient souvent dans cette liste alors qu'il appartient à la V1, et le rappeler évite de le
+repousser par habitude :
 
-- les **formulaires d'édition dans l'administration** pour le module contenu, annoncés
-  « Maintenant » sur la roadmap publique ;
 - la **couverture de tests des parcours critiques** — checkout, paiement, stock — qui conditionne
   la mise en production plus qu'elle ne l'enrichit.
+
+Les **formulaires d'édition dans l'administration** y figuraient aussi : ils sont livrés
+(`organisms/content/DynamicForm.vue`, registre-dirigé et récursif, servant les sections comme les
+entités), au même titre que les menus. La [roadmap publique](../../docs/roadmap.md) les annonce
+encore « à venir » : elle se reprendra avec le chantier qui lui est dédié, au
+[backlog socle](../backlog/shared.md) § Documentation et gouvernance.

@@ -34,14 +34,18 @@ livré. Le profil servi est **l'utilisateur standard qui a un dev**.
 | Interpolation de variables, humble | [0035](../adr/ADR-0035-interpolation-variables.md) | #12 |
 | Statut déclaré, pas de versionnement | [0036](../adr/ADR-0036-cycle-de-vie-contenu.md) | — |
 
-**Prérequis d'infrastructure** — indépendants du CMS, mais bloquants :
+**Prérequis d'infrastructure** — indépendants du CMS, mais bloquants. **Les quatre sont levés**
+(vérifié le 2026-08-22) :
 
-| | Tâche |
-|---|---|
-| Découper `enums.ts` par domaine | #2 |
-| Sonde d'extraction `@repo/assets` | #3 |
-| Découpler les templates email | #7 |
-| Réorganiser le monorepo, scinder le core | #11 |
+| | Tâche | État |
+|---|---|---|
+| Découper `enums.ts` par domaine | #2 | le fichier n'existe plus |
+| Sonde d'extraction `@repo/assets` | #3 | `packages/assets` extrait |
+| Découpler les templates email | #7 | `registerEmailTemplate` est générique ; les gabarits du commerce vivent dans `echoppe-core/src/services/storefront-emails.ts`, et un test verrouille que le socle ne les connaît pas |
+| Réorganiser le monorepo, scinder le core | #11 | `echoppe-core` + dix-huit `@repo/*` |
+
+Plus rien d'infrastructurel ne bloque donc le vertical slice. Ce bloc disparaîtra avec cette
+section.
 
 **Auth** — tranché, à implémenter **avant** le mécanisme de push d'entités :
 

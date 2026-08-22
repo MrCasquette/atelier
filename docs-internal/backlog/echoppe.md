@@ -8,7 +8,9 @@ leurs [backlogs dédiés](../../BACKLOG.md) ; ce qui vient après la V1 vit dans
 
 ### Catalogue storefront
 
-- [ ] 🟠 **Facettes catalogue** : fourchette de prix, `inStock`, puis facettes par option →
+- [ ] 🟠 **Facettes catalogue** : `minPrice`/`maxPrice`/`inStock` sont livrés sur la liste globale
+  (`catalog/product/shared.ts`), et **volontairement absents des listes scopées** — `productSubListQuery`
+  les exclut. Restent leur exposition sur les listes scopées, puis les facettes par option →
   [détail](../backlog/facettes-catalogue.md).
 - [ ] 🟡 **Signal low-stock public** : exposer `isLowStock`, jamais le seuil →
   [détail](../backlog/signal-low-stock.md), [ADR-0006](../adr/ADR-0006-visibilite-catalogue.md).
@@ -37,8 +39,6 @@ Détail : [audit sécurité](../audits/security-audit.md).
 
 ### RBAC et observabilité
 
-- [ ] 🟡 **Livrer l'écran « Clés d'API »** : lister les clés propres au principal, créer avec des
-  scopes bornés, révéler le secret une fois et révoquer.
 - [ ] 🟡 **Nettoyer la matrice RBAC par surface** : ressources admin/public, gardes PATCH explicites →
   [audit RBAC](../audits/audit-rbac-plan.md).
 
@@ -54,18 +54,22 @@ Détail : [ADR-0005](../adr/ADR-0005-panier-stock.md).
 
 ### Qualité et exploitation
 
-- [ ] 🟠 Extraire `enrichProductsWithMediaAndVariants()`.
 - [ ] 🟡 Centraliser `productListSchema` et `defaultVariantSchema`.
 - [ ] 🟡 Ajouter un logger structuré et une corrélation de requête.
-- [ ] 🟡 Fermer proprement PostgreSQL, Redis et les jobs au shutdown.
+- [ ] 🟡 **Fermer PostgreSQL et Redis au shutdown.** Le handler gracieux existe déjà
+  (`apps/echoppe-api/src/index.ts`, `dispose()` sur SIGTERM/SIGINT) mais ne ferme que le timer de
+  cleanup et `app.stop()` : ni le client Postgres, ni Redis. Il reste à leur donner leur fermeture.
 - [ ] 🟡 Refactors ciblés : génération de facture et réordonnancement des variantes.
-- [ ] 🔴 **Requalifier ~32 statuts HTTP — dernière rupture connue du contrat HTTP, donc frontière
+- [ ] 🔴 **Requalifier ~34 statuts HTTP — dernière rupture connue du contrat HTTP, donc frontière
   de `1.0.0` ([ADR-0023](../adr/ADR-0023-versioning-tags.md), amendement).** Chantier SÉPARÉ, qui n'a jamais fait partie
   d'[ADR-0050](../adr/ADR-0050-exception-jamais-reponse-http.md) — celle-ci a fixé la forme des
   CORPS, celui-ci change le comportement observable des clients, donc jamais mêlé au précédent.
-  Recensé lors du classement des 400 : `configuration_missing` → 503 (13 sites), `invalid_state` /
-  `already_exists` / `in_use` → 409 (10), `insufficient_stock` → 409 (4), `not_found` déguisé en
-  400 → 404 (6). Trois cas sont déjà résolus au passage : `shipping` rend 422 depuis que son schéma
+  Recensé lors du classement des 400, **remesuré le 2026-08-22** : `configuration_missing` → 503
+  (13 réponses — 10 sites directs et 3 usages de la constante hissée `ENCRYPTION_MISSING`, que tout
+  comptage naïf rate), `invalid_state` / `already_exists` / `in_use` → 409 (11 = 8 + 2 + 1),
+  `insufficient_stock` → 409 (4), `not_found` déguisé en 400 → 404 (6). Soit **34**, pas 32. Les
+  deux `invalid_state` rendus en 403 par `auth/admin.ts` sont hors périmètre : ils appartiennent à
+  la fermeture de l'oracle d'énumération, et leur commentaire le dit. Trois cas sont déjà résolus au passage : `shipping` rend 422 depuis que son schéma
   exige `provider`, la validation de RÉPONSE d'Elysia rend 500 au lieu de 422, et le webhook rend
   500 sur une panne au lieu de 400.
 - [ ] 🟡 **`undelegatable_grants` porte deux granularités** : `not_held` nomme `ressource:action`,
