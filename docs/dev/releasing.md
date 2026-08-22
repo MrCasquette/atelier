@@ -70,7 +70,7 @@ docker rm -f mig-check
 
 ## Le SDK dérive de l'API
 
-`@echoppe/client` est **généré depuis l'OpenAPI** de l'API (`packages/client/scripts/generate.ts`),
+`@echoppe/client` est **généré depuis l'OpenAPI** de l'API (`packages/echoppe-client/scripts/generate.ts`),
 il ne se code pas à la main. Après un changement de contrat storefront :
 
 ```bash

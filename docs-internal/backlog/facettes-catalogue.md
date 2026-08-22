@@ -26,5 +26,5 @@ Trancher avant d'ouvrir l'impl → à ce moment, acter en ADR si la forme d'API 
 
 ## Ancrage
 
-Toute évolution du payload de carte passe par `apps/echoppe-api/src/utils/product-cards.ts`
+Toute évolution du payload de carte passe par `apps/echoppe-api/src/modules/catalog/product/card.ts`
 (`enrichProductCards`) et la logique partagée `queryProductCards` — jamais dupliquée ×3.

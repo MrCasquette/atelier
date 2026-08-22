@@ -317,7 +317,7 @@ user+rôle+session Postgres et le cookie `echoppe_admin_session` (owner bypass).
 
 ## Contrat SDK — régénération & garde anti-dérive
 
-Le SDK figé (`packages/client/src/{openapi,models,facade}.ts` + `openapi.json`) **dérive des routes**.
+Le SDK figé (`packages/echoppe-client/src/{openapi,models,facade}.ts` + `openapi.json`) **dérive des routes**.
 Ne jamais l'éditer à la main : `bun run contracts` boote l'app pure offline (`serve-contract`),
 régénère, et remplace le rituel manuel `:8101`. `bun run contracts:check` fait de même **puis échoue
 si les types figés ont bougé** — garde anti-dérive en CI (`ci.yml`, miroir du drift-guard Drizzle),
