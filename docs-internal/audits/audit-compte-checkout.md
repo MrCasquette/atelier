@@ -1,10 +1,14 @@
 # Audit surface compte / checkout (B6)
 
-Inventaire **existe / manque** de la surface storefront « compte client + tunnel de commande », à
-partir des routes réelles (`apps/api/src/routes/`). Lecture seule — aucun code modifié. Sert de base
-de décision avant d'ouvrir les tâches de complétude (B7+).
+> **Constat à date (2026-07-19).** Ce document prouve de quoi on s'est inquiété, et quand. Il ne dit
+> **pas** l'état courant, qui se redécouvre sur le code — la wishlist du manque #5, par exemple, est
+> livrée depuis. Les manques encore ouverts sont suivis au
+> [backlog Échoppe](../backlog/echoppe.md) § Compte et checkout. Les chemins cités sont ceux de
+> 2026-07 : `apps/api/src/routes/` s'appelle depuis `apps/echoppe-api/src/modules/`.
 
-Date : 2026-07-19.
+Inventaire **existe / manque** de la surface storefront « compte client + tunnel de commande », à
+partir des routes réelles. Lecture seule — aucun code modifié. Sert de base de décision avant
+d'ouvrir les tâches de complétude (B7+).
 
 ## Surface existante
 

@@ -1,7 +1,13 @@
 # Sécurité — Échoppe API
 
+> **Constat à date (2026-07-14).** Ce document prouve de quoi on s'est inquiété, et quand. Il ne dit
+> **pas** l'état courant, qui se redécouvre sur le code. Les risques encore ouverts sont suivis au
+> [backlog Échoppe](../backlog/echoppe.md) § Sécurité et durcissement et au
+> [backlog socle](../backlog/shared.md) § Sécurité ; ce qu'il a soulevé sans le trancher vit dans
+> [sujets à discussion](../backlog/sujets-a-discussion.md). Les chemins cités sont ceux de 2026-07 :
+> `apps/api` et `apps/admin` s'appellent depuis `apps/echoppe-api` et `apps/echoppe-admin`.
+
 Audit de sécurité de l'API (Elysia) et des surfaces front (storefront) / admin.
-Dernière revue : 2026-07-14.
 
 ## Verdict global
 

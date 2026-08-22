@@ -15,6 +15,7 @@ produit Prisme ; l'inverse vaut aussi. Cette frontière n'est pas une intention 
 | Échoppe — framework e-commerce | [Échoppe](docs-internal/backlog/echoppe.md) | [interne](docs-internal/roadmap/echoppe.md) · [publique](docs/roadmap.md) |
 | Prisme — CMS headless config-as-code | [Prisme](docs-internal/backlog/prisme.md) | [interne](docs-internal/roadmap/prisme.md) |
 | Socle partagé — packages et architecture commune | [Shared](docs-internal/backlog/shared.md) | — |
+| **Transverse** — questions ouvertes, pas encore actionnables | [Sujets à discussion](docs-internal/backlog/sujets-a-discussion.md) | — |
 
 ## Règles de classement
 
@@ -28,6 +29,9 @@ produit Prisme ; l'inverse vaut aussi. Cette frontière n'est pas une intention 
   citer comme dépendance.
 - Un backlog ne porte que de l'actionnable **V1**. Une idée pour plus tard va dans la
   [ROADMAP](./ROADMAP.md), qui ne porte rien d'actionnable en retour.
+- Une question qu'on sait devoir trancher sans savoir encore quoi en faire n'est pas actionnable :
+  elle va dans [sujets à discussion](docs-internal/backlog/sujets-a-discussion.md), et en ressort
+  par une tâche, par un ADR, ou en mourant.
 
 Légende commune : `[ ]` ouvert · 🔴 fort impact · 🟠 moyen · 🟡 faible / durcissement · ⚪ dépendant.
 
