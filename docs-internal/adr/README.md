@@ -26,7 +26,7 @@ Portée : socle | <package> | échoppe | prisme
 
 | N° | Titre | Statut | Détail |
 |----|-------|--------|--------|
-| [0002](./ADR-0002-distribution.md) | Distribution : Docker (runtime) + npm (SDK/CLI), modèle déploiement A | accepté | [distribution-architecture.md](../architecture/distribution.md) |
+| [0002](./ADR-0002-distribution.md) | Distribution : Docker (runtime) + npm (SDK/CLI), modèle déploiement A | accepté · complété par [0062](./ADR-0062-scope-et-critere-de-publication.md) | [distribution-architecture.md](../architecture/distribution.md) |
 | [0003](./ADR-0003-runtime-pm.md) | Runtime & package manager : PM-agnostique, Bun API / Node front | accepté | [conventions.md](../conventions.md) |
 | [0004](./ADR-0004-migrations-release.md) | Migrations au boot + validation release (sources vs artefact) | accepté · amendé par [0054](./ADR-0054-ports-rang-de-pile.md) | [release-runbook.md](../runbook/release-runbook.md) |
 | [0015](./ADR-0015-validation-typebox.md) | Validation à la frontière : TypeBox / Elysia (pas Zod) | accepté | — |
@@ -47,6 +47,7 @@ Portée : socle | <package> | échoppe | prisme
 | [0058](./ADR-0058-fraternite-des-produits.md) | Deux produits frères, des recompositions inégales | accepté · précise [0025](./ADR-0025-deux-produits-un-repo.md) | — |
 | [0059](./ADR-0059-nom-nu-et-prefixe-de-scission.md) | Un paquet garde son nom, sa scission se qualifie | accepté · précise [0033](./ADR-0033-organisation-monorepo.md) | — |
 | [0060](./ADR-0060-natures-de-la-documentation.md) | La documentation a cinq natures, l'ADR n'en est qu'une | accepté · précise [0024](./ADR-0024-portee-adr.md) | — |
+| [0062](./ADR-0062-scope-et-critere-de-publication.md) | Un paquet sort s'il tourne chez le dev, et son scope nomme l'organisation | accepté · complète [0002](./ADR-0002-distribution.md) | — |
 
 ## Index — `client` · SDK et contrat d'API
 

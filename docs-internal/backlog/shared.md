@@ -65,6 +65,25 @@ Le conteneur, distinct des produits qu'il héberge. Le principe qui gouverne cet
 - [ ] 🟡 **18 warnings ESLint** : 17 `no-non-null-assertion` (statut inchangé, la règle était déjà
   en `warn` sous Biome) et 1 `vue/no-v-html` dans la doc — celui-ci est un signal de sécurité.
 
+## Distribution npm
+
+Tranché par [ADR-0062](../adr/ADR-0062-scope-et-critere-de-publication.md), rien n'est appliqué.
+
+- [ ] 🔴 ⏩ **Renommer les paquets publiés** : `@mrcasquette/content` → `@axiome-apps/content`,
+  `@echoppe/client` → `@axiome-apps/echoppe`. Les deux sont en `0.x` et publiés depuis le
+  2026-08-18 — **la rupture est gratuite maintenant et ne le sera plus**. Le SDK étant gardé par
+  `contracts:check`, le renommer touche un artefact vérifié et pas un simple manifeste. Le scope
+  `@axiome-apps` reste à réserver sur npm, et le token local est expiré.
+- [ ] 🟠 **Publier `prose`** sous `@axiome-apps/prose` : sans cela, aucun front de dev ne peut rendre
+  la prose et le contrat d'arbre d'[ADR-0061](../adr/ADR-0061-prose-directives-declarees.md) reste
+  inaccessible. Publier lui ajoute versionnage, changesets et couverture `release-coverage`.
+- [ ] 🟠 **Les trois paquets publiés n'ont ni `repository`, ni `homepage`, ni `bugs`** — leur page npm
+  ne renvoie nulle part. À corriger, mais `repository` pointerait aujourd'hui vers un dépôt **privé**,
+  donc vers un 404 : lié à la question du transfert vers `Axiome-Apps` et de la visibilité du dépôt,
+  qui conditionne aussi le redéploiement de la doc sur Pages.
+- [ ] 🟡 **Garder les règles d'ADR-0062** : qu'un paquet publié porte ses métadonnées, et qu'un
+  `@repo/*` ne devienne pas publiable par distraction. Aucune ne l'est aujourd'hui.
+
 ## Contenu config-as-code
 
 - [ ] 🔴 ⏩ **Implémenter la prose** selon
