@@ -317,7 +317,29 @@ circonstancielle plutôt que sur une garde.
   chaque push sur `main`, la vérification se rejoue en continu — c'est ce qui rend un job planifié
   inutile.
 
-  **Différé faute de pouvoir l'éprouver** : tout est publié et cohérent aujourd'hui, donc la CI ne
-  montrerait que le chemin vert. Le chemin rouge, lui, a été vérifié en local en falsifiant deux
-  versions — la commande les signale et nomme ce que le registre sert à la place. À brancher au
-  prochain cycle de release, où le comportement réel pourra être observé.
+  **Le motif du report est tombé le 2026-08-24.** Il disait : « tout est publié et cohérent
+  aujourd'hui, donc la CI ne montrerait que le chemin vert ». Le cycle `0.8.0` a produit un chemin
+  rouge réel — le job `images` sauté sur un tag orphelin, et aucune image construite depuis `main`.
+  Plus rien ne justifie d'attendre.
+- [ ] 🟠 **`registry-gap` vérifie la présence, pas la provenance** — et la nuance a coûté cher le
+  2026-08-24. Il a rendu vert sur `ghcr.io/mrcasquette/echoppe-api:0.8.0` alors que cette image
+  avait été construite six jours plus tôt depuis un commit qu'aucune branche ne contient : le bon
+  numéro, servi par le bon registre, avec le mauvais code. C'est conforme à sa charte, et c'est
+  précisément la limite à écrire.
+
+  Le remède tient en une comparaison : le label `org.opencontainers.image.revision` de l'image
+  contre le commit que le tag `v*` désigne. **Mais ce label n'existe pas** — vérifié le 2026-08-24,
+  ni le `Dockerfile` ni `docker-build.yml` ne déclarent le moindre `LABEL` ou annotation OCI, et
+  `docker/build-push-action` est appelé sans `docker/metadata-action`. Le premier geste est donc
+  d'inscrire la provenance, pas de la vérifier. À regarder au passage : buildx attache des
+  attestations de provenance par défaut selon la version, ce qui offrirait peut-être la réponse
+  sans rien ajouter. Une lecture directe du manifeste GHCR par `curl` ne rend pas les labels ;
+  passer par `docker buildx imagetools inspect` ou `skopeo`.
+
+  Même question pour npm, où elle est plus difficile : rien dans le tarball ne dit de quel commit il
+  vient, sauf à réactiver l'attestation de provenance — qui exige un dépôt public, donc la même
+  question de visibilité que partout ailleurs.
+- [ ] 🟡 **Le tag `v0.6.0` est orphelin** (commit `33a73ad`, 2026-07-30, « Version Packages »),
+  comme l'était `v0.8.0` : même cause, avant le correctif du 2026-08-24. Son image mérite le même
+  examen que celle de `0.8.0` — a-t-elle été construite depuis un commit de branche ? Si oui, le
+  numéro est brûlé lui aussi, et ça vaut d'être écrit quelque part plutôt que redécouvert.
