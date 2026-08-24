@@ -19,6 +19,7 @@ change ; la version n'est jamais saisie à la main — elle vient du **niveau de
 | **runtime** | `@echoppe/api` + `@echoppe/admin` (paire `fixed`) | images Docker | **`v*`** (+ GitHub Release) |
 | **sdk** | `@axiome-apps/echoppe-client` | npm | — (npm = registre) |
 | **content** | `@axiome-apps/atelier-content` | npm | — |
+| **prose** | `@axiome-apps/atelier-prose` | npm | — |
 | **cli** | `create-echoppe` | npm | — |
 
 - **Une seule épine de tags git : `v*`** = le runtime déployable. Les packages npm ne sont **pas**
@@ -80,6 +81,34 @@ publiée**, jamais `db:push` (dev only). Cf. [`release-runbook.md`](./release-ru
 | `bun run ship <unité> <niveau> "msg"` | cut une release d'une unité (runtime/sdk/content/cli) → changeset + push `main` (interactif sans args) |
 | `bun run test:image` | rejoue le gate T2–T5 en local |
 | `bun run test:api` | l'API assemblée contre un Postgres jetable |
+
+## Le premier paquet d'un nom ne se publie jamais par la CI
+
+**Un *trusted publisher* ne se configure que sur un paquet qui existe.** npm ne sait pas
+pré-enregistrer un nom : tant que le paquet n'est pas au registre, il n'y a rien sur quoi poser la
+règle, et le `changeset publish` de la CI échoue en `ENEEDAUTH` — le jeton OIDC n'a pas de
+contrepartie à échanger.
+
+L'amorçage d'un nom neuf se fait donc **à la main, une seule fois** :
+
+1. le bump est mergé (`main` porte la version), et le run `Release` échoue sur ce paquet seul — les
+   autres sont sautés, rien n'est à moitié publié, aucune version n'est brûlée ;
+2. `bun run --cwd packages/<paquet> build`, puis `npm publish --access public` depuis son dossier ;
+3. le *trusted publisher* se configure alors sur sa page npm — dépôt, `release.yml`, environment
+   vide ;
+4. re-run du workflow en échec pour le repasser au vert : `changeset publish` est **idempotent**, il
+   recalcule ce qui manque au registre et ne trouve plus rien.
+
+Toutes les versions suivantes passent par la CI, comme les autres.
+
+**Piège de vérification** : juste après ce premier `npm publish`, le *packument*
+(`registry.npmjs.org/<nom>`) peut rendre `404` pendant plusieurs minutes alors que la publication a
+réussi — le CDN a mis en cache le `404` que `npm publish` lui-même est allé chercher juste avant de
+pousser. L'endpoint **versionné** (`…/<nom>/<version>`), lui, rend `200` tout de suite. C'est le bon
+témoin, et `npm access list packages <scope>` confirme l'existence indépendamment du cache. Ne pas
+republier, ne pas bumper : attendre.
+
+Ça vaudra pour `prisme-client` et `create-prisme`.
 
 ## Checklist minimale
 

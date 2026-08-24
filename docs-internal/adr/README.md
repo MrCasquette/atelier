@@ -87,7 +87,8 @@ Portée : socle | <package> | échoppe | prisme
 | [0043](./ADR-0043-lexique-contenu.md) | Ratification du lexique du contenu, `definition` et le découpage `content` / `menu` | accepté | [lexique-prisme.md](../glossaire.md) |
 | [0045](./ADR-0045-cles-etrangeres-entites.md) | Clés étrangères d'une entité : la cible déclare son stockage, `required` dit la politique | accepté | [entites.md](../architecture/entites.md) |
 | [0046](./ADR-0046-entites-referencables.md) | Une entité déclare son lien : les trois modes résolus, inscription à la poussée | accepté | [entites.md](../architecture/entites.md) |
-| [0061](./ADR-0061-prose-directives-declarees.md) | La prose déclare ses directives, l'outil reste remplaçable | accepté · précise [0030](./ADR-0030-texte-riche-markdown.md) | — |
+| [0061](./ADR-0061-prose-directives-declarees.md) | La prose déclare ses directives, l'outil reste remplaçable | accepté · précise [0030](./ADR-0030-texte-riche-markdown.md) · conséquence n°1 révisée par [0064](./ADR-0064-frontiere-de-validation-de-la-prose.md) | — |
+| [0064](./ADR-0064-frontiere-de-validation-de-la-prose.md) | La prose se corrige à l'édition, elle ne se refuse pas à l'écriture | accepté · révise une conséquence de [0061](./ADR-0061-prose-directives-declarees.md) | — |
 
 ## Index — `assets` · Média et images
 
