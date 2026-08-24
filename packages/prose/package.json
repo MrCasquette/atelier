@@ -1,6 +1,6 @@
 {
   "name": "@axiome-apps/atelier-prose",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Markdown à directives — du texte en entrée, un arbre en sortie. Le noyau de directives, sa validation et un rendu HTML générique. Partagé par Échoppe et Prisme.",
   "type": "module",
   "main": "./dist/index.js",
