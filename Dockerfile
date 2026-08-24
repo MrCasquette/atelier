@@ -90,9 +90,10 @@ COPY . .
 # nativement, et le même `dist` part dans les deux architectures.
 FROM --platform=$BUILDPLATFORM source AS dashboard-builder
 # Le dashboard consomme `@axiome-apps/atelier-prose` par son `dist`, comme un front extérieur le
-# ferait — la surface d'édition d'un `richText` s'en sert pour l'aperçu et les constats. Son build
-# précède donc celui de l'admin, sinon `vue-tsc` ne trouve pas ses types.
-RUN bun run --cwd packages/prose build \
+# ferait — la surface d'édition d'un `richText` s'en sert pour l'aperçu et les constats. Les paquets
+# se construisent donc d'abord, et par `--filter` : Bun les découvre et les ordonne par le graphe,
+# si bien qu'une dépendance nouvelle entre paquets n'a pas à être répercutée ici.
+RUN bun run --filter './packages/*' build \
  && bun run --cwd apps/echoppe-admin build
 
 # ==============================================================================

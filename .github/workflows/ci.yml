@@ -37,11 +37,12 @@ jobs:
       # Les libs publiables exposent leurs types depuis dist/ (pas les sources). Les apps qui
       # les consomment (ex. apps/echoppe-store → @axiome-apps/echoppe-client,
       # apps/echoppe-admin → @axiome-apps/atelier-prose) ne type-checkent qu'avec ce dist buildé.
+      #
+      # `--filter` plutôt qu'une liste : Bun découvre les paquets qui ont un script `build` et les
+      # exécute dans l'ordre du graphe. Un paquet qui dépend d'un autre — `atelier-content` de
+      # `atelier-prose` — se construit après lui, ce qu'une liste écrite à la main n'a pas su tenir.
       - name: Build packages (deps du type-check)
-        run: |
-          bun run --cwd packages/content build
-          bun run --cwd packages/prose build
-          bun run --cwd packages/echoppe-client build
+        run: bun run --filter './packages/*' build
 
       - name: Type-check
         run: bun run type-check

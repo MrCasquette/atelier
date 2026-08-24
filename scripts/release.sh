@@ -10,9 +10,12 @@
 set -e
 
 # Build des paquets publiables (dist requis dans le tarball).
-bun run --cwd packages/content build
-bun run --cwd packages/prose build
-bun run --cwd packages/echoppe-client build
-bun run --cwd packages/create-echoppe build
+#
+# `--filter` plutôt qu'une liste : Bun DÉCOUVRE les paquets qui ont un script `build` et les exécute
+# DANS L'ORDRE DU GRAPHE de dépendances. Les deux comptent — un paquet publiable neuf n'a plus à
+# être ajouté ici, et `atelier-content` se construit après `atelier-prose`, dont il consomme le
+# `dist`. L'ordre écrit à la main a précisément raté ce cas : la liste énumérait `content` en tête,
+# et le publish aurait échoué au merge sur un `Cannot find module`.
+bun run --filter './packages/*' build
 
 bunx changeset publish --no-git-tag
