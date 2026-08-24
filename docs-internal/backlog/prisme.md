@@ -26,6 +26,18 @@ pas le contrat.
 
 - [ ] 🔴 **Créer un vertical slice exécutable** : `prisme-core` et `prisme-api`, migrations propres,
   auth admin, une page, une entité, un média et un contrat HTTP propre.
+- [ ] 🔴 **Sortir `elysia` des paquets partagés, PENDANT le slice** — cinq paquets le déclarent
+  (`fields`, `entities`, `menus`, `pages`, `pages-registry`) et sept fichiers l'importent. Un paquet
+  partagé qui exige Elysia ne peut pas servir un produit qui n'est pas une API Elysia : c'est une
+  exigence de forme, et c'est Prisme qui la porte.
+
+  **Pendant, et non avant** — arbitré le 2026-08-24, en héritage d'un sujet ouvert le 2026-08-16 :
+  c'est le second consommateur qui dira si le découplage est correct, et lui seul l'exercera.
+  Découpler à l'aveugle produirait une frontière qu'aucun usage n'aurait éprouvée.
+
+  Ce n'est pas une migration : `@sinclair/typebox` s'importe directement, aucune route n'est touchée.
+  La vraie réserve est la **double version de TypeBox** — l'une venue d'Elysia, l'autre déclarée — à
+  tenir par plage de version ou alias de paquet. C'est ce qu'il faut instruire avant d'agir.
 - [ ] 🔴 **Définir la topologie de déploiement V1** : images, base dédiée, migrations, bootstrap et
   stratégie de mise à jour.
 - [ ] 🟠 **Créer `prisme-admin`** sur les surfaces V1 réellement nécessaires.

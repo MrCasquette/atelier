@@ -44,26 +44,6 @@ privée. Les trois chantiers se débloquent d'un seul geste, et aucun ne se déb
 
 ## Socle et contrats
 
-### Les paquets partagés dépendent d'`elysia`
-
-*Constat : 2026-08-16 (audit Elysia, contrainte C17) · redécouvert : 2026-08-22.*
-
-L'audit comptait deux dépendances directes et sept fichiers. **Aujourd'hui : cinq paquets** —
-`fields`, `entities`, `menus`, `pages`, `pages-registry` — déclarent `elysia` dans leur manifeste, et
-sept fichiers l'importent. Le sujet n'a jamais été inscrit à un backlog, et il a grossi pendant ce
-temps.
-
-Ce que ça coûte : un paquet partagé ne peut pas servir un produit qui n'est pas une API Elysia, et
-un bump d'Elysia devient un bump implicite de TypeBox. C'est une **exigence Prisme** — le socle est
-censé être agnostique du transport.
-
-Ce que ça n'est pas : une migration. `@sinclair/typebox` s'importe directement, aucune route n'est
-touchée. La réserve, elle, est réelle : deux versions de TypeBox qui divergent, l'une venue d'Elysia
-et l'autre déclarée, se gèrent par plage de version ou alias de paquet — c'est ce qu'il faut
-instruire avant d'agir.
-
-À trancher : est-ce un prérequis du vertical slice Prisme, ou une correction qu'on fait pendant ?
-
 ### Une primitive de champ récursive casserait l'inférence de route
 
 *Constat : 2026-08-16 (audit Elysia, contrainte C15) · redécouvert : 2026-08-22.*
