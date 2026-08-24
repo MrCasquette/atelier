@@ -71,14 +71,12 @@ Le conteneur, distinct des produits qu'il héberge. Le principe qui gouverne cet
 
 Tranché par [ADR-0062](../adr/ADR-0062-scope-et-critere-de-publication.md), complété par
 [ADR-0063](../adr/ADR-0063-appartenance-des-paquets.md) — le scope dit qui publie, le nom dit à quoi
-le paquet appartient. Les renommages sont appliqués et servis par npm ; `atelier-prose` part avec
-la release en cours.
+le paquet appartient. Les renommages sont appliqués et servis par npm, et les anciens noms sont
+dépréciés — onze versions, tout l'historique, pas seulement la dernière. On n'a rien dépublié : une
+suppression casse qui a épinglé et n'apprend rien à qui tombe sur le 404, quand une dépréciation
+porte le nom du remplaçant à chaque `install`. npm ne l'aurait de toute façon plus permis en
+libre-service passé 72 heures.
 
-- [ ] 🟠 **Déprécier les anciens noms sur npm** — `@echoppe/client`, `@mrcasquette/content` et
-  `@echoppe/content@0.1.0`. La décision attendait la publication des nouveaux noms
-  ([ADR-0063](../adr/ADR-0063-appartenance-des-paquets.md)) : elle est levée. Un `npm deprecate` qui
-  nomme le remplaçant, rien de plus — on ne dépublie pas, l'ancien tarball reste résolvable pour qui
-  l'a épinglé.
 - [ ] 🟡 **`scripts/ship.ts` porte une table `canal → nom` en dur** — l'énumération que les gardes du
   dépôt s'interdisent par ailleurs. Elle a déjà coûté une ligne à la publication de la prose. Les
   unités se découvrent (`scripts/lib/release-units.ts` le fait déjà pour deux gardes) ; reste à leur
