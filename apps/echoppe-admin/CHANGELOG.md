@@ -1,5 +1,12 @@
 # @echoppe/admin
 
+## 0.9.0
+
+### Patch Changes
+
+- Updated dependencies [312be61]
+  - @echoppe/api@0.9.0
+
 ## 0.8.1
 
 ### Patch Changes
