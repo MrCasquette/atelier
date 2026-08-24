@@ -166,8 +166,8 @@ cd atelier
 # 2. Installer les dépendances
 bun install
 
-# 3. Copier la configuration
-cp .env.example .env
+# 3. Le seul secret requis (les défauts sont déjà versionnés dans .env.echoppe)
+echo "ENCRYPTION_KEY=$(openssl rand -base64 32)" >> .env.echoppe.local
 
 # 4. Lancer PostgreSQL (compose de dev : Postgres exposé sur 5432)
 docker compose up -d postgres

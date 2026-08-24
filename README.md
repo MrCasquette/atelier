@@ -138,9 +138,9 @@ git clone git@github.com:MrCasquette/atelier.git
 cd atelier
 bun install
 
-# 2. Configurer — l'API refuse de démarrer sans ENCRYPTION_KEY
-cp .env.example .env
-openssl rand -base64 32   # à coller dans ENCRYPTION_KEY
+# 2. Configurer — rien à copier, les défauts sont versionnés (.env.echoppe).
+#    Seul secret requis : l'API refuse de démarrer sans ENCRYPTION_KEY.
+echo "ENCRYPTION_KEY=$(openssl rand -base64 32)" >> .env.echoppe.local
 
 # 3. Lancer PostgreSQL + Redis
 docker compose up -d

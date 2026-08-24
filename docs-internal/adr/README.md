@@ -42,13 +42,14 @@ Portée : socle | <package> | échoppe | prisme
 | [0052](./ADR-0052-surfaces-exploitation-image-unique.md) | Les surfaces d'exploitation sous `/-/`, le dashboard servi par l'API | accepté · amende [0002](./ADR-0002-distribution.md) | [ports.md](../architecture/ports.md) |
 | [0053](./ADR-0053-commentaire-passe-agissant.md) | Un commentaire garde le passé seulement s'il est encore agissant | accepté | — |
 | [0054](./ADR-0054-ports-rang-de-pile.md) | Un port publié appartient à l'instance : la grille et le rang de pile | accepté · amende [0004](./ADR-0004-migrations-release.md) | [ports.md](../architecture/ports.md) |
-| [0055](./ADR-0055-publics-de-la-configuration.md) | Trois publics de la configuration, un fichier chacun | accepté | [configuration.md](../../docs/guide/configuration.md) |
+| [0055](./ADR-0055-publics-de-la-configuration.md) | Trois publics de la configuration, un fichier chacun | accepté · amendé par [0065](./ADR-0065-configuration-par-nature.md) | [configuration.md](../../docs/guide/configuration.md) |
 | [0056](./ADR-0056-racine-de-donnees.md) | Une racine de données, montée hors du répertoire applicatif | accepté · amende [0018](./ADR-0018-stockage-media.md) | — |
 | [0058](./ADR-0058-fraternite-des-produits.md) | Deux produits frères, des recompositions inégales | accepté · précise [0025](./ADR-0025-deux-produits-un-repo.md) | — |
 | [0059](./ADR-0059-nom-nu-et-prefixe-de-scission.md) | Un paquet garde son nom, sa scission se qualifie | accepté · précise [0033](./ADR-0033-organisation-monorepo.md) · appliqué par [0063](./ADR-0063-appartenance-des-paquets.md) | — |
 | [0060](./ADR-0060-natures-de-la-documentation.md) | La documentation a cinq natures, l'ADR n'en est qu'une | accepté · précise [0024](./ADR-0024-portee-adr.md) | — |
 | [0062](./ADR-0062-scope-et-critere-de-publication.md) | Un paquet sort s'il tourne chez le dev, et son scope nomme l'organisation | accepté · complète [0002](./ADR-0002-distribution.md) · §4 révisé par [0063](./ADR-0063-appartenance-des-paquets.md) | — |
 | [0063](./ADR-0063-appartenance-des-paquets.md) | Le scope dit qui publie, le nom dit à quoi le paquet appartient | accepté · complète et révise [0062](./ADR-0062-scope-et-critere-de-publication.md) | — |
+| [0065](./ADR-0065-configuration-par-nature.md) | Un fichier de configuration porte une nature, pas un produit par défaut | accepté · amende [0055](./ADR-0055-publics-de-la-configuration.md) | — |
 
 ## Index — `client` · SDK et contrat d'API
 

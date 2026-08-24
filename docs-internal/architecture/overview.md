@@ -111,8 +111,9 @@ droit de sortir. → [ADR-0007](../adr/ADR-0007-contrat-sdk.md),
 
 ## Runtime et distribution
 
-- Runtime **Bun**, jamais Node ni npm. Le `.env` racine n'est pas hérité : Bun ne lit que le cwd,
-  donc tout script de sous-paquet passe par `--env-file=../../.env`.
+- Runtime **Bun**, jamais Node ni npm. Un `.env` n'est pas hérité : Bun ne lit que le cwd,
+  donc tout script de sous-paquet énumère ses fichiers : `--env-file=../../.env.<produit>
+  --env-file=../../.env.<produit>.local` (ADR-0065).
   → [ADR-0003](../adr/ADR-0003-runtime-pm.md).
 - L'API **migre au boot** en production (`RUN_MIGRATIONS`) ; le développement pousse le schéma.
   → [ADR-0004](../adr/ADR-0004-migrations-release.md).

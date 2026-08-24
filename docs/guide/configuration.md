@@ -8,7 +8,13 @@ Selon ce que vous faites, votre point de départ diffère :
 | Vous… | Votre fichier |
 |-------|---------------|
 | hébergez une boutique | le `.env` écrit par `create-echoppe`, que vous éditez |
-| développez le framework | `cp .env.example .env` à la racine du dépôt |
+| développez le framework | `.env.echoppe`, déjà dans le dépôt — vos secrets vont dans `.env.echoppe.local` |
+
+::: tip Rien à copier pour démarrer
+Les défauts de développement sont **versionnés** : `.env.echoppe` porte des adresses locales qui
+marchent telles quelles. Ce qui est propre à votre machine — et tout secret réel — va dans
+`.env.echoppe.local`, ignoré par git, qui surcharge le premier ligne à ligne.
+:::
 
 ::: tip Les credentials des prestataires ne sont pas ici
 Stripe, PayPal, SMTP, Colissimo, Sendcloud… se configurent **dans le dashboard**, sous

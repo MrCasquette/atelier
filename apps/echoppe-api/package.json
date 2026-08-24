@@ -5,13 +5,13 @@
   "type": "module",
   "main": "./src/index.ts",
   "scripts": {
-    "dev": "API_PORT=8101 bun --env-file=../../.env run --watch src/index.ts",
+    "dev": "API_PORT=8101 bun --env-file=../../.env.echoppe --env-file=../../.env.echoppe.local run --watch src/index.ts",
     "build": "bun build src/index.ts --outdir dist --target bun",
-    "start": "bun --env-file=../../.env run dist/index.js",
-    "admin:create": "bun --env-file=../../.env run src/scripts/create-admin.ts",
-    "api-key:create": "bun --env-file=../../.env run src/scripts/create-api-key.ts",
+    "start": "bun --env-file=../../.env.echoppe --env-file=../../.env.echoppe.local run dist/index.js",
+    "admin:create": "bun --env-file=../../.env.echoppe --env-file=../../.env.echoppe.local run src/scripts/create-admin.ts",
+    "api-key:create": "bun --env-file=../../.env.echoppe --env-file=../../.env.echoppe.local run src/scripts/create-api-key.ts",
     "type-check": "tsc --noEmit",
-    "test": "bun --env-file=../../.env test src",
+    "test": "bun --env-file=../../.env.echoppe --env-file=../../.env.echoppe.local test src",
     "test:api": "bun run scripts/test-api.ts",
     "test:image": "bun run scripts/test-image.ts"
   },

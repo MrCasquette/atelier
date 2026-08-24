@@ -25,17 +25,18 @@ d'entrée **déclarés** du manifeste — c'est pourquoi le manifeste des migrat
 ## Sa base n'est pas celle d'Échoppe
 
 Deux produits, deux cœurs, **deux bases** — jamais dans le même processus, jamais dans la même base.
-Sur un poste de développement, les deux cohabitent pourtant, et le `.env` racine ne porte qu'un
-`DATABASE_URL`.
 
-D'où le second fichier, **optionnel** : `.env.prisme`, à la racine, qui ne redéclare que ce qui
-diffère. Les scripts cumulent les deux — `--env-file=../../.env --env-file=../../.env.prisme` —, le
-dernier gagne, et un fichier absent est ignoré sans erreur. Un contributeur qui ne travaille que sur
-Prisme n'a donc rien à créer : il pointe `DATABASE_URL` sur la base de Prisme et c'est tout.
+Elle est déclarée dans **`.env.prisme`**, versionné, avec une adresse de développement qui marche
+telle quelle ([ADR-0065](../../docs-internal/adr/ADR-0065-configuration-par-nature.md)). Ce qui est
+propre à votre machine va dans `.env.prisme.local`, ignoré par git et facultatif. Les scripts lisent
+les deux, dans cet ordre — le poste l'emporte toujours sur le défaut.
 
-> ⚠️ Sans ce fichier, `bun run --cwd packages/prisme-core db:push` s'exécute sur la base que
-> `DATABASE_URL` désigne. Si c'est celle d'Échoppe, Drizzle proposera de **supprimer** toutes les
-> tables du commerce, qu'il ne connaît pas. `db:generate`, lui, est hors-ligne et sans risque.
+Ce fichier est ce qui rend la distinction **opérante** : sans lui, une commande de schéma de Prisme
+n'aurait aucun `DATABASE_URL` et refuserait de démarrer, au lieu de viser silencieusement celle
+d'Échoppe et de proposer d'en supprimer toutes les tables du commerce.
+
+> `docker compose up -d` ne provisionne que la base d'Échoppe. Celle de Prisme se crée une fois :
+> `docker compose exec postgres psql -U echoppe -c 'CREATE DATABASE prisme'`.
 
 ## Commandes
 

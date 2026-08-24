@@ -9,12 +9,12 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "bun --env-file=../../.env --env-file=../../.env.prisme test src",
+    "test": "bun --env-file=../../.env.prisme --env-file=../../.env.prisme.local test src",
     "type-check": "tsc --noEmit",
-    "db:generate": "bun --env-file=../../.env --env-file=../../.env.prisme drizzle-kit generate",
-    "db:migrate": "bun --env-file=../../.env --env-file=../../.env.prisme drizzle-kit migrate",
-    "db:push": "bun --env-file=../../.env --env-file=../../.env.prisme drizzle-kit push",
-    "db:studio": "bun --env-file=../../.env --env-file=../../.env.prisme drizzle-kit studio"
+    "db:generate": "bun --env-file=../../.env.prisme --env-file=../../.env.prisme.local drizzle-kit generate",
+    "db:migrate": "bun --env-file=../../.env.prisme --env-file=../../.env.prisme.local drizzle-kit migrate",
+    "db:push": "bun --env-file=../../.env.prisme --env-file=../../.env.prisme.local drizzle-kit push",
+    "db:studio": "bun --env-file=../../.env.prisme --env-file=../../.env.prisme.local drizzle-kit studio"
   },
   "dependencies": {
     "@repo/assets": "workspace:*",

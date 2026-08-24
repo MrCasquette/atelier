@@ -261,14 +261,18 @@ circonstancielle plutôt que sur une garde.
   pour les sérialiser. Latent et non urgent — personne ne déploie en multi-répliques — mais à
   trancher avant que ce soit le cas, par amendement d'ADR-0004.
 - [ ] 🟢 **Garde de découverte des variables d'environnement.** ADR-0055 fait de
-  `docs/guide/configuration.md` la référence des variables, et le `.env.example` du contributeur ne
-  porte plus que le nécessaire — la référence peut donc diverger du code sans que rien ne le
-  signale. Une garde scannerait les `process.env.*` d'`apps` et `packages` et échouerait sur toute
+  `docs/guide/configuration.md` la référence des variables, et [ADR-0065](../adr/ADR-0065-configuration-par-nature.md)
+  a remplacé le `.env.example` du contributeur par un fichier versionné par produit — la référence
+  peut donc toujours diverger du code sans que rien ne le signale. Une garde scannerait les `process.env.*` d'`apps` et `packages` et échouerait sur toute
   variable que ni le fichier ni la doc ne mentionnent, comme `drift-guard` / `product-isolation` /
   `reserved-space` découvrent au lieu de connaître. **Volontairement différé** : le code lit 24
   variables et la surface bouge encore (identité/OIDC, stockage média, Redis) ; une garde écrite
   maintenant figerait une nomenclature qu'on est en train de remuer. À reprendre quand la file de
   décisions de configuration sera vidée.
+- [ ] 🟡 **`docker compose up -d` ne provisionne qu'une base.** La pile du dépôt crée `echoppe` ;
+  celle de Prisme reste un `CREATE DATABASE` manuel, documenté dans `.env.prisme` et le README de
+  `prisme-core`. À lever quand la pile aura à monter deux produits — un script d'init Postgres, ou
+  un second service. Sans urgence : la commande est jouée une fois par poste.
 - [ ] 🟡 **Brancher `registry-gap` en fin de workflow `Release`.** La commande existe et se lance à
   la main (`bun run registry-gap`) ; elle vérifie que toute version committée est bien servie par
   son registre — npm pour les paquets, GHCR pour les images. Reste à en faire un job final de

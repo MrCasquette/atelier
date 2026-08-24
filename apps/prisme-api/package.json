@@ -5,9 +5,9 @@
   "type": "module",
   "main": "./src/index.ts",
   "scripts": {
-    "dev": "API_PORT=8201 bun --env-file=../../.env --env-file=../../.env.prisme run --watch src/index.ts",
+    "dev": "API_PORT=8201 bun --env-file=../../.env.prisme --env-file=../../.env.prisme.local run --watch src/index.ts",
     "build": "bun build src/index.ts --outdir dist --target bun",
-    "start": "bun --env-file=../../.env --env-file=../../.env.prisme run dist/index.js",
+    "start": "bun --env-file=../../.env.prisme --env-file=../../.env.prisme.local run dist/index.js",
     "type-check": "tsc --noEmit",
     "test": "bun test src"
   },

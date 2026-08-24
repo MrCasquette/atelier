@@ -87,8 +87,12 @@ bun run db:seed          # données de dev (crée admin@echoppe.dev / admin123)
 bun run db:studio        # Drizzle Studio
 ```
 
-Le runtime est **Bun**, jamais Node ni npm. Le `.env` racine **n'est pas hérité** : Bun ne lit que
-le cwd, donc tout script de sous-paquet passe par `--env-file=../../.env`.
+Le runtime est **Bun**, jamais Node ni npm. Un `.env` **n'est pas hérité** : Bun ne lit que le cwd,
+donc tout script de sous-paquet énumère ses fichiers. Il en lit **deux**, par produit
+([ADR-0065](docs-internal/adr/ADR-0065-configuration-par-nature.md)) :
+`--env-file=../../.env.<produit> --env-file=../../.env.<produit>.local`. Le premier est **versionné**
+et porte des défauts qui marchent ; le second est ignoré par git, facultatif, et porte les secrets et
+les écarts de la machine. Rien à copier pour démarrer.
 
 Avant de committer : `bun run lint && bun run type-check`.
 

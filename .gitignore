@@ -19,12 +19,15 @@ package-lock.json
 yarn.lock
 
 # Environment
+# Ce qui est propre à la MACHINE (ADR-0065). Les défauts de développement, eux, sont versionnés :
+# `.env.echoppe` et `.env.prisme` sont suivis par git et ne portent aucun secret.
+#
+# `.env` reste ignoré : c'est le fichier du poste, lu par Docker Compose seul.
 .env
 .env.local
+# Les surcharges de poste, un `.local` par produit. `.env.*.local` les couvre toutes, y compris
+# celles d'un produit qui n'existe pas encore.
 .env.*.local
-# Surcharge par produit — `.env.prisme` porte une chaîne de connexion, comme `.env`.
-# `.env` ne l'aurait PAS couvert : c'est une correspondance exacte, pas un préfixe.
-.env.prisme
 
 # IDE
 .vscode/

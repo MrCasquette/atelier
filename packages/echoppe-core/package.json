@@ -13,11 +13,11 @@
   "scripts": {
     "test": "bun test src",
     "type-check": "tsc --noEmit",
-    "db:generate": "bun --env-file=../../.env drizzle-kit generate",
-    "db:migrate": "bun --env-file=../../.env drizzle-kit migrate",
-    "db:push": "bun --env-file=../../.env drizzle-kit push",
-    "db:studio": "bun --env-file=../../.env drizzle-kit studio",
-    "db:seed": "bun --env-file=../../.env src/db/seed.ts"
+    "db:generate": "bun --env-file=../../.env.echoppe --env-file=../../.env.echoppe.local drizzle-kit generate",
+    "db:migrate": "bun --env-file=../../.env.echoppe --env-file=../../.env.echoppe.local drizzle-kit migrate",
+    "db:push": "bun --env-file=../../.env.echoppe --env-file=../../.env.echoppe.local drizzle-kit push",
+    "db:studio": "bun --env-file=../../.env.echoppe --env-file=../../.env.echoppe.local drizzle-kit studio",
+    "db:seed": "bun --env-file=../../.env.echoppe --env-file=../../.env.echoppe.local src/db/seed.ts"
   },
   "dependencies": {
     "@paypal/checkout-server-sdk": "^1.0.3",
