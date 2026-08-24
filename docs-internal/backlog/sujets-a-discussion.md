@@ -10,16 +10,45 @@ mauvaise le jour où elle s'allonge sans que rien n'en sorte.
 
 ## D'où viennent ces sujets
 
-Des audits, qui sont des **constats à date**. Un audit prouve qu'on s'est inquiété d'un sujet, et
+D'un chantier qui bute sur une question qu'il ne peut pas trancher seul, et — pour la plupart — des
+audits, qui sont des **constats à date**. Un audit prouve qu'on s'est inquiété d'un sujet, et
 quand ; il ne dit pas l'état courant, qui se redécouvre. C'est pourquoi chaque entrée porte deux
 dates : celle du constat d'origine, et celle de la dernière redécouverte — et que ce qui est écrit
 sous « aujourd'hui » l'emporte sur ce que l'audit affirmait.
 
-Chacun a été **revérifié sur le code le 2026-08-22**. Plusieurs constats d'audit ne figurent pas ici
+Chaque sujet venu d'un audit a été **revérifié sur le code le 2026-08-22**. Plusieurs constats d'audit ne figurent pas ici
 parce que la redécouverte les a trouvés réglés : le `onError` global manquant (`error-handler.ts`
 existe), le mot `store` dans `roleScopeEnum` (passé à `['admin', 'public']`), le sac global
 `enums.ts` (dissous), les templates e-mail couplés au commerce (`storefront-emails.ts` les
 enregistre depuis Échoppe, et un test verrouille que le socle ne les connaît pas).
+
+## Identité et noms
+
+### `atelier` est un nom provisoire, et il bloque désormais un chantier
+
+*Ouvert : 2026-08-24 · bloque le renommage npm du [backlog socle](./shared.md) § Distribution npm.*
+
+Le dépôt s'appelle `atelier`, et ce nom n'a jamais été acté — il désigne le workspace qui héberge
+Échoppe et Prisme, sans dire s'il est un nom de travail ou le nom de l'outil. La question dormait
+tant qu'elle ne coûtait rien.
+
+Elle coûte maintenant. Le scope npm retenu par
+[ADR-0062](../adr/ADR-0062-scope-et-critere-de-publication.md) est `@axiome-apps`, qui nomme
+l'**organisation** — telle qu'elle existe sur GitHub — et non l'outil. D'où un nom de paquet partagé
+qui ne se rattache à rien : `@axiome-apps/content` ne dit ni de quel outil il vient, ni ce qu'il
+fait. Un scope qui nommerait l'outil, lui, rendrait le nom commun lisible d'un coup.
+
+Le scope est réservé et le token npm reconnecté : **le seul obstacle restant est ce nom.** Renommer
+avant de l'avoir tranché expose à un second renommage, et c'est précisément ce que le chantier
+cherchait à éviter en agissant tant que l'adoption est nulle.
+
+À trancher : `atelier` devient définitif, ou il est remplacé. Puis seulement, le scope et les noms
+communs des paquets partagés en découlent. La question du **nom commun de `content`** attend la même
+décision, avec deux candidats survivants — `declarations` et `authoring`, cf. le backlog socle.
+
+Sujet voisin, à instruire probablement ensemble : la **visibilité du dépôt**. `repository` ne peut
+pas être renseigné sur les paquets publiés tant qu'il pointe vers un dépôt privé, et la même question
+conditionne le redéploiement de la doc sur Pages et la langue du système documentaire, plus bas.
 
 ## Socle et contrats
 
