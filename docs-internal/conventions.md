@@ -91,6 +91,14 @@ nom, qui tiendrait sans que rien ne la vérifie.
 Corollaire éprouvé sur les scripts racine : `--filter '*'` plutôt qu'une énumération. L'ancien
 `test` listait 14 workspaces, et un test délibérément cassé dans le quinzième sortait en **0**.
 
+**Et une garde qui n'a jamais échoué n'est pas une garde éprouvée.** `product-isolation` sort en
+succès silencieux tant qu'un seul scope possède une application : elle a donc passé des mois au vert
+en lisant du TEXTE — un `source.includes('@echoppe/')` — au lieu de lire du code. Sa première
+exécution réelle, le jour où `prisme-api` est né, a refusé un **commentaire** qui citait l'autre
+produit pour expliquer pourquoi il ne s'en servait pas : une garde qui interdit de nommer la
+frontière interdit de l'expliquer. Écrire une garde dont la condition d'activation n'existe pas
+encore demande donc de la faire échouer exprès, sur une sonde, avant de la croire.
+
 Un `Record<Clé, …>` exhaustif joue le même rôle dans le type : une clé ajoutée sans entrée ne
 compile plus. C'est la version compilée du même principe.
 

@@ -73,7 +73,10 @@ jobs:
 
       # Garde d'isolation : deux produits frères partagent `@repo/*`, jamais leurs propres briques.
       # Vérifie les dépendances DÉCLARÉES et les imports RÉELS (une dep non déclarée résout quand
-      # même par hoisting). Silencieuse tant qu'il n'y a qu'un seul produit.
+      # même par hoisting). Elle sortait en succès silencieux tant qu'un seul scope possédait une
+      # application ; `prisme-api` l'a réveillée le 2026-08-24, et sa première exécution réelle a
+      # échoué sur un COMMENTAIRE citant l'autre produit — elle lit désormais des spécificateurs de
+      # module, pas du texte.
       - name: Product isolation
         run: bun run product-isolation
 

@@ -24,6 +24,8 @@ import { dirname, join, resolve } from 'node:path';
 const ROOT = resolve(import.meta.dir, '..');
 const SHARED_SCOPE = 'repo';
 const SCANNED = new Glob('**/*.{ts,tsx,vue,astro,mjs}');
+// Un spécificateur de module, et lui seul — cf. `importedModules`.
+const SPECIFIER = /(?:\bfrom|\bimport|\brequire)\s*\(?\s*['"]([^'"]+)['"]/g;
 
 type Workspace = {
   readonly dir: string;
@@ -83,6 +85,28 @@ function ownerOf(ws: Workspace, products: ReadonlySet<string>): string | null {
   return null;
 }
 
+/**
+ * Les modules qu'un fichier IMPORTE réellement.
+ *
+ * Un `source.includes('@echoppe/')` aurait suffi tant que la garde ne tournait pas : elle sort en
+ * succès silencieux avec un seul produit, et personne n'a vu qu'elle lisait du texte, pas du code.
+ * Sa toute première exécution réelle a échoué sur un COMMENTAIRE de `prisme-api` qui citait
+ * `@echoppe/core` pour dire pourquoi il ne s'en servait pas — exactement la phrase qu'on veut
+ * pouvoir écrire.
+ *
+ * Une garde qui interdit de NOMMER l'autre produit interdit d'expliquer la frontière. Elle lit donc
+ * les spécificateurs de module, et rien d'autre : `from '…'`, `import '…'`, `import('…')`,
+ * `require('…')`. Ce qui est cité en prose ne la concerne pas ; ce qui est chargé au runtime, si.
+ */
+function importedModules(source: string): readonly string[] {
+  const found: string[] = [];
+  for (const match of source.matchAll(SPECIFIER)) {
+    const specifier = match[1];
+    if (specifier !== undefined) found.push(specifier);
+  }
+  return found;
+}
+
 const all = workspaces();
 const products = new Set(
   all.flatMap((w) =>
@@ -120,13 +144,14 @@ for (const ws of all) {
   for (const hit of SCANNED.scanSync({ cwd: join(ROOT, ws.dir), onlyFiles: true })) {
     if (hit.includes('node_modules') || hit.includes('dist/')) continue;
     const source = readFileSync(join(ROOT, ws.dir, hit), 'utf8');
-    for (const foreign of foreigners) {
-      if (source.includes(`@${foreign}/`)) {
+    for (const specifier of importedModules(source)) {
+      const foreign = scopeOf(specifier);
+      if (foreign !== null && foreigners.includes(foreign)) {
         violations.push({
           where: `${ws.dir}/${hit}`,
           owner,
           foreign,
-          detail: `référence \`@${foreign}/…\``,
+          detail: `importe \`${specifier}\``,
         });
       }
     }
