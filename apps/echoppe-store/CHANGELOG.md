@@ -1,5 +1,14 @@
 # @echoppe/store
 
+## 0.0.4
+
+### Patch Changes
+
+- Updated dependencies [abde6e2]
+- Updated dependencies [b565d5b]
+- Updated dependencies [3e23f1e]
+  - @axiome-apps/echoppe-client@0.8.0
+
 ## 0.0.3
 
 ### Patch Changes
