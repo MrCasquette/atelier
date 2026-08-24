@@ -90,10 +90,16 @@ COPY . .
 # nativement, et le même `dist` part dans les deux architectures.
 FROM --platform=$BUILDPLATFORM source AS dashboard-builder
 # Le dashboard consomme `@axiome-apps/atelier-prose` par son `dist`, comme un front extérieur le
-# ferait — la surface d'édition d'un `richText` s'en sert pour l'aperçu et les constats. Les paquets
-# se construisent donc d'abord, et par `--filter` : Bun les découvre et les ordonne par le graphe,
-# si bien qu'une dépendance nouvelle entre paquets n'a pas à être répercutée ici.
-RUN bun run --filter './packages/*' build \
+# ferait — la surface d'édition d'un `richText` s'en sert pour l'aperçu et les constats. Son build
+# précède donc celui de l'admin, sinon `vue-tsc` ne trouve pas ses types.
+#
+# NOMMÉ, et non `--filter './packages/*'` comme la CI et `release.sh` : l'image ne transporte que
+# les `node_modules` des workspaces dont elle a besoin — c'est ce que garde `image-manifests`.
+# Élargir le build élargirait ce qu'il faut embarquer, à l'exact opposé de ce qu'on veut d'une
+# image. L'essai a d'ailleurs échoué ainsi : `content` et `echoppe-client` s'y construisent sans
+# leurs `@types`. Ce qui se construit ici est donc ce que le dashboard consomme, et rien de plus —
+# et si cette liste s'allonge un jour, `image-manifests` le dira avant la CI.
+RUN bun run --cwd packages/prose build \
  && bun run --cwd apps/echoppe-admin build
 
 # ==============================================================================
