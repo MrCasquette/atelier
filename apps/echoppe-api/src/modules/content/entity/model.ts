@@ -4,11 +4,11 @@ import { t } from 'elysia';
 //
 // `data` n'est pas typé finement, et ce n'est pas un renoncement : la forme d'une entité dépend de
 // l'INSTALLATION. La typer dans l'OpenAPI rendrait le contrat dépendant du déploiement — deux
-// boutiques n'exposeraient plus la même chose, `@echoppe/client` ne serait plus générable depuis un
+// boutiques n'exposeraient plus la même chose, `@axiome-apps/echoppe-client` ne serait plus générable depuis un
 // contrat unique, et le drift guard routes↔SDK perdrait son objet. C'est ce qui a fait retenir une
 // route générique plutôt que des routes dérivées du registre.
 //
-// Le typage fin vient du type-gen depuis les fichiers du dev (`InferEntity`, @mrcasquette/content),
+// Le typage fin vient du type-gen depuis les fichiers du dev (`InferEntity`, @axiome-apps/atelier-content),
 // où il est exact. Le dev a déjà sa déclaration ; l'API n'a pas à la lui renvoyer.
 
 const entityMeta = t.Object({

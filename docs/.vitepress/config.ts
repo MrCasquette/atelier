@@ -68,7 +68,7 @@ export default defineConfig({
       ],
       '/sdk/': [
         {
-          text: 'SDK @echoppe/client',
+          text: 'SDK @axiome-apps/echoppe-client',
           items: [
             { text: 'Présentation', link: '/sdk/' },
             { text: 'Installation', link: '/sdk/installation' },

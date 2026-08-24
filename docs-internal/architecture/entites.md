@@ -187,7 +187,7 @@ tables**. Utilisez `db:generate` puis `db:migrate`, ou repoussez vos entités ap
 
 | | |
 |---|---|
-| `packages/content` | `defineEntity`, sérialisation, CLI — temps-dev, publié (`@mrcasquette/content`) |
+| `packages/content` | `defineEntity`, sérialisation, CLI — temps-dev, publié (`@axiome-apps/atelier-content`) |
 | `packages/fields` | la **grammaire d'un champ** et sa compilation en validateur — partagée avec les sections (ADR-0026), sans dépendance à la base |
 | `packages/entities` | journal, dérivation DDL, plan, application — aucune route (ADR-0044) |
 | `apps/echoppe-api/src/modules/content/entity/` | les routes (structure, lecture front, administration) et leurs codes HTTP |

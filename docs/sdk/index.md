@@ -1,6 +1,6 @@
-# SDK `@echoppe/client`
+# SDK `@axiome-apps/echoppe-client`
 
-`@echoppe/client` est le **client typé** pour consommer l'API Échoppe depuis une boutique.
+`@axiome-apps/echoppe-client` est le **client typé** pour consommer l'API Échoppe depuis une boutique.
 C'est le point d'entrée des storefronts générés par `npm create echoppe@latest`.
 
 ## À qui s'adresse ce SDK
@@ -30,7 +30,7 @@ il fonctionne face à une API livrée en conteneur Docker opaque, sans accès au
 ## En bref
 
 ```ts
-import { createEchoppeClient } from '@echoppe/client';
+import { createEchoppeClient } from '@axiome-apps/echoppe-client';
 
 const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });
 

@@ -1,5 +1,5 @@
 // Logique partagée par les composants de la référence SDK. Le contrat storefront figé
-// (`@echoppe/client/openapi.json`) est la SOURCE : ces helpers en extraient les modèles,
+// (`@axiome-apps/echoppe-client/openapi.json`) est la SOURCE : ces helpers en extraient les modèles,
 // leurs types, un exemple de réponse et l'appel SDK correspondant. Tout suit le contrat.
 
 import contract from '../../../../packages/echoppe-client/openapi.json';
@@ -181,7 +181,7 @@ function indent(text: string, pad: string): string {
     .join('\n');
 }
 
-/** Exemple d'appel SDK (`@echoppe/client`) qui retourne ce modèle. */
+/** Exemple d'appel SDK (`@axiome-apps/echoppe-client`) qui retourne ce modèle. */
 export function codeExample(model: string): string | null {
   const route = routeIndex.get(model);
   if (!route) return null;
@@ -218,7 +218,7 @@ export function codeExample(model: string): string | null {
       : `echoppe.raw.${route.method.toUpperCase()}('${route.path}'${initArg ? `, ${initArg}` : ''})`;
 
   return [
-    "import { createEchoppeClient } from '@echoppe/client';",
+    "import { createEchoppeClient } from '@axiome-apps/echoppe-client';",
     '',
     "const echoppe = createEchoppeClient({ baseUrl: 'https://api.maboutique.fr' });",
     '',

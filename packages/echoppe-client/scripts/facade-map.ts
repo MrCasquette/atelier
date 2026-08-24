@@ -1,4 +1,4 @@
-// SSOT de la FORME de la façade `@echoppe/client` : pour chaque opération du contrat
+// SSOT de la FORME de la façade `@axiome-apps/echoppe-client` : pour chaque opération du contrat
 // storefront, son namespace (à plat) et son nom de méthode. Le générateur (`generate.ts`)
 // émet `src/facade.ts` à partir de cette table + du contrat figé.
 //

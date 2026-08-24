@@ -1,7 +1,7 @@
 # create-echoppe
 
 Scaffolde une **boutique Astro** connectée à une API Échoppe,
-prête à démarrer, via le SDK [`@echoppe/client`](https://www.npmjs.com/package/@echoppe/client).
+prête à démarrer, via le SDK [`@axiome-apps/echoppe-client`](https://www.npmjs.com/package/@axiome-apps/echoppe-client).
 
 ## Utilisation
 
@@ -36,7 +36,7 @@ Un repo autonome, hors du monorepo framework :
   `ENCRYPTION_KEY` **générée automatiquement**. Rien à renseigner pour démarrer ; le
   compte propriétaire se crée ensuite par `docker compose exec -it api ./api admin:create`.
 - `src/pages/` — accueil, `/produits`, `/produits/[slug]`
-- `src/lib/api.ts` — client `@echoppe/client` typé, pointé sur `PUBLIC_API_URL`
+- `src/lib/api.ts` — client `@axiome-apps/echoppe-client` typé, pointé sur `PUBLIC_API_URL`
 - `src/layouts/`, `src/components/` — mise en page et carte produit
 
 Le front est **à vous** ; le backend reste une image que vous déployez et mettez à

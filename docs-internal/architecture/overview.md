@@ -68,7 +68,7 @@ produit = un cœur = une base.** Un paquet partagé ne porte jamais de migration
 | `communication` | envoi de messages, adapters et journal |
 | `adapters` | la mécanique générique : registre de providers et port de credentials |
 
-**Les paquets publiés** — `@echoppe/client` (SDK figé sur l'OpenAPI), `@mrcasquette/content` (le DSL
+**Les paquets publiés** — `@axiome-apps/echoppe-client` (SDK figé sur l'OpenAPI), `@axiome-apps/atelier-content` (le DSL
 de déclaration, agnostique du commerce, d'où le namespace neutre), `create-echoppe` et
 `create-prisme` (scaffolding d'un consommateur).
 

@@ -5,7 +5,7 @@
 //   bun run release-coverage
 //
 // Ce qu'elle empêche, deux fois :
-//   - `@echoppe/client` avait perdu `company.get()` et gagné `identity.get()` — une rupture de
+//   - `@axiome-apps/echoppe-client` avait perdu `company.get()` et gagné `identity.get()` — une rupture de
 //     contrat pour tout consommateur — sans qu'aucun changeset ne le couvre ;
 //   - le runtime `api`+`admin` accumulait 72 commits sans changeset. Il est PRIVÉ, mais c'est lui
 //     qui porte le tag `v*` et les images Docker (ADR-0023) : la release suivante aurait publié les

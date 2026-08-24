@@ -6,7 +6,7 @@ import { type TSchema, t } from 'elysia';
 // un seul builder, un seul contrat de query (pagination + tri + filtres).
 //
 // L'enveloppe et la meta sont IDENTIQUES pour tous les consommateurs (admin via
-// Eden, front via @echoppe/client). Ce qui varie par entité/audience, c'est
+// Eden, front via @axiome-apps/echoppe-client). Ce qui varie par entité/audience, c'est
 // uniquement le schéma d'item (projection) et l'allowlist tri/filtre passée à
 // `parseListQuery` — jamais la forme de la réponse.
 //

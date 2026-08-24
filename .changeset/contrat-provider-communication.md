@@ -1,5 +1,5 @@
 ---
-'@echoppe/client': patch
+'@axiome-apps/echoppe-client': patch
 '@echoppe/api': minor
 '@echoppe/admin': minor
 ---

@@ -1,4 +1,4 @@
-# @echoppe/client
+# @axiome-apps/echoppe-client
 
 SDK client **typé** pour l'API [Échoppe](https://github.com/) — généré depuis le
 contrat OpenAPI de l'API. Runtime-agnostique (navigateur, Bun, Node, edge) : repose
@@ -7,13 +7,13 @@ uniquement sur `fetch`.
 ## Installation
 
 ```bash
-bun add @echoppe/client
+bun add @axiome-apps/echoppe-client
 ```
 
 ## Utilisation
 
 ```ts
-import { createEchoppeClient } from '@echoppe/client';
+import { createEchoppeClient } from '@axiome-apps/echoppe-client';
 
 const echoppe = createEchoppeClient({
   baseUrl: 'https://api.maboutique.fr',
@@ -49,7 +49,7 @@ transmis automatiquement une fois l'utilisateur connecté via les routes d'auth.
 Le contrat complet est réexporté pour dériver ses propres types :
 
 ```ts
-import type { paths, components } from '@echoppe/client';
+import type { paths, components } from '@axiome-apps/echoppe-client';
 
 type Product = components['schemas']['...'];
 ```

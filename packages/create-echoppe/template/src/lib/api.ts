@@ -1,4 +1,4 @@
-import { createEchoppeClient } from '@echoppe/client';
+import { createEchoppeClient } from '@axiome-apps/echoppe-client';
 
 // URL de l'API Échoppe. PUBLIC_ car l'URL des images est aussi utilisée côté navigateur.
 export const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8100';

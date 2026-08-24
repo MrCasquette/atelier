@@ -30,7 +30,7 @@ simples **consommateurs** de ce système. B9 est **absorbé** : le prose est une
 
 Les deux sont **complémentaires, pas concurrents** — ne pas les confondre :
 
-- Le **page-builder headless** `@mrcasquette/content`
+- Le **page-builder headless** `@axiome-apps/atelier-content`
   ([ADR-0012](../adr/ADR-0012-module-contenu.md) / [content-module.md](../architecture/contenu.md)) compose
   des **pages en sections/blocs** déclarées config-as-code par le dev du front (mise en page éditoriale,
   rendu côté front).

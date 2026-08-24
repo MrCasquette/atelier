@@ -6,7 +6,7 @@
 - **Runtime** (images Docker `echoppe-api` + `-admin`, paire co-versionnée) — seule à porter un **tag
   git `v*`** (+ GitHub Release). Construit par `release.yml` (appel de `docker-build.yml`), gate
   T2–T5 inclus.
-- **Paquets npm** `@echoppe/client`, `@mrcasquette/content`, `create-echoppe` — publiés par `release.yml`,
+- **Paquets npm** `@axiome-apps/echoppe-client`, `@axiome-apps/atelier-content`, `create-echoppe` — publiés par `release.yml`,
   **sans tag ni Release git** (npm = leur registre de versions).
 
 Le tag `v*` peut aussi être poussé à la main (échappatoire re-cut d'images), pas la voie normale.
@@ -70,7 +70,7 @@ docker rm -f mig-check
 
 ## Le SDK dérive de l'API
 
-`@echoppe/client` est **généré depuis l'OpenAPI** de l'API (`packages/echoppe-client/scripts/generate.ts`),
+`@axiome-apps/echoppe-client` est **généré depuis l'OpenAPI** de l'API (`packages/echoppe-client/scripts/generate.ts`),
 il ne se code pas à la main. Après un changement de contrat storefront :
 
 ```bash

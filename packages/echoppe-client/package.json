@@ -1,5 +1,5 @@
 {
-  "name": "@echoppe/client",
+  "name": "@axiome-apps/echoppe-client",
   "version": "0.7.0",
   "description": "SDK client typé pour l'API Échoppe — généré depuis l'OpenAPI.",
   "type": "module",

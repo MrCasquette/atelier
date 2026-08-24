@@ -101,9 +101,9 @@ async function scaffold(projectName: string, apiUrl: string, targetDir: string):
   // Outillage de contenu : dépendance + commandes de synchronisation (push) et de vérification de
   // dérive (check, à brancher en CI / pre-build). Le typage du front, lui, est inféré côté source.
   const runner = detectPushRunner();
-  pkg.devDependencies['@mrcasquette/content'] = 'latest';
-  pkg.scripts['content:push'] = `${runner} node_modules/@mrcasquette/content/dist/cli.js push`;
-  pkg.scripts['content:check'] = `${runner} node_modules/@mrcasquette/content/dist/cli.js check`;
+  pkg.devDependencies['@axiome-apps/atelier-content'] = 'latest';
+  pkg.scripts['content:push'] = `${runner} node_modules/@axiome-apps/atelier-content/dist/cli.js push`;
+  pkg.scripts['content:check'] = `${runner} node_modules/@axiome-apps/atelier-content/dist/cli.js check`;
   await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
 
   const encryptionKey = randomBytes(32).toString('base64');

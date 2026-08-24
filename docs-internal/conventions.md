@@ -159,7 +159,7 @@ plusieurs natures. Pas d'arborescence posée d'avance (philosophy §4 appliquée
 
 Toute frontière qui **reparse** un contrat au lieu de l'importer est un point de rupture silencieux :
 le compilateur ne peut pas avertir un paquet publié sans dépendance quand le contrat bouge. C'est
-arrivé — `@mrcasquette/content` filtrait des `blockers` sur `typeof === 'string'` ; le jour où ils
+arrivé — `@axiome-apps/atelier-content` filtrait des `blockers` sur `typeof === 'string'` ; le jour où ils
 sont devenus des objets structurés, le filtre les a tous éliminés sans bruit, et `content check`
 annonçait un registre synchronisé alors qu'il refusait tout.
 
@@ -186,7 +186,7 @@ d'utiliser, d'extraire ou de publier le paquet, et peut porter ce qui n'a pas sa
 fichier source. Dupliquer le raisonnement dans les deux le fait diverger — constaté et corrigé sur
 `@repo/fields`.
 
-**Exception — les paquets publiés.** Pour `@mrcasquette/content`, `@echoppe/client` et
+**Exception — les paquets publiés.** Pour `@axiome-apps/atelier-content`, `@axiome-apps/echoppe-client` et
 `create-echoppe`, `README.md` est la page npm : elle s'adresse à un consommateur externe et ne doit
 pas porter d'histoire interne (numéros de tickets, ordre d'extraction, dettes). Leur charte reste
 dans le barrel.
@@ -277,7 +277,7 @@ local, et distribue aux organisms. Même convention de bannières que les compos
   valeur structurée — union discriminée plate sur `code` — dont chaque surface rend le texte. Le
   domaine n'écrit pas d'interface. **Migration terminée** : le contrat ne porte plus de champ
   `message`, et le serveur n'écrit plus de français. Trois surfaces tiennent leur catalogue —
-  administration, CLI `@mrcasquette/content`, et le repli de chacune.
+  administration, CLI `@axiome-apps/atelier-content`, et le repli de chacune.
 - **Un `try` ne couvre que ce qui peut échouer de la faute de l'appelant.** Une portée trop large
   requalifie nos pannes en fautes client : le webhook rendait 400 sur une panne de base, ce qu'un
   provider de paiement lit comme un refus définitif — il cessait de réessayer. Ce qui échoue de notre

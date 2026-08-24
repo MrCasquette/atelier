@@ -9,14 +9,14 @@ C'est le pendant « pages éditoriales » du catalogue e-commerce : une page (`p
 suite ordonnée de **sections** (`section[]`), chaque section portant des données (`data`)
 conformes à la définition que vous avez déclarée.
 
-## Le package `@mrcasquette/content`
+## Le package `@axiome-apps/atelier-content`
 
 Outillage **build/dev-time**, installé en **devDependency** par `create-echoppe`. Il ne fait
 aucun appel réseau à l'exécution de votre boutique : il sert à **déclarer** vos blocs et à
 **pousser** leur registre vers l'API.
 
 ```ts
-import { defineContent, defineSection, defineComponent, field as f, link } from '@mrcasquette/content';
+import { defineContent, defineSection, defineComponent, field as f, link } from '@axiome-apps/atelier-content';
 ```
 
 ## Déclarer un contenu
@@ -30,7 +30,7 @@ Votre config vit dans `src/content/index.ts`. Trois verbes :
 | `defineContent({ sections })` | la **racine** — le seul point lu par la CLI |
 
 ```ts
-import { defineContent, defineSection, field as f, link } from '@mrcasquette/content';
+import { defineContent, defineSection, field as f, link } from '@axiome-apps/atelier-content';
 
 export const hero = defineSection('hero', {
   label: 'Héros',
@@ -70,7 +70,7 @@ Chaque champ accepte des méta communes : `label`, `hint`, `required`.
 Exemple avec un component réutilisable et une liste :
 
 ```ts
-import { defineComponent, defineSection, field as f } from '@mrcasquette/content';
+import { defineComponent, defineSection, field as f } from '@axiome-apps/atelier-content';
 
 const card = defineComponent('card', {
   fields: {
@@ -142,10 +142,10 @@ Vous n'écrivez donc aucun validateur : déclarer le champ **suffit** à le cont
 ## Typer le contenu (inféré, sans codegen)
 
 Vos types **sortent de vos déclarations** — pas de génération de fichier, pas d'aller-retour
-par l'API. `@mrcasquette/content` fournit deux utilitaires d'inférence :
+par l'API. `@axiome-apps/atelier-content` fournit deux utilitaires d'inférence :
 
 ```ts
-import type { InferData, InferSections } from '@mrcasquette/content';
+import type { InferData, InferSections } from '@axiome-apps/atelier-content';
 import { content, hero } from '@/content';
 
 type HeroData = InferData<typeof hero>;        // { title: string; subtitle?: string; cta: {…} }
@@ -159,14 +159,14 @@ les types **immédiatement**.
 
 ## Rendre le contenu (côté vous)
 
-Échoppe **ne rend rien**. Votre front lit les pages via le SDK (`@echoppe/client`), qui type
+Échoppe **ne rend rien**. Votre front lit les pages via le SDK (`@axiome-apps/echoppe-client`), qui type
 `data` en `unknown` (il ignore votre registre). `asSections` **retype** le tableau à la
 frontière — l'**unique** conversion, fournie par la lib (l'API ayant validé à l'écriture, on
 truste ; vous n'écrivez donc jamais de cast). Placez-la à votre frontière SDK, typiquement
 `src/lib/api.ts` :
 
 ```ts
-import { asSections } from '@mrcasquette/content';
+import { asSections } from '@axiome-apps/atelier-content';
 import { content } from '@/content';
 
 export async function getPage(slug: string) {

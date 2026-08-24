@@ -54,7 +54,7 @@ const lines: string[] = [
   '# Référence des modèles',
   '',
   'Forme de chaque schéma exposé par le SDK (surface boutique), rendue depuis le contrat',
-  'figé `@echoppe/client`. Les modèles sont **regroupés par namespace** de la façade',
+  'figé `@axiome-apps/echoppe-client`. Les modèles sont **regroupés par namespace** de la façade',
   '(`echoppe.<namespace>.<méthode>()`). Chaque modèle liste ses propriétés (type, description,',
   'objets imbriqués dépliables) avec un exemple d’appel et un exemple de réponse.',
   '',

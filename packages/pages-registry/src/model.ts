@@ -4,7 +4,7 @@ import { type Static, t } from 'elysia';
 // Modèles du REGISTRE de définitions (ADR-0043).
 //
 // Une `definition` est une entrée du registre : un schema nommé, de rôle `section` ou `component`,
-// déclaré par le dev via `@mrcasquette/content` et poussé en base par `PUT /content/registry`.
+// déclaré par le dev via `@axiome-apps/atelier-content` et poussé en base par `PUT /content/registry`.
 // Ce fichier décrit la frontière de validation de cette route.
 //
 // La grammaire des CHAMPS vient de `@repo/fields` : une section et une entité la partagent
@@ -20,7 +20,7 @@ const serializedDefinitionSchema = t.Object({
   fields: t.Array(serializedFieldSchema),
 });
 
-// Corps du `PUT /content/registry` : le registre complet sérialisé par la CLI @mrcasquette/content.
+// Corps du `PUT /content/registry` : le registre complet sérialisé par la CLI @axiome-apps/atelier-content.
 export const registrySchema = t.Object({
   version: t.Literal(1),
   sections: t.Record(t.String(), serializedDefinitionSchema),

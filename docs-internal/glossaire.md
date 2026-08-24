@@ -16,7 +16,8 @@ parce que chacun de ces mots a déjà coûté une discussion.
 | **Produit** | Échoppe ou Prisme. Ils ne dépendent jamais l'un de l'autre |
 | **Cœur** | le paquet qui possède la base d'un produit : connexion, manifeste de schémas, migrations. Un produit = un cœur = une base |
 | **Paquet partagé** | scope `@repo/*`, jamais publié, recomposé par les deux produits |
-| **Paquet publié** | ce qui sort sur npm — le scope suit le produit (`@echoppe/*`), sauf artefact agnostique qui prend un namespace neutre (`@mrcasquette/*`) |
+| **Paquet publié** | ce qui sort sur npm, toujours sous `@axiome-apps/*` — le **scope dit qui publie**, le **préfixe du nom dit l'appartenance** : `atelier-` pour le partagé, le produit pour ce qui lui appartient (ADR-0063). Seuls les initializers restent nus, contrainte de `npm create` |
+| **Atelier** | le niveau entre l'organisation et les produits : le lieu où l'on fabrique les outils du web. Ni une marque, ni un produit — il nomme une relation, et il préfixe les paquets partagés publiés |
 | **Garde** | un script qui **refuse** une dérive au lieu de la documenter. Une garde découvre, elle n'énumère jamais |
 | **Surface** | ce qui est exposé et versionné vers l'extérieur — une image, un paquet npm, un contrat |
 | **Recomposition** | la manière dont un produit obtient une capacité : en prenant le paquet, jamais en traversant l'autre produit |
@@ -29,7 +30,7 @@ Ces mots ne s'emploient **jamais seuls** dans ce dépôt — chacun désigne au 
 |---|---|
 | **registry** | les registres npm (`registry-gap`) · le registre des cibles référençables (ADR-0032) · le registre des définitions de contenu · le registre des principaux (ADR-0037) |
 | **socle** | une portée d'ADR · l'ensemble des paquets partagés. **Jamais** un produit : Prisme n'est pas le socle d'Échoppe |
-| **content** | `@mrcasquette/content`, le DSL publié · la famille de contenu (pages, entités, champs) |
+| **content** | `@axiome-apps/atelier-content`, le DSL publié · la famille de contenu (pages, entités, champs) |
 | **store** | `apps/echoppe-store`, la vitrine · le mot anglais pour stocker — d'où son refus comme suffixe de paquet |
 | **repository** | le dépôt git · le scope `@repo` · le pattern DDD. Inutilisable comme nom |
 

@@ -34,7 +34,7 @@ le démarrage rapide ci-dessous concerne donc Échoppe.
 > [!IMPORTANT]
 > **Dépôt privé, usage personnel.** Le code source, les images Docker et la documentation
 > ne sont pas distribués publiquement. Seuls trois paquets npm restent publics —
-> `@echoppe/client`, `@mrcasquette/content` et `create-echoppe` — parce que les boutiques
+> `@axiome-apps/echoppe-client`, `@axiome-apps/atelier-content` et `create-echoppe` — parce que les boutiques
 > les consomment depuis leur propre dépôt. Aucune contribution externe n'est ouverte.
 
 **Documentation** : `bun run docs:dev` · **API Docs** : http://localhost:8100/-/docs
@@ -182,7 +182,7 @@ atelier/
 ├── packages/
 │   ├── echoppe-core/     # Le core d'Échoppe : possède la base et ses migrations
 │   ├── echoppe-client/   # SDK typé de l'API Échoppe          → npm
-│   ├── content/          # DSL config-as-code d'Échoppe       → npm @mrcasquette/content
+│   ├── content/          # DSL config-as-code d'Échoppe       → npm @axiome-apps/atelier-content
 │   ├── create-echoppe/   # CLI de scaffolding d'une boutique  → npm
 │   ├── create-prisme/    # CLI de scaffolding Prisme
 │   └── …                 # briques communes @repo/* (voir ci-dessous)

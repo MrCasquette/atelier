@@ -48,11 +48,11 @@ Vous maîtrisez ainsi quand et vers quelle version vous montez.
 
 ## Gardez le SDK du front en phase
 
-Le front interroge l'API via le SDK [`@echoppe/client`](https://www.npmjs.com/package/@echoppe/client).
+Le front interroge l'API via le SDK [`@axiome-apps/echoppe-client`](https://www.npmjs.com/package/@axiome-apps/echoppe-client).
 Si une mise à jour modifie le **contrat de l'API** (une route, un champ), alignez le SDK :
 
 ```bash
-pnpm update @echoppe/client
+pnpm update @axiome-apps/echoppe-client
 ```
 
 - **Patch / mineur** (`0.1.x` → `0.1.y`, `0.1` → `0.2`) : généralement compatible.
@@ -76,4 +76,4 @@ docker compose exec db pg_dump -U echoppe echoppe > backup-$(date +%F).sql
 | Type de mise à jour | Procédure |
 |---|---|
 | **Patch / mineur** | `docker compose pull && docker compose up -d` (l'API migre seule) |
-| **Majeur** | Backup DB → bump `ECHOPPE_VERSION` → `pull && up -d` → `pnpm update @echoppe/client` → vérifier le front |
+| **Majeur** | Backup DB → bump `ECHOPPE_VERSION` → `pull && up -d` → `pnpm update @axiome-apps/echoppe-client` → vérifier le front |

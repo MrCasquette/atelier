@@ -42,5 +42,5 @@ const resolvedMenu = t.Object({
 
 export type ResolvedMenu = Static<typeof resolvedMenu>;
 
-// Modèle nommé exposé dans le contrat (components.schemas → type côté @echoppe/client).
+// Modèle nommé exposé dans le contrat (components.schemas → type côté @axiome-apps/echoppe-client).
 export const menuModels = { Menu: resolvedMenu };

@@ -215,7 +215,7 @@ echoppe/
 ├── packages/
 │   ├── core/         # DB, schemas, migrations (drizzle/), utils
 │   ├── shared/       # Types partagés
-│   ├── client/       # SDK @echoppe/client (npm)
+│   ├── client/       # SDK @axiome-apps/echoppe-client (npm)
 │   └── create-echoppe/ # CLI de scaffolding (npm)
 ├── docs/             # Cette documentation
 └── uploads/          # Fichiers uploadés

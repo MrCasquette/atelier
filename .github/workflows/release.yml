@@ -1,6 +1,6 @@
 name: Release
 
-# Publication npm des paquets publiables (@echoppe/content, @echoppe/client, create-echoppe) +
+# Publication npm des paquets publiables (@echoppe/content, @axiome-apps/echoppe-client, create-echoppe) +
 # images Docker du runtime (api+admin). Politique de versions : ADR-0023.
 #
 # Auth npm : Trusted Publishing (OIDC) — AUCUN token. npm échange le jeton OIDC de GitHub Actions

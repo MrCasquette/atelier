@@ -5,26 +5,26 @@
 ::: code-group
 
 ```bash [pnpm]
-pnpm add @echoppe/client
+pnpm add @axiome-apps/echoppe-client
 ```
 
 ```bash [bun]
-bun add @echoppe/client
+bun add @axiome-apps/echoppe-client
 ```
 
 ```bash [npm]
-npm install @echoppe/client
+npm install @axiome-apps/echoppe-client
 ```
 
 :::
 
 ::: tip Déjà inclus dans les boutiques scaffoldées
-`npm create echoppe@latest` génère un projet où `@echoppe/client` est **déjà une
+`npm create echoppe@latest` génère un projet où `@axiome-apps/echoppe-client` est **déjà une
 dépendance** et où le client est **déjà instancié** dans `src/lib/api.ts` :
 
 ```ts
 // src/lib/api.ts (fourni par le template)
-import { createEchoppeClient } from '@echoppe/client';
+import { createEchoppeClient } from '@axiome-apps/echoppe-client';
 
 const API_URL = import.meta.env.PUBLIC_API_URL;
 export const api = createEchoppeClient({ baseUrl: API_URL });
@@ -39,7 +39,7 @@ manuelle (intégration dans un projet existant).
 Le client se crée une fois avec `createEchoppeClient`, puis se réutilise partout.
 
 ```ts
-import { createEchoppeClient } from '@echoppe/client';
+import { createEchoppeClient } from '@axiome-apps/echoppe-client';
 
 export const echoppe = createEchoppeClient({
   baseUrl: process.env.PUBLIC_API_URL ?? 'http://localhost:8100',

@@ -4,10 +4,10 @@
 // Packages » ; son merge publie l'unité (npm pour un paquet, images + tag `v*` pour le runtime).
 //
 // Unités indépendantes :
-//   runtime → @echoppe/api (+ admin, paire fixed)  → image Docker + tag/Release git `v*`
-//   sdk     → @echoppe/client                       → npm (pas de tag git)
-//   content → @mrcasquette/content                      → npm
-//   cli     → create-echoppe                        → npm
+//   runtime → @echoppe/api (+ admin, paire fixed) → image Docker + tag/Release git `v*`
+//   sdk     → @axiome-apps/echoppe-client          → npm (pas de tag git)
+//   content → @axiome-apps/atelier-content         → npm
+//   cli     → create-echoppe                       → npm
 //
 //   bun run ship runtime minor "ajoute X"     # explicite
 //   bun run ship sdk patch "corrige le type"  # explicite
@@ -19,8 +19,8 @@ import { $ } from 'bun';
 
 const UNITS = {
   runtime: '@echoppe/api',
-  sdk: '@echoppe/client',
-  content: '@mrcasquette/content',
+  sdk: '@axiome-apps/echoppe-client',
+  content: '@axiome-apps/atelier-content',
   cli: 'create-echoppe',
 } as const;
 type Unit = keyof typeof UNITS;

@@ -5,7 +5,7 @@
 Chaque schéma est exposé comme **alias plat importable** — c'est la façon recommandée :
 
 ```ts
-import type { ProductDetail, Cart, Address } from '@echoppe/client';
+import type { ProductDetail, Cart, Address } from '@axiome-apps/echoppe-client';
 
 function render(product: ProductDetail) { /* … */ }
 ```
@@ -14,7 +14,7 @@ Ces alias sont **générés** depuis le contrat (aucune redéclaration à faire)
 sous le capot vers les schémas indexés — accessibles aussi directement si besoin :
 
 ```ts
-import type { components } from '@echoppe/client';
+import type { components } from '@axiome-apps/echoppe-client';
 
 type CartLowLevel = components['schemas']['Cart']; // strictement équivalent à `Cart`
 ```

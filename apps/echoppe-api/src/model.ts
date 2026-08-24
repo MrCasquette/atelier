@@ -18,7 +18,7 @@ import { wishlistModels } from './modules/wishlist/model';
 
 // Registre central des modèles nommés du contrat. Une seule source qui alimente :
 // - la validation runtime (via `.model()`),
-// - `components.schemas` de l'OpenAPI (→ types nommés côté @echoppe/client),
+// - `components.schemas` de l'OpenAPI (→ types nommés côté @axiome-apps/echoppe-client),
 // - le type `ModelName` (union des noms enregistrés), utilisé pour typer strictement
 //   les références de réponse (cf. lib/response `ResponseMap`).
 //
@@ -27,7 +27,7 @@ import { wishlistModels } from './modules/wishlist/model';
 
 export const allModels = {
   // Le contrat de faute (ADR-0050) est un modèle nommé : un `$ref` unique dans l'OpenAPI, donc un
-  // type nommé côté @echoppe/client sur lequel un client headless fait son `switch`. Sans lui,
+  // type nommé côté @axiome-apps/echoppe-client sur lequel un client headless fait son `switch`. Sans lui,
   // l'union des 41 ressources serait recopiée dans CHAQUE réponse d'erreur de chaque route migrée —
   // mesuré à ~1 600 lignes de contrat pour deux routes, contre ~1 600 lignes une fois pour toutes.
   ErrorResponse: errorResponseSchema,

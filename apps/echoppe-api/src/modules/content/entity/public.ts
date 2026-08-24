@@ -13,7 +13,7 @@ import { models } from '../../../model';
 
 // Lecture front des entités. Route GÉNÉRIQUE, décidée par le contrat figé (ADR-0027, amendement) :
 // des routes dérivées du registre rendraient l'OpenAPI dépendant de l'installation, donc
-// `@echoppe/client` ingénérable depuis un contrat unique.
+// `@axiome-apps/echoppe-client` ingénérable depuis un contrat unique.
 //
 // Publique, comme les pages : une entité déclarée est du contenu destiné au front. Ce qui doit
 // rester privé se règle en RBAC côté administration, pas en cachant la route.

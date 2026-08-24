@@ -35,7 +35,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       # Les libs publiables exposent leurs types depuis dist/ (pas les sources). Les apps qui
-      # les consomment (ex. apps/echoppe-store → @echoppe/client) ne type-checkent qu'avec ce dist buildé.
+      # les consomment (ex. apps/echoppe-store → @axiome-apps/echoppe-client) ne type-checkent qu'avec ce dist buildé.
       - name: Build packages (deps du type-check)
         run: |
           bun run --cwd packages/content build
@@ -95,7 +95,7 @@ jobs:
       # Garde de couverture des releases : un paquet publié dont la source a bougé doit être
       # mentionné par un changeset. `contracts:check` compare le SDK aux routes, `drift-guard` le
       # schéma aux migrations — deux cohérences INTERNES. Personne ne mesurait l'écart entre ce qui
-      # est committé et ce qui est PUBLIÉ : `@echoppe/client` avait perdu `company.get()` sans
+      # est committé et ce qui est PUBLIÉ : `@axiome-apps/echoppe-client` avait perdu `company.get()` sans
       # qu'aucun changeset ne le couvre, et serait resté figé pendant que le reste partait.
       - name: Release coverage
         run: bun run release-coverage

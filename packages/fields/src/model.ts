@@ -1,6 +1,6 @@
 import { t } from 'elysia';
 
-// Ce qu'un champ EST — la forme sérialisée, miroir du DSL de `@mrcasquette/content`.
+// Ce qu'un champ EST — la forme sérialisée, miroir du DSL de `@axiome-apps/atelier-content`.
 // Charte du paquet et frontière : `index.ts`.
 
 // ── Méta commune à tout champ ─────────────────────────────────────────────────────────────────

@@ -17,8 +17,8 @@ change ; la version n'est jamais saisie à la main — elle vient du **niveau de
 | Unité | Package(s) | Artefact | Tag git |
 |-------|-----------|----------|---------|
 | **runtime** | `@echoppe/api` + `@echoppe/admin` (paire `fixed`) | images Docker | **`v*`** (+ GitHub Release) |
-| **sdk** | `@echoppe/client` | npm | — (npm = registre) |
-| **content** | `@mrcasquette/content` | npm | — |
+| **sdk** | `@axiome-apps/echoppe-client` | npm | — (npm = registre) |
+| **content** | `@axiome-apps/atelier-content` | npm | — |
 | **cli** | `create-echoppe` | npm | — |
 
 - **Une seule épine de tags git : `v*`** = le runtime déployable. Les packages npm ne sont **pas**

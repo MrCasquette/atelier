@@ -1,5 +1,5 @@
 // SSOT (machine) de la surface consommée par CE client : la liste des routes storefront
-// que `@echoppe/client` expose. Le générateur (generate.ts) filtre le contrat complet de
+// que `@axiome-apps/echoppe-client` expose. Le générateur (generate.ts) filtre le contrat complet de
 // l'API sur cette liste, puis tree-shake les schémas → le SDK ne voit QUE la boutique.
 //
 // La doc humaine de référence est `apps/echoppe-api/docs/route-audience.md` (côté API). Cette liste

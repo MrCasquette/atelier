@@ -1,4 +1,4 @@
-// Entrée CLI de `@mrcasquette/content`. Exécutée par un runtime qui gère le TS — Bun, ou `tsx` à la
+// Entrée CLI de `@axiome-apps/atelier-content`. Exécutée par un runtime qui gère le TS — Bun, ou `tsx` à la
 // volée (`npx tsx` / `pnpm dlx tsx`), cf. les scripts `content:push` / `content:check` scaffoldés
 // par create-echoppe. Elle N'EST PAS un `bin` node (un shim node ne saurait importer le `.ts` de
 // config du dev).

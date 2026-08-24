@@ -1,5 +1,5 @@
 // Types du module content côté admin, DÉRIVÉS du contrat Eden (SSOT = l'API, elle-même miroir du
-// registre @mrcasquette/content). Aucune redéclaration manuelle : le `t.Recursive` du registre est
+// registre @axiome-apps/atelier-content). Aucune redéclaration manuelle : le `t.Recursive` du registre est
 // narrowé proprement par Eden sur `kind` (union discriminée) — d'où un générateur type-safe.
 import type { api } from '@/lib/api';
 import type { ApiData, ApiItem } from '@/types/api';

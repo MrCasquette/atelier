@@ -31,7 +31,7 @@ export interface MenuItem {
 
 // Menu de navigation (built-in) : arbre ORDONNÉ et RÉCURSIF d'items stocké en un seul jsonb.
 // `handle` = clé stable fetchée par le front (main, footer…). Shape figé par le framework —
-// hors registre @mrcasquette/content, qui décrit les blocs de page, pas la navigation.
+// hors registre @axiome-apps/atelier-content, qui décrit les blocs de page, pas la navigation.
 export const menu = pgTable('menu', {
   id: uuid('id').primaryKey().defaultRandom(),
   handle: varchar('handle', { length: 100 }).unique().notNull(),

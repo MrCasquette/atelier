@@ -72,7 +72,7 @@ Ces variables ne servent qu'aux scripts du dépôt et n'ont pas leur place dans 
 
 ## CLI de contenu
 
-Lues par `@mrcasquette/content` (`content push` / `content check`).
+Lues par `@axiome-apps/atelier-content` (`content push` / `content check`).
 
 | Variable | Description |
 |----------|-------------|

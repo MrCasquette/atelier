@@ -6,7 +6,7 @@
  * 2. Filtre sur la surface storefront + tree-shake, puis le fige dans `openapi.json`.
  * 3. Génère `src/openapi.ts` depuis ce snapshot (pas l'URL → déterministe).
  * 4. Génère `src/models.ts` : des alias plats des schémas, importables directement
- *    (`import type { ProductDetail } from '@echoppe/client'`).
+ *    (`import type { ProductDetail } from '@axiome-apps/echoppe-client'`).
  *
  * Usage : `bun run generate` (API source par défaut sur http://localhost:8101),
  * ou `CONTRACT_API_URL=https://api.exemple.fr bun run generate`.
@@ -127,7 +127,7 @@ const schemaNames = Object.keys(spec.components?.schemas ?? {}).sort();
 const models = [
   '// Généré par scripts/generate.ts — NE PAS ÉDITER À LA MAIN.',
   '// Alias plats des schémas du contrat (surface boutique), importables directement :',
-  "//   import type { ProductDetail } from '@echoppe/client';",
+  "//   import type { ProductDetail } from '@axiome-apps/echoppe-client';",
   '',
   "import type { components } from './openapi.js';",
   '',

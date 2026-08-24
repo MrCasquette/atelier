@@ -15,7 +15,7 @@ echoppe/
 ├── packages/
 │   ├── core/         # Base de données, schemas, migrations, utils
 │   ├── shared/       # Types partagés
-│   ├── client/       # SDK @echoppe/client (npm)
+│   ├── client/       # SDK @axiome-apps/echoppe-client (npm)
 │   └── create-echoppe/ # CLI de scaffolding (npm)
 └── docs/             # Documentation (VitePress)
 ```
@@ -49,7 +49,7 @@ Exemple de boutique — non distribué en image ; sert de base au scaffolding
 | Technologie | Usage |
 |-------------|-------|
 | [Astro](https://astro.build/) | Framework SSR (adapter Node) |
-| [@echoppe/client](https://www.npmjs.com/package/@echoppe/client) | SDK API typé |
+| [@axiome-apps/echoppe-client](https://www.npmjs.com/package/@axiome-apps/echoppe-client) | SDK API typé |
 | [Tailwind CSS 4](https://tailwindcss.com/) | Styling |
 
 ## Flux de données

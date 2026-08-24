@@ -9,7 +9,7 @@ import { permissionGuard } from '../../auth/rbac';
 import { references } from '../../reference/targets';
 
 // Registre des définitions (ADR-0043). La source d'autorité, ce sont les fichiers du dev
-// (`@mrcasquette/content`) ; la base n'en est que le miroir, remplacé d'un bloc par la CLI.
+// (`@axiome-apps/atelier-content`) ; la base n'en est que le miroir, remplacé d'un bloc par la CLI.
 // Protégé par RBAC `content`.
 
 export const definitionRoutes = new Elysia({ prefix: '/content', detail: { tags: ['Content'] } })
@@ -21,7 +21,7 @@ export const definitionRoutes = new Elysia({ prefix: '/content', detail: { tags:
     response: withCrudErrors({ 200: registrySchema }),
   })
 
-  // PUT /content/registry - Synchronise le registre complet (poussé par la CLI @mrcasquette/content).
+  // PUT /content/registry - Synchronise le registre complet (poussé par la CLI @axiome-apps/atelier-content).
   // Remplace-tout : la source d'autorité, ce sont les fichiers du dev ; la DB en est le miroir.
   //
   // Gardé par `schema` et non `content` : pousser un registre redéfinit ce qu'EST une section et

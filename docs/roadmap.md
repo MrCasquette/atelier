@@ -18,14 +18,14 @@ Le socle tourne en production (`0.2.x`) :
   Sendcloud, factures PDF.
 - **Espace client** — inscription, connexion, profil, commandes, adresses, reset de
   mot de passe.
-- **SDK typé `@echoppe/client`** — généré depuis l'OpenAPI, façade namespacée.
+- **SDK typé `@axiome-apps/echoppe-client`** — généré depuis l'OpenAPI, façade namespacée.
 - **Distribution** — images Docker multi-arch (API + Admin) + CLI `npm create echoppe`
   qui scaffolde un front Astro connecté.
 
 ## 🔨 Maintenant
 
 - **Module contenu / page builder headless** — le dev déclare ses blocs (sections et
-  composants réutilisables) en *config-as-code* avec `@mrcasquette/content` ; Échoppe stocke,
+  composants réutilisables) en *config-as-code* avec `@axiome-apps/atelier-content` ; Échoppe stocke,
   valide et sert la donnée, le rendu reste le vôtre. *(Déclaration, validation, synchronisation
   CLI et typage du front par inférence livrés ; formulaires d'édition dans l'admin et menus à
   venir.)*

@@ -1,6 +1,6 @@
 // Généré par scripts/generate.ts — NE PAS ÉDITER À LA MAIN.
 // Alias plats des schémas du contrat (surface boutique), importables directement :
-//   import type { ProductDetail } from '@echoppe/client';
+//   import type { ProductDetail } from '@axiome-apps/echoppe-client';
 
 import type { components } from './openapi.js';
 

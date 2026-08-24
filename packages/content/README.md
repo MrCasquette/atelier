@@ -1,4 +1,4 @@
-# @mrcasquette/content
+# @axiome-apps/atelier-content
 
 Déclaration de contenu **config-as-code** pour Échoppe.
 Le développeur décrit ses **sections** de page et ses **components** réutilisables en TypeScript ;
@@ -9,7 +9,7 @@ C'est un outil **build/dev-time** : il s'installe en `devDependency` et ne fait 
 ## Installation
 
 ```bash
-pnpm add -D @mrcasquette/content
+pnpm add -D @axiome-apps/atelier-content
 ```
 
 ## Concepts
@@ -26,7 +26,7 @@ Trois verbes, trois niveaux :
 ## Exemple
 
 ```ts
-import { defineComponent, defineSection, defineContent, field as f, link } from '@mrcasquette/content';
+import { defineComponent, defineSection, defineContent, field as f, link } from '@axiome-apps/atelier-content';
 
 const card = defineComponent('card', {
   label: 'Carte',

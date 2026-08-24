@@ -1,6 +1,6 @@
 # Classification des routes par audience
 
-But de ce document : **décider quelles routes entrent dans le SDK boutique (`@echoppe/client`)**.
+But de ce document : **décider quelles routes entrent dans le SDK boutique (`@axiome-apps/echoppe-client`)**.
 Le SDK est consommé par un storefront e-commerce ; il ne doit exposer que la surface
 utile au front public/client. Les routes admin restent servies par l'API (et consommées
 par l'app Admin via Eden Treaty), mais **n'ont pas à figurer dans le contrat public** :

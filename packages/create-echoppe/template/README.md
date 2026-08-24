@@ -1,7 +1,7 @@
 # Boutique Échoppe
 
 Boutique e-commerce **Astro** (SSR) connectée à une API Échoppe
-via le SDK [`@echoppe/client`](https://www.npmjs.com/package/@echoppe/client).
+via le SDK [`@axiome-apps/echoppe-client`](https://www.npmjs.com/package/@axiome-apps/echoppe-client).
 
 Générée avec `npm create echoppe@latest`. Ce repo contient **le front** (que vous
 possédez et modifiez) ; le **backend** (API + Admin + base de données) tourne à côté

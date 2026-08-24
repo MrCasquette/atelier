@@ -10,9 +10,9 @@
 // Les TYPES du contenu sont INFÉRÉS de ces déclarations (pas de codegen) : voir `Section` plus bas.
 //
 // Champs disponibles (f.text, f.richText, f.number, f.boolean, f.date, f.enum, f.image, f.ref,
-// f.list, f.repeater) et composants réutilisables (defineComponent) — cf. @mrcasquette/content.
+// f.list, f.repeater) et composants réutilisables (defineComponent) — cf. @axiome-apps/atelier-content.
 
-import { defineContent, defineSection, field as f, link, type InferSections } from '@mrcasquette/content';
+import { defineContent, defineSection, field as f, link, type InferSections } from '@axiome-apps/atelier-content';
 
 // Une section « héros » : un bloc insérable dans une page depuis l'admin.
 export const hero = defineSection('hero', {
@@ -38,7 +38,7 @@ export type Section = InferSections<typeof content>;
 // Le SDK renvoie `data: unknown` (il ignore votre registre). `asSections` retype le tableau à la
 // frontière (l'API a validé à l'écriture → on truste). Dans `src/lib/api.ts` :
 //
-//   import { asSections } from '@mrcasquette/content';
+//   import { asSections } from '@axiome-apps/atelier-content';
 //   import { content } from '@/content';
 //
 //   export async function getPage(slug: string) {

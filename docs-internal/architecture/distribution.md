@@ -53,14 +53,14 @@ echoppe/                           ← 1 seul repo Git (le framework)
 ├─ packages/
 │  ├─ core/          name:@echoppe/core           (privé, interne)
 │  ├─ shared/        name:@repo/shared          (privé, interne)
-│  ├─ client/        name:@echoppe/client         → npm publish  (SDK)
+│  ├─ client/        name:@axiome-apps/echoppe-client         → npm publish  (SDK)
 │  └─ create-echoppe/ name:create-echoppe (bin)   → npm publish  (CLI)
 └─ examples/
    └─ store-astro/                 exemple de front (non publié)
 ```
 
 - **Framework** (API + Dashboard) → distribué en **images Docker**.
-- **SDK** (`@echoppe/client`) → **npm**. Généré depuis l'OpenAPI de l'API.
+- **SDK** (`@axiome-apps/echoppe-client`) → **npm**. Généré depuis l'OpenAPI de l'API.
 - **CLI** (`create-echoppe`) → **npm**. Wizard de scaffolding.
 - **Template** (`examples/store-astro`) → exemple de référence, testé en CI.
 - **Boutique réelle** → **repo séparé, hors monorepo** (voir plus bas).
@@ -75,7 +75,7 @@ Comment un front obtient les types/le client de l'API :
 | Option | Pour | Pros | Cons |
 |---|---|---|---|
 | **A. Types Eden `@echoppe/api`** | **Dashboard interne** (co-versionné) | DX max, inférence directe | couplage de version fort, TS-only |
-| **B. SDK npm généré depuis OpenAPI** (`@echoppe/client`) | **Boutiques externes** (reco) | versionnable, découplé, propre | une étape de génération |
+| **B. SDK npm généré depuis OpenAPI** (`@axiome-apps/echoppe-client`) | **Boutiques externes** (reco) | versionnable, découplé, propre | une étape de génération |
 | **C. Génération locale depuis `openapi.json` déployé** | fronts non-TS / zéro dépendance | découplage total, multi-langage | pas de SDK prêt à l'emploi |
 
 Décision de principe : **Eden reste pour le dashboard interne** (dans le monorepo,
@@ -87,7 +87,7 @@ OpenAPI (Scalar sur `/docs`), la matière est là.
 Règle non négociable : une **boutique client est un consommateur du framework**, pas
 un morceau de lui. Elle vit dans un **repo Astro autonome** qui :
 
-- dépend de `@echoppe/client` (npm),
+- dépend de `@axiome-apps/echoppe-client` (npm),
 - parle à l'API déployée (Docker) via **URL + SDK**,
 - est scaffoldée par `create-echoppe`.
 
@@ -99,7 +99,7 @@ proscrire.
 `npm create echoppe@latest` (package npm avec un `bin`) :
 
 1. Wizard : nom du projet, techno front (**Astro** par défaut), URL de l'API, options.
-2. Scaffold un **repo boutique Astro** préconfiguré, avec `@echoppe/client` installé.
+2. Scaffold un **repo boutique Astro** préconfiguré, avec `@axiome-apps/echoppe-client` installé.
 3. Optionnel : proposer de lancer le backend Docker (`docker compose up`).
 
 ## Publier des packages npm (workflow) — **changesets câblé**
@@ -107,7 +107,7 @@ proscrire.
 > Vue d'ensemble du pipeline complet (npm **+** images, gardes anti-dérive, flux one-move) :
 > [`pipeline-release.md`](../runbook/pipeline-release.md). Cette section couvre le volet **npm**.
 
-Deux paquets publiables : `@echoppe/client` (scopé) et `create-echoppe` (non-scopé,
+Deux paquets publiables : `@axiome-apps/echoppe-client` (scopé) et `create-echoppe` (non-scopé,
 comme `create-next-app`). Tous les autres workspaces sont `private: true` → ignorés.
 
 **Outillage en place** ([changesets](https://github.com/changesets/changesets)) :
@@ -150,12 +150,12 @@ comportement plutôt que de le combattre.
 - **Pré-release ponctuelle** (si un jour besoin d'un vrai canal beta) : `changeset pre
   enter <tag>` au coup par coup, puis `pre exit`. Pas le mode par défaut.
 
-Template CLI : `@echoppe/client` épinglé sur **`latest`** (résout toujours la dernière
+Template CLI : `@axiome-apps/echoppe-client` épinglé sur **`latest`** (résout toujours la dernière
 version publiée). À figer sur un caret `^x.y.z` si on veut borner au palier 1.0.
 
 > Historique : les `0.1.0-next.0` / `0.1.0-next.1` initiales (mode pre) ont été
 > **unpubliées** (fenêtre npm 72h) et le tag `next` retiré → npm est **pristine en
-> `0.1.0`** (`@echoppe/client` en `0.1.1` après correction des imports ESM `.js`).
+> `0.1.0`** (`@axiome-apps/echoppe-client` en `0.1.1` après correction des imports ESM `.js`).
 
 ## Versioning : unités indépendantes (ADR-0023)
 
@@ -171,7 +171,7 @@ du monorepo). Mais il porte sa **propre version** : une boutique déclare la com
 ## Ordre de réalisation — ✅ livré en 0.1.0
 
 1. ✅ **Stabiliser l'OpenAPI** de l'API (le contrat).
-2. ✅ **`@echoppe/client`** (SDK OpenAPI) → publié npm (`0.1.1`).
+2. ✅ **`@axiome-apps/echoppe-client`** (SDK OpenAPI) → publié npm (`0.1.1`).
 3. ✅ Exemple **Astro** à `apps/echoppe-store` (remplace le store Next, supprimé).
 4. ✅ **`create-echoppe`** (CLI) → publié npm (`0.1.0`) : scaffolde front + `compose.yaml` + `.env`.
 5. ⏳ Première **boutique réelle** (repo Astro externe via la CLI) — flux validé nativement sur arm64, reste le test grandeur nature sur VM x86.

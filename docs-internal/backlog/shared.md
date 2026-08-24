@@ -74,8 +74,8 @@ Tranché par [ADR-0062](../adr/ADR-0062-scope-et-critere-de-publication.md), com
 le paquet appartient. Rien n'est appliqué.
 
 - [ ] 🔴 ⏩ **Renommer les paquets publiés**, selon
-  [ADR-0063](../adr/ADR-0063-appartenance-des-paquets.md) : `@mrcasquette/content` →
-  `@axiome-apps/atelier-content`, `@echoppe/client` → `@axiome-apps/echoppe-client`, et `@repo/prose`
+  [ADR-0063](../adr/ADR-0063-appartenance-des-paquets.md) : `@axiome-apps/atelier-content` →
+  `@axiome-apps/atelier-content`, `@axiome-apps/echoppe-client` → `@axiome-apps/echoppe-client`, et `@repo/prose`
   → `@axiome-apps/atelier-prose` à sa publication.
 
   **Aucun préalable** : `@axiome-apps` est réservé, le token npm reconnecté, et rien à créer ni à
@@ -127,7 +127,7 @@ le paquet appartient. Rien n'est appliqué.
   un lien inerte plutôt que redirigé. Trois suites de tests.
 
   **Reste**, et c'est tout ce qui reste :
-  - le verbe `defineDirective` dans `@mrcasquette/content`, à côté de `defineSection` (§3, §10) —
+  - le verbe `defineDirective` dans `@axiome-apps/atelier-content`, à côté de `defineSection` (§3, §10) —
     **zéro occurrence dans le dépôt** ;
   - `richText` cesse d'être un `t.String()` nu (`packages/fields/src/compile.ts:54`) : la validation
     porte sur le noyau. C'est la conséquence n°1 de l'ADR, et le seul endroit où la décision devient

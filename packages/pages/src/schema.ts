@@ -34,7 +34,7 @@ export const page = pgTable('page', {
   dateUpdated: timestamp('date_updated', { withTimezone: true }).notNull().defaultNow(),
 });
 
-// Registre des DÉFINITIONS de contenu (P2b). Miroir en DB des fichiers `@mrcasquette/content` du
+// Registre des DÉFINITIONS de contenu (P2b). Miroir en DB des fichiers `@axiome-apps/atelier-content` du
 // dev : la CLI sérialise ses `defineComponent`/`defineSection` et remplace ce registre via
 // `PUT /content/registry`. L'API en dérive la VALIDATION d'écriture des sections (schéma compilé
 // depuis `fields`), et l'admin les FORMULAIRES d'édition. Une ligne = une définition ; `name` est
@@ -44,7 +44,7 @@ export const contentDefinition = pgTable('content_definition', {
   role: varchar('role', { length: 20 }).notNull(), // 'section' (insérable en page) | 'component'
   label: varchar('label', { length: 200 }),
   icon: varchar('icon', { length: 100 }),
-  // SÉQUENCE [{ name, kind, … }] — cf. @mrcasquette/content. L'ordre y est de l'information : c'est
+  // SÉQUENCE [{ name, kind, … }] — cf. @axiome-apps/atelier-content. L'ordre y est de l'information : c'est
   // celui du formulaire d'administration généré. `jsonb` le préserve, un tableau étant ordonné par
   // construction (ADR-0049) — ce qui n'était pas vrai de l'objet qu'il remplace, d'où le passage
   // temporaire à `json` sous #46.
