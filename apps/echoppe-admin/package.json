@@ -11,6 +11,7 @@
     "test": "bun test src"
   },
   "dependencies": {
+    "@axiome-apps/atelier-prose": "workspace:*",
     "@echoppe/api": "workspace:*",
     "@repo/shared": "workspace:*",
     "@tanstack/vue-table": "^8.21.3",

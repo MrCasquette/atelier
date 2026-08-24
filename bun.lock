@@ -30,6 +30,7 @@
       "name": "@echoppe/admin",
       "version": "0.8.1",
       "dependencies": {
+        "@axiome-apps/atelier-prose": "workspace:*",
         "@echoppe/api": "workspace:*",
         "@repo/shared": "workspace:*",
         "@tanstack/vue-table": "^8.21.3",
@@ -345,7 +346,7 @@
     },
     "packages/prose": {
       "name": "@axiome-apps/atelier-prose",
-      "version": "0.0.1",
+      "version": "0.1.0",
       "dependencies": {
         "mdast-util-directive": "^3.1.0",
         "mdast-util-from-markdown": "^2.0.3",

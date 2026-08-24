@@ -21,10 +21,10 @@ manifeste**, donc l'import ne résout même pas — et `@repo/pages`, qui garde 
 `syncRegistry`, `page-service` et `reference`. `compileSections` et `definitionToSchema`, que rien ne
 couvrait, sont désormais testées sans base ni `DATABASE_URL` factice.
 
-Reste ensuite la **prose**, et elle est **à moitié faite** — c'est l'état le plus coûteux à laisser
-en l'air : le moteur est complet, testé et désormais publié sous `@axiome-apps/atelier-prose`, mais
-**aucun paquet ne le consomme**. Ce qui reste n'est pas le moteur, c'est le branchement. Détail en
-§ Contenu config-as-code.
+Le quatrième, la **prose**, est **presque fait** : le moteur est publié sous
+`@axiome-apps/atelier-prose`, et l'administration le consomme — un `richText` s'édite avec sa source,
+son aperçu et ses constats. Il ne reste que `defineDirective`, côté vocabulaire d'authoring. Détail
+en § Contenu config-as-code.
 
 Puis le [vertical slice Prisme](./prisme.md), qui débloque à lui seul les décisions suspendues à un
 second consommateur — dont la garde des credentials
@@ -103,17 +103,17 @@ la release en cours.
   un lien inerte plutôt que redirigé. Trois suites de tests.
 
   **Fait aussi** : le paquet est publié sous `@axiome-apps/atelier-prose` (ADR-0063), donc citable
-  par un front de dev.
+  par un front de dev — et l'administration est son **premier consommateur réel**, par son `dist`,
+  exactement comme le ferait un front extérieur.
 
-  **Reste**, et c'est tout ce qui reste :
-  - **la surface d'édition**, devenue le cœur du chantier — source / aperçu par `proseToHtml`, les
-    constats de `proseIssues` rendus par `describeIssue` sous le champ, puis les boutons de raccourci
-    qui insèrent une directive au curseur (§9). **Un seul parse sert les trois** : l'aperçu est le
-    rendu de production, et la validation vient avec lui sans rien coûter ;
-  - le verbe `defineDirective` dans `@axiome-apps/atelier-content`, à côté de `defineSection` (§3,
-    §10) — **zéro occurrence dans le dépôt**. Il tire `@axiome-apps/atelier-prose` en dépendance,
-    puisque le modèle d'attribut y vit ;
-  - l'ADR de frontière ci-dessous, qui consigne où la validation a lieu.
+  **Fait aussi** : la surface d'édition (`ProseField.vue`) — source / aperçu, constats sous le champ,
+  et une barre qui **découvre** le noyau au lieu de l'énumérer. Un seul parse sert les trois. La
+  logique d'insertion vit dans `composables/content/prose-insert.ts`, testée en reparsant ce que le
+  bouton produit — une chaîne correcte n'est pas une directive reconnue.
+
+  **Reste**, et c'est tout ce qui reste : le verbe `defineDirective` dans
+  `@axiome-apps/atelier-content`, à côté de `defineSection` (§3, §10) — **zéro occurrence dans le
+  dépôt**. Il tire `@axiome-apps/atelier-prose` en dépendance, puisque le modèle d'attribut y vit.
 
   **Ce qui a changé le 2026-08-24**, et qui contredit une conséquence d'ADR-0061 : `richText` **reste**
   un `t.String()` nu (`packages/fields/src/compile.ts:54`), et l'API ne refuse rien. Un format
@@ -122,9 +122,6 @@ la release en cours.
   stocke le texte octet pour octet (§8), et `proseToHtml` est sûr par construction. Un 400 sur
   `:::warning{foo=1}` refuserait **un brouillon** pour un défaut cosmétique. Le constat n'est utile
   que là où il est actionnable — sous les yeux de qui écrit.
-- [ ] 🟠 **Écrire l'ADR de frontière de la prose** : la validation porte bien sur le noyau, mais à
-  l'édition et non à l'écriture. ADR-0061 annonçait l'inverse en conséquence, et un ADR ne se
-  réécrit pas. Sans cet ADR, la question se rouvrira d'elle-même à la première relecture.
 
   Note conservée parce qu'elle a déjà égaré cette ligne une fois : **aucun `richText` n'est en HTML**,
   le champ est tenu pour du Markdown partout où il passe. Le seul HTML du dépôt est

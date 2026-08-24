@@ -35,10 +35,12 @@ jobs:
         run: bun install --frozen-lockfile
 
       # Les libs publiables exposent leurs types depuis dist/ (pas les sources). Les apps qui
-      # les consomment (ex. apps/echoppe-store → @axiome-apps/echoppe-client) ne type-checkent qu'avec ce dist buildé.
+      # les consomment (ex. apps/echoppe-store → @axiome-apps/echoppe-client,
+      # apps/echoppe-admin → @axiome-apps/atelier-prose) ne type-checkent qu'avec ce dist buildé.
       - name: Build packages (deps du type-check)
         run: |
           bun run --cwd packages/content build
+          bun run --cwd packages/prose build
           bun run --cwd packages/echoppe-client build
 
       - name: Type-check

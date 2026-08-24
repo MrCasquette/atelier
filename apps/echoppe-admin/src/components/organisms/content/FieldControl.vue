@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { inject } from 'vue';
 import Input from '@/components/atoms/Input.vue';
-import Textarea from '@/components/atoms/Textarea.vue';
 import Select from '@/components/atoms/Select.vue';
 import Checkbox from '@/components/atoms/Checkbox.vue';
 import Toggle from '@/components/atoms/Toggle.vue';
 import DatePicker from '@/components/molecules/DatePicker.vue';
 import MediaPicker from '@/components/molecules/MediaPicker.vue';
 import CatalogRefPicker from './CatalogRefPicker.vue';
+import ProseField from './ProseField.vue';
 import DynamicForm from './DynamicForm.vue';
 import FieldRepeater from './FieldRepeater.vue';
 import { registryKey } from '@/composables/content/registry';
@@ -68,12 +68,11 @@ function toggleEnum(value: string) {
     @update:model-value="update"
   />
 
-  <!-- richText (source Markdown) -->
-  <Textarea
+  <!-- richText : source Markdown, aperçu et constats (ADR-0061 §9, ADR-0064) -->
+  <ProseField
     v-else-if="field.kind === 'richText'"
     :model-value="asString(modelValue)"
     :placeholder="field.placeholder"
-    :rows="6"
     @update:model-value="update"
   />
 

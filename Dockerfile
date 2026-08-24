@@ -74,6 +74,7 @@ COPY --from=deps /app/packages/pages-registry/node_modules ./packages/pages-regi
 COPY --from=deps /app/packages/menus/node_modules ./packages/menus/node_modules
 COPY --from=deps /app/packages/references/node_modules ./packages/references/node_modules
 COPY --from=deps /app/packages/communication/node_modules ./packages/communication/node_modules
+COPY --from=deps /app/packages/prose/node_modules ./packages/prose/node_modules
 COPY --from=deps /app/apps/echoppe-api/node_modules ./apps/echoppe-api/node_modules
 COPY --from=deps /app/apps/echoppe-admin/node_modules ./apps/echoppe-admin/node_modules
 COPY --from=deps /app/apps/echoppe-store/node_modules ./apps/echoppe-store/node_modules
@@ -88,7 +89,11 @@ COPY . .
 # dashboard en amd64 seul. Épinglé sur la plateforme de BUILD, il se construit une fois
 # nativement, et le même `dist` part dans les deux architectures.
 FROM --platform=$BUILDPLATFORM source AS dashboard-builder
-RUN bun run --cwd apps/echoppe-admin build
+# Le dashboard consomme `@axiome-apps/atelier-prose` par son `dist`, comme un front extérieur le
+# ferait — la surface d'édition d'un `richText` s'en sert pour l'aperçu et les constats. Son build
+# précède donc celui de l'admin, sinon `vue-tsc` ne trouve pas ses types.
+RUN bun run --cwd packages/prose build \
+ && bun run --cwd apps/echoppe-admin build
 
 # ==============================================================================
 # API (compiled binary - no node_modules needed)
