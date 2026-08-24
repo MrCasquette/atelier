@@ -69,33 +69,29 @@ Le conteneur, distinct des produits qu'il héberge. Le principe qui gouverne cet
 
 ## Distribution npm
 
-Tranché par [ADR-0062](../adr/ADR-0062-scope-et-critere-de-publication.md) puis révisé par
-[ADR-0063](../adr/ADR-0063-scope-atelier.md) — le scope nomme l'atelier, pas l'organisation. Rien
-n'est appliqué.
+Tranché par [ADR-0062](../adr/ADR-0062-scope-et-critere-de-publication.md), complété par
+[ADR-0063](../adr/ADR-0063-appartenance-des-paquets.md) — le scope dit qui publie, le nom dit à quoi
+le paquet appartient. Rien n'est appliqué.
 
-- [ ] 🔴 ⏩ **Renommer les paquets publiés sous `@atelier`**, selon
-  [ADR-0063](../adr/ADR-0063-scope-atelier.md) :
-  `@mrcasquette/content` → `@atelier/content`, `@echoppe/client` → `@atelier/echoppe-client`, et
-  `@repo/prose` → `@atelier/prose` à sa publication. Le token npm est reconnecté.
+- [ ] 🔴 ⏩ **Renommer les paquets publiés**, selon
+  [ADR-0063](../adr/ADR-0063-appartenance-des-paquets.md) : `@mrcasquette/content` →
+  `@axiome-apps/atelier-content`, `@echoppe/client` → `@axiome-apps/echoppe-client`, et `@repo/prose`
+  → `@axiome-apps/atelier-prose` à sa publication.
 
-  **Un seul préalable, et il se lève en une commande** : réserver le scope. La disponibilité d'un
-  scope npm ne se teste pas depuis le registre public — `npm org create atelier` la tranche. Si le
-  nom est pris, ADR-0063 le dit : le raisonnement des trois niveaux ne bouge pas, seul le mot change.
+  **Aucun préalable** : `@axiome-apps` est réservé, le token npm reconnecté, et rien à créer ni à
+  déplacer — ni organisation, ni *trusted publishers*. Le chantier peut partir quand tu veux.
 
   **Ce que la décision a fixé**, et qui n'est plus à réinstruire :
 
+  - le préfixe dit l'appartenance — `atelier-` pour le partagé, le produit pour ce qui lui appartient
+    — et ce qui suit dit la matière ou le rôle ;
   - le SDK est `echoppe-client`, pas `echoppe` — ADR-0062 §4 invoquait ADR-0059 en gardant sa formule
-    sans ses conditions ; le détail est dans [ADR-0063 §4](../adr/ADR-0063-scope-atelier.md) ;
-  - la règle : un paquet partagé porte sa matière, un paquet lié à un produit porte son produit **et**
-    son rôle ;
+    sans ses conditions, détail en [ADR-0063 §4](../adr/ADR-0063-appartenance-des-paquets.md) ;
   - le nom commun de `content` **cesse d'être un problème** — un nom de matière est autosuffisant
-    dans un contexte, et le contexte est le scope. `declarations`, `authoring`, `definitions`,
+    dans un contexte, et le préfixe le lui rend. `declarations`, `authoring`, `definitions`,
     `schema-dsl` et `model-dsl` sont tous sans objet ;
   - les versions gardent leur continuité (`0.3.x`, `0.7.x`), les initializers restent nus
     (ADR-0062 §5), et la dépréciation des anciens noms se décide **après** publication.
-
-  **Les *trusted publishers* OIDC sont à recréer** sur la nouvelle organisation — l'entrée
-  d'intendance plus bas ne suffit plus, ils changent d'org.
 
   **Trois pièges opérationnels**, relevés le 2026-08-24 et à traiter le jour venu :
 
@@ -109,7 +105,7 @@ n'est appliqué.
 
   Ce qui **ne se réécrit pas** au passage : les ADR (ADR-0062 documente exprès les anciens noms), les
   `CHANGELOG.md`, et les audits datés.
-- [ ] 🟠 **Publier `prose`** sous `@atelier/prose` : sans cela, aucun front de dev ne peut rendre
+- [ ] 🟠 **Publier `prose`** sous `@axiome-apps/atelier-prose` : sans cela, aucun front de dev ne peut rendre
   la prose et le contrat d'arbre d'[ADR-0061](../adr/ADR-0061-prose-directives-declarees.md) reste
   inaccessible. Publier lui ajoute versionnage, changesets et couverture `release-coverage`.
 - [ ] 🟠 **Les trois paquets publiés n'ont ni `repository`, ni `homepage`, ni `bugs`** — leur page npm

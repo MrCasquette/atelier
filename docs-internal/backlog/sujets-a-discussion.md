@@ -27,7 +27,7 @@ enregistre depuis Échoppe, et un test verrouille que le socle ne les connaît p
 ### La visibilité du dépôt bloque trois choses à la fois
 
 *Ouvert : 2026-08-24, en héritage du sujet du nom — tranché par
-[ADR-0063](../adr/ADR-0063-scope-atelier.md) le même jour.*
+[ADR-0063](../adr/ADR-0063-appartenance-des-paquets.md) le même jour.*
 
 Le dépôt est privé, et trois chantiers butent dessus sans qu'aucun ne le possède :
 
