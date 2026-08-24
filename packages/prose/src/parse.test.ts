@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 
-import { parseProse } from './parse';
-import { visitDirectives } from './tree';
+import { parseProse } from './parse.js';
+import { visitDirectives } from './tree.js';
 
 describe('parseProse — Markdown', () => {
   test('un paragraphe porte ses marques', () => {

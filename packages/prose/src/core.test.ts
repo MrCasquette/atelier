@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 
-import { CORE_DIRECTIVES, describeIssue, proseIssues } from './core';
-import { parseProse } from './parse';
+import { CORE_DIRECTIVES, describeIssue, proseIssues } from './core.js';
+import { parseProse } from './parse.js';
 
 const issuesOf = (source: string) => proseIssues(parseProse(source));
 

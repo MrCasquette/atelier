@@ -13,8 +13,8 @@
 // Une image, un lien, du texte : Markdown les produit. Une vidéo intégrée, une iframe : non — ce
 // sera un `leaf`, il exigera que le rendu connaisse sa structure, et c'est la V2.
 
-import type { ProseDirective, ProseTree } from './tree';
-import { visitDirectives } from './tree';
+import type { ProseDirective, ProseTree } from './tree.js';
+import { visitDirectives } from './tree.js';
 
 export type DirectiveShape = 'container' | 'leaf' | 'inline';
 

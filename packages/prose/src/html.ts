@@ -8,7 +8,7 @@
 // en n'admettant au noyau que des enveloppes. Le jour où un `leaf` y entrera — une vidéo, une
 // iframe —, ce fichier devra connaître sa structure, et ce jour-là seulement.
 
-import type { ProseBlock, ProseInline, ProseTree } from './tree';
+import type { ProseBlock, ProseInline, ProseTree } from './tree.js';
 
 const ESCAPES: Readonly<Record<string, string>> = {
   '&': '&amp;',

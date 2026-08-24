@@ -15,7 +15,7 @@ import type {
   ProseBlock,
   ProseInline,
   ProseTree,
-} from './tree';
+} from './tree.js';
 
 // Les attributs arrivent en `string | null | undefined` — `{hidden}` sans valeur donne `null`. On
 // normalise en chaîne vide plutôt que de propager trois formes d'absence.

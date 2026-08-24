@@ -28,7 +28,7 @@
     },
     "apps/echoppe-admin": {
       "name": "@echoppe/admin",
-      "version": "0.7.0",
+      "version": "0.8.1",
       "dependencies": {
         "@echoppe/api": "workspace:*",
         "@repo/shared": "workspace:*",
@@ -64,7 +64,7 @@
     },
     "apps/echoppe-api": {
       "name": "@echoppe/api",
-      "version": "0.7.0",
+      "version": "0.8.1",
       "dependencies": {
         "@echoppe/core": "workspace:*",
         "@elysiajs/cors": "^1.4.2",
@@ -92,7 +92,7 @@
     },
     "apps/echoppe-store": {
       "name": "@echoppe/store",
-      "version": "0.0.3",
+      "version": "0.0.4",
       "dependencies": {
         "@astrojs/node": "^11.0.2",
         "@axiome-apps/echoppe-client": "workspace:*",
@@ -179,7 +179,7 @@
     },
     "packages/content": {
       "name": "@axiome-apps/atelier-content",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "devDependencies": {
         "@types/node": "^22.10.2",
         "bun-types": "^1.3.14",
@@ -188,7 +188,7 @@
     },
     "packages/create-echoppe": {
       "name": "create-echoppe",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "bin": {
         "create-echoppe": "./dist/index.js",
       },
@@ -225,7 +225,7 @@
     },
     "packages/echoppe-client": {
       "name": "@axiome-apps/echoppe-client",
-      "version": "0.7.0",
+      "version": "0.8.0",
       "dependencies": {
         "openapi-fetch": "^0.17.0",
       },
@@ -344,7 +344,7 @@
       },
     },
     "packages/prose": {
-      "name": "@repo/prose",
+      "name": "@axiome-apps/atelier-prose",
       "version": "0.0.1",
       "dependencies": {
         "mdast-util-directive": "^3.1.0",
@@ -454,6 +454,8 @@
     "@astrojs/yaml2ts": ["@astrojs/yaml2ts@0.2.4", "", { "dependencies": { "yaml": "^2.8.3" } }, "sha512-8oddpOae35pJsXPQXhTkM0ypfKPskVsh2bCxRtbf7e+/Epw2nReakFYpLKjZMEr75CsoF203PMnCocpfz0s69A=="],
 
     "@axiome-apps/atelier-content": ["@axiome-apps/atelier-content@workspace:packages/content"],
+
+    "@axiome-apps/atelier-prose": ["@axiome-apps/atelier-prose@workspace:packages/prose"],
 
     "@axiome-apps/echoppe-client": ["@axiome-apps/echoppe-client@workspace:packages/echoppe-client"],
 
@@ -802,8 +804,6 @@
     "@repo/pages": ["@repo/pages@workspace:packages/pages"],
 
     "@repo/pages-registry": ["@repo/pages-registry@workspace:packages/pages-registry"],
-
-    "@repo/prose": ["@repo/prose@workspace:packages/prose"],
 
     "@repo/references": ["@repo/references@workspace:packages/references"],
 

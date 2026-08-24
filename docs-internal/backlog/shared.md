@@ -22,8 +22,9 @@ manifeste**, donc l'import ne résout même pas — et `@repo/pages`, qui garde 
 couvrait, sont désormais testées sans base ni `DATABASE_URL` factice.
 
 Reste ensuite la **prose**, et elle est **à moitié faite** — c'est l'état le plus coûteux à laisser
-en l'air : `@repo/prose` existe, complet et testé, mais **aucun paquet ne le consomme**. Ce qui reste
-n'est pas le moteur, c'est le branchement. Détail en § Contenu config-as-code.
+en l'air : le moteur est complet, testé et désormais publié sous `@axiome-apps/atelier-prose`, mais
+**aucun paquet ne le consomme**. Ce qui reste n'est pas le moteur, c'est le branchement. Détail en
+§ Contenu config-as-code.
 
 Puis le [vertical slice Prisme](./prisme.md), qui débloque à lui seul les décisions suspendues à un
 second consommateur — dont la garde des credentials
@@ -71,44 +72,19 @@ Le conteneur, distinct des produits qu'il héberge. Le principe qui gouverne cet
 
 Tranché par [ADR-0062](../adr/ADR-0062-scope-et-critere-de-publication.md), complété par
 [ADR-0063](../adr/ADR-0063-appartenance-des-paquets.md) — le scope dit qui publie, le nom dit à quoi
-le paquet appartient. Rien n'est appliqué.
+le paquet appartient. Les renommages sont appliqués et servis par npm ; `atelier-prose` part avec
+la release en cours.
 
-- [ ] 🔴 ⏩ **Renommer les paquets publiés**, selon
-  [ADR-0063](../adr/ADR-0063-appartenance-des-paquets.md) : `@axiome-apps/atelier-content` →
-  `@axiome-apps/atelier-content`, `@axiome-apps/echoppe-client` → `@axiome-apps/echoppe-client`, et `@repo/prose`
-  → `@axiome-apps/atelier-prose` à sa publication.
-
-  **Aucun préalable** : `@axiome-apps` est réservé, le token npm reconnecté, et rien à créer ni à
-  déplacer — ni organisation, ni *trusted publishers*. Le chantier peut partir quand tu veux.
-
-  **Ce que la décision a fixé**, et qui n'est plus à réinstruire :
-
-  - le préfixe dit l'appartenance — `atelier-` pour le partagé, le produit pour ce qui lui appartient
-    — et ce qui suit dit la matière ou le rôle ;
-  - le SDK est `echoppe-client`, pas `echoppe` — ADR-0062 §4 invoquait ADR-0059 en gardant sa formule
-    sans ses conditions, détail en [ADR-0063 §4](../adr/ADR-0063-appartenance-des-paquets.md) ;
-  - le nom commun de `content` **cesse d'être un problème** — un nom de matière est autosuffisant
-    dans un contexte, et le préfixe le lui rend. `declarations`, `authoring`, `definitions`,
-    `schema-dsl` et `model-dsl` sont tous sans objet ;
-  - les versions gardent leur continuité (`0.3.x`, `0.7.x`), les initializers restent nus
-    (ADR-0062 §5), et la dépréciation des anciens noms se décide **après** publication.
-
-  **Trois pièges opérationnels**, relevés le 2026-08-24 et à traiter le jour venu :
-
-  - deux changesets en attente **nomment les paquets renommés** —
-    `contrat-provider-communication.md` et `paquets-publies-sans-assertion.md`. Non traités, la
-    release échoue sur un paquet introuvable ;
-  - `scripts/ship.ts` porte une table `canal → nom` **en dur** (l. 22-24), ce qui est exactement
-    l'énumération que les gardes du dépôt s'interdisent ;
-  - le template de `create-echoppe` importe le SDK — c'est ce que reçoit une boutique neuve, et il
-    s'oublie facilement.
-
-  Ce qui **ne se réécrit pas** au passage : les ADR (ADR-0062 documente exprès les anciens noms), les
-  `CHANGELOG.md`, et les audits datés.
-- [ ] 🟠 **Publier `prose`** sous `@axiome-apps/atelier-prose` : sans cela, aucun front de dev ne peut rendre
-  la prose et le contrat d'arbre d'[ADR-0061](../adr/ADR-0061-prose-directives-declarees.md) reste
-  inaccessible. Publier lui ajoute versionnage, changesets et couverture `release-coverage`.
-- [ ] 🟠 **Les trois paquets publiés n'ont ni `repository`, ni `homepage`, ni `bugs`** — leur page npm
+- [ ] 🟠 **Déprécier les anciens noms sur npm** — `@echoppe/client`, `@mrcasquette/content` et
+  `@echoppe/content@0.1.0`. La décision attendait la publication des nouveaux noms
+  ([ADR-0063](../adr/ADR-0063-appartenance-des-paquets.md)) : elle est levée. Un `npm deprecate` qui
+  nomme le remplaçant, rien de plus — on ne dépublie pas, l'ancien tarball reste résolvable pour qui
+  l'a épinglé.
+- [ ] 🟡 **`scripts/ship.ts` porte une table `canal → nom` en dur** — l'énumération que les gardes du
+  dépôt s'interdisent par ailleurs. Elle a déjà coûté une ligne à la publication de la prose. Les
+  unités se découvrent (`scripts/lib/release-units.ts` le fait déjà pour deux gardes) ; reste à leur
+  donner un nom court, qui est la seule chose que la table apporte.
+- [ ] 🟠 **Les quatre paquets publiés n'ont ni `repository`, ni `homepage`, ni `bugs`** — leur page npm
   ne renvoie nulle part. À corriger, mais `repository` pointerait aujourd'hui vers un dépôt **privé**,
   donc vers un 404 : lié à la question du transfert vers `Axiome-Apps` et de la visibilité du dépôt,
   qui conditionne aussi le redéploiement de la doc sur Pages.
@@ -126,14 +102,29 @@ le paquet appartient. Rien n'est appliqué.
   sérialisation générique en `data-directive`, HTML inline coupé à la source, et `safeUrl` qui rend
   un lien inerte plutôt que redirigé. Trois suites de tests.
 
+  **Fait aussi** : le paquet est publié sous `@axiome-apps/atelier-prose` (ADR-0063), donc citable
+  par un front de dev.
+
   **Reste**, et c'est tout ce qui reste :
-  - le verbe `defineDirective` dans `@axiome-apps/atelier-content`, à côté de `defineSection` (§3, §10) —
-    **zéro occurrence dans le dépôt** ;
-  - `richText` cesse d'être un `t.String()` nu (`packages/fields/src/compile.ts:54`) : la validation
-    porte sur le noyau. C'est la conséquence n°1 de l'ADR, et le seul endroit où la décision devient
-    exécutoire ;
-  - la prévisualisation de l'administration par `proseToHtml` — gratuite, c'est le rendu de
-    production (§9). L'éditeur n'est **pas** sur le chemin critique : le `<Textarea>` existant suffit.
+  - **la surface d'édition**, devenue le cœur du chantier — source / aperçu par `proseToHtml`, les
+    constats de `proseIssues` rendus par `describeIssue` sous le champ, puis les boutons de raccourci
+    qui insèrent une directive au curseur (§9). **Un seul parse sert les trois** : l'aperçu est le
+    rendu de production, et la validation vient avec lui sans rien coûter ;
+  - le verbe `defineDirective` dans `@axiome-apps/atelier-content`, à côté de `defineSection` (§3,
+    §10) — **zéro occurrence dans le dépôt**. Il tire `@axiome-apps/atelier-prose` en dépendance,
+    puisque le modèle d'attribut y vit ;
+  - l'ADR de frontière ci-dessous, qui consigne où la validation a lieu.
+
+  **Ce qui a changé le 2026-08-24**, et qui contredit une conséquence d'ADR-0061 : `richText` **reste**
+  un `t.String()` nu (`packages/fields/src/compile.ts:54`), et l'API ne refuse rien. Un format
+  TypeBox parse l'arbre pour rendre un booléen — il jette l'information qu'il vient de produire, et
+  il faut re-parser ailleurs pour expliquer quoi que ce soit. Or le refus ne protège rien : la base
+  stocke le texte octet pour octet (§8), et `proseToHtml` est sûr par construction. Un 400 sur
+  `:::warning{foo=1}` refuserait **un brouillon** pour un défaut cosmétique. Le constat n'est utile
+  que là où il est actionnable — sous les yeux de qui écrit.
+- [ ] 🟠 **Écrire l'ADR de frontière de la prose** : la validation porte bien sur le noyau, mais à
+  l'édition et non à l'écriture. ADR-0061 annonçait l'inverse en conséquence, et un ADR ne se
+  réécrit pas. Sans cet ADR, la question se rouvrira d'elle-même à la première relecture.
 
   Note conservée parce qu'elle a déjà égaré cette ligne une fois : **aucun `richText` n'est en HTML**,
   le champ est tenu pour du Markdown partout où il passe. Le seul HTML du dépôt est

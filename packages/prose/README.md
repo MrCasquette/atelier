@@ -1,8 +1,19 @@
-# `@repo/prose` — du texte en entrée, un arbre en sortie
+# `@axiome-apps/atelier-prose` — du texte en entrée, un arbre en sortie
 
 Ce que le paquet livre : **la traduction d'un texte Markdown à directives en un arbre exploitable**,
-et rien d'autre. Il ne rend pas, il ne stocke pas, il n'interroge personne
-([ADR-0061](../../docs-internal/adr/ADR-0061-prose-directives-declarees.md)).
+et rien d'autre. Il ne rend pas, il ne stocke pas, il n'interroge personne (ADR-0061).
+
+```bash
+bun add @axiome-apps/atelier-prose
+```
+
+```ts
+import { parseProse, proseIssues, proseToHtml } from '@axiome-apps/atelier-prose';
+
+const tree = parseProse(source); // le contrat
+proseToHtml(tree); // la commodité
+proseIssues(tree); // ce qui ne va pas, sans rien refuser
+```
 
 ## Aucune dépendance interne
 

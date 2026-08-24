@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 
-import { proseToHtml, safeUrl } from './html';
-import { parseProse } from './parse';
+import { proseToHtml, safeUrl } from './html.js';
+import { parseProse } from './parse.js';
 
 const render = (source: string): string => proseToHtml(parseProse(source));
 

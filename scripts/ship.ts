@@ -7,6 +7,7 @@
 //   runtime → @echoppe/api (+ admin, paire fixed) → image Docker + tag/Release git `v*`
 //   sdk     → @axiome-apps/echoppe-client          → npm (pas de tag git)
 //   content → @axiome-apps/atelier-content         → npm
+//   prose   → @axiome-apps/atelier-prose           → npm
 //   cli     → create-echoppe                       → npm
 //
 //   bun run ship runtime minor "ajoute X"     # explicite
@@ -21,6 +22,7 @@ const UNITS = {
   runtime: '@echoppe/api',
   sdk: '@axiome-apps/echoppe-client',
   content: '@axiome-apps/atelier-content',
+  prose: '@axiome-apps/atelier-prose',
   cli: 'create-echoppe',
 } as const;
 type Unit = keyof typeof UNITS;

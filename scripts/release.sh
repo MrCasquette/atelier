@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
-# Publication npm des paquets publiables (@axiome-apps/atelier-content, @axiome-apps/echoppe-client, create-echoppe).
+# Publication npm des paquets publiables (@axiome-apps/atelier-content, @axiome-apps/atelier-prose,
+# @axiome-apps/echoppe-client, create-echoppe).
 #
 # Politique de versions (ADR-0023) : mode pre changesets DÉSACTIVÉ → tout part sur le dist-tag
 # « latest » (le 0.x EST le signal « pré-1.0 » par convention semver, pas de suffixe -next).
@@ -10,6 +11,7 @@ set -e
 
 # Build des paquets publiables (dist requis dans le tarball).
 bun run --cwd packages/content build
+bun run --cwd packages/prose build
 bun run --cwd packages/echoppe-client build
 bun run --cwd packages/create-echoppe build
 
