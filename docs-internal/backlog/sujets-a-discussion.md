@@ -24,31 +24,23 @@ enregistre depuis Échoppe, et un test verrouille que le socle ne les connaît p
 
 ## Identité et noms
 
-### `atelier` est un nom provisoire, et il bloque désormais un chantier
+### La visibilité du dépôt bloque trois choses à la fois
 
-*Ouvert : 2026-08-24 · bloque le renommage npm du [backlog socle](./shared.md) § Distribution npm.*
+*Ouvert : 2026-08-24, en héritage du sujet du nom — tranché par
+[ADR-0063](../adr/ADR-0063-scope-atelier.md) le même jour.*
 
-Le dépôt s'appelle `atelier`, et ce nom n'a jamais été acté — il désigne le workspace qui héberge
-Échoppe et Prisme, sans dire s'il est un nom de travail ou le nom de l'outil. La question dormait
-tant qu'elle ne coûtait rien.
+Le dépôt est privé, et trois chantiers butent dessus sans qu'aucun ne le possède :
 
-Elle coûte maintenant. Le scope npm retenu par
-[ADR-0062](../adr/ADR-0062-scope-et-critere-de-publication.md) est `@axiome-apps`, qui nomme
-l'**organisation** — telle qu'elle existe sur GitHub — et non l'outil. D'où un nom de paquet partagé
-qui ne se rattache à rien : `@axiome-apps/content` ne dit ni de quel outil il vient, ni ce qu'il
-fait. Un scope qui nommerait l'outil, lui, rendrait le nom commun lisible d'un coup.
+- **les métadonnées npm** — ADR-0062 §6 rend `repository` obligatoire sur tout paquet publié, mais il
+  pointerait aujourd'hui vers un 404. Trois paquets publics sous licence CeCILL dont le code n'est pas
+  consultable : c'est légal, les sources voyageant dans le tarball, mais contradictoire avec ce que la
+  licence annonce ;
+- **le redéploiement de la documentation sur Pages** ;
+- **la langue du système documentaire**, plus bas dans cette liste, qui est une décision de
+  positionnement — publication ouverte ou non.
 
-Le scope est réservé et le token npm reconnecté : **le seul obstacle restant est ce nom.** Renommer
-avant de l'avoir tranché expose à un second renommage, et c'est précisément ce que le chantier
-cherchait à éviter en agissant tant que l'adoption est nulle.
-
-À trancher : `atelier` devient définitif, ou il est remplacé. Puis seulement, le scope et les noms
-communs des paquets partagés en découlent. La question du **nom commun de `content`** attend la même
-décision, avec deux candidats survivants — `declarations` et `authoring`, cf. le backlog socle.
-
-Sujet voisin, à instruire probablement ensemble : la **visibilité du dépôt**. `repository` ne peut
-pas être renseigné sur les paquets publiés tant qu'il pointe vers un dépôt privé, et la même question
-conditionne le redéploiement de la doc sur Pages et la langue du système documentaire, plus bas.
+À trancher : le dépôt s'ouvre, il reste privé, ou il se scinde en une partie publiée et une partie
+privée. Les trois chantiers se débloquent d'un seul geste, et aucun ne se débloque seul.
 
 ## Socle et contrats
 

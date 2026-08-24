@@ -10,8 +10,10 @@ qu'une règle est au mauvais endroit.
 
 ## Ce qu'est ce dépôt
 
-`atelier` est un **workspace**, pas un produit. Il héberge deux produits **frères** — aucun n'est le
-produit principal :
+`atelier` n'est **pas un produit**. C'est le **lieu où l'on fabrique les outils du web** — le niveau
+entre l'organisation et les produits finaux, et celui qui nomme les paquets publiés
+([ADR-0063](docs-internal/adr/ADR-0063-scope-atelier.md)). Il héberge deux produits **frères** —
+aucun n'est le produit principal :
 
 | Produit | Ce que c'est | Applications |
 |---|---|---|

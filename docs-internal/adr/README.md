@@ -45,9 +45,10 @@ Portée : socle | <package> | échoppe | prisme
 | [0055](./ADR-0055-publics-de-la-configuration.md) | Trois publics de la configuration, un fichier chacun | accepté | [configuration.md](../../docs/guide/configuration.md) |
 | [0056](./ADR-0056-racine-de-donnees.md) | Une racine de données, montée hors du répertoire applicatif | accepté · amende [0018](./ADR-0018-stockage-media.md) | — |
 | [0058](./ADR-0058-fraternite-des-produits.md) | Deux produits frères, des recompositions inégales | accepté · précise [0025](./ADR-0025-deux-produits-un-repo.md) | — |
-| [0059](./ADR-0059-nom-nu-et-prefixe-de-scission.md) | Un paquet garde son nom, sa scission se qualifie | accepté · précise [0033](./ADR-0033-organisation-monorepo.md) | — |
+| [0059](./ADR-0059-nom-nu-et-prefixe-de-scission.md) | Un paquet garde son nom, sa scission se qualifie | accepté · précise [0033](./ADR-0033-organisation-monorepo.md) · appliqué par [0063](./ADR-0063-scope-atelier.md) | — |
 | [0060](./ADR-0060-natures-de-la-documentation.md) | La documentation a cinq natures, l'ADR n'en est qu'une | accepté · précise [0024](./ADR-0024-portee-adr.md) | — |
-| [0062](./ADR-0062-scope-et-critere-de-publication.md) | Un paquet sort s'il tourne chez le dev, et son scope nomme l'organisation | accepté · complète [0002](./ADR-0002-distribution.md) | — |
+| [0062](./ADR-0062-scope-et-critere-de-publication.md) | Un paquet sort s'il tourne chez le dev, et son scope nomme l'organisation | accepté · complète [0002](./ADR-0002-distribution.md) · révisé par [0063](./ADR-0063-scope-atelier.md) | — |
+| [0063](./ADR-0063-scope-atelier.md) | Le scope nomme l'atelier, entre l'organisation et les produits | accepté · révise [0062](./ADR-0062-scope-et-critere-de-publication.md) | — |
 
 ## Index — `client` · SDK et contrat d'API
 
