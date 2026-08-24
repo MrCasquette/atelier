@@ -23,6 +23,36 @@ Trois verbes, trois niveaux :
 - **`defineContent`** — la racine, le **seul** point que lit la CLI. On y liste les sections ;
   les components sont **collectés automatiquement** en suivant les références.
 
+## Les directives d'une prose
+
+Une section est un bloc de la page ; une **directive** est une inflexion du fil, à l'intérieur d'un
+texte riche. Découper un article en douze sections pour y loger trois encadrés n'a pas d'échelle.
+
+```ts
+import { defineDirective, directiveRegistry } from '@axiome-apps/atelier-content';
+import { parseProse, proseIssues } from '@axiome-apps/atelier-prose';
+
+const content = defineContent({
+  sections: [article],
+  directives: [defineDirective('video', { shape: 'leaf', attributes: { id: { required: true } } })],
+});
+
+// Le noyau + vos directives, pour valider et rendre.
+const registry = directiveRegistry(content);
+proseIssues(parseProse(texte), registry);
+```
+
+Trois choses valent d'être sues :
+
+- **rien n'en va en base.** Une directive ne crée pas de table, ne se pousse pas, n'a pas de cache.
+  Elle sert à qui rend, et à lui seul — l'administration affichera donc une directive à vous en
+  brut ;
+- **déclarer ajoute des garanties, ça n'ouvre rien.** Une directive non déclarée traverse déjà,
+  structurée (`{ name, attributes, children }`) et sans garantie de style. La déclarer la fait
+  valider ;
+- **le noyau est fermé** — `warning`, `note`, `tip`, `figure`, `quote`, `cta`, `highlight`.
+  `defineDirective` refuse de redéfinir l'un d'eux.
+
 ## Exemple
 
 ```ts

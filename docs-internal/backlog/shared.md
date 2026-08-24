@@ -21,10 +21,9 @@ manifeste**, donc l'import ne résout même pas — et `@repo/pages`, qui garde 
 `syncRegistry`, `page-service` et `reference`. `compileSections` et `definitionToSchema`, que rien ne
 couvrait, sont désormais testées sans base ni `DATABASE_URL` factice.
 
-Le quatrième, la **prose**, est **presque fait** : le moteur est publié sous
-`@axiome-apps/atelier-prose`, et l'administration le consomme — un `richText` s'édite avec sa source,
-son aperçu et ses constats. Il ne reste que `defineDirective`, côté vocabulaire d'authoring. Détail
-en § Contenu config-as-code.
+Le quatrième, la **prose**, est **fait** : le moteur est publié sous `@axiome-apps/atelier-prose`,
+l'administration le consomme — un `richText` s'édite avec sa source, son aperçu et ses constats — et
+`defineDirective` a rejoint `defineSection`. Détail en § Contenu config-as-code.
 
 Puis le [vertical slice Prisme](./prisme.md), qui débloque à lui seul les décisions suspendues à un
 second consommateur — dont la garde des credentials
@@ -93,48 +92,25 @@ la release en cours.
 
 ## Contenu config-as-code
 
-- [ ] 🔴 ⏩ **Brancher la prose** — le moteur est livré, il ne sert à personne.
-  [ADR-0061](../adr/ADR-0061-prose-directives-declarees.md).
+La prose est **branchée** ([ADR-0061](../adr/ADR-0061-prose-directives-declarees.md),
+[ADR-0064](../adr/ADR-0064-frontiere-de-validation-de-la-prose.md)) : moteur publié, administration
+qui l'édite, verbe d'authoring livré. Ce qui suit n'est pas un reste du chantier : ce sont les deux
+gardes qu'aucun des deux ADR n'a posées, et des sujets voisins.
 
-  **Fait** (`packages/prose/`, commits `64f99d2` et `9dcaacf`) : parseur vers un arbre à nous —
-  `mdast` s'arrête à `parse.ts` et n'est pas exporté —, noyau fermé de sept directives
-  (`warning`, `note`, `tip`, `figure`, `quote`, `cta`, `highlight`) avec sa validation par constats,
-  sérialisation générique en `data-directive`, HTML inline coupé à la source, et `safeUrl` qui rend
-  un lien inerte plutôt que redirigé. Trois suites de tests.
+Note conservée parce qu'elle a déjà égaré ce backlog une fois : **aucun `richText` n'est en HTML**,
+le champ est tenu pour du Markdown partout où il passe. Le seul HTML du dépôt est
+`product.description`, une colonne du catalogue hors du modèle de champs que **rien ne rend** —
+c'est la ligne qui suit, et c'est un autre sujet.
 
-  **Fait aussi** : le paquet est publié sous `@axiome-apps/atelier-prose` (ADR-0063), donc citable
-  par un front de dev — et l'administration est son **premier consommateur réel**, par son `dist`,
-  exactement comme le ferait un front extérieur.
-
-  **Fait aussi** : la surface d'édition (`ProseField.vue`) — source / aperçu, constats sous le champ,
-  et une barre qui **découvre** le noyau au lieu de l'énumérer. Un seul parse sert les trois. La
-  logique d'insertion vit dans `composables/content/prose-insert.ts`, testée en reparsant ce que le
-  bouton produit — une chaîne correcte n'est pas une directive reconnue.
-
-  **Reste**, et c'est tout ce qui reste : le verbe `defineDirective` dans
-  `@axiome-apps/atelier-content`, à côté de `defineSection` (§3, §10) — **zéro occurrence dans le
-  dépôt**. Il tire `@axiome-apps/atelier-prose` en dépendance, puisque le modèle d'attribut y vit.
-
-  **Ce qui a changé le 2026-08-24**, et qui contredit une conséquence d'ADR-0061 : `richText` **reste**
-  un `t.String()` nu (`packages/fields/src/compile.ts:54`), et l'API ne refuse rien. Un format
-  TypeBox parse l'arbre pour rendre un booléen — il jette l'information qu'il vient de produire, et
-  il faut re-parser ailleurs pour expliquer quoi que ce soit. Or le refus ne protège rien : la base
-  stocke le texte octet pour octet (§8), et `proseToHtml` est sûr par construction. Un 400 sur
-  `:::warning{foo=1}` refuserait **un brouillon** pour un défaut cosmétique. Le constat n'est utile
-  que là où il est actionnable — sous les yeux de qui écrit.
-
-  Note conservée parce qu'elle a déjà égaré cette ligne une fois : **aucun `richText` n'est en HTML**,
-  le champ est tenu pour du Markdown partout où il passe. Le seul HTML du dépôt est
-  `product.description`, une colonne du catalogue hors du modèle de champs que **rien ne rend** —
-  c'est la ligne suivante, et c'est un autre sujet.
 - [ ] 🟠 **Trancher le sort de `product.description`** : convertir son HTML ou repartir de zéro. À
   décider sur la donnée réelle, pas sur le seed. TipTap n'a qu'un appelant — `ProductInfoCard.vue:30`
   — et le coût de sortie ne sera jamais plus bas.
 - [ ] 🟡 **Garder l'arbre hors de la base.** Rien n'empêcherait de cacher l'arbre parsé à côté du
   texte « pour la performance » : ce serait revenir à un format propriétaire avec deux sources de
   vérité, et **aucun test ne tomberait**. Seule dérive qui détruirait la thèse d'ADR-0061.
-- [ ] 🟡 **Garder le noyau des directives** contre une redéfinition par un thème, et vérifier qu'un
-  paquet partagé n'émet jamais de `class` depuis la prose.
+- [ ] 🟡 **Vérifier qu'un paquet partagé n'émet jamais de `class` depuis la prose** — les directives
+  se stylent par leur `data-*` (ADR-0061 §5). La redéfinition du noyau, elle, **est gardée** :
+  `defineDirective` la refuse, et un test le parcourt directive par directive.
 - [ ] 🟡 **Type-gen du DSL** pour les sections et composants de front — l'inférence est livrée, la
   génération explicite reste à trancher.
 - [ ] 🟡 Menus imbriqués, champs custom, fichiers/assets et i18n des enums.

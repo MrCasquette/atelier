@@ -1,7 +1,9 @@
-// Les quatre verbes de déclaration (naming validé) :
+// Les cinq verbes de déclaration (naming validé) :
 //   - defineComponent : atom/molecule — groupe de champs nommé RÉUTILISABLE, non insérable en page.
 //   - defineSection   : bloc de page — va dans `page.sections`, fetché + bouclé par le front.
 //   - defineEntity    : de la DONNÉE — table dérivée, vraies colonnes (ADR-0026, ADR-0027).
+//   - defineDirective : une inflexion du FIL d'une prose, pas un bloc de la page (ADR-0061 §3).
+//                       Rien n'en va en base : elle ne se pousse pas, elle se rend.
 //   - defineContent   : racine — LE seul point lu par la CLI ; les components sont AUTO-COLLECTÉS
 //                       en marchant les références des sections et des entités.
 //
@@ -9,9 +11,17 @@
 // le nom `Name` (littéral), `defineContent` capture les tuples `S` et `E`. Cette préservation
 // alimente l'inférence de types côté front (`InferData` / `InferSections` / `InferEntity`).
 
+import {
+  CORE_DIRECTIVES,
+  type AttributeSpec,
+  type DirectiveRegistry,
+  type DirectiveShape,
+  type DirectiveSpec,
+} from '@axiome-apps/atelier-prose';
 import type {
   ContentDefinition,
   Definition,
+  Directive,
   Entity,
   EntityLink,
   Fields,
@@ -186,9 +196,62 @@ export function defineEntity<
   };
 }
 
+/**
+ * Ce qu'une directive déclare, et c'est tout : quels attributs existent, lesquels sont requis
+ * (ADR-0061 §3).
+ *
+ * Pas de `format` — aucune directive du noyau n'en a besoin, et l'ajouter avant l'usage serait de
+ * l'abstraction par anticipation. Il se rajoutera sans rupture, comme tout le reste de ce modèle.
+ */
+export interface DirectiveConfig {
+  shape: DirectiveShape;
+  attributes?: Readonly<Record<string, AttributeSpec>>;
+}
+
+/**
+ * Déclare une directive que le front saura rendre.
+ *
+ * Le verbe est NU — comme `defineSection`, `defineComponent` et `defineEntity`, dont aucun ne porte
+ * de préfixe. `defineProse` a été écarté : la prose est une matière, pas un objet dénombrable, et on
+ * ne définit pas *une* prose.
+ *
+ * Une directive déclarée ici est validée et garantie dessinée ; ce qui n'est pas déclaré traverse
+ * quand même, structuré et sans garantie de style (ADR-0061 §4). Déclarer AJOUTE des garanties, ça
+ * n'ouvre rien — c'est ce qui rend le passage monotone, donc sans rupture pour un contenu déjà écrit.
+ */
+export function defineDirective(name: string, config: DirectiveConfig): Directive {
+  if (!DIRECTIVE_NAME.test(name)) {
+    throw new Error(
+      `defineDirective : « ${name} » n'est pas un nom de directive valide. Minuscules, chiffres et « - », commençant par une lettre — c'est ce qui s'écrit après les deux-points dans le texte.`,
+    );
+  }
+  if (name in CORE_DIRECTIVES) {
+    throw new Error(
+      `defineDirective : « ${name} » appartient au noyau, qui est fermé (ADR-0061 §4). Une directive du noyau ne se redéfinit pas — la collision est impossible plutôt qu'improbable. Choisissez un autre nom.`,
+    );
+  }
+
+  return { kind: 'directive', name, shape: config.shape, attributes: config.attributes ?? {} };
+}
+
+/**
+ * Le nom d'une directive tel qu'il s'écrit dans le texte, après les deux-points.
+ *
+ * Le tiret est admis — `:::mon-encart` se lit —, le point et l'underscore non : ils entrent en
+ * conflit avec la syntaxe d'attributs abrégés que l'extension de directives reconnaît (`.classe`,
+ * `#identifiant`). Refuser ici évite une directive qui se déclare et ne se parse jamais.
+ */
+const DIRECTIVE_NAME = /^[a-z][a-z0-9-]*$/;
+
 export interface ContentConfig<S extends readonly Definition[], E extends readonly Entity[]> {
   sections: S;
   entities?: E;
+  /**
+   * Les directives du dev. **Non génériques, et c'est délibéré** : un attribut de directive est une
+   * `string`, toujours — il n'y a pas de formulaire à générer ni rien à inférer (ADR-0061 §3). Elles
+   * traversent donc sans capture de littéraux, là où sections et entités en ont besoin.
+   */
+  directives?: readonly Directive[];
 }
 
 // Deux surcharges plutôt qu'un défaut générique : `E` vaut `[]` quand `entities` est absent, ce que
@@ -222,5 +285,39 @@ export function defineContent(
     }
   }
 
-  return { kind: 'content', sections: config.sections, entities: config.entities ?? [] };
+  const directives = config.directives ?? [];
+  const seen = new Set<string>();
+  for (const directive of directives) {
+    if (seen.has(directive.name)) {
+      throw new Error(
+        `defineContent : la directive « ${directive.name} » est déclarée deux fois. La seconde écraserait la première sans que rien ne le dise.`,
+      );
+    }
+    seen.add(directive.name);
+  }
+
+  return {
+    kind: 'content',
+    sections: config.sections,
+    entities: config.entities ?? [],
+    directives,
+  };
+}
+
+/**
+ * Le registre à passer au rendu et à `proseIssues` — le noyau, plus ce que le dev a déclaré.
+ *
+ * Fourni parce que tout consommateur l'écrirait sinon, et le ferait mal : passer ses seules
+ * directives à `proseIssues` PERD la validation du noyau, sans que rien ne le signale. Même raison
+ * que `visitDirectives` côté prose.
+ *
+ * L'ordre de fusion n'a pas d'importance — `defineDirective` refuse déjà un nom du noyau, si bien
+ * qu'aucune clé ne peut se recouvrir.
+ */
+export function directiveRegistry(content: ContentDefinition): DirectiveRegistry {
+  const declared: Record<string, DirectiveSpec> = {};
+  for (const directive of content.directives) {
+    declared[directive.name] = { shape: directive.shape, attributes: directive.attributes };
+  }
+  return { ...CORE_DIRECTIVES, ...declared };
 }

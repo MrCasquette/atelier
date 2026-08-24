@@ -37,6 +37,9 @@
   ],
   "author": "MrCasquette",
   "license": "CECILL-2.1",
+  "dependencies": {
+    "@axiome-apps/atelier-prose": "^0.1.0"
+  },
   "devDependencies": {
     "@types/node": "^22.10.2",
     "bun-types": "^1.3.14",

@@ -12,6 +12,8 @@
 //   - REGISTRE (en bas) : forme JSON sérialisable, références résolues **par nom** — c'est ce qui
 //     est poussé vers l'API (P2b) et lu par l'admin (P3).
 
+import type { AttributeSpec, DirectiveShape } from '@axiome-apps/atelier-prose';
+
 // ── Champs : options méta communes (contraintes d'édition + libellés admin) ──────────────────
 export interface FieldMeta {
   label?: string;
@@ -189,6 +191,29 @@ export interface Entity<
   fields: F;
 }
 
+/**
+ * Une directive de prose — une inflexion du fil, quand une section est un bloc de la page
+ * (ADR-0061 §3).
+ *
+ * Elle n'est PAS un troisième `DefinitionRole` : une section est une division, elle a un
+ * identifiant, une position, un statut, elle existe seule ; une directive n'a aucune existence hors
+ * du texte qui la contient. D'où son `kind` propre, à côté de `'definition'` et `'entity'`.
+ *
+ * Elle n'emprunte rien au modèle des champs, pas même le vocabulaire des attributs : sur les douze
+ * `kind` de la grammaire, une directive en emploierait trois, et de travers. **Il n'y a pas de
+ * formulaire à générer, et rien à inférer** — un attribut de directive est une `string`, toujours.
+ * C'est pourquoi ce type n'est pas générique là où `Definition` et `Entity` le sont.
+ *
+ * Le modèle vient de `@axiome-apps/atelier-prose`, qui le porte : la déclaration ici, la lecture
+ * là-bas, un seul vocabulaire.
+ */
+export interface Directive {
+  kind: 'directive';
+  name: string;
+  shape: DirectiveShape;
+  attributes: Readonly<Record<string, AttributeSpec>>;
+}
+
 export interface ContentDefinition<
   S extends readonly Definition[] = readonly Definition[],
   E extends readonly Entity[] = readonly Entity[],
@@ -196,6 +221,13 @@ export interface ContentDefinition<
   kind: 'content';
   sections: S; // uniquement des définitions de rôle 'section'
   entities: E;
+  /**
+   * Les directives que le front du dev sait rendre. **Rien n'en va en base** (ADR-0061 §3) : elles
+   * ne créent pas de table, ne poussent aucun registre et n'ont pas de cache à invalider. Elles ne
+   * servent qu'à celui qui rend — d'où leur absence de `serialize`, qui est un fait de forme et non
+   * un oubli.
+   */
+  directives: readonly Directive[];
 }
 
 // ── Inférence de types (P2c) ─────────────────────────────────────────────────────────────────
