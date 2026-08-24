@@ -1,5 +1,36 @@
 # @echoppe/content
 
+## 0.4.0
+
+### Minor Changes
+
+- b565d5b: Les paquets publiés changent de nom (ADR-0063). `@mrcasquette/content` devient
+  `@axiome-apps/atelier-content`, `@echoppe/client` devient `@axiome-apps/echoppe-client`.
+
+  Le scope dit qui publie, le préfixe du nom dit à quoi le paquet appartient — `atelier-` pour ce qui
+  est partagé par les deux produits, le nom du produit pour ce qui lui appartient. `create-echoppe`
+  garde son nom nu : `npm create echoppe` exige un paquet nommé exactement ainsi.
+
+  Les anciens noms cessent d'être mis à jour. Rien ne casse pour une installation existante, mais elle
+  n'aura plus de version nouvelle : `bun add @axiome-apps/echoppe-client` remplace
+  `bun add @echoppe/client`, à version égale.
+
+### Patch Changes
+
+- 3e23f1e: Plus aucune assertion de type dans ces paquets.
+
+  `@axiome-apps/atelier-content` — `defineContent` passe par deux surcharges au lieu d'un paramètre de type
+  par défaut, et les constructeurs de champs composent par `Object.assign`, dont la signature produit
+  nativement l'intersection qu'on affirmait. La surface publique et les types inférés sont identiques.
+  Reste une exception, signalée dans le code : `asSections` est par construction une affirmation —
+  sans validation, aucune expression ne mène de `RawSection[]` au type déclaré par le développeur.
+
+  `create-echoppe` — le `package.json` du template est vérifié avant d'être personnalisé. Un fichier
+  tronqué à l'installation échouait trois lignes plus loin, sur une propriété absente.
+
+  `@axiome-apps/echoppe-client` — le générateur du SDK vérifie que la spec OpenAPI téléchargée porte bien des
+  chemins, au lieu de l'affirmer. Le contrat produit est identique, `contracts:check` le confirme.
+
 ## 0.3.0
 
 ### Minor Changes
