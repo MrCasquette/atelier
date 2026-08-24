@@ -25,8 +25,10 @@ Le quatrième, la **prose**, est **fait** : le moteur est publié sous `@axiome-
 l'administration le consomme — un `richText` s'édite avec sa source, son aperçu et ses constats — et
 `defineDirective` a rejoint `defineSection`. Détail en § Contenu config-as-code.
 
-Puis le [vertical slice Prisme](./prisme.md), qui débloque à lui seul les décisions suspendues à un
-second consommateur — dont la garde des credentials
+Les quatre étant faits, la tête de file est le [vertical slice Prisme](./prisme.md), **commencé le
+2026-08-24** : son squelette boote, et `product-isolation` garde depuis une vraie frontière au lieu
+de sortir en succès silencieux. Il débloque à lui seul les décisions suspendues à un second
+consommateur — dont la garde des credentials
 ([ADR-0051](../adr/ADR-0051-garde-credentials.md)), qui conditionne explicitement son choix à deux
 usages réels.
 
@@ -42,8 +44,11 @@ Le conteneur, distinct des produits qu'il héberge. Le principe qui gouverne cet
 [conventions](../conventions.md#loutillage-découvre-il-nénumère-pas).
 
 - [ ] 🟠 **`dev`, `db:*`, `test:api` et `test:image` restent câblés sur Échoppe** (`--cwd apps/echoppe-*`,
-  `packages/echoppe-core`). Ce sont les derniers scripts racine qui nomment un produit.
-- [ ] 🟠 **Distribution mono-produit** : `Dockerfile` (19 `COPY packages/*/package.json` énumérés,
+  `packages/echoppe-core`), et Prisme a dû se ranger à côté sous un préfixe — `dev:prisme`,
+  `prisme:db:*`. Deux conventions cohabitent donc à la racine : le produit implicite et le produit
+  nommé. C'est tenable à deux produits, et ça ne l'est déjà plus si on relit `bun run db:push` sans
+  savoir laquelle des deux bases il vise.
+- [ ] 🟠 **Distribution mono-produit** : `Dockerfile` (les `COPY packages/*/package.json` énumérés,
   targets `api`/`admin`, user système `echoppe`), `docker-build.yml` (`IMAGE_PREFIX`), `release.yml`
   (version runtime = `apps/echoppe-api/package.json`), `ship.ts` (4 canaux Échoppe) et
   `compose.yaml`. **Volontairement différé** : Prisme n'a aucun cycle de publication, et

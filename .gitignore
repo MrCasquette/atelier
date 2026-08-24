@@ -22,6 +22,9 @@ yarn.lock
 .env
 .env.local
 .env.*.local
+# Surcharge par produit — `.env.prisme` porte une chaîne de connexion, comme `.env`.
+# `.env` ne l'aurait PAS couvert : c'est une correspondance exacte, pas un préfixe.
+.env.prisme
 
 # IDE
 .vscode/

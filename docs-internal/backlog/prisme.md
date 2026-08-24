@@ -24,16 +24,26 @@ publiées ([ADR-0023](../adr/ADR-0023-versioning-tags.md), amendement). Prisme p
 pas le contrat.
 
 
-- [ ] 🔴 **Créer un vertical slice exécutable** : `prisme-core` et `prisme-api`, migrations propres,
-  auth admin, une page, une entité, un média et un contrat HTTP propre.
-- [ ] 🔴 **Sortir `elysia` des paquets partagés, PENDANT le slice** — cinq paquets le déclarent
+- [ ] 🔴 **Poursuivre le vertical slice.** Le squelette boote (2026-08-24) : `prisme-core` possède
+  ses migrations — dix-sept tables, aucune du commerce —, `prisme-api` sert `/`, `/-/health` et
+  `/-/docs` sur le rang 1, applique ses migrations au boot et refuse de démarrer sans
+  `DATABASE_URL`. `product-isolation` garde enfin une vraie frontière.
+
+  Restent, dans cet ordre : **auth admin** (et l'extraction des en-têtes de sécurité, dont c'est la
+  deuxième occurrence), **le contrat de faute de Prisme** — celui d'Échoppe appartient à Échoppe
+  ([ADR-0050](../adr/ADR-0050-contrat-de-faute.md)) —, puis **une page, une entité, un média**.
+- [ ] 🟠 **Décider si les en-têtes de sécurité deviennent un paquet partagé.** Le plugin d'Échoppe
+  est product-agnostique ; `prisme-api` en aura besoin au premier écran. Ne pas le copier.
+- [ ] 🟠 **Sortir `elysia` des paquets partagés** — cinq paquets le déclarent
   (`fields`, `entities`, `menus`, `pages`, `pages-registry`) et sept fichiers l'importent. Un paquet
   partagé qui exige Elysia ne peut pas servir un produit qui n'est pas une API Elysia : c'est une
   exigence de forme, et c'est Prisme qui la porte.
 
-  **Pendant, et non avant** — arbitré le 2026-08-24, en héritage d'un sujet ouvert le 2026-08-16 :
-  c'est le second consommateur qui dira si le découplage est correct, et lui seul l'exercera.
-  Découpler à l'aveugle produirait une frontière qu'aucun usage n'aurait éprouvée.
+  **Rattaché au client Prisme, et non au slice** — corrigé le 2026-08-24, à la lecture du terrain.
+  L'arbitrage précédent (« pendant le slice ») reposait sur l'idée que le second consommateur
+  exercerait la contrainte. Il ne l'exercera pas : `prisme-api` EST une API Elysia, donc un paquet
+  partagé qui exige Elysia ne le gêne en rien. Ce qui l'exercera vraiment, c'est le premier
+  consommateur qui n'est pas une API Elysia — le **client Prisme**. C'est donc là que la tâche vit.
 
   Ce n'est pas une migration : `@sinclair/typebox` s'importe directement, aucune route n'est touchée.
   La vraie réserve est la **double version de TypeBox** — l'une venue d'Elysia, l'autre déclarée — à

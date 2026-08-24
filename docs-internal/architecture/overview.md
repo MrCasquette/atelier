@@ -45,10 +45,15 @@ d'exploitation sous l'espace réservé `/-/`.
 > Cette liste est **dérivable du dépôt et n'est pas encore gardée** : c'est le premier candidat à une
 > garde de dérive documentaire.
 
-**Les cœurs produit** — `echoppe-core`, et `prisme-core` quand `prisme-api` le justifiera. Un cœur
-possède sa connexion, son manifeste de schémas, sa `drizzle.config.ts` et ses migrations. **Un
-produit = un cœur = une base.** Un paquet partagé ne porte jamais de migrations : le cœur les emprunte.
+**Les cœurs produit** — `echoppe-core` et `prisme-core`. Un cœur possède son manifeste de schémas,
+sa `drizzle.config.ts` et ses migrations. **Un produit = un cœur = une base.** Un paquet partagé ne
+porte jamais de migrations : le cœur les emprunte.
 → [ADR-0025](../adr/ADR-0025-deux-produits-un-repo.md), [ADR-0033](../adr/ADR-0033-organisation-monorepo.md).
+
+Ce que la naissance de `prisme-core` a montré : **un cœur peut ne posséder aucune table.** Les
+dix-sept que Prisme migre appartiennent toutes aux paquets partagés — sa liste est celle d'Échoppe
+moins le commerce. Ce qui justifie un cœur est donc la *propriété des migrations*, pas un schéma ; et
+la recomposition qu'annonce `AGENTS.md` est, depuis, vérifiée par l'exécution et non par l'intention.
 
 **Les paquets partagés**, scope `@repo/*`, jamais publiés :
 
@@ -79,7 +84,7 @@ Sept gardes plus la vérification du contrat, chacune lancée par `bun run <nom>
 
 | Garde | Ce qu'elle refuse |
 |---|---|
-| `product-isolation` | qu'un produit dépende de l'autre — déclaré **ou seulement importé** |
+| `product-isolation` | qu'un produit **importe** l'autre — déclaré ou seulement importé, jamais seulement cité |
 | `core-passthrough` | qu'un cœur réexporte la surface d'un paquet partagé |
 | `drift-guard` | qu'un schéma dérive de ses migrations |
 | `reserved-space` | qu'une route empiète sur l'espace réservé |

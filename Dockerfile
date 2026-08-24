@@ -47,6 +47,7 @@ COPY packages/create-echoppe/package.json ./packages/create-echoppe/
 # lockfile dont un workspace manque. Rien de Prisme n'entre dans l'image ; l'énumération manuelle
 # de ce Dockerfile est ce qui l'y oblige (cf. backlog socle).
 COPY packages/create-prisme/package.json ./packages/create-prisme/
+COPY packages/prisme-core/package.json ./packages/prisme-core/
 COPY apps/prisme-api/package.json ./apps/prisme-api/
 COPY apps/prisme-admin/package.json ./apps/prisme-admin/
 COPY apps/echoppe-api/package.json ./apps/echoppe-api/
