@@ -81,15 +81,25 @@ jobs:
       # RIEN sur npm (privé) → on ne peut pas se fier à `published` : on détecte le bump par l'ABSENCE
       # du tag `v x.y.z` sur origin. Un push sans release (version inchangée) → tag présent → no-op.
       #
-      # `git show HEAD:` et non le fichier du disque : quand l'étape précédente PRÉPARE la PR de
-      # version, elle exécute `changeset version` dans l'arbre de travail du runner. Lire ce fichier
-      # revenait à lire une version qui n'est pas encore sur `main` — v0.7.0 a ainsi été taggée avant
-      # tout merge, sur le commit de la BRANCHE de la PR, et les runs suivants ont conclu « déjà
-      # taggé → aucune image ». Le commit, lui, ne ment pas.
+      # TOUT est ancré sur `github.sha` — le commit qui a déclenché le push sur `main` — et JAMAIS
+      # sur `HEAD`. La raison est mesurée, pas théorique : quand l'étape précédente PRÉPARE la PR de
+      # version, l'action changesets crée un commit « Version Packages » sur `changeset-release/main`
+      # ET Y LAISSE `HEAD`. Les deux lectures suivantes le suivent alors : `git show HEAD:` rend une
+      # version qui n'est pas sur `main`, et `git tag` sans argument tague ce commit de branche.
+      #
+      # C'est ce qui a produit deux tags ORPHELINS, pointant sur des commits qu'aucune branche ne
+      # contient : v0.6.0 (2026-07-30) et v0.8.0 (2026-08-18, posé 3 secondes après la création du
+      # commit de bump). Chaque fois, le merge réel a ensuite trouvé le tag déjà présent, conclu
+      # « aucun bump » et SAUTÉ la construction des images — une release à moitié, en silence.
+      #
+      # Un correctif antérieur (3568429) avait remplacé « fichier du disque » par « commit HEAD ».
+      # Il visait le bon symptôme et la mauvaise cause : `HEAD` est précisément ce qui est déplacé.
       - name: Resolve runtime version
         id: runtime
+        env:
+          SHA: ${{ github.sha }}
         run: |
-          VERSION=$(git show HEAD:apps/echoppe-api/package.json | jq -r .version)
+          VERSION=$(git show "$SHA:apps/echoppe-api/package.json" | jq -r .version)
           if [ -n "$(git ls-remote --tags origin "refs/tags/v${VERSION}")" ]; then
             echo "bumped=false" >> "$GITHUB_OUTPUT"
             echo "Runtime v${VERSION} déjà taggé → aucune nouvelle image."
@@ -106,9 +116,10 @@ jobs:
         if: steps.runtime.outputs.bumped == 'true'
         env:
           VERSION: ${{ steps.runtime.outputs.version }}
+          SHA: ${{ github.sha }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git tag "v${VERSION}"
+          git tag "v${VERSION}" "$SHA"
           git push origin "v${VERSION}"
           gh release create "v${VERSION}" --title "v${VERSION}" --verify-tag --latest \
             --notes "Échoppe ${VERSION} — image \`echoppe-api:${VERSION}\` (dashboard inclus, /-/admin)."
