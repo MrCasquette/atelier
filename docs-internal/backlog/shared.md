@@ -342,6 +342,26 @@ circonstancielle plutôt que sur une garde.
   variables et la surface bouge encore (identité/OIDC, stockage média, Redis) ; une garde écrite
   maintenant figerait une nomenclature qu'on est en train de remuer. À reprendre quand la file de
   décisions de configuration sera vidée.
+- [ ] 🟠 **Un module d'environnement par produit — et le guide en dérive.** Mesuré le 2026-08-25 :
+  l'environnement est lu **47 fois, dans 29 fichiers, pour 22 variables**, chacune avec son défaut
+  écrit en ligne. C'est une frontière externe franchie 47 fois, là où l'invariant dit de parser une
+  fois et truster ensuite. Il existe donc **trois** listes — les lectures dispersées, le tableau
+  `checks` d'`env.ts` écrit à la main, et `docs/guide/configuration.md` —, et c'est ça qui crée le
+  travail d'alignement.
+
+  **La sortie n'est pas une garde, c'est une source unique.** Un module par produit qui déclare
+  chaque variable (nom, défaut, requise ou non) ; le guide et `env.ts` en dérivent. Le dépôt sait
+  déjà faire ce geste : `contracts.ts` génère le SDK depuis les routes, `contracts:check` échoue si
+  le committé diverge — générer et vérifier, pas surveiller.
+
+  **À ne pas anticiper** : tant que la surface bouge (identité/OIDC, média, Redis), ça figerait une
+  nomenclature qu'on remue. À reprendre quand la file de décisions de configuration sera vidée — et
+  ça absorbera la garde de découverte des variables, plus haut dans ce fichier.
+
+  *Piège connu* : toute mécanique qui lira le code devra **parser, pas grepper**. La sonde de mesure
+  a pris un commentaire pour une lecture — exactement ce qui avait fait échouer `product-isolation`
+  sur un commentaire citant l'autre produit.
+
 - [ ] 🟡 **Brancher `registry-gap` en fin de workflow `Release`.** La commande existe et se lance à
   la main (`bun run registry-gap`) ; elle vérifie que toute version committée est bien servie par
   son registre — npm pour les paquets, GHCR pour les images. Reste à en faire un job final de

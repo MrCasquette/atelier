@@ -1,7 +1,12 @@
 # Configuration
 
-Cette page est la **référence des variables d'environnement** réellement lues par Échoppe. Elle
-suit le code : une variable qui n'y figure pas n'a aucun effet.
+Cette page recense les variables d'environnement lues par Échoppe.
+
+::: warning Avant la 1.0, elle n'est pas un inventaire garanti
+Elle couvre ce qui est stable, et elle est tenue à la main — la surface bouge encore (identité,
+stockage média, Redis). Une variable absente d'ici peut donc exister ; ce sont les fichiers
+`.env.<produit>` du dépôt qui font foi pour le développement, parce qu'ils sont lus à l'exécution.
+:::
 
 Selon ce que vous faites, votre point de départ diffère :
 
@@ -63,6 +68,7 @@ Cela vaut pour un **hébergement**. En développement, `bun run dev echoppe` la 
 | `ADMIN_URL` | Où joindre le dashboard — liens d'invitation, redirections autorisées | `http://localhost:8100/-/admin` |
 | `STORE_URL` | Origine de la boutique, pour le CORS et les liens absolus des e-mails | `http://localhost:3100` |
 | `PUBLIC_API_URL` | Origine de l'API, lue par le front et par la CLI de contenu | — |
+| `API_URL` | Repli de `PUBLIC_API_URL` pour la seule CLI de contenu, quand la variable publique n'est pas posée | — |
 
 ## Fonctionnement
 
