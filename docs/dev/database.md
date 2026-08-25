@@ -48,19 +48,19 @@ role ─────── role_permission (N:M) ── permission
 
 ```bash
 # Appliquer le schéma (dev)
-bun run db:push --force
+bun run db echoppe push
 
 # Générer une migration
-bun run db:generate
+bun run db echoppe generate
 
-# Appliquer les migrations (prod)
-bun run db:migrate
+# Appliquer les migrations
+bun run db echoppe migrate
 
 # Interface graphique
-bun run db:studio
+bun run db echoppe studio
 
 # Seed des données de test
-bun run db:seed
+bun run db echoppe seed
 ```
 
 ## Utilisation
@@ -118,29 +118,29 @@ await db.transaction(async (tx) => {
 
 ## Migrations
 
-En production, ce sont les **migrations versionnées** qui font foi, pas `db:push`.
+En production, ce sont les **migrations versionnées** qui font foi, pas `push`.
 L'image `api` embarque le dossier `drizzle/` et **applique les migrations au
 démarrage** (`RUN_MIGRATIONS=1`) : le selfhoster n'a rien à lancer. Côté framework,
 après un changement de schéma :
 
 ```bash
 # Générer une migration après modification du schéma
-bun run db:generate
+bun run db echoppe generate
 
 # Appliquer les migrations
-bun run db:migrate
+bun run db echoppe migrate
 ```
 
 Les fichiers de migration sont dans `packages/echoppe-core/drizzle/`.
 
-::: danger `db:push` ≠ `db:generate` — piège de dérive
-`db:push` applique le schéma en dev **sans créer de fichier de migration**. L'image
+::: danger `push` ≠ `generate` — piège de dérive
+`push` applique le schéma en dev **sans créer de fichier de migration**. L'image
 publiée n'embarque que les migrations : un schéma poussé par `push` seul est **absent
 de l'image** → 500 au runtime pour toute boutique (base fraîche ou upgradée).
 
-**Règle** : après toute modif de `src/db/schema/`, lancer `db:generate` et committer
-le `.sql` + le `meta/*_snapshot.json`. Un second `db:generate` doit afficher
-« No schema changes ». Réserver `db:push` au prototypage local jetable.
+**Règle** : après toute modif de `src/db/schema/`, lancer `db echoppe generate` et committer
+le `.sql` + le `meta/*_snapshot.json`. Un second `db echoppe generate` doit afficher
+« No schema changes ». Réserver `push` au prototypage local jetable.
 
 Détail complet du process : [Publier une version](/dev/releasing).
 :::

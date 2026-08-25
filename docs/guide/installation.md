@@ -169,39 +169,40 @@ bun install
 # 3. Le seul secret requis (les défauts sont déjà versionnés dans .env.echoppe)
 echo "ENCRYPTION_KEY=$(openssl rand -base64 32)" >> .env.echoppe.local
 
-# 4. Lancer PostgreSQL (compose de dev : Postgres exposé sur 5432)
-docker compose up -d postgres
-
-# 5. Initialiser la base de données
-bun run db:push --force
-bun run db:seed
-
-# 6. Lancer en développement
-bun run dev
+# 4. Lancer — la pile Postgres/Redis, les migrations, le seed, puis les surfaces
+bun run dev echoppe
 ```
 
 **Login dev :** `admin@echoppe.dev` / `admin123`
 
 ### Commandes utiles
 
+Le dépôt héberge deux produits frères, et aucun n'est tacite : **ce qui exécute un produit le
+nomme**. Sans produit, la commande refuse et liste ceux qu'elle a découverts.
+
 ```bash
 # Développement
-bun run dev              # Lancer tous les services
-bun run dev:api          # API seule
-bun run dev:admin        # Admin seul
-bun run dev:store        # Exemple Astro seul
+bun run dev echoppe          # Tout : pile, migrations, données de dev, surfaces
+bun run dev echoppe api      # Une surface seule — la base monte quand même
+bun run dev echoppe admin
+bun run dev echoppe store
 
 # Base de données
-bun run db:push --force  # Appliquer le schéma (itération dev)
-bun run db:generate      # Générer une migration SQL après un changement de schéma
-bun run db:seed          # Données de test
-bun run db:studio        # Interface Drizzle Studio
+bun run db echoppe push      # Appliquer le schéma (itération dev)
+bun run db echoppe generate  # Générer une migration SQL après un changement de schéma
+bun run db echoppe seed      # Données de test
+bun run db echoppe studio    # Interface Drizzle Studio
+
+# Infrastructure — passe la main à `docker compose`, dans infra/echoppe/
+bun run infra echoppe ps
+bun run infra echoppe down
 ```
 
 ::: info Migrations
-En dev on itère avec `db:push`. Quand un changement de schéma est prêt,
-`bun run db:generate` crée la migration SQL versionnée (à **committer**) : l'image
-`api` l'applique automatiquement au démarrage chez les selfhosters.
+En dev on itère avec `db <produit> push`, qui ne fait **jamais** partie de `dev` : sur une base qui
+porte des entités, il détruit leurs tables. Quand un changement de schéma est prêt,
+`bun run db echoppe generate` crée la migration SQL versionnée (à **committer**) : l'image `api`
+l'applique automatiquement au démarrage chez les selfhosters.
 :::
 
 ## Structure du projet

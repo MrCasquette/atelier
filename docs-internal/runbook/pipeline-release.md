@@ -79,8 +79,8 @@ publiée**, jamais `db:push` (dev only). Cf. [`release-runbook.md`](./release-ru
 | `bun run contracts` | régénère le SDK figé depuis l'app pure offline (remplace le boot `:8101` manuel) |
 | `bun run contracts:check` | idem + échoue si les types divergent des routes (garde CI) |
 | `bun run ship <unité> <niveau> "msg"` | cut une release d'une unité (runtime/sdk/content/cli) → changeset + push `main` (interactif sans args) |
-| `bun run test:image` | rejoue le gate T2–T5 en local |
-| `bun run test:api` | l'API assemblée contre un Postgres jetable |
+| `bun run integration echoppe image` | rejoue le gate T2–T5 en local |
+| `bun run integration echoppe api` | l'API assemblée contre un Postgres jetable |
 
 ## Le premier paquet d'un nom ne se publie jamais par la CI
 

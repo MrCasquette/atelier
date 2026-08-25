@@ -75,8 +75,8 @@ if (!session) return error(401, { message: 'Non authentifié' });
 ## Commandes
 
 ```bash
-bun run dev:api      # Lance l'API seule (port 8000)
-bun run dev          # Lance API + Admin
+bun run dev echoppe api    # l'API seule (:8101) — la pile et la base montent quand même
+bun run dev echoppe        # toutes les surfaces d'Échoppe
 ```
 
 ## Endpoints

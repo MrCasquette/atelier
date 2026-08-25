@@ -9,7 +9,7 @@ import { boolean, jsonb, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core
 // les fichiers de migration, et c'est assumé — le cœur est le framework, les entités sont le
 // contenu de l'utilisateur. On ne garde pas sous CI ce qui varie par installation.
 //
-// ⚠️ `bun run db:push` compare le schéma Drizzle à la base VIVE : il proposerait de supprimer les
+// ⚠️ `bun run db <produit> push` compare le schéma Drizzle à la base VIVE : il proposerait de supprimer les
 // tables d'entités, qu'il ne connaît pas. `db:generate` + `db:migrate`, qui ne lisent que les
 // fichiers, n'ont pas ce défaut. Cf. docs-internal/architecture/entites.md.
 export const entityDefinition = pgTable('entity_definition', {

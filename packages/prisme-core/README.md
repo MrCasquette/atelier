@@ -35,13 +35,14 @@ Ce fichier est ce qui rend la distinction **opérante** : sans lui, une commande
 n'aurait aucun `DATABASE_URL` et refuserait de démarrer, au lieu de viser silencieusement celle
 d'Échoppe et de proposer d'en supprimer toutes les tables du commerce.
 
-> `docker compose up -d` ne provisionne que la base d'Échoppe. Celle de Prisme se crée une fois :
-> `docker compose exec postgres psql -U echoppe -c 'CREATE DATABASE prisme'`.
+> Prisme monte **sa** pile — `infra/prisme/compose.yaml`, projet « prisme », Postgres publié sur
+> `5433` ([ADR-0066](../../docs-internal/adr/ADR-0066-ce-qui-execute-nomme-son-produit.md)). Rien à
+> créer à la main : `bun run dev prisme` monte la pile, attend son healthcheck et migre.
 
 ## Commandes
 
 ```bash
-bun run --cwd packages/prisme-core db:generate   # migration à partir du manifeste (hors-ligne)
-bun run --cwd packages/prisme-core db:migrate    # appliquer
-bun run --cwd packages/prisme-core db:studio     # explorer
+bun run db prisme generate   # migration à partir du manifeste (hors-ligne)
+bun run db prisme migrate    # appliquer
+bun run db prisme studio     # explorer
 ```

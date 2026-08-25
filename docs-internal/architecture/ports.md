@@ -20,12 +20,20 @@ aujourd'hui : `1` pour le serveur Vite du dashboard.
 | Pile | Échoppe | Prisme | Où le rang est écrit |
 |------|---------|--------|----------------------|
 | API — le produit | `8100` | `8200` | `Dockerfile` (interne), `src/index.ts`, template `create-echoppe` |
-| API — `bun run dev` | `8101` | `8201` | `apps/echoppe-api/package.json` |
-| API — l'image publiée | `8102` | `8202` | `compose.yaml`, profil `release` |
+| API — `bun run dev <produit>` | `8101` | `8201` | `apps/<produit>-api/package.json` |
+| API — l'image publiée | `8102` | `8202` | **réservé**, plus aucun service (cf. plus bas) |
 | API — le gate d'intégration | `8103` | — | `apps/echoppe-api/scripts/test-image.ts` |
 | Vitrine du dépôt | `3100` | `3200` | `apps/echoppe-store/astro.config.mjs` |
 | Dashboard, serveur Vite | `3110` | `3210` | `apps/echoppe-admin/vite.config.ts` |
-| PostgreSQL · Redis | `5432` · `6379` | idem | `compose.yaml` |
+| PostgreSQL — publié sur l'hôte | `5432` | `5433` | `infra/<produit>/compose.yaml` |
+| Redis — publié sur l'hôte | `6379` | — | `infra/echoppe/compose.yaml` |
+
+**Les ports d'infrastructure ne suivent pas la grille, et c'est la règle qui s'applique, pas une
+exception.** Le produit ne possède que le port INTERNE ; le mapping vers l'hôte appartient à
+l'instance. Le port interne de Postgres est `5432` — celui de Postgres, pas le nôtre —, il n'y a donc
+aucun produit à y encoder. `5433` ne veut rien dire d'autre que « pas 5432 ». Inventer un
+`5100 / 5200` casserait les défauts de `psql`, de Drizzle Studio et de tout client SQL pour porter
+une information qui n'appartient à personne ([ADR-0066](../adr/ADR-0066-ce-qui-execute-nomme-son-produit.md)).
 
 Deux ports vivent hors grille, délibérément : `8109` pour `serve-contract` lancé à la main — il ne
 doit viser aucun rang, sinon il meurt en silence sur un rang occupé et le contrat se régénère depuis
@@ -41,8 +49,8 @@ et de son healthcheck. Il ne se négocie pas, ne se configure pas, et ne change 
 l'autre. Seul le mapping vers l'hôte varie.
 
 **Les rangs sont des littéraux, pas de la configuration.** Aucun `.env` ne les porte, aucun script
-ne les alloue. Les trois piles d'Échoppe — une boutique, `bun run dev`, l'image publiée — cohabitent
-par construction, sans rien à renseigner.
+ne les alloue. Les trois piles d'Échoppe — une boutique, `bun run dev echoppe`, l'image publiée —
+cohabitent par construction, sans rien à renseigner.
 
 **`API_PORT` reste la variable de l'exploitant.** La renseigner déplace le mapping publié, jamais le
 port interne. C'est la seule qu'un hébergeur ait à connaître.
@@ -54,10 +62,16 @@ suffit.
 
 ## La pile du dépôt
 
+Une pile par produit, sous `infra/<produit>/`, et le dossier donne son nom au projet Compose —
+`echoppe` et `prisme`, sans qu'aucun `name:` soit déclaré.
+
 ```bash
-docker compose up -d   # PostgreSQL + Redis — l'infra de `bun run dev`
-bun run dev            # API :8101 · dashboard :3110 · vitrine :3100
+bun run dev echoppe    # la pile, les migrations, le seed, puis :8101 · :3110 · :3100
+bun run dev prisme     # la pile, les migrations, puis :8201
+bun run infra echoppe down
 ```
+
+`dev` monte la pile en détaché : elle survit à la session, et `Ctrl-C` n'arrête que les surfaces.
 
 Le rang `2` (`:8102`) reste **réservé** à une image publiée qu'on inspecte à la main, mais aucun
 service ne l'occupe plus : le profil `release` a été retiré le 2026-08-25. Il annonçait prouver

@@ -118,6 +118,6 @@ await api.products({ id: '123' }).delete();
 ## Commandes
 
 ```bash
-bun run dev:admin    # Lance le dashboard seul (port 3000)
-bun run dev          # Lance API + Admin
+bun run dev echoppe admin    # le dashboard seul (:3110) — la pile et la base montent quand même
+bun run dev echoppe          # toutes les surfaces d'Échoppe
 ```

@@ -317,8 +317,8 @@ occurrences déclenchent la factorisation, pas l'anticipation).
 
 ## Tests
 
-Filet **lean anti-régression** (esprit CI/CD, sans gonfler la CI) : `bun test` intégré. Smoke API via
-`bun run test:api` sur **base Postgres jetable éphémère** (conteneur sur port libre,
+Filet **lean anti-régression** (esprit CI/CD, sans gonfler la CI) : `bun test` intégré. Suite d'intégration via
+`bun run integration echoppe api` sur **base Postgres jetable éphémère** (conteneur sur port libre,
 **jamais** la base dev ni `dpc-*`/5432). Les routes auth-gated se testent **sans Redis** en injectant
 user+rôle+session Postgres et le cookie `echoppe_admin_session` (owner bypass). Chaque capacité ajoute
 1–2 assertions ciblées (contrat + comportement clé), rien de plus.

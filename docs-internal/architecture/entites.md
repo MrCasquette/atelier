@@ -176,12 +176,15 @@ le prix assumé de la condition sine qua non d'ADR-0028, et il se paie ici :
 
 | Commande | Comportement |
 |---|---|
-| `db:generate` / `db:migrate` | ✅ ne lisent que les fichiers, ignorent les tables d'entités |
+| `db <produit> generate` / `db <produit> migrate` | ✅ ne lisent que les fichiers, ignorent les tables d'entités |
 | `contracts:check`, drift guard CI | ✅ sans objet — les tables d'entités ne sont dans aucun schéma Drizzle |
-| **`db:push`** | ⚠️ compare le schéma Drizzle à la base **vive** : il proposera de **supprimer** les tables d'entités |
+| **`db <produit> push`** | ⚠️ compare le schéma Drizzle à la base **vive** : il proposera de **supprimer** les tables d'entités |
 
-En développement, `bun run db:push --force` sur une base qui porte des entités **détruit leurs
-tables**. Utilisez `db:generate` puis `db:migrate`, ou repoussez vos entités après coup.
+En développement, `bun run db <produit> push` sur une base qui porte des entités **détruit leurs
+tables**. Utilisez `db <produit> generate` puis `db <produit> migrate`, ou repoussez vos entités
+après coup. C'est pour cette raison que `push` est le seul verbe que `bun run dev <produit>` ne joue
+jamais ([ADR-0066](../adr/ADR-0066-ce-qui-execute-nomme-son-produit.md)) : celui qui édite un schéma
+l'appelle sciemment.
 
 ## Où vit quoi
 

@@ -142,31 +142,33 @@ bun install
 #    Seul secret requis : l'API refuse de démarrer sans ENCRYPTION_KEY.
 echo "ENCRYPTION_KEY=$(openssl rand -base64 32)" >> .env.echoppe.local
 
-# 3. Lancer PostgreSQL + Redis
-docker compose up -d
-
-# 4. Initialiser la DB
-bun run db:push
-bun run db:seed
-
-# 5. Lancer le dev
-bun run dev
+# 3. Lancer — la pile, les migrations, les données de dev, puis les surfaces
+bun run dev echoppe
 ```
 
 **Login dev :** `admin@echoppe.dev` / `admin123`
 
-### Scripts
+### Les commandes
+
+Ce qui **exécute** un produit le nomme ; ce qui **vérifie** le dépôt n'en nomme aucun
+([ADR-0066](docs-internal/adr/ADR-0066-ce-qui-execute-nomme-son-produit.md)). Le dépôt héberge deux
+produits frères, et il n'y en a pas de tacite.
 
 | Commande | Description |
 |----------|-------------|
-| `bun run dev` | Lance API + Dashboard + exemple Astro |
-| `bun run db:push` | Push schema vers DB (itération dev) |
-| `bun run db:generate` | Génère une migration SQL après un changement de `schema/` |
-| `bun run db:seed` | Seed données de base |
-| `bun run db:studio` | Interface Drizzle Studio |
+| `bun run dev <produit>` | La pile, les migrations, le seed, puis toutes les surfaces |
+| `bun run dev <produit> api` | Une surface seule — la pile et la base montent quand même |
+| `bun run db <produit> <verbe>` | `generate`, `migrate`, `push`, `seed`, `studio` selon le produit |
+| `bun run infra <produit> <…>` | Passe la main à `docker compose`, dans `infra/<produit>/` |
+| `bun run integration <produit> <suite>` | `api` (Postgres jetable) ou `image` (l'artefact publié) |
+| `bun run lint` · `type-check` · `test` | Sans produit : ils vérifient le dépôt entier |
 
-> **Migrations** : en dev on itère avec `db:push`. Quand un changement de schéma est
-> prêt, `bun run db:generate` crée la migration SQL versionnée (à **committer**) —
+Sans produit, ces commandes **refusent et listent** ce que le dépôt connaît. Elles le découvrent —
+aucune liste de produits n'est écrite nulle part.
+
+> **Migrations** : en dev on itère avec `bun run db <produit> push`, qui ne fait jamais partie de
+> `dev` — sur une base qui porte des entités, il détruit leurs tables. Quand un changement de schéma
+> est prêt, `bun run db <produit> generate` crée la migration SQL versionnée (à **committer**) —
 > l'image `api` l'applique automatiquement au démarrage chez les selfhosters.
 
 ## Structure

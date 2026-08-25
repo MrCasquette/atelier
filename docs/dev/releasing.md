@@ -13,11 +13,11 @@ Le tag `v*` peut aussi être poussé à la main (échappatoire re-cut d'images),
 
 La règle d'or : **une release n'est bonne que si une base vierge, migrée depuis
 l'image publiée, répond `200` sur les routes clés.** Ce qui marche en dev via
-`db:push` ne prouve rien pour l'utilisateur.
+`db <produit> push` ne prouve rien pour l'utilisateur.
 
 ## Invariant migrations (à ne jamais enfreindre)
 
-En dev, `db:push` applique le schéma **sans produire de fichier de migration**.
+En dev, `db <produit> push` applique le schéma **sans produire de fichier de migration**.
 L'image de prod, elle, n'embarque que les **migrations versionnées** (`packages/echoppe-core/drizzle/`)
 et les applique au boot. Un schéma modifié en dev par `push` seul est donc **absent
 de l'image** → 500 au runtime pour toute boutique.
@@ -25,19 +25,19 @@ de l'image** → 500 au runtime pour toute boutique.
 **Après tout changement de `packages/echoppe-core/src/db/schema/` :**
 
 ```bash
-bun run db:generate   # produit la migration DDL manquante
+bun run db echoppe generate   # produit la migration DDL manquante
 ```
 
 Puis **committer** le `.sql` généré + le `meta/*_snapshot.json` + `_journal.json`.
 Vérifier qu'il ne reste **aucune dérive** :
 
 ```bash
-bun run db:generate   # doit afficher « No schema changes, nothing to migrate »
+bun run db echoppe generate   # doit afficher « No schema changes, nothing to migrate »
 ```
 
 ### Données de référence (≠ seed démo)
 
-Le `db:seed` est **exclusif au dev** (jeu de démo complet). Une donnée dont la
+Le `db echoppe seed` est **exclusif au dev** (jeu de démo complet). Une donnée dont la
 **prod a besoin** (ex. un pays de livraison par défaut) ne doit **pas** dépendre du
 seed : elle s'ajoute en **migration idempotente**, appendée au `.sql` généré :
 
@@ -50,10 +50,14 @@ ON CONFLICT ("code") DO NOTHING;
 
 ## Validation en deux temps
 
-| Étape | Fichier compose | Prouve |
-|-------|-----------------|--------|
-| **Pré-publication** (sources) | `bun run test:integration` | Le working tree migre et boot correctement |
-| **Post-publication** (artefact) | `compose.yaml` (`VERSION=x.y.z`) | L'**image publiée** boot en base vierge |
+| Étape | Commande | Prouve |
+|-------|----------|--------|
+| **Pré-publication** (sources) | `bun run integration echoppe api` | Le working tree migre et boot correctement |
+| **Post-publication** (artefact) | `bun run integration echoppe image` | L'**image publiée** boot en base vierge (T2–T5) |
+
+Il n'y a plus de profil Compose pour la seconde ligne : il pointait la base du poste, donc une base
+déjà migrée. C'est `integration echoppe image` qui provisionne son propre Postgres éphémère, et lui
+seul prouve ce que cette ligne annonce.
 
 Boucle serrée pré-commit (sans stack complet) : un Postgres jetable + migrate.
 
@@ -61,7 +65,7 @@ Boucle serrée pré-commit (sans stack complet) : un Postgres jetable + migrate.
 docker run -d --name mig-check -e POSTGRES_USER=echoppe -e POSTGRES_PASSWORD=echoppe \
   -e POSTGRES_DB=echoppe -p 5433:5432 postgres:17-alpine
 DATABASE_URL="postgresql://echoppe:echoppe@localhost:5433/echoppe" \
-  bun run --cwd packages/echoppe-core db:migrate       # 0000→N sans erreur
+  bun run db echoppe migrate                           # 0000→N sans erreur
 docker rm -f mig-check
 ```
 
@@ -96,7 +100,7 @@ La CI **bloque la publication d'image** si les tests échouent :
   **upgrade depuis `:latest`** (T3), **parité contrat** (T4), **idempotence** (T5). Aucune image ne
   part si un test casse.
 
-Pour reproduire le gate en local : `bun run --cwd apps/echoppe-api test:integration`.
+Pour reproduire le gate en local : `bun run integration echoppe image`.
 
 ## Raccourci : `bun run ship`
 
@@ -116,10 +120,10 @@ avant ; le changeset est le seul ajout embarqué). En 0.x, un **changement cassa
 
 ## Checklist de release
 
-- [ ] Schéma changé → `db:generate` + migration committée (**jamais** `push` en prod).
-- [ ] Donnée requise en prod → seed **idempotent** dans une migration (pas le `db:seed`).
-- [ ] `db:generate` de contrôle → « No schema changes » (aucune dérive résiduelle).
-- [ ] Gate d'intégration vert (`test:integration`) — ou laisser la CI le jouer.
+- [ ] Schéma changé → `db echoppe generate` + migration committée (**jamais** `push` en prod).
+- [ ] Donnée requise en prod → seed **idempotent** dans une migration (pas le `db echoppe seed`).
+- [ ] `db echoppe generate` de contrôle → « No schema changes » (aucune dérive résiduelle).
+- [ ] Gate d'intégration vert (`integration echoppe image`) — ou laisser la CI le jouer.
 - [ ] SDK régénéré (`bun run contracts`), `type-check` + `build` verts.
 - [ ] Changeset ajouté pour la bonne **unité** (`bun run ship <unité> <niveau>`).
 - [ ] Push `main` → ouvre la PR « Version Packages ».

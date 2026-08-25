@@ -74,18 +74,28 @@ compte des dizaines d'ADR en français, et les traduire n'apporterait rien.
 
 ## Commandes réelles
 
+**Ce qui exécute un produit le nomme ; ce qui vérifie le dépôt n'en nomme aucun**
+([ADR-0066](docs-internal/adr/ADR-0066-ce-qui-execute-nomme-son-produit.md)). Quatre dispatchers
+d'un côté, les vérifications de l'autre. Sans produit, un dispatcher refuse et liste — il découvre
+les produits, les surfaces et les verbes, il ne les énumère pas.
+
 ```bash
-bun run dev              # API + admin + vitrine (Échoppe)
+# Ce qui exécute — le produit est obligatoire
+bun run dev echoppe                  # pile + migrations + seed + toutes les surfaces
+bun run dev echoppe api              # une surface seule, la base monte quand même
+bun run db prisme migrate            # generate · migrate · push · seed · studio, selon le produit
+bun run infra echoppe down           # passe la main à `docker compose`, dans infra/echoppe/
+bun run integration echoppe image    # api (Postgres jetable) · image (l'artefact publié)
+
+# Ce qui vérifie — sans produit, jamais
 bun run lint             # eslint
 bun run type-check       # tsc --noEmit sur tous les workspaces
 bun run test             # tous les workspaces
-bun run test:api         # tests de l'API
-bun run test:image       # l'image publiée, bootée en base vierge
-
-bun run db:push          # pousser le schéma
-bun run db:seed          # données de dev (crée admin@echoppe.dev / admin123)
-bun run db:studio        # Drizzle Studio
 ```
+
+`db <produit> push` ne fait **jamais** partie de `dev` : sur une base qui porte des entités, il
+détruit leurs tables ([architecture/entites](docs-internal/architecture/entites.md)). Celui qui
+édite un schéma l'appelle sciemment.
 
 Le runtime est **Bun**, jamais Node ni npm. Un `.env` **n'est pas hérité** : Bun ne lit que le cwd,
 donc tout script de sous-paquet énumère ses fichiers. Il en lit **deux**, par produit
