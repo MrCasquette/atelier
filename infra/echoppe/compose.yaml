@@ -1,19 +1,25 @@
 # Échoppe — pile locale du DÉPÔT. Ce fichier n'est pas une production et n'est livré à personne :
 # une boutique reçoit son propre `compose.yaml`, scaffoldé par `create-echoppe`.
 #
-#   docker compose up -d     PostgreSQL + Redis — l'infra de `bun run dev`, et rien d'autre.
+#   bun run infra echoppe up     ou, depuis ce dossier, `docker compose up -d`.
+#
+# Le dossier fait le nom du projet — Compose le déduit du répertoire qui contient ce fichier, donc
+# « echoppe », et les volumes deviennent `echoppe_data` / `echoppe_redis`. Rien à déclarer : pas de
+# `name:` à tenir cohérent avec un chemin, et Prisme monte la sienne sous `infra/prisme/` sans
+# qu'aucune des deux ne connaisse l'autre (ADR-0066).
 #
 # Il n'y a plus de profil `release`. Il prétendait prouver que l'image publiée boote en base vierge
 # (ADR-0004 §2) ; il pointait en réalité CE postgres et CETTE base `echoppe`, avec son volume et son
-# état — donc une base déjà migrée par les `db:push` du poste. Il ne prouvait pas ce qu'il annonçait,
+# état — donc une base déjà migrée par les `db push` du poste. Il ne prouvait pas ce qu'il annonçait,
 # et aucun runbook ne demandait de la vider d'abord.
 #
 # La preuve existe et vit ailleurs : `apps/echoppe-api/scripts/test-image.ts` provisionne son propre
 # Postgres éphémère et joue T2 (base vierge), T3 (montée depuis `:latest`), T4 (parité du contrat),
 # T5 (idempotence des seeds). Elle tourne à chaque publication, en CI, comme gate — pas à la main.
 #
-# Pour regarder tourner une image publiée : `docker run` ponctuel, ou `test:image` avec
-# INTEGRATION_IMAGE. Pas un service permanent dans la pile de développement.
+# Les identifiants sont écrits en clair, sans variable : ce sont des défauts de développement sans
+# valeur ailleurs, et ils doivent rester cohérents avec le `DATABASE_URL` de `.env.echoppe`, qui les
+# écrit de la même façon. Une variable ici n'ajouterait qu'un second endroit où ils peuvent diverger.
 #
 # Aucun `container_name` : Compose préfixe par le nom du projet, donc cette pile cohabite avec une
 # boutique et avec toute autre pile de la machine.
@@ -24,12 +30,12 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: echoppe
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-echoppe}
+      POSTGRES_PASSWORD: echoppe
       POSTGRES_DB: echoppe
     ports:
       - '5432:5432'
     volumes:
-      - echoppe-data:/var/lib/postgresql/data
+      - data:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U echoppe -d echoppe']
       interval: 5s
@@ -42,7 +48,7 @@ services:
     ports:
       - '6379:6379'
     volumes:
-      - echoppe-redis:/data
+      - redis:/data
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
@@ -50,5 +56,5 @@ services:
       retries: 5
 
 volumes:
-  echoppe-data:
-  echoppe-redis:
+  data:
+  redis:

@@ -22,7 +22,9 @@ yarn.lock
 # Ce qui est propre à la MACHINE (ADR-0065). Les défauts de développement, eux, sont versionnés :
 # `.env.echoppe` et `.env.prisme` sont suivis par git et ne portent aucun secret.
 #
-# `.env` reste ignoré : c'est le fichier du poste, lu par Docker Compose seul.
+# `.env` n'a plus de lecteur depuis ADR-0066 — aucun script Bun ne le lit, et Compose charge celui
+# du répertoire de SON projet, `infra/<produit>/`. La règle reste, pour qu'un fichier recréé par
+# habitude n'entre jamais dans l'historique.
 .env
 .env.local
 # Les surcharges de poste, un `.local` par produit. `.env.*.local` les couvre toutes, y compris

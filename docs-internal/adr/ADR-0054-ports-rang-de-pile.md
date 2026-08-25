@@ -103,6 +103,10 @@ Le `compose.yaml` racine porte donc les deux moitiés, séparées par un profil 
 - `docker compose up -d` — PostgreSQL et Redis. L'infra du poste de travail, rien d'autre.
 - `docker compose --profile release up -d` — ajoute l'image publiée, sur le rang `2`.
 
+*(Amendé le 2026-08-25 : ce profil pointait la base du poste, pas une base vierge — il est retiré,
+et le `compose.yaml` racine se scinde en une pile par produit sous `infra/<produit>/` ; cf.
+[ADR-0066](./ADR-0066-ce-qui-execute-nomme-son-produit.md).)*
+
 Ce fichier n'est **pas** une production et cesse de le prétendre : le consommateur reçoit
 `packages/create-echoppe/template/compose.yaml`, recopié tel quel par la CLI.
 

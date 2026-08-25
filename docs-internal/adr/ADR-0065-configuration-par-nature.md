@@ -43,9 +43,12 @@ ADR-0055 avait un seul axe, le **public**. Il en manquait deux, qui n'existaient
 | `bun run dev` — Échoppe depuis les sources, rang 1 | `DATABASE_URL`, `ENCRYPTION_KEY`, `REDIS_URL`, `ADMIN_URL`, `STORE_URL` | **un produit sur ce poste** |
 | `bun run dev:prisme` — Prisme depuis les sources, rang 1 | `DATABASE_URL` | **un produit sur ce poste** |
 | `db:*` de chaque cœur | le `DATABASE_URL` de SON produit | **un produit sur ce poste** |
-| `docker compose --profile release up -d` — l'image publiée, rang 2 | `VERSION`, `API_PORT`, `ENCRYPTION_KEY`, `ADMIN_URL`, `STORE_URL` | **un produit sur ce poste** |
 | les harnais (`test:api`, `test:image`, `contracts`) | `TEST_DATABASE_URL`, `DISPOSABLE_DB`, `INTEGRATION_IMAGE`… | ni l'un ni l'autre — **le script les pose** |
 | une boutique créée par `create-echoppe` | `COMPOSE_PROJECT_NAME`, `PUBLIC_API_URL`, `CONTENT_API_KEY`… | **une instance livrée** |
+
+*(Amendé le 2026-08-25 : le profil `release` est retiré, et les noms de commandes de ce tableau
+ont changé — `dev echoppe`, `db prisme migrate`. Ce qui tient, et qui est le propos de cet ADR,
+c'est la NATURE de ce que chacune lit ; cf. [ADR-0066](./ADR-0066-ce-qui-execute-nomme-son-produit.md).)*
 
 Trois natures en sortent, et elles ne se recouvrent pas :
 

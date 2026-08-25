@@ -1,0 +1,40 @@
+# Prisme — pile locale du DÉPÔT. Comme celle d'Échoppe, ce n'est pas une production : un site reçoit
+# son propre `compose.yaml`, scaffoldé par `create-prisme`.
+#
+#   bun run infra prisme up      ou, depuis ce dossier, `docker compose up -d`.
+#
+# Le dossier fait le nom du projet — « prisme », volumes `prisme_data`. Aucune des deux piles ne
+# connaît l'autre : deux produits frères, deux bases, deux historiques de migration (ADR-0066).
+#
+# Pas de Redis. Prisme n'en consomme aucun aujourd'hui, et l'ajouter « par symétrie » figerait un
+# choix que personne n'a fait — ce qu'un cache ou un rate-limit exigent est un sujet ouvert, qui
+# sortira par un ADR, pour les deux produits à la fois.
+#
+# Le port publié est `5433`, et il ne veut rien dire d'autre que « pas 5432 » : le produit ne possède
+# que le port INTERNE, le mapping vers l'hôte appartient à l'instance (ADR-0054). Le port interne
+# reste celui de Postgres, comme partout ailleurs.
+#
+# Identifiants en clair, sans variable, pour la même raison que chez Échoppe : ils doivent rester
+# cohérents avec le `DATABASE_URL` de `.env.prisme`, et une variable n'ajouterait qu'une divergence
+# possible de plus.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: prisme
+      POSTGRES_PASSWORD: prisme
+      POSTGRES_DB: prisme
+    ports:
+      - '5433:5432'
+    volumes:
+      - data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U prisme -d prisme']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  data:
