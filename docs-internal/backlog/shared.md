@@ -104,6 +104,29 @@ migration pour elle installerait l'idée inverse, qu'elle compte. `dpc_*` n'est 
   renommer ». C'est le lot de tout produit qui dure, et ça ne se règle pas au moment où ça arrive.
   À instruire avant la `1.0`, avec la sauvegarde ([runbook](../runbook/sauvegarde.md)).
 
+### L'ordre d'exécution
+
+Décidé avec l'ADR. Chaque lot se vérifie avant le suivant ; aucun ne touche de donnée sauf le
+premier, qui la détache volontairement (bascule assumée ci-dessus).
+
+- [ ] 🔴 **Lot 1 — les piles.** `compose.yaml` → `infra/echoppe/compose.yaml` (volumes renommés
+  `data` / `redis`, aucun `name:`), création de `infra/prisme/compose.yaml` (postgres seul, publié
+  sur `5433`). Vérifier : `docker compose config` sur les deux, projets `echoppe` et `prisme`,
+  `docker volume ls` sans `dpc_*` touché, les deux bases joignables.
+- [ ] 🔴 **Lot 2 — le lanceur.** `scripts/run.ts` et ses quatre verbes, `package.json` de 38 à 26
+  scripts. Vérifier : `bun run dev` refuse et liste, `bun run dev echoppe` monte tout sur un dépôt
+  vierge, `bun run dev prisme` aussi, `Ctrl-C` laisse les piles debout, `bun run db prisme seed`
+  refuse en nommant ce qui existe.
+- [ ] 🟠 **Lot 3 — la documentation.** README, `docs/guide/installation.md`,
+  `docs/guide/configuration.md`, `architecture/ports.md`, `AGENTS.md § Commandes réelles`. Aucun
+  `docker compose up -d` à la racine ne doit survivre.
+- [ ] 🟡 **Lot 4 — `COPY --parents`.** Rendre le stage `deps` découvrable, adapter `image-manifests`
+  (dont l'en-tête affirme qu'aucun motif ne préserve l'arborescence — c'est faux depuis). Le stage
+  `source` reste nommé. Vérifier : taille et contenu de l'image comparés avant/après, gate T2–T5.
+
+Hors lots, et à ne pas anticiper : l'image de Prisme. `apps/prisme-admin` est une sonde — il n'y a
+pas de second artefact dont extraire ce qui serait commun.
+
 - [ ] 🔴 **Huitième garde : une table partagée a la même forme dans tous les cœurs.** `drift-guard`
   compare chaque cœur à SES migrations, jamais les cœurs entre eux — vérifié le 2026-08-25 sur son
   code. Or au runtime un produit n'applique que ses propres migrations : la même table partagée a
