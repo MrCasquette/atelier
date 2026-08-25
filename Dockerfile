@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # Échoppe - Monorepo Dockerfile (Optimized)
 # Build target: api — UNE image runtime, qui sert aussi le dashboard sous /-/admin (ADR-0052).
 #
@@ -24,36 +25,16 @@ WORKDIR /app
 # Dependencies stage (all deps for build)
 # ==============================================================================
 FROM base AS deps
-COPY package.json bun.lock ./
-COPY packages/echoppe-core/package.json ./packages/echoppe-core/
-COPY packages/shared/package.json ./packages/shared/
-COPY packages/assets/package.json ./packages/assets/
-COPY packages/auth/package.json ./packages/auth/
-COPY packages/db/package.json ./packages/db/
-COPY packages/adapters/package.json ./packages/adapters/
-COPY packages/identity/package.json ./packages/identity/
-COPY packages/entities/package.json ./packages/entities/
-COPY packages/fields/package.json ./packages/fields/
-COPY packages/pages/package.json ./packages/pages/
-COPY packages/pages-registry/package.json ./packages/pages-registry/
-COPY packages/prose/package.json ./packages/prose/
-COPY packages/menus/package.json ./packages/menus/
-COPY packages/references/package.json ./packages/references/
-COPY packages/communication/package.json ./packages/communication/
-COPY packages/echoppe-client/package.json ./packages/echoppe-client/
-COPY packages/content/package.json ./packages/content/
-COPY packages/create-echoppe/package.json ./packages/create-echoppe/
-# Workspaces d'un AUTRE produit, copiés uniquement parce que `--frozen-lockfile` refuse un
-# lockfile dont un workspace manque. Rien de Prisme n'entre dans l'image ; l'énumération manuelle
-# de ce Dockerfile est ce qui l'y oblige (cf. backlog socle).
-COPY packages/create-prisme/package.json ./packages/create-prisme/
-COPY packages/prisme-core/package.json ./packages/prisme-core/
-COPY apps/prisme-api/package.json ./apps/prisme-api/
-COPY apps/prisme-admin/package.json ./apps/prisme-admin/
-COPY apps/echoppe-api/package.json ./apps/echoppe-api/
-COPY apps/echoppe-admin/package.json ./apps/echoppe-admin/
-COPY apps/echoppe-store/package.json ./apps/echoppe-store/
-COPY docs/package.json ./docs/
+# `--parents` PRÉSERVE l'arborescence de la source : `packages/db/package.json` atterrit dans
+# `./packages/db/`, pas à plat. Sans lui, `COPY packages/*/package.json ./packages/` écrase les
+# manifestes l'un sur l'autre et il n'en reste qu'un — c'est ce qui obligeait à écrire une ligne
+# par workspace, et ce qui a fait échouer une release des semaines après l'oubli de `@repo/fields`.
+#
+# Les motifs ci-dessous sont ceux que `package.json` déclare en `workspaces`, et rien d'autre :
+# `bun install --frozen-lockfile` refuse un lockfile dont un workspace manque, y compris ceux dont
+# rien n'entre dans l'image. Un paquet neuf est donc couvert sans qu'on touche à ce fichier ; un
+# MOTIF neuf ne l'est pas, et c'est `image-manifests` qui le dit.
+COPY --parents package.json bun.lock packages/*/package.json apps/*/package.json docs/package.json ./
 RUN bun install --frozen-lockfile
 
 # ==============================================================================

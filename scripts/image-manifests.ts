@@ -9,19 +9,25 @@
 //
 // `bun install --frozen-lockfile` refuse un lockfile dont un workspace manque — y compris ceux
 // dont RIEN n'entre dans l'image. Le `Dockerfile` doit donc copier le `package.json` de CHAQUE
-// workspace, sans exception, et cette liste est écrite à la main.
+// workspace, sans exception.
 //
-// Elle l'est parce que Docker ne sait pas faire autrement : `COPY packages/*/package.json
-// ./packages/` **aplatit** la destination — les manifestes s'écrasent l'un l'autre et il n'en
-// reste qu'un, le nom du dossier perdu. Aucun motif ne préserve l'arborescence, d'où une ligne
-// par workspace.
+// Il l'a longtemps fait par une ligne PAR workspace, faute de mieux : `COPY packages/*/package.json
+// ./packages/` aplatit la destination, les manifestes s'écrasent l'un l'autre et il n'en reste
+// qu'un. Ce n'est plus vrai — `COPY --parents` préserve l'arborescence (vérifié le 2026-08-25 :
+// Docker 29.4.0, buildx 0.33, `# syntax=docker/dockerfile:1`), et le stage `deps` copie désormais
+// les MOTIFS que `package.json` déclare en `workspaces`.
 //
-// Ce que cette garde empêche : `@repo/fields` a été créé pendant le chantier des entités sans
-// rejoindre le `Dockerfile`. L'image n'étant construite qu'à la publication (`docker-build.yml`,
-// jamais `ci.yml`), la release a échoué des semaines plus tard, sur un dépôt vert.
+// Ce que cette garde vérifie a donc changé de niveau : plus « ce workspace est-il listé ? », mais
+// « ce motif de workspace est-il couvert ? ». Un paquet neuf sous un motif existant n'a plus rien
+// à faire ; un motif neuf — `tools/*` — reste à ajouter, et c'est ce qu'elle dit.
 //
-// Elle DÉCOUVRE les workspaces, elle ne les connaît pas : un nouveau paquet est couvert sans qu'on
-// touche à ce fichier.
+// Ce qu'elle empêchait, et empêche toujours d'un cran plus haut : `@repo/fields` a été créé pendant
+// le chantier des entités sans rejoindre le `Dockerfile`. L'image n'étant construite qu'à la
+// publication (`docker-build.yml`, jamais `ci.yml`), la release a échoué des semaines plus tard,
+// sur un dépôt vert.
+//
+// Elle DÉCOUVRE, elle ne connaît pas : les motifs viennent du manifeste racine, les cibles de build
+// des `--cwd` du Dockerfile.
 
 import { Glob } from 'bun';
 import { readFileSync } from 'node:fs';
@@ -33,16 +39,18 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/** Les répertoires de workspace déclarés par le manifeste racine, découverts par ses motifs. */
-function workspaceDirs(): readonly string[] {
+/** Les motifs de workspace déclarés par le manifeste racine — `packages/*`, `apps/*`, `docs`. */
+function workspacePatterns(): readonly string[] {
   const rootManifest: unknown = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
-  const patterns =
-    isRecord(rootManifest) && Array.isArray(rootManifest.workspaces)
-      ? rootManifest.workspaces.filter((p): p is string => typeof p === 'string')
-      : [];
+  return isRecord(rootManifest) && Array.isArray(rootManifest.workspaces)
+    ? rootManifest.workspaces.filter((p): p is string => typeof p === 'string')
+    : [];
+}
 
+/** Les répertoires de workspace, découverts par ces motifs. */
+function workspaceDirs(): readonly string[] {
   const dirs = new Set<string>();
-  for (const pattern of patterns) {
+  for (const pattern of workspacePatterns()) {
     for (const hit of new Glob(`${pattern}/package.json`).scanSync({ cwd: ROOT, onlyFiles: true })) {
       dirs.add(dirname(hit));
     }
@@ -52,22 +60,35 @@ function workspaceDirs(): readonly string[] {
 
 const dockerfile = readFileSync(join(ROOT, 'Dockerfile'), 'utf8');
 
-// `COPY <chemin>/package.json ./<chemin>/` — on ne lit que la SOURCE, la destination n'ayant
-// d'intérêt que pour Docker.
-const copied = new Set<string>();
+// Toutes les SOURCES des `COPY` du contexte de build — la destination n'a d'intérêt que pour
+// Docker, et `--from=<stage>` copie depuis une étape, pas depuis le dépôt.
+const contextSources = new Set<string>();
 for (const line of dockerfile.split('\n')) {
-  const match = line.match(/^\s*COPY\s+(?:--\S+\s+)*(\S+)\/package\.json\s/);
-  if (match?.[1]) copied.add(match[1]);
+  const copy = line.match(/^\s*COPY\s+((?:--\S+\s+)*)(.+)$/);
+  if (copy === null || copy[1]?.includes('--from=') === true) continue;
+  for (const source of (copy[2] ?? '').trim().split(/\s+/).slice(0, -1)) contextSources.add(source);
 }
 
-const missing = workspaceDirs().filter((dir) => !copied.has(dir));
+/** Le motif de copie qui couvre un motif de workspace, en y ajoutant le manifeste. */
+function manifestGlob(pattern: string): string {
+  return `${pattern}/package.json`;
+}
 
-if (missing.length > 0) {
-  console.error(`✗ ${missing.length} workspace(s) absent(s) du stage \`deps\` :\n`);
-  for (const dir of missing) console.error(`    COPY ${dir}/package.json ./${dir}/`);
+// Le lockfile et le manifeste racine ne relèvent d'aucun motif, mais `bun install` les exige.
+const REQUIRED_AT_ROOT = ['package.json', 'bun.lock'];
+
+const uncovered = [
+  ...REQUIRED_AT_ROOT.filter((file) => !contextSources.has(file)),
+  ...workspacePatterns().map(manifestGlob).filter((glob) => !contextSources.has(glob)),
+];
+
+if (uncovered.length > 0) {
+  console.error(`✗ ${uncovered.length} entrée(s) absente(s) du stage \`deps\` :\n`);
+  for (const source of uncovered) console.error(`    ${source}`);
   console.error(
-    `\n  À ajouter avant \`bun install --frozen-lockfile\` — qui échouera sinon, au moment de\n` +
-      `  publier et pas avant. Même les workspaces dont rien n'entre dans l'image.`,
+    `\n  À ajouter au \`COPY --parents\` qui précède \`bun install --frozen-lockfile\` — qui\n` +
+      `  échouera sinon, au moment de publier et pas avant. Même les workspaces dont rien\n` +
+      `  n'entre dans l'image : le lockfile les exige tous.`,
   );
   process.exit(1);
 }
@@ -146,6 +167,6 @@ if (unlinked.length > 0) {
 }
 
 console.log(
-  `✓ Dockerfile — ${workspaceDirs().length} workspaces copiés au stage \`deps\`, ` +
-    `${required.size} liés au stage \`source\`.`,
+  `✓ Dockerfile — ${workspacePatterns().length} motifs de workspace couverts au stage \`deps\` ` +
+    `(${workspaceDirs().length} paquets), ${required.size} liés au stage \`source\`.`,
 );

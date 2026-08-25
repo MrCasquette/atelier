@@ -109,11 +109,10 @@ migration pour elle installerait l'idée inverse, qu'elle compte. `dpc_*` n'est 
 Décidé avec l'ADR. Chaque lot se vérifie avant le suivant ; aucun ne touche de donnée sauf le
 premier, qui la détache volontairement (bascule assumée ci-dessus).
 
-Les lots 1 à 3 sont faits — les piles, le lanceur, la documentation. Reste :
-
-- [ ] 🟡 **Lot 4 — `COPY --parents`.** Rendre le stage `deps` découvrable, adapter `image-manifests`
-  (dont l'en-tête affirme qu'aucun motif ne préserve l'arborescence — c'est faux depuis). Le stage
-  `source` reste nommé. Vérifier : taille et contenu de l'image comparés avant/après, gate T2–T5.
+Les quatre lots sont faits — les piles, le lanceur, la documentation, `COPY --parents`. Le contenu
+et la taille de l'image sont identiques à l'octet près (650 entrées, 170 950 445 octets), et le gate
+a rejoué T2, T4 et T5 en vert ; T3 n'a pas pu tourner sur le poste, qui n'est pas authentifié sur
+GHCR — la CI l'est.
 
 Hors lots, et à ne pas anticiper : l'image de Prisme. `apps/prisme-admin` est une sonde — il n'y a
 pas de second artefact dont extraire ce qui serait commun.
