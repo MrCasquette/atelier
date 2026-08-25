@@ -17,7 +17,7 @@ import {
 // qu'éditer. La route passe donc sous `schema`, qui tient au rang (ADR-0038, amendement du
 // 2026-08-10) — le même droit que le push d'entités, un seul geste CLI, un seul droit.
 //
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let ownerCookie: string;

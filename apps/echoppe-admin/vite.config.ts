@@ -6,7 +6,7 @@ import { resolve } from 'path';
 // Littéraux, pas des variables : ces deux ports disent le rang de la pile (ADR-0054). Ce serveur
 // n'existe qu'en développement — en production le dashboard est servi par l'API, sans port à lui.
 const ADMIN_PORT = 3110;
-const API_PORT = 8101; // l'API des sources, celle que `bun run dev` fait tourner
+const API_PORT = 8101; // l'API des sources, celle que `bun run dev echoppe` fait tourner
 
 export default defineConfig(() => {
   return {

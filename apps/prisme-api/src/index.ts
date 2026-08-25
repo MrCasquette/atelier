@@ -5,7 +5,7 @@ import { app } from './app';
 
 export type { App } from './app';
 
-// Rang 1 de la grille : `8200` appartient au produit installé, `8201` à `bun run dev` depuis les
+// Rang 1 de la grille : `8200` appartient au produit installé, `8201` à `bun run dev prisme` depuis les
 // sources, `8202` à la validation de l'image (ADR-0054). Le port INTERNE du conteneur vaudra
 // toujours `8200` — c'est l'instance qui possède le mapping, jamais le produit.
 const port = process.env.API_PORT ?? 8200;

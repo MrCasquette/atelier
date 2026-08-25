@@ -8,13 +8,13 @@ import { app } from '../src/app';
 // Ces tests migrent une base et frappent l'app assemblée via `app.handle` : ce sont des tests de
 // FRONTIÈRE (contrat HTTP + RBAC + SQL), volontairement adossés à une vraie base — cf. triage audit.
 // Ce module factorise l'infra recopiée dans chaque fichier ; il ne porte aucune assertion.
-// ⚠️ Tout ce qui migre/écrit ici suppose la base JETABLE de `bun run test:api`.
+// ⚠️ Tout ce qui migre/écrit ici suppose la base JETABLE de `bun run integration echoppe api`.
 
 /** Refuse l'exécution hors base jetable balisée (`DISPOSABLE_DB=1`, posé par scripts/test-api.ts). */
 export function requireDisposableDb(): void {
   if (process.env.DISPOSABLE_DB !== '1') {
     throw new Error(
-      'Test à lancer via `bun run test:api` (base jetable). Refus hors base balisée.',
+      'Test à lancer via `bun run integration echoppe api` (base jetable). Refus hors base balisée.',
     );
   }
 }

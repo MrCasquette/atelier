@@ -15,7 +15,7 @@ import {
 // catalogue pouvait s'attribuer les droits sur `user` ou `api_key` via son propre rôle. Le drapeau
 // `locked` ne protège que les lignes qu'on a pensé à verrouiller, pas le principe.
 //
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let ownerCookie: string;

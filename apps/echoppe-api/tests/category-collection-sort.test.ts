@@ -14,7 +14,7 @@ import {
 // Verrou B4 (tri des sous-listes produit) : `/categories/:id/products` et `/collections/:id/products`
 // délèguent à queryProductCards → honorent `?sort=price&order=…` (comme la liste globale) au lieu du
 // tri dateCreated figé. Catégorie/collection DÉDIÉES pour isoler le jeu de produits du tri.
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let categoryId: string;

@@ -9,7 +9,7 @@ import { createAdminSession, migrate, req, requireDisposableDb } from './harness
 // 2. l'ordre de déclaration perdu : `/media/folders` doit être posé AVANT `/media/:id`, sinon la
 //    liste des dossiers part dans le handler de fiche média.
 //
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 const UUID = '00000000-0000-4000-8000-000000000000';

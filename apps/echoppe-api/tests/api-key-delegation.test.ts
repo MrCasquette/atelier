@@ -12,7 +12,7 @@ import { createAdminSession, migrate, req, requireDisposableDb } from './harness
 // un droit universel déguisé — qui le détenait se forgeait une clé portant n'importe quel scope,
 // y compris ce qu'il ne pouvait pas faire lui-même.
 //
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let ownerCookie: string;

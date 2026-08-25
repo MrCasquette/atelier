@@ -19,7 +19,7 @@ import {
 //    PUBLIÉE, même sans `isDefault` (sinon faux out-of-stock). Fallback = 1re publiée par sortOrder.
 //  - B1 : le détail produit expose `variants[].featuredImage`, sourcé du média featuredForVariant.
 //
-// ⚠️ Même contrat d'exécution que storefront-smoke : base JETABLE via `bun run test:api` only.
+// ⚠️ Même contrat d'exécution que storefront-smoke : base JETABLE via `bun run integration echoppe api` only.
 requireDisposableDb();
 
 // FK partagées (category + taxRate) — la base vierge migrée n'a ni catégorie ni taux.

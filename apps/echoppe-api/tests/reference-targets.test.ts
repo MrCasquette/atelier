@@ -18,7 +18,7 @@ import { createAdminSession, getJson, migrate, req, requireDisposableDb,
 // Ces tests vérifient les deux moitiés du contrat déplacé : ce qui doit encore être refusé à
 // l'écriture, et ce qui doit encore être résolu à la lecture.
 //
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let adminCookie: string;

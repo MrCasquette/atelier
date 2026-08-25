@@ -19,7 +19,7 @@ import {
 // direct, comme le feraient un `psql` ou un outil de reprise. C'est l'argument même qui a fait
 // écarter le jsonb dans ADR-0027.
 //
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let ownerCookie: string;

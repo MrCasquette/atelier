@@ -15,7 +15,7 @@ import {
 // Verrou B5 (dimensions image storefront) : le framework n'optimise PAS les images (pas de resize
 // serveur) — il expose l'original + ses dimensions intrinsèques (px). featuredImage/images sont des
 // refs {id,width,height} sur la carte ET le détail. Catégorie dédiée pour isoler le produit.
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let categoryId: string;

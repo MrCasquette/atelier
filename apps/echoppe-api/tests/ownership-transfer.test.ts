@@ -17,7 +17,7 @@ import {
 // rendre. Un transfert annulable unilatéralement serait un prêt, et le sortant garderait l'autorité
 // qu'il est censé avoir cédée.
 //
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let ownerCookie: string;

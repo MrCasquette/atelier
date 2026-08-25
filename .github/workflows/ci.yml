@@ -179,4 +179,4 @@ jobs:
       - name: API tests
         env:
           TEST_DATABASE_URL: postgresql://echoppe:echoppe@localhost:5432/echoppe
-        run: bun run test:api
+        run: bun run integration echoppe api

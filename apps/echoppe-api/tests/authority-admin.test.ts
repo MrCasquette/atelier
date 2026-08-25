@@ -23,7 +23,7 @@ import {
 // vérifie ici n'est donc pas « il a des droits », mais les TROIS BORNES, et le fait que tout le
 // reste lui revienne SANS avoir été nommé.
 //
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let ownerCookie: string;

@@ -14,7 +14,7 @@ import {
 
 // Verrou B3 (tags produit) : le PUT admin remplace l'ensemble des tags (sémantique set, dédup par
 // slug) ; le storefront les expose sur le détail (by-slug) et les cartes (liste), triés par nom.
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let categoryId: string;

@@ -17,7 +17,7 @@ import {
 // Le stockage garde `{{ legal.name }}` en clair ; la substitution a lieu À LA LECTURE. Ce fichier
 // vérifie surtout ce que le mécanisme REFUSE de faire — c'est là qu'est la décision.
 //
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let ownerCookie: string;

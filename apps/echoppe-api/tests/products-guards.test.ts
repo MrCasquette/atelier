@@ -5,7 +5,7 @@ import { createAdminSession, migrate, req, requireDisposableDb } from './harness
 // routes produits — chaque sous-ressource protégée refuse l'anonyme (403), les publiques passent
 // (200), et l'owner franchit les guards. Si le découpage égare un guard, une route protégée
 // répondra 2xx à un anonyme → ce test casse.
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 const UUID = '00000000-0000-4000-8000-000000000000';

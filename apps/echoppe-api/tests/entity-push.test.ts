@@ -19,7 +19,7 @@ import {
 //   - une table non vide ne doit jamais être supprimée, ni en cascade (ADR-0028) ;
 //   - la contrainte de cardinalité doit vraiment tenir, en base et pas dans le code (ADR-0039).
 //
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let ownerCookie: string;

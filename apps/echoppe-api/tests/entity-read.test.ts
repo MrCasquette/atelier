@@ -18,7 +18,7 @@ import {
 //     pour les deux les confondrait, et le front ne pourrait pas deviner laquelle il a sous les
 //     yeux : l'une est une tâche à faire, l'autre est un bug (ADR-0039).
 //
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 const read = async (path: string): Promise<{ status: number; body: Record<string, unknown> }> => {

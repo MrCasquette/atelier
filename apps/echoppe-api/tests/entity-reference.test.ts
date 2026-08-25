@@ -16,7 +16,7 @@ import {
 // chargent — mais que la promesse tient de bout en bout : le dev ajoute une ligne à sa déclaration,
 // et l'entité apparaît dans le sélecteur de l'administration, avec une URL utilisable.
 //
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let ownerCookie: string;

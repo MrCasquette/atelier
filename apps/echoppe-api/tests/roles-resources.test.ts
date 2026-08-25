@@ -20,7 +20,7 @@ import {
 // correctif ne vaut que si cette route dit vraiment TOUT — vocabulaire du socle ET entités
 // déclarées, que rien de compilé ne peut connaître à l'avance (ADR-0038).
 //
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let ownerCookie: string;

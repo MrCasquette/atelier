@@ -15,7 +15,7 @@ import {
 // Verrou B8 (produits liés) : relation DIRECTIONNELLE curée (set ordonné via PATCH produit),
 // exposée triée sur /products/:id/related ; auto-référence exclue ; fallback voisinage (même
 // catégorie) quand aucune curation. Catégorie dédiée pour isoler le voisinage.
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let adminCookie: string;

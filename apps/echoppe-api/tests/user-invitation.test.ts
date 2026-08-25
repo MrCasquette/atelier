@@ -22,7 +22,7 @@ import {
 // partagent la même IP : on remet les compteurs à zéro avant chaque cas, et l'on vérifie un mot de
 // passe par le chemin d'authentification plutôt qu'en frappant `/auth/login` douze fois.
 //
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let ownerCookie: string;

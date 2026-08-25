@@ -15,7 +15,7 @@ import {
 // /countries/ vide. Ce test migre une base JETABLE puis vérifie que les routes clés
 // répondent.
 //
-// ⚠️ Il ne s'exécute QUE via `bun run test:api` (scripts/test-api.ts), qui provisionne une
+// ⚠️ Il ne s'exécute QUE via `bun run integration echoppe api` (scripts/test-api.ts), qui provisionne une
 // base disposable, injecte un DATABASE_URL explicite (écrasant le .env de dev) et pose le
 // drapeau requireDisposableDb. Un `bun test` direct hériterait du DATABASE_URL de dev via .env —
 // la migrer serait destructeur, d'où le refus.

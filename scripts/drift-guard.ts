@@ -133,7 +133,7 @@ for (const target of targets) {
 }
 
 if (drifted) {
-  console.error("\nLancer `bun run db:generate` dans le workspace concerné, puis committer le .sql");
+  console.error("\nLancer `bun run db <produit> generate` pour le produit concerné, puis committer le .sql");
   console.error('et les meta/*_snapshot.json produits.');
   process.exit(1);
 }

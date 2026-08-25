@@ -17,7 +17,7 @@ import {
 // elle est dérivée du registre à la volée (ADR-0038, amendement 2) — mais elle protège comme une
 // autre, et les droits ACCORDÉS, qui sont bien des lignes, meurent avec l'entité.
 //
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let ownerCookie: string;

@@ -12,7 +12,7 @@ import {
 
 // Verrou audit2 #3 (visibilityFilter, ADR-0006) : une ressource invisible est 404 pour un anonyme,
 // mais visible pour un principal privilégié (session admin). Le helper porte la règle de sécurité.
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let adminCookie: string;

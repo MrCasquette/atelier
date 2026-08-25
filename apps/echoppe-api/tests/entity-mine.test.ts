@@ -21,7 +21,7 @@ import {
 // vers son propre écran. Elle ne rend donc que ce qu'il détient, déclaration comprise — c'est ce
 // dont le générateur de formulaires a besoin.
 //
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let ownerCookie: string;

@@ -16,7 +16,7 @@ import {
 
 // Verrou B2 (personnalisation produit, ADR-0010) : le détail expose les champs déclarés ; l'ajout
 // panier valide + calcule le supplément côté back (jamais le front) ; la commande le snapshote.
-// ⚠️ Base JETABLE via `bun run test:api` uniquement.
+// ⚠️ Base JETABLE via `bun run integration echoppe api` uniquement.
 requireDisposableDb();
 
 let categoryId: string;
