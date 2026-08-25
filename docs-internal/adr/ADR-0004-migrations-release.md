@@ -28,7 +28,9 @@ l'image → 500 en base vierge.
      et parité du contrat SDK. *(Amendé le 2026-08-18 : ce rôle revenait à `compose.dev.yaml`, que
      le gate d'intégration couvre plus complètement ; cf. ADR-0054.)*
   2. Post-publication → **artefact** : `docker compose --profile release up -d` avec `VERSION=<x>`
-     prouve que l'image publiée boot en base vierge.
+     prouve que l'image publiée boot en base vierge. *(Amendé le 2026-08-25 : ce profil pointait la
+     base du poste, pas une base vierge — il est retiré, la preuve appartient au gate T2–T5 ; cf.
+     ADR-0066.)*
 
 ## Conséquences
 

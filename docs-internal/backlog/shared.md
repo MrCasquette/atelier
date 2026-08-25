@@ -72,6 +72,61 @@ Le conteneur, distinct des produits qu'il héberge. Le principe qui gouverne cet
 - [ ] 🟡 **18 warnings ESLint** : 17 `no-non-null-assertion` (statut inchangé, la règle était déjà
   en `warn` sous Biome) et 1 `vue/no-v-html` dans la doc — celui-ci est un signal de sécurité.
 
+## Deux produits sur un poste — chantier en cours
+
+Instruit avec l'auteur les 2026-08-24 et 25, en marge du vertical slice Prisme. **Décidé** : chaque
+produit possède **sa pile Compose** — sa base dédiée, son Redis éventuel, son API (cœur + spécifique).
+Et `dev:<produit>` lance tout ce qu'il faut pour que le produit tourne, base et migrations comprises,
+faute de quoi le développeur code à l'aveugle. Ce qui **vérifie** ne nomme aucun produit ; ce qui
+**exécute** nomme le sien.
+
+**Profil `release` retiré le 2026-08-25.** Il annonçait, dans `compose.yaml` comme dans
+[ADR-0004](../adr/ADR-0004-migrations-release.md) §2, prouver qu'une image publiée « boote en base
+vierge ». Vérifié : son service pointait le postgres **du poste**, la base `echoppe` et son volume —
+donc une base déjà migrée par les `db:push` locaux, sans qu'aucun runbook ne demande de la vider. La
+preuve est faite, et plus complètement, par `apps/echoppe-api/scripts/test-image.ts` (Postgres
+éphémère, T2 base vierge, T3 montée depuis `:latest`, T4 parité du contrat, T5 idempotence), qui
+tourne en CI comme gate de publication. C'est l'achèvement d'un déplacement commencé par
+[ADR-0054](../adr/ADR-0054-ports-rang-de-pile.md), non son inversion.
+
+Acté par [ADR-0066](../adr/ADR-0066-ce-qui-execute-nomme-son-produit.md), qui porte l'ensemble du
+chantier. ADR-0004 §2 a reçu son pointeur daté.
+
+**Bascule des volumes : on repart à vide, décidé le 2026-08-25.** Une pile par produit veut un nom de
+projet Compose par produit, et le projet actuel (`atelier`, dérivé du nom du dossier) porte
+`atelier_echoppe-data` / `atelier_echoppe-redis`. Ces volumes seront détachés — assumé : c'est une
+base de **développement**, que `db:push` + `db:seed` reconstruisent en quelques secondes. Payer une
+migration pour elle installerait l'idée inverse, qu'elle compte. `dpc_*` n'est jamais touché.
+
+- [ ] 🟠 **Aucun parcours de migration de données pour un exploitant.** Corollaire relevé en actant
+  la bascule ci-dessus : le jour où une version renomme un volume, un projet Compose ou une base, une
+  boutique installée n'a **aucune procédure** à suivre — le dépôt sait seulement dire « ne jamais
+  renommer ». C'est le lot de tout produit qui dure, et ça ne se règle pas au moment où ça arrive.
+  À instruire avant la `1.0`, avec la sauvegarde ([runbook](../runbook/sauvegarde.md)).
+
+- [ ] 🔴 **Huitième garde : une table partagée a la même forme dans tous les cœurs.** `drift-guard`
+  compare chaque cœur à SES migrations, jamais les cœurs entre eux — vérifié le 2026-08-25 sur son
+  code. Or au runtime un produit n'applique que ses propres migrations : la même table partagée a
+  donc **deux historiques indépendants**, et deux `✓` ne garantissent pas la même colonne, la même
+  contrainte, ni le même défaut.
+
+  **Ce qu'une divergence voudra dire n'est pas toujours « erreur ».** Ce peut être le signal que les
+  besoins des deux produits ont divergé et que la table doit se scinder — une capacité qui n'était
+  commune que par coïncidence. La garde doit donc *nommer la divergence*, pas la qualifier : c'est à
+  la lecture qu'on tranche entre la correction et la scission. Point d'attention pour la suite.
+
+- [ ] 🔴 **Un paquet partagé qui gagne du comportement gagne un test unitaire.** Mesuré le
+  2026-08-25 : en retirant le filtre `status = 'published'` de `findPublishedPageBySlug`
+  (`@repo/pages`) — une régression de sécurité qui fuite les brouillons sur la surface publique —
+  `lint`, `type-check`, les tests unitaires, les sept gardes ET les 197 tests de `test:api` passent
+  **tous au vert**. Rien ne l'a vue.
+
+  `@repo/pages` porte zéro test unitaire. Le trou n'est pas né des deux produits, mais ils
+  l'aggravent : jusqu'ici un paquet partagé avait un seul consommateur dont la suite l'exerçait par
+  ricochet ; Prisme empruntera des chemins que celle d'Échoppe ne traverse jamais. La protection
+  d'un paquet partagé est l'**union** des suites, et le test unitaire est la seule qui ne dépende
+  d'aucun produit.
+
 ## Distribution npm
 
 Tranché par [ADR-0062](../adr/ADR-0062-scope-et-critere-de-publication.md), complété par

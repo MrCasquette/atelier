@@ -22,6 +22,35 @@ existe), le mot `store` dans `roleScopeEnum` (passé à `['admin', 'public']`), 
 `enums.ts` (dissous), les templates e-mail couplés au commerce (`storefront-emails.ts` les
 enregistre depuis Échoppe, et un test verrouille que le socle ne les connaît pas).
 
+## Infrastructure
+
+### Redis n'a jamais été décidé — ni pour Échoppe, ni pour Prisme
+
+*Ouvert : 2026-08-25, en instruisant les piles Compose par produit.*
+
+Redis est présent sans qu'aucun ADR ne dise **pourquoi**, ni ce qu'il sert. Le sujet est né en
+voulant décider si Prisme devait en avoir un ; il s'est révélé plus large — la question se pose
+d'abord pour Échoppe.
+
+Trois constats, vérifiés sur le code le 2026-08-25 :
+
+- **le rate-limit n'a aucun repli** — `apps/echoppe-api/src/lib/rate-limit.ts` fait
+  `process.env.REDIS_URL ? new Redis(…) : null`, donc sans Redis il ne limite **rien** ;
+- **le `compose.yaml` livré par `create-echoppe` ne déclare aucun service Redis.** Toute boutique
+  réelle tourne donc aujourd'hui sans rate-limit effectif, en silence. C'est le constat le plus
+  sérieux du sujet, et il ne concerne que Échoppe ;
+- **il n'y a aucun cache.** Redis est là pour une seule capacité, et une capacité qui ne marche pas
+  chez le consommateur.
+
+Ce qu'il faut trancher ensemble, parce que ces réponses se conditionnent : le rate-limit est-il une
+promesse du produit ou une option d'exploitation ? A-t-il un repli en mémoire acceptable pour une
+instance unique ? Un cache est-il un besoin réel ou une anticipation ? Et selon les réponses, Redis
+est-il un service **requis**, **optionnel**, ou **absent** — de la pile de développement, de la pile
+livrée, et de chaque produit séparément.
+
+**Porte de sortie : un ADR.** Le sujet touche la sécurité du produit livré, pas seulement la
+topologie d'une pile — il ne se règle pas dans un backlog.
+
 ## Identité et noms
 
 ### La visibilité du dépôt bloque trois choses à la fois

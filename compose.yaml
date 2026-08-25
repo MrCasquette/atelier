@@ -1,18 +1,19 @@
 # Échoppe — pile locale du DÉPÔT. Ce fichier n'est pas une production et n'est livré à personne :
 # une boutique reçoit son propre `compose.yaml`, scaffoldé par `create-echoppe`.
 #
-# Deux usages, un seul fichier (ADR-0054) :
+#   docker compose up -d     PostgreSQL + Redis — l'infra de `bun run dev`, et rien d'autre.
 #
-#   docker compose up -d                     PostgreSQL + Redis — l'infra de `bun run dev`.
-#   docker compose --profile release up -d   ajoute l'IMAGE PUBLIÉE, sur le rang 2 (:8102).
+# Il n'y a plus de profil `release`. Il prétendait prouver que l'image publiée boote en base vierge
+# (ADR-0004 §2) ; il pointait en réalité CE postgres et CETTE base `echoppe`, avec son volume et son
+# état — donc une base déjà migrée par les `db:push` du poste. Il ne prouvait pas ce qu'il annonçait,
+# et aucun runbook ne demandait de la vider d'abord.
 #
-# Le second est la validation post-publication d'ADR-0004 : il prouve que l'image tirée de GHCR
-# boote en base vierge et applique ses migrations. Il exige d'être authentifié auprès du registre
-# (images privées) avec un PAT DÉDIÉ au tirage — `read:packages` et rien d'autre, jamais le jeton
-# de développement :
+# La preuve existe et vit ailleurs : `apps/echoppe-api/scripts/test-image.ts` provisionne son propre
+# Postgres éphémère et joue T2 (base vierge), T3 (montée depuis `:latest`), T4 (parité du contrat),
+# T5 (idempotence des seeds). Elle tourne à chaque publication, en CI, comme gate — pas à la main.
 #
-#   echo "$GHCR_TOKEN" | docker login ghcr.io -u mrcasquette --password-stdin
-#   ENCRYPTION_KEY=$(openssl rand -base64 32) VERSION=x.y.z docker compose --profile release up -d
+# Pour regarder tourner une image publiée : `docker run` ponctuel, ou `test:image` avec
+# INTEGRATION_IMAGE. Pas un service permanent dans la pile de développement.
 #
 # Aucun `container_name` : Compose préfixe par le nom du projet, donc cette pile cohabite avec une
 # boutique et avec toute autre pile de la machine.
@@ -48,29 +49,6 @@ services:
       timeout: 5s
       retries: 5
 
-  api:
-    profiles: [release]
-    image: ghcr.io/mrcasquette/echoppe-api:${VERSION:-latest}
-    restart: unless-stopped
-    environment:
-      DATABASE_URL: postgresql://echoppe:${POSTGRES_PASSWORD:-echoppe}@postgres:5432/echoppe
-      REDIS_URL: redis://redis:6379
-      ADMIN_URL: ${ADMIN_URL:-http://localhost:8102/-/admin}
-      STORE_URL: ${STORE_URL:-http://localhost:3101}
-      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
-    # Rang 2 : le rang 0 (:8100) appartient au produit, le rang 1 (:8101) à `bun run dev`.
-    # Le port INTERNE, lui, vaut 8100 dans toutes les piles — c'est celui du Dockerfile.
-    ports:
-      - '${API_PORT:-8102}:8100'
-    # Racine des données (ADR-0056), hors de `/app` que l'image possède. Un `docker pull` reconstruit
-    # tout sauf ce volume — c'est le seul point à sauvegarder avec la base.
-    volumes:
-      - echoppe-uploads:/data
-    depends_on:
-      postgres:
-        condition: service_healthy
-
 volumes:
   echoppe-data:
   echoppe-redis:
-  echoppe-uploads:

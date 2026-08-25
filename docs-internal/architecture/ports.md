@@ -52,14 +52,17 @@ piles qui en partagent un ne démarrent pas ensemble, quels que soient leurs por
 collision qui mord en premier, avant celle des ports. Compose préfixe par le nom du projet, ce qui
 suffit.
 
-## Les deux piles du dépôt
+## La pile du dépôt
 
 ```bash
-docker compose up -d                    # PostgreSQL + Redis — l'infra de `bun run dev`
-bun run dev                             # API :8101 · dashboard :3110 · vitrine :3100
-
-docker compose --profile release up -d  # l'image publiée sur :8102 (validation post-publication)
+docker compose up -d   # PostgreSQL + Redis — l'infra de `bun run dev`
+bun run dev            # API :8101 · dashboard :3110 · vitrine :3100
 ```
+
+Le rang `2` (`:8102`) reste **réservé** à une image publiée qu'on inspecte à la main, mais aucun
+service ne l'occupe plus : le profil `release` a été retiré le 2026-08-25. Il annonçait prouver
+qu'une image boote en base vierge et pointait la base de développement — la preuve est faite par
+`apps/echoppe-api/scripts/test-image.ts`, sur un Postgres éphémère, à chaque publication.
 
 Redis n'est pas optionnel en développement : sans lui, `/auth/login` remonte une page d'erreur Bun
 au lieu d'échouer proprement.

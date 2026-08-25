@@ -28,7 +28,7 @@ Portée : socle | <package> | échoppe | prisme
 |----|-------|--------|--------|
 | [0002](./ADR-0002-distribution.md) | Distribution : Docker (runtime) + npm (SDK/CLI), modèle déploiement A | accepté · complété par [0062](./ADR-0062-scope-et-critere-de-publication.md) | [distribution-architecture.md](../architecture/distribution.md) |
 | [0003](./ADR-0003-runtime-pm.md) | Runtime & package manager : PM-agnostique, Bun API / Node front | accepté | [conventions.md](../conventions.md) |
-| [0004](./ADR-0004-migrations-release.md) | Migrations au boot + validation release (sources vs artefact) | accepté · amendé par [0054](./ADR-0054-ports-rang-de-pile.md) | [release-runbook.md](../runbook/release-runbook.md) |
+| [0004](./ADR-0004-migrations-release.md) | Migrations au boot + validation release (sources vs artefact) | accepté · amendé par [0054](./ADR-0054-ports-rang-de-pile.md) · amendé par [0066](./ADR-0066-ce-qui-execute-nomme-son-produit.md) | [release-runbook.md](../runbook/release-runbook.md) |
 | [0015](./ADR-0015-validation-typebox.md) | Validation à la frontière : TypeBox / Elysia (pas Zod) | accepté | — |
 | [0016](./ADR-0016-conventions-front-admin.md) | Conventions front admin (atomic design, imports directs, types Eden) | accepté | [conventions.md](../conventions.md) |
 | [0023](./ADR-0023-versioning-tags.md) | Versioning : épine `v*` produit, packages versionnés sur npm | accepté · amendé (rang `1.0.0`, surfaces publiées, garde de couverture) | [pipeline-release.md](../runbook/pipeline-release.md) |
@@ -41,7 +41,7 @@ Portée : socle | <package> | échoppe | prisme
 | [0034](./ADR-0034-identite-referentiel-reglages.md) | Identité, référentiel et réglages : ce que l'outil possède | accepté, partiellement amendé par [0040](./ADR-0040-identite-site-entite-legale.md) | — |
 | [0052](./ADR-0052-surfaces-exploitation-image-unique.md) | Les surfaces d'exploitation sous `/-/`, le dashboard servi par l'API | accepté · amende [0002](./ADR-0002-distribution.md) | [ports.md](../architecture/ports.md) |
 | [0053](./ADR-0053-commentaire-passe-agissant.md) | Un commentaire garde le passé seulement s'il est encore agissant | accepté | — |
-| [0054](./ADR-0054-ports-rang-de-pile.md) | Un port publié appartient à l'instance : la grille et le rang de pile | accepté · amende [0004](./ADR-0004-migrations-release.md) | [ports.md](../architecture/ports.md) |
+| [0054](./ADR-0054-ports-rang-de-pile.md) | Un port publié appartient à l'instance : la grille et le rang de pile | accepté · amende [0004](./ADR-0004-migrations-release.md) · complété par [0066](./ADR-0066-ce-qui-execute-nomme-son-produit.md) | [ports.md](../architecture/ports.md) |
 | [0055](./ADR-0055-publics-de-la-configuration.md) | Trois publics de la configuration, un fichier chacun | accepté · amendé par [0065](./ADR-0065-configuration-par-nature.md) | [configuration.md](../../docs/guide/configuration.md) |
 | [0056](./ADR-0056-racine-de-donnees.md) | Une racine de données, montée hors du répertoire applicatif | accepté · amende [0018](./ADR-0018-stockage-media.md) | — |
 | [0058](./ADR-0058-fraternite-des-produits.md) | Deux produits frères, des recompositions inégales | accepté · précise [0025](./ADR-0025-deux-produits-un-repo.md) | — |
@@ -50,6 +50,7 @@ Portée : socle | <package> | échoppe | prisme
 | [0062](./ADR-0062-scope-et-critere-de-publication.md) | Un paquet sort s'il tourne chez le dev, et son scope nomme l'organisation | accepté · complète [0002](./ADR-0002-distribution.md) · §4 révisé par [0063](./ADR-0063-appartenance-des-paquets.md) | — |
 | [0063](./ADR-0063-appartenance-des-paquets.md) | Le scope dit qui publie, le nom dit à quoi le paquet appartient | accepté · complète et révise [0062](./ADR-0062-scope-et-critere-de-publication.md) | — |
 | [0065](./ADR-0065-configuration-par-nature.md) | Un fichier de configuration porte une nature, pas un produit par défaut | accepté · amende [0055](./ADR-0055-publics-de-la-configuration.md) | — |
+| [0066](./ADR-0066-ce-qui-execute-nomme-son-produit.md) | Ce qui exécute nomme son produit, ce qui vérifie n'en nomme aucun | accepté · complète [0054](./ADR-0054-ports-rang-de-pile.md) et [0065](./ADR-0065-configuration-par-nature.md) · amende [0004](./ADR-0004-migrations-release.md) | — |
 
 ## Index — `client` · SDK et contrat d'API
 
