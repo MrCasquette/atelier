@@ -22,6 +22,40 @@ existe), le mot `store` dans `roleScopeEnum` (passé à `['admin', 'public']`), 
 `enums.ts` (dissous), les templates e-mail couplés au commerce (`storefront-emails.ts` les
 enregistre depuis Échoppe, et un test verrouille que le socle ne les connaît pas).
 
+## Hygiène du socle
+
+### Ce qui protège un paquet partagé n'est pas une garde
+
+*Ouvert : 2026-08-25, en instruisant la séparation des deux produits
+([ADR-0066](../adr/ADR-0066-ce-qui-execute-nomme-son-produit.md)).*
+
+Les sept gardes répondent toutes à « qui touche quoi » — un import croisé, une migration manquante,
+un manifeste incomplet. **Aucune ne répond à « ce que fait ce code »**, et c'est leur définition, pas
+leur défaut. Une régression de comportement dans un paquet partagé passe donc tout au vert :
+mesuré en retirant un filtre de visibilité de `@repo/pages`.
+
+Deux produits aggravent le cas sans l'avoir créé : un paquet partagé n'avait qu'un consommateur, dont
+la suite d'intégration le traversait par ricochet. Demain la protection est l'**union** des deux
+suites — et le contributeur qui casse un produit travaille sur l'autre, donc ne regarde pas.
+
+Ce qui se garde et ce qui ne se garde pas, et c'est là qu'est la question :
+
+- **ne se garde pas** — « cette fonction fait-elle la bonne chose ». C'est de la revue, et donc de
+  l'hygiène d'issue et de PR : ce que le dépôt attend d'une contribution qui touche `@repo/*` ;
+- **se garde peut-être** — « ce paquet exporte du comportement et ne porte aucun fichier de test ».
+  C'est **binaire**, pas un seuil chiffré, donc ça ne heurte pas
+  [conventions § pas de seuils](../conventions.md) — qui refuse les dogmes sur les lignes, pas les
+  faits sur l'existence. Reste que la mesure du 2026-08-25 donne trois « manquants » dont deux sont
+  légitimes (`@repo/db` est un wrapper, `echoppe-client` est généré et gardé ailleurs) : une garde
+  devrait donc admettre des exemptions déclarées, ce qui est exactement le genre de liste que
+  l'outillage du dépôt refuse de tenir.
+
+À trancher ensemble : jusqu'où la revue, jusqu'où l'outil, et une garde qui a besoin d'exemptions
+est-elle encore une garde. La tâche concrète — couvrir `@repo/pages` — n'attend pas cette réponse et
+vit au [backlog socle](./shared.md#couverture-des-paquets-partagés).
+
+**Porte de sortie : un ADR si l'on garde, une ligne de conventions si l'on s'en remet à la revue.**
+
 ## Infrastructure
 
 ### Redis n'a jamais été décidé — ni pour Échoppe, ni pour Prisme

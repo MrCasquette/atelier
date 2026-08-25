@@ -115,17 +115,6 @@ migration pour elle installerait l'idée inverse, qu'elle compte. `dpc_*` n'est 
   commune que par coïncidence. La garde doit donc *nommer la divergence*, pas la qualifier : c'est à
   la lecture qu'on tranche entre la correction et la scission. Point d'attention pour la suite.
 
-- [ ] 🔴 **Un paquet partagé qui gagne du comportement gagne un test unitaire.** Mesuré le
-  2026-08-25 : en retirant le filtre `status = 'published'` de `findPublishedPageBySlug`
-  (`@repo/pages`) — une régression de sécurité qui fuite les brouillons sur la surface publique —
-  `lint`, `type-check`, les tests unitaires, les sept gardes ET les 197 tests de `test:api` passent
-  **tous au vert**. Rien ne l'a vue.
-
-  `@repo/pages` porte zéro test unitaire. Le trou n'est pas né des deux produits, mais ils
-  l'aggravent : jusqu'ici un paquet partagé avait un seul consommateur dont la suite l'exerçait par
-  ricochet ; Prisme empruntera des chemins que celle d'Échoppe ne traverse jamais. La protection
-  d'un paquet partagé est l'**union** des suites, et le test unitaire est la seule qui ne dépende
-  d'aucun produit.
 
 ## Distribution npm
 
@@ -173,6 +162,22 @@ c'est la ligne qui suit, et c'est un autre sujet.
   génération explicite reste à trancher.
 - [ ] 🟡 Menus imbriqués, champs custom, fichiers/assets et i18n des enums.
 - [ ] 🟡 Durcir les clés API et documenter la portabilité liée à PostgreSQL/`jsonb`.
+
+## Couverture des paquets partagés
+
+- [ ] 🔴 **Couvrir `@repo/pages`** : quatorze fonctions exportées, **zéro fichier de test** — mesuré
+  le 2026-08-25, et c'est le seul cas net du dépôt. `@repo/db` n'expose qu'un wrapper de vingt
+  lignes autour de Drizzle, `@axiome-apps/echoppe-client` est généré et gardé par `contracts:check`,
+  `@repo/assets` et `@repo/identity` ne portent qu'un schéma.
+
+  Ce n'est pas une dette de confort. Vérifié le même jour : en retirant le filtre
+  `status = 'published'` de `findPublishedPageBySlug` — une fuite des brouillons sur la surface
+  publique d'Échoppe — `lint`, `type-check`, les tests unitaires, les sept gardes **et les 197 tests
+  d'intégration** passent tous au vert. Et c'est le paquet qu'un contributeur Prisme touchera en
+  premier, sans avoir aucune raison de regarder du côté d'Échoppe.
+
+  Priorité aux fonctions qui décident d'une **visibilité** : `findPublishedPageBySlug`,
+  `listPublishedPages`, `validateSectionData`.
 
 ## Architecture et contrats
 
