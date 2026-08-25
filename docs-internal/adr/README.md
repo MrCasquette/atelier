@@ -49,8 +49,9 @@ Portée : socle | <package> | échoppe | prisme
 | [0060](./ADR-0060-natures-de-la-documentation.md) | La documentation a cinq natures, l'ADR n'en est qu'une | accepté · précise [0024](./ADR-0024-portee-adr.md) | — |
 | [0062](./ADR-0062-scope-et-critere-de-publication.md) | Un paquet sort s'il tourne chez le dev, et son scope nomme l'organisation | accepté · complète [0002](./ADR-0002-distribution.md) · §4 révisé par [0063](./ADR-0063-appartenance-des-paquets.md) | — |
 | [0063](./ADR-0063-appartenance-des-paquets.md) | Le scope dit qui publie, le nom dit à quoi le paquet appartient | accepté · complète et révise [0062](./ADR-0062-scope-et-critere-de-publication.md) | — |
-| [0065](./ADR-0065-configuration-par-nature.md) | Un fichier de configuration porte une nature, pas un produit par défaut | accepté · amende [0055](./ADR-0055-publics-de-la-configuration.md) | — |
-| [0066](./ADR-0066-ce-qui-execute-nomme-son-produit.md) | Ce qui exécute nomme son produit, ce qui vérifie n'en nomme aucun | accepté · complète [0054](./ADR-0054-ports-rang-de-pile.md) et [0065](./ADR-0065-configuration-par-nature.md) · amende [0004](./ADR-0004-migrations-release.md) | — |
+| [0065](./ADR-0065-configuration-par-nature.md) | Un fichier de configuration porte une nature, pas un produit par défaut | accepté · amende [0055](./ADR-0055-publics-de-la-configuration.md) · complété par [0067](./ADR-0067-un-prerequis-se-declare.md) | — |
+| [0066](./ADR-0066-ce-qui-execute-nomme-son-produit.md) | Ce qui exécute nomme son produit, ce qui vérifie n'en nomme aucun | accepté · complète [0054](./ADR-0054-ports-rang-de-pile.md) et [0065](./ADR-0065-configuration-par-nature.md) · amende [0004](./ADR-0004-migrations-release.md) · complété par [0067](./ADR-0067-un-prerequis-se-declare.md) | — |
+| [0067](./ADR-0067-un-prerequis-se-declare.md) | Un prérequis se déclare, et ce qui n'a pas de question se génère | accepté · complète [0065](./ADR-0065-configuration-par-nature.md) et [0066](./ADR-0066-ce-qui-execute-nomme-son-produit.md) | [configuration.md](../../docs/guide/configuration.md) |
 
 ## Index — `client` · SDK et contrat d'API
 

@@ -138,13 +138,16 @@ git clone git@github.com:MrCasquette/atelier.git
 cd atelier
 bun install
 
-# 2. Configurer — rien à copier, les défauts sont versionnés (.env.echoppe).
-#    Seul secret requis : l'API refuse de démarrer sans ENCRYPTION_KEY.
-echo "ENCRYPTION_KEY=$(openssl rand -base64 32)" >> .env.echoppe.local
-
-# 3. Lancer — la pile, les migrations, les données de dev, puis les surfaces
+# 2. Lancer — rien à configurer : les défauts sont versionnés (.env.echoppe), et le
+#    seul secret requis est généré au premier lancement dans .env.echoppe.local.
+#    La pile, les migrations, les données de dev, puis les surfaces.
 bun run dev echoppe
 ```
+
+> Il n'y a **pas** de `.env` à la racine, ni de `.env.example` à copier. Chaque produit a le sien,
+> versionné, avec des valeurs qui marchent ; ce qui est propre à votre machine va dans un
+> `.env.<produit>.local` que le lanceur crée lui-même
+> ([ADR-0067](docs-internal/adr/ADR-0067-un-prerequis-se-declare.md)).
 
 **Login dev :** `admin@echoppe.dev` / `admin123`
 

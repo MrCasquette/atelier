@@ -93,6 +93,12 @@ bun run type-check       # tsc --noEmit sur tous les workspaces
 bun run test             # tous les workspaces
 ```
 
+`dev` et `db` **garantissent les prérequis du produit avant de bouger** : une variable déclarée vide
+dans `.env.<produit>` est un prérequis, générée si elle n'admet qu'un tirage aléatoire (marqueur
+`# @genere`), refusée en la nommant si elle exige un choix
+([ADR-0067](docs-internal/adr/ADR-0067-un-prerequis-se-declare.md)). Rien à créer à la main, et
+aucun `.env` à la racine.
+
 `db <produit> push` ne fait **jamais** partie de `dev` : sur une base qui porte des entités, il
 détruit leurs tables ([architecture/entites](docs-internal/architecture/entites.md)). Celui qui
 édite un schéma l'appelle sciemment.

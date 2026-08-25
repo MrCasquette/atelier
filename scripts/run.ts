@@ -26,7 +26,8 @@
 // qu'un. Le dépôt refuse et nomme partout ailleurs ; ce lanceur fait pareil.
 
 import { Glob } from 'bun';
-import { existsSync, readFileSync } from 'node:fs';
+import { appendFileSync, chmodSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { randomBytes } from 'node:crypto';
 import { basename, dirname, join, resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dir, '..');
@@ -115,6 +116,102 @@ function productNamed(name: string | undefined, verb: string): Product {
 }
 
 /**
+ * Un prérequis du produit : une variable DÉCLARÉE VIDE dans son `.env.<produit>` versionné
+ * (ADR-0067). Le fichier porte les défauts qui marchent ; ce qu'il laisse vide est ce que la
+ * machine doit fournir.
+ *
+ * `recipe` vient du marqueur `# @genere <recette>` posé juste au-dessus. Sa présence dit que la
+ * valeur n'admet qu'un tirage ARBITRAIRE — personne n'a d'avis dessus, donc on ne demande pas. Son
+ * absence dit l'inverse : un choix humain, qu'on refuse plutôt que d'inventer.
+ */
+type Requirement = {
+  readonly name: string;
+  readonly recipe: string | null;
+};
+
+/** Le marqueur de recette, et une déclaration vide — `FOO=` sans rien après. */
+const RECIPE = /^#\s*@genere\s+(\S+)\s*$/;
+const EMPTY_DECLARATION = /^([A-Z][A-Z0-9_]*)=\s*$/;
+
+/** Les recettes que le lanceur sait produire. C'est le SEUL endroit qui énumère quoi que ce soit. */
+const RECIPES: Readonly<Record<string, () => string>> = {
+  'base64:32': () => randomBytes(32).toString('base64'),
+};
+
+function envPath(product: Product, local = false): string {
+  return join(ROOT, `.env.${product.name}${local ? '.local' : ''}`);
+}
+
+/** Les variables qu'un fichier d'environnement renseigne réellement — valeur non vide. */
+function filledIn(file: string): ReadonlySet<string> {
+  if (!existsSync(file)) return new Set();
+  const filled = new Set<string>();
+  for (const line of readFileSync(file, 'utf-8').split('\n')) {
+    const [name, ...rest] = line.split('=');
+    if (name !== undefined && !name.trimStart().startsWith('#') && rest.join('=').trim() !== '') {
+      filled.add(name.trim());
+    }
+  }
+  return filled;
+}
+
+/** Ce que le produit déclare exiger, dans l'ordre du fichier. */
+function requirements(product: Product): readonly Requirement[] {
+  const file = envPath(product);
+  if (!existsSync(file)) return [];
+  const found: Requirement[] = [];
+  let recipe: string | null = null;
+  for (const line of readFileSync(file, 'utf-8').split('\n')) {
+    const marker = line.match(RECIPE);
+    if (marker) {
+      recipe = marker[1] ?? null;
+      continue;
+    }
+    const declaration = line.match(EMPTY_DECLARATION);
+    if (declaration?.[1] !== undefined) found.push({ name: declaration[1], recipe });
+    if (line.trim() !== '' && !line.trimStart().startsWith('#')) recipe = null;
+  }
+  return found;
+}
+
+/**
+ * Garantit ce que le produit exige, AVANT de monter quoi que ce soit — sinon on découvre le manque
+ * après avoir migré et peuplé une base, derrière deux surfaces qui tournent quand même.
+ *
+ * Ce qui se génère est écrit dans le `.local`, JAMAIS dans le fichier versionné, et annoncé : une
+ * clé qui apparaît en silence serait pire qu'une clé absente.
+ */
+function ensureRequirements(product: Product): void {
+  const pending = requirements(product).filter((r) => !filledIn(envPath(product, true)).has(r.name));
+  if (pending.length === 0) return;
+
+  const undecidable = pending.filter((r) => r.recipe === null || RECIPES[r.recipe] === undefined);
+  if (undecidable.length > 0) {
+    refuse(
+      `\`${product.name}\` exige une valeur que personne ne peut deviner :`,
+      undecidable.map((r) => `${r.name} — à renseigner dans .env.${product.name}.local`),
+    );
+  }
+
+  const local = envPath(product, true);
+  if (!existsSync(local)) {
+    writeFileSync(
+      local,
+      `# Surcharges de CE poste (ADR-0065) — ignoré par git. Surcharge \`.env.${product.name}\`.\n\n`,
+    );
+  }
+  chmodSync(local, 0o600);
+
+  for (const { name, recipe } of pending) {
+    const generate = recipe === null ? undefined : RECIPES[recipe];
+    if (generate === undefined) continue;
+    appendFileSync(local, `${name}=${generate()}\n`);
+    console.log(`→ ${name} générée (${recipe}) dans .env.${product.name}.local`);
+  }
+  console.log('  Valeur de DÉVELOPPEMENT : la remplacer rendra illisible ce qu\'elle a chiffré.\n');
+}
+
+/**
  * Les fichiers de configuration à passer à Compose, et seulement ceux qui existent. Bun ignore un
  * `--env-file` absent, Compose ÉCHOUE dessus (`couldn't find env file`) — mesuré. Sans ce filtre,
  * le `.local` facultatif d'ADR-0065 devrait être obligatoire, donc généré.
@@ -179,6 +276,7 @@ async function db(product: Product, verb: string): Promise<void> {
       [...product.dbVerbs.keys()].sort().map((v) => `bun run db ${product.name} ${v}`),
     );
   }
+  ensureRequirements(product);
   await mustRun(['bun', 'run', '--cwd', dir, `db:${verb}`]);
 }
 
@@ -206,20 +304,37 @@ async function dev(product: Product, requested: readonly string[]): Promise<void
     refuse(`\`${product.name}\` n'a aucune surface qui tourne en développement.`, []);
   }
 
+  // Avant la pile, avant les migrations, avant le seed : sinon on découvre le manque une fois la
+  // base montée et peuplée, derrière des surfaces qui tournent quand même (ADR-0067).
+  ensureRequirements(product);
+
   await infra(product, ['up', '--detach', '--wait']);
   for (const verb of ['migrate', 'seed']) {
     if (product.dbVerbs.has(verb)) await db(product, verb);
   }
 
-  const running = surfaces.map((name) => {
+  // Une surface qui meurt arrête les autres. Sans ça, l'API peut refuser de démarrer pendant que le
+  // dashboard et la vitrine continuent de servir contre une API absente : l'échec défile, et il ne
+  // reste que deux serveurs qui mentent (ADR-0067).
+  // Seule la PREMIÈRE défaillance s'annonce : les suivantes sont les surfaces que la cascade vient
+  // d'arrêter, et les faire parler ferait passer une conséquence pour une seconde panne.
+  let cause: number | null = null;
+  const running = surfaces.map(async (name) => {
     const dir = product.surfaces.get(name);
     if (dir === undefined) throw new Error(`surface \`${name}\` perdue entre la garde et le lancement`);
-    return run(['bun', 'run', '--cwd', dir, 'dev']);
+    const code = await run(['bun', 'run', '--cwd', dir, 'dev']);
+    if (code !== 0 && cause === null) {
+      cause = code;
+      console.error(`\n✗ La surface \`${name}\` s'est arrêtée (code ${code}) — les autres suivent.\n`);
+      stopChildren();
+    }
+    return code;
   });
-  const codes = await Promise.all(running);
+  await Promise.all(running);
   stopChildren();
-  const failed = codes.find((code) => code !== 0);
-  if (failed !== undefined) process.exit(failed);
+  // Le code de sortie est celui de la CAUSE, jamais le `143` d'une surface que la cascade a
+  // arrêtée : c'est ce que lira un appelant, et une conséquence n'y apprendrait rien.
+  if (cause !== null) process.exit(cause);
 }
 
 async function integration(product: Product, suite: string | undefined): Promise<void> {

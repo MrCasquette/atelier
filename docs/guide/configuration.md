@@ -10,10 +10,27 @@ Selon ce que vous faites, votre point de départ diffère :
 | hébergez une boutique | le `.env` écrit par `create-echoppe`, que vous éditez |
 | développez le framework | `.env.echoppe`, déjà dans le dépôt — vos secrets vont dans `.env.echoppe.local` |
 
-::: tip Rien à copier pour démarrer
+::: tip Rien à copier, rien à générer
 Les défauts de développement sont **versionnés** : `.env.echoppe` porte des adresses locales qui
 marchent telles quelles. Ce qui est propre à votre machine — et tout secret réel — va dans
 `.env.echoppe.local`, ignoré par git, qui surcharge le premier ligne à ligne.
+
+Vous n'avez pas à créer ce second fichier : une variable **déclarée vide** dans `.env.echoppe` est un
+prérequis, et `bun run dev echoppe` le remplit au premier lancement quand sa valeur n'admet qu'un
+tirage aléatoire — il écrit le fichier et vous le dit. Une variable qui exigerait un *choix* ferait
+l'inverse : la commande refuserait de démarrer en la nommant, plutôt que d'inventer une réponse.
+:::
+
+::: warning Une clé générée est une clé de développement
+Si vous la remplacez plus tard, les credentials de prestataires déjà saisis dans le dashboard
+deviennent illisibles — ils sont chiffrés avec l'ancienne. En développement, le seed reconstruit
+tout ; en production, la clé se conserve.
+:::
+
+::: info Il n'y a plus de `.env` à la racine
+Il n'avait plus de lecteur : chaque produit a le sien, `.env.echoppe` et `.env.prisme`, et Docker
+Compose lit celui du répertoire de sa pile, `infra/<produit>/`. Un `.env` recréé par habitude ne
+serait lu par personne — il reste ignoré par git pour qu'il n'entre jamais dans l'historique.
 :::
 
 ::: tip Les credentials des prestataires ne sont pas ici
@@ -34,6 +51,8 @@ L'API refuse de démarrer sans ces variables, et affiche laquelle manque.
 ::: warning Conservez `ENCRYPTION_KEY`
 Elle chiffre les credentials de vos prestataires. La perdre oblige à tous les ressaisir : les
 valeurs stockées deviennent illisibles. Générez-la avec `openssl rand -base64 32`.
+
+Cela vaut pour un **hébergement**. En développement, `bun run dev echoppe` la génère pour vous.
 :::
 
 ## Réseau et URL
