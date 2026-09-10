@@ -85,7 +85,7 @@ nom, qui tiendrait sans que rien ne la vérifie.
 | `core-passthrough` | les cœurs produit par leur `drizzle.config.ts`, puis leurs points d'entrée déclarés |
 | `image-manifests` | les motifs de workspace du manifeste racine, croisés aux `COPY` du `Dockerfile` |
 | `contract-targets` | `contract.source` / `contract.frozen`, déclarés par le client lui-même |
-| `release-coverage` | les workspaces publiables, plus les groupes `fixed` de la config changesets |
+| `release-coverage` | les workspaces publiables, plus les groupes `fixed` de la config changesets ; et le dépôt que leur `repository` doit nommer, par `GITHUB_REPOSITORY` en CI ou le remote `origin` |
 | `registry-gap` | l'`IMAGE_PREFIX` et la matrice de cibles de `docker-build.yml` |
 
 Corollaire éprouvé sur les scripts racine : `--filter '*'` plutôt qu'une énumération. L'ancien

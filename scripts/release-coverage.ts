@@ -15,6 +15,13 @@
 // schéma aux MIGRATIONS. Les deux mesurent une cohérence interne au dépôt. Personne ne mesurait
 // l'écart entre ce qui est committé et ce qui est PUBLIÉ.
 //
+// Elle vérifie aussi que chaque paquet publiable NOMME SON DÉPÔT. npm signe la provenance de
+// lui-même sous trusted publishing et refuse un paquet dont `repository.url` ne correspond pas au
+// dépôt d'où vient la signature — E422, APRÈS que la signature soit entrée au log de transparence.
+// Aucun des quatre paquets ne portait le champ ; ça n'a éclaté qu'au premier publish suivant, sur
+// une version déjà committée et déjà annoncée. Les deux vérifications tiennent la même question :
+// est-ce que la prochaine release peut aboutir ?
+//
 // Elle DÉCOUVRE les unités, elle ne les connaît pas — cf. `lib/release-units.ts`.
 //
 // La référence est locale, jamais le registre : la dernière release d'une unité est le dernier
@@ -30,6 +37,8 @@ import {
   allWorkspaces,
   buildUnits,
   git,
+  isRecord,
+  readJson,
   ROOT,
   type Unit,
 } from './lib/release-units';
@@ -119,7 +128,68 @@ if (git('rev-parse', '--is-shallow-repository').trim() === 'true') {
   process.exit(1);
 }
 
+/**
+ * Le dépôt d'où la publication partira : `GITHUB_REPOSITORY` en CI — c'est LUI que npm inscrit dans
+ * l'attestation —, le remote `origin` sinon. Découvert des deux côtés, jamais écrit ici.
+ */
+function originSlug(): string | null {
+  const fromCi = process.env.GITHUB_REPOSITORY;
+  if (fromCi) return fromCi.toLowerCase();
+
+  let remote: string;
+  try {
+    remote = git('remote', 'get-url', 'origin').trim();
+  } catch {
+    return null; // un clone sans remote ne peut rien affirmer — dit plus bas, jamais tu
+  }
+  return slugOf(remote);
+}
+
+/** `owner/repo`, quelle que soit la forme écrite — `git@host:owner/repo.git`, `git+https://…`. */
+function slugOf(url: string): string | null {
+  const match = /[/:]([^/:]+)\/([^/]+?)(?:\.git)?\/?$/.exec(url.trim());
+  return match ? `${match[1]}/${match[2]}`.toLowerCase() : null;
+}
+
+/** Les paquets publiables dont le `repository` manque ou désigne un autre dépôt. */
+function misdeclaredRepository(units: readonly Unit[], expected: string): readonly string[] {
+  const wrong: string[] = [];
+  for (const unit of units) {
+    for (const member of unit.members) {
+      if (member.private) continue; // un paquet privé ne passe jamais par npm
+
+      const manifest = readJson(join(member.dir, 'package.json'));
+      const repository = isRecord(manifest) ? manifest.repository : undefined;
+      const url = isRecord(repository) ? repository.url : repository;
+      const declared = typeof url === 'string' ? slugOf(url) : null;
+
+      if (declared !== expected) {
+        wrong.push(`${member.name} — ${declared ? `déclare ${declared}` : 'ne déclare aucun dépôt'}`);
+      }
+    }
+  }
+  return wrong;
+}
+
 const units = buildUnits(allWorkspaces());
+
+const expected = originSlug();
+if (expected === null) {
+  console.error("✗ Aucun remote `origin` — impossible de dire à quel dépôt les paquets doivent correspondre.");
+  process.exit(1);
+}
+
+const misdeclared = misdeclaredRepository(units, expected);
+if (misdeclared.length > 0) {
+  console.error(`✗ ${misdeclared.length} paquet(s) publiable(s) ne nomment pas ${expected} :\n`);
+  for (const line of misdeclared) console.error(`  ${line}`);
+  console.error(
+    `\n  npm signe la provenance et refuse un paquet dont le dépôt ne correspond pas à celui d'où` +
+      `\n  vient la signature. Ajoutez \`repository\` — \`{ type, url, directory }\` — au manifeste.`,
+  );
+  process.exit(1);
+}
+
 const covered = coveredPackages();
 const uncovered: { unit: Unit; changed: readonly string[]; released: boolean }[] = [];
 
@@ -158,4 +228,7 @@ if (uncovered.length > 0) {
   process.exit(1);
 }
 
-console.log(`✓ Les ${units.length} unités de release sont à jour ou couvertes par un changeset.`);
+console.log(
+  `✓ Les ${units.length} unités de release sont à jour ou couvertes par un changeset, et les paquets` +
+    ` publiables nomment ${expected}.`,
+);
