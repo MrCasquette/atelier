@@ -9,6 +9,7 @@
 
 import type {
   BooleanField,
+  ComponentField,
   DateField,
   Definition,
   EnumField,
@@ -64,6 +65,16 @@ export const field = {
 
   ref<const O extends Options<RefField>>(options: O): { kind: 'ref' } & O {
     return make('ref', options);
+  },
+
+  // `component(of)` imbrique un type nommé à un seul exemplaire. Écrire la Definition NUE
+  // (`cta: link`) reste valide et produit la même donnée ; ce builder existe pour porter la méta
+  // d'usage — `required` en premier lieu —, qu'une Definition ne peut pas loger (ADR-0075).
+  component<
+    const D extends Definition,
+    const O extends Omit<Options<ComponentField>, 'of'> = object,
+  >(of: D, options?: O): { kind: 'component'; of: D } & O {
+    return Object.assign({ kind: 'component' as const, of }, options);
   },
 
   // `list(of)` répète un type nommé (component). `of` est passé par référence pour l'auto-collecte

@@ -27,6 +27,7 @@ export type { CheckResult, PlanStep, PushOptions, PushResult } from './sync.js';
 export { checkRegistry, pushRegistry } from './sync.js';
 export type {
   BooleanField,
+  ComponentField,
   ContentDefinition,
   DateField,
   Definition,
@@ -34,6 +35,8 @@ export type {
   Directive,
   Entity,
   EnumField,
+  FieldNode,
+  FieldValue,
   Fields,
   ImageField,
   InferData,

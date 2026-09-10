@@ -64,8 +64,22 @@ Chaque champ accepte des méta communes : `label`, `hint`, `required`.
 | `f.enum()` | choix | `options` (`string[]` ou `{ value, label }[]`), `multiple`, `default` |
 | `f.image()` | média (UUID, résolu au read) | — |
 | `f.ref()` | référence catalogue | `to`: `'product' \| 'collection' \| 'category'` |
+| `f.component(of)` | un **component nommé** imbriqué, un seul exemplaire | `required` (cf. ci-dessous) |
 | `f.list(of)` | répétition d'un **component nommé** | `min`, `max` |
 | `f.repeater()` | répétition d'un **groupe inline** anonyme | `fields`, `min`, `max` |
+
+Un component s'imbrique de deux façons. Écrit **nu** — `cta: link` —, c'est la forme courte, et
+le champ est toujours facultatif : une définition n'a pas d'endroit où loger `required`. Pour le
+rendre obligatoire, ou lui donner un `label` propre au site d'usage, passez par `f.component` :
+
+```ts
+fields: {
+  cta: link,                                   // facultatif
+  bouton: f.component(link, { required: true }), // obligatoire
+}
+```
+
+Les deux produisent la même donnée et le même type inféré ; seule la seconde porte une méta.
 
 Exemple avec un component réutilisable et une liste :
 

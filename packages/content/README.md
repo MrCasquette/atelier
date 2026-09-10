@@ -98,6 +98,9 @@ export default defineContent({ sections: [hero, cardGroup] });
 - `image()` — un média (UUID), résolu au read.
 - `ref({ to })` — une référence catalogue (`product` | `collection` | `category`),
   résolue au read en projection d'entité.
+- `component(definition)` — imbrique un **component nommé** à un seul exemplaire (by-reference).
+  Écrire la définition nue (`cta: link`) fait la même chose, sans pouvoir porter de méta : un
+  component imbriqué n'est obligatoire que déclaré par ce builder.
 - `list(component)` — répète un **component nommé** (by-reference).
 - `repeater({ fields })` — répète un **groupe inline anonyme**, imbricable à la main
   (`repeater` dans `repeater` = menus à sous-niveaux).

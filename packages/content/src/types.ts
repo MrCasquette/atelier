@@ -95,6 +95,16 @@ export interface RefField extends FieldMeta {
   to: RefTarget;
 }
 
+// `component` imbrique un TYPE NOMMÉ à un seul exemplaire. C'est la forme PORTEUSE du même geste
+// que `cta: link` écrit nu : la Definition seule n'a nulle part où loger une méta d'usage, et un
+// component imbriqué ne pouvait donc jamais être requis, alors que le registre le prévoyait et que
+// le validateur savait l'appliquer (ADR-0075). La méta appartient au SITE D'USAGE, pas au type —
+// une même Definition peut être requise ici et facultative là.
+export interface ComponentField extends FieldMeta {
+  kind: 'component';
+  of: Definition;
+}
+
 // `list` répète un TYPE NOMMÉ (component) — by-reference en authoring, by-name au registre.
 export interface ListField extends FieldMeta {
   kind: 'list';
@@ -120,6 +130,7 @@ export type FieldNode =
   | EnumField
   | ImageField
   | RefField
+  | ComponentField
   | ListField
   | RepeaterField;
 
@@ -245,6 +256,10 @@ type EnumValueOf<O> =
     : never;
 
 // Type valeur d'UN champ (ou d'un component imbriqué).
+//
+// Deux branches mènent à la même forme pour un component : `{ kind: 'component'; of }` (déclaré par
+// `f.component`) et `{ kind: 'definition'; fields }` (la Definition écrite nue, `cta: link`). Elles
+// ne fusionnent pas — l'une porte le type par `of`, l'autre EST le type.
 type ValueOf<F> = F extends { kind: 'text' | 'richText' | 'date' | 'image' | 'ref' }
   ? string
   : F extends { kind: 'number' }
@@ -255,19 +270,23 @@ type ValueOf<F> = F extends { kind: 'text' | 'richText' | 'date' | 'image' | 're
         ? F extends { multiple: true }
           ? EnumValueOf<O>[]
           : EnumValueOf<O>
-        : F extends { kind: 'list'; of: infer D }
+        : F extends { kind: 'component'; of: infer D }
           ? D extends Definition
-            ? InferData<D>[]
+            ? Prettify<InferData<D>>
             : never
-          : F extends { kind: 'repeater'; fields: infer FF }
-            ? FF extends Fields
-              ? Prettify<InferFields<FF>>[]
+          : F extends { kind: 'list'; of: infer D }
+            ? D extends Definition
+              ? InferData<D>[]
               : never
-            : F extends { kind: 'definition'; fields: infer DF }
-              ? DF extends Fields
-                ? Prettify<InferFields<DF>>
+            : F extends { kind: 'repeater'; fields: infer FF }
+              ? FF extends Fields
+                ? Prettify<InferFields<FF>>[]
                 : never
-              : never;
+              : F extends { kind: 'definition'; fields: infer DF }
+                ? DF extends Fields
+                  ? Prettify<InferFields<DF>>
+                  : never
+                : never;
 
 // Un champ est optionnel dans la donnée sauf s'il est explicitement `required: true`.
 type RequiredKeys<F extends Fields> = {
