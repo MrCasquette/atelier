@@ -76,6 +76,29 @@ describe('déclarer un component imbriqué', () => {
 });
 
 describe('inférence de la donnée éditée', () => {
+  test('appelée sans options, une fabrique garde les exigences du type imbriqué', () => {
+    const inner = defineComponent('inner', { fields: { titre: f.text({ required: true }) } });
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const section = defineSection('bloc', {
+      fields: { nu: inner, comp: f.component(inner), liste: f.list(inner) },
+    });
+
+    // La régression que ces trois lignes tiennent : `f.component(inner)` et `f.list(inner)` —
+    // SANS second argument — rendaient facultatifs les champs requis de `inner`, là où la forme
+    // nue et la forme `(inner, {})` restaient justes. Un paramètre de type optionnel ne prend pas
+    // son défaut quand l'argument manque : il prend le type contextuel, ici `Fields`, dont le `of`
+    // large écrasait le littéral. Signalé par un consommateur du paquet publié.
+    // @ts-expect-error `titre` est requis dans la définition nue
+    const nu: InferData<typeof section> = { nu: {}, comp: { titre: 'x' }, liste: [] };
+    // @ts-expect-error `titre` est requis à travers `f.component` sans options
+    const comp: InferData<typeof section> = { nu: { titre: 'x' }, comp: {}, liste: [] };
+    // @ts-expect-error `titre` est requis à travers `f.list` sans options
+    const liste: InferData<typeof section> = { nu: { titre: 'x' }, comp: { titre: 'x' }, liste: [{}] };
+
+    expect([nu, comp, liste]).toHaveLength(3);
+  });
+
   test('un component requis devient une clé requise', () => {
     // Ces constantes ne sont lues QUE par `typeof` — c'est le propos du test.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
