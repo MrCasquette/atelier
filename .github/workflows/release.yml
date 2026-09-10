@@ -73,9 +73,14 @@ jobs:
           createGithubReleases: false # ADR-0023 : pas de Release git par paquet (npm = registre)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # PAS de NPM_CONFIG_PROVENANCE : l'attestation de provenance npm exige un dépôt source
-          # PUBLIC (elle doit être vérifiable par des tiers). Depuis le passage du monorepo en
-          # privé, l'activer ferait échouer le publish. À réactiver si le dépôt redevient public.
+          # PAS de NPM_CONFIG_PROVENANCE, et ce n'est plus un refus : sous trusted publishing, npm
+          # signe la provenance DE LUI-MÊME — la variable ne la commanderait pas, elle ne ferait que
+          # redire ce qui est déjà le cas. Le dépôt est public, donc l'attestation est vérifiable.
+          #
+          # Ce qu'elle exige en revanche, c'est que chaque paquet publié déclare son `repository`, et
+          # que l'URL corresponde au dépôt d'où vient la signature. Sans ce champ, le publish échoue
+          # en E422 « repository.url is "" » APRÈS que la signature soit entrée au log de
+          # transparence — la version n'existe alors nulle part, et la relance est sûre.
 
       # Version runtime = `apps/echoppe-api/package.json` (paire `fixed` avec admin). Un bump runtime ne publie
       # RIEN sur npm (privé) → on ne peut pas se fier à `published` : on détecte le bump par l'ABSENCE

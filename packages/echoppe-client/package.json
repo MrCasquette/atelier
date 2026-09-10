@@ -2,6 +2,11 @@
   "name": "@axiome-apps/echoppe-client",
   "version": "0.8.0",
   "description": "SDK client typé pour l'API Échoppe — généré depuis l'OpenAPI.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrCasquette/atelier.git",
+    "directory": "packages/echoppe-client"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
