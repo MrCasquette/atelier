@@ -2,6 +2,11 @@
   "name": "create-echoppe",
   "version": "0.2.1",
   "description": "Scaffolde une boutique Astro connectée à une API Échoppe.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrCasquette/atelier.git",
+    "directory": "packages/create-echoppe"
+  },
   "type": "module",
   "bin": {
     "create-echoppe": "dist/index.js"
