@@ -34,6 +34,44 @@ const make = <K extends string, const O extends object = object>(
   options?: O,
 ): { kind: K } & O => Object.assign({ kind }, options);
 
+/**
+ * Les deux fabriques qui PORTENT UN TYPE dans leur retour — `of: D` — se déclarent ici, en dehors du
+ * littéral, parce qu'un littéral d'objet n'admet pas de surcharges. Et il leur en faut.
+ *
+ * Un paramètre de type optionnel (`const O … = object`) ne prend PAS son défaut quand l'argument est
+ * omis : il prend le type CONTEXTUEL de l'appel. En position de champ, ce contexte est `Fields`,
+ * donc `ComponentField` / `ListField`, dont le `of: Definition` LARGE s'intersecte avec le `of`
+ * littéral et l'écrase. `f.component(inner)` rendait alors facultatifs les champs requis de `inner`,
+ * là où `f.component(inner, {})` restait juste — un piège d'autant plus mauvais que la forme fautive
+ * est la plus naturelle à écrire.
+ *
+ * Sans second paramètre de type, la surcharge sans options ne produit aucune intersection : il n'y a
+ * plus rien à contaminer. Les autres fabriques gardent leur défaut sans risque — leur descripteur ne
+ * porte aucun type à préserver, et l'intersection avec lui-même est inoffensive.
+ */
+function component<const D extends Definition>(of: D): { kind: 'component'; of: D };
+function component<const D extends Definition, const O extends Omit<Options<ComponentField>, 'of'>>(
+  of: D,
+  options: O,
+): { kind: 'component'; of: D } & O;
+function component<const D extends Definition>(
+  of: D,
+  options?: object,
+): { kind: 'component'; of: D } {
+  return Object.assign({ kind: 'component' as const, of }, options);
+}
+
+function list<const D extends Definition>(of: D): { kind: 'list'; of: D };
+function list<const D extends Definition, const O extends Omit<Options<ListField>, 'of'>>(
+  of: D,
+  options: O,
+): { kind: 'list'; of: D } & O;
+function list<const D extends Definition>(of: D, options?: object): { kind: 'list'; of: D } {
+  // La fusion de `of` empêche de router par `make` ; même mécanique d'intersection, appliquée
+  // directement.
+  return Object.assign({ kind: 'list' as const, of }, options);
+}
+
 export const field = {
   text<const O extends Options<TextField> = object>(options?: O): { kind: 'text' } & O {
     return make('text', options);
@@ -70,23 +108,11 @@ export const field = {
   // `component(of)` imbrique un type nommé à un seul exemplaire. Écrire la Definition NUE
   // (`cta: link`) reste valide et produit la même donnée ; ce builder existe pour porter la méta
   // d'usage — `required` en premier lieu —, qu'une Definition ne peut pas loger (ADR-0075).
-  component<
-    const D extends Definition,
-    const O extends Omit<Options<ComponentField>, 'of'> = object,
-  >(of: D, options?: O): { kind: 'component'; of: D } & O {
-    return Object.assign({ kind: 'component' as const, of }, options);
-  },
+  component,
 
   // `list(of)` répète un type nommé (component). `of` est passé par référence pour l'auto-collecte
   // ET l'inférence (`InferData<of>[]`).
-  list<const D extends Definition, const O extends Omit<Options<ListField>, 'of'> = object>(
-    of: D,
-    options?: O,
-  ): { kind: 'list'; of: D } & O {
-    // La fusion de `of` empêche de router par `make` ; même mécanique d'intersection, appliquée
-    // directement.
-    return Object.assign({ kind: 'list' as const, of }, options);
-  },
+  list,
 
   repeater<const O extends Options<RepeaterField>>(options: O): { kind: 'repeater' } & O {
     return make('repeater', options);
