@@ -1,6 +1,6 @@
 {
   "name": "@axiome-apps/atelier-content",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Déclaration de contenu config-as-code — sections, composants, entités et champs typés, synchronisés vers l'API. Partagé par Échoppe et Prisme.",
   "repository": {
     "type": "git",
