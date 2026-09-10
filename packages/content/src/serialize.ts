@@ -38,7 +38,10 @@ function serializeField(
   registry: Registry,
   registered: Map<string, Definition>,
 ): SerializedField {
-  // Component imbriqué by-reference (ex. `cta: link`) → ref par nom + auto-collecte.
+  // Component imbriqué écrit NU (ex. `cta: link`) → ref par nom + auto-collecte. Il ne porte
+  // aucune méta, faute d'endroit où l'écrire : la forme qui en porte est `f.component` (ADR-0075),
+  // traitée dans le switch. Les deux sérialisent vers le même `kind: 'component'`, et une
+  // déclaration nue pousse donc exactement le JSON qu'elle poussait avant.
   if (value.kind === 'definition') {
     collectComponent(value, registry, registered);
     return { name, kind: 'component', of: value.name };
@@ -56,6 +59,17 @@ function serializeField(
         required: value.required,
         default: value.default,
       };
+    case 'component': {
+      collectComponent(value.of, registry, registered);
+      return {
+        name,
+        kind: 'component',
+        of: value.of.name,
+        label: value.label,
+        hint: value.hint,
+        required: value.required,
+      };
+    }
     case 'list': {
       collectComponent(value.of, registry, registered);
       return {

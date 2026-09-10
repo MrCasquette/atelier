@@ -66,7 +66,14 @@ export default [
   },
 
   // Composants Vue : le parser lit le <template>, sans quoi tout y paraît inutilisé.
-  ...vue.configs['flat/recommended'],
+  //
+  // Le preset s'étale en blocs dont trois ne portent AUCUN `files` — étalés tels quels, ils
+  // régissent tout le dépôt, et une règle qui ne parle que de Vue s'invite dans un `.ts` de paquet
+  // partagé. C'est arrivé : `f.component(link)` a déclenché `vue/one-component-per-file`. On les
+  // borne au support qu'ils décrivent, sans toucher ceux qui se bornent déjà.
+  ...vue.configs['flat/recommended'].map((block) =>
+    block.files ? block : { ...block, files: ['**/*.vue'] },
+  ),
   {
     files: ['**/*.vue'],
     languageOptions: {
