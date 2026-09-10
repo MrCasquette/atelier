@@ -1,5 +1,18 @@
 # @echoppe/content
 
+## 0.6.1
+
+### Patch Changes
+
+- b44ebfd: Chaque paquet publié déclare le dépôt d'où il vient — `repository`, `directory` compris.
+
+  npm signe la provenance de lui-même sous trusted publishing, et refuse la publication d'un paquet qui
+  ne nomme pas son dépôt d'origine. Rien ne change pour un consommateur : c'est une métadonnée, qui
+  donne à npm le lien vers le source du paquet dans le monorepo.
+
+- Updated dependencies [b44ebfd]
+  - @axiome-apps/atelier-prose@0.1.1
+
 ## 0.6.0
 
 ### Minor Changes

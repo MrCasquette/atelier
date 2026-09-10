@@ -1,6 +1,6 @@
 {
   "name": "@axiome-apps/echoppe-client",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "SDK client typé pour l'API Échoppe — généré depuis l'OpenAPI.",
   "repository": {
     "type": "git",
