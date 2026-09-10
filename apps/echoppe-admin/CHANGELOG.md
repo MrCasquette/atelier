@@ -1,5 +1,13 @@
 # @echoppe/admin
 
+## 0.9.2
+
+### Patch Changes
+
+- Updated dependencies [b44ebfd]
+  - @axiome-apps/atelier-prose@0.1.1
+  - @echoppe/api@0.9.2
+
 ## 0.9.1
 
 ### Patch Changes

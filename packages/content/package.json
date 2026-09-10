@@ -1,6 +1,6 @@
 {
   "name": "@axiome-apps/atelier-content",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Déclaration de contenu config-as-code — sections, composants, entités et champs typés, synchronisés vers l'API. Partagé par Échoppe et Prisme.",
   "repository": {
     "type": "git",
@@ -43,7 +43,7 @@
   "author": "MrCasquette",
   "license": "CECILL-2.1",
   "dependencies": {
-    "@axiome-apps/atelier-prose": "^0.1.0"
+    "@axiome-apps/atelier-prose": "^0.1.1"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
